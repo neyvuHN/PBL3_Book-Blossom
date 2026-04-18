@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="BookBlossom.Core/BookBlossom.Core.csproj" />
+  <Project Path="BookBlossom.Infrastructure/BookBlossom.Infrastructure.csproj" />
+  <Project Path="BookBlossom.Tests/BookBlossom.Tests.csproj" />
+  <Project Path="BookBlossom.Web/BookBlossom.Web.csproj" />
+</Solution>
