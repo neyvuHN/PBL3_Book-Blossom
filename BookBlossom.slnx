@@ -1,6 +1,0 @@
-<Solution>
-  <Folder Name="/src/" />
-  <Folder Name="/src/BE/">
-    <Project Path="src/BE/BookBlossom.Web/BookBlossom.Web.csproj" />
-  </Folder>
-</Solution>
