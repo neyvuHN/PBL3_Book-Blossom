@@ -5,12 +5,14 @@ namespace BookBlossom.Web.Areas.Management.Controllers
 {
     [Area("Management")]
     [Route("api/management/[controller]")]
+    [ApiController]
     [Authorize(Policy = "StoreManagerOnly")]
-    public class InventoryController : Controller
+    public class InventoryController : ControllerBase
     {
+        [HttpGet]
         public IActionResult Index()
         {
-            return View();
+            return Ok(new { message = "Inventory API - StoreManager Only" });
         }
     }
 }

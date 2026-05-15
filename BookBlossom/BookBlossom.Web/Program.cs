@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using System.Text;
 using System.Security.Claims;
+using Microsoft.OpenApi;                 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,7 +46,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "BookBlossom API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập JWT token (ví dụ: Bearer eyJhbGciOiJ...)"
+    });
+
+    // ✅ Cú pháp mới cho .NET 10 / Swashbuckle mới
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddAuthorization(options =>
