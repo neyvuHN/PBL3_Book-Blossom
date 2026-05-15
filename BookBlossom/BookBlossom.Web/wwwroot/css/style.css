@@ -14,8 +14,8 @@ body {
 
 /* Left Side: Image */
 .image-section {
-    flex: 1.2;
-    background: url('/images/book.jpg') no-repeat center center;
+    flex: 0.8;
+    background: url('/images/book.jpg') no-repeat center 75%;
     background-size: cover;
 }
 
@@ -97,13 +97,37 @@ body {
     color: #aaa;
 }
 
+/* Form Row for side-by-side inputs */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Select element styling */
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #000;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-family: inherit;
+    background-color: #fff;
+}
+
+
 /* Password Wrapper */
 .password-wrapper {
     position: relative;
 }
 
 .password-wrapper input {
-    padding-right: 80px; /* Space for eye toggle */
+    padding-right: 80px;
+    /* Space for eye toggle */
 }
 
 .eye-toggle {
@@ -162,7 +186,7 @@ body {
     color: #000;
     cursor: pointer;
     transition: background-color 0.3s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .btn-submit:hover {
@@ -244,11 +268,24 @@ body {
     text-decoration: underline;
 }
 
+/* Standalone Register Container (No side image) */
+.register-standalone-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #fff;
+    padding: 40px 20px;
+}
+
 /* Responsive */
+
 @media (max-width: 1024px) {
     .image-section {
-        display: none; /* Hide image on smaller screens */
+        display: none;
+        /* Hide image on smaller screens */
     }
+
     .form-section {
         flex: 1;
     }
