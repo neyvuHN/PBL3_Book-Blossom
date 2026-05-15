@@ -1,0 +1,175 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+
+using BookBlossom.Core.Entities;
+using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Core.DTOs.Auth;
+using BookBlossom.Core.Exceptions;
+using BookBlossom.Infrastructure.Data;
+
+namespace BookBlossom.Infrastructure.Services
+{
+    public class AuthService : IAuthService
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+
+        public AuthService(ApplicationDbContext context, IConfiguration configuration)
+        {
+            _context = context;
+            _configuration = configuration;
+        }
+
+        public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+            
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+                throw new UnauthorizedActionException("Tên đăng nhập hoặc mật khẩu không chính xác.");
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, user.RoleID.ToString())
+            };
+
+            var token = CreateJwtToken(claims);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+            await _context.SaveChangesAsync();
+
+            return new AuthResponseDTO 
+            { 
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                RefreshToken = refreshToken,
+                UserId = user.UserID,
+                UserName = user.UserName, 
+                RoleID = user.RoleID 
+            };
+        }
+
+        public async Task<bool> RegisterAsync(RegisterRequestDTO request)
+        {
+            if (await _context.Users.AnyAsync(u => u.UserName == request.UserName))
+            {
+                throw new Exception("Tên đăng nhập đã tồn tại trong hệ thống.");
+            }
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            var newUser = new User
+            {
+                UserName = request.UserName,
+                Password = hashedPassword,
+                RoleID = 2, 
+            };
+
+            _context.Users.Add(newUser);
+            
+            var customerDetail = new CustomerDetail
+            {
+                CustomerID = newUser.UserID,
+                User = newUser,
+                IsOnboardingCompleted = false,
+                TotalSpending = 0,
+                DailyUndoCount = 0
+            };
+            _context.CustomerDetails.Add(customerDetail);
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<AuthResponseDTO> RefreshTokenAsync(TokenRequestDTO request)
+        {
+            string accessToken = request.AccessToken;
+            string refreshToken = request.RefreshToken;
+
+            var principal = GetPrincipalFromExpiredToken(accessToken);
+            if (principal == null)
+            {
+                throw new Exception("Access Token không hợp lệ.");
+            }
+
+            var userName = principal.Identity.Name; 
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+            {
+                throw new Exception("Refresh Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
+            }
+
+            var newAccessToken = CreateJwtToken(principal.Claims.ToList());
+            var newRefreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            await _context.SaveChangesAsync();
+
+            return new AuthResponseDTO
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(newAccessToken),
+                RefreshToken = newRefreshToken,
+                UserId = user.UserID,
+                UserName = user.UserName,
+                RoleID = user.RoleID
+            };
+        }
+
+        private JwtSecurityToken CreateJwtToken(List<Claim> claims)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            return new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(15), 
+                signingCredentials: creds
+            );
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidIssuer = _configuration["Jwt:Issuer"],
+                ValidAudience = _configuration["Jwt:Audience"],
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"])),
+                ValidateLifetime = false
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new SecurityTokenException("Token không đúng định dạng an toàn.");
+            }
+
+            return principal;
+        }
+    }
+}

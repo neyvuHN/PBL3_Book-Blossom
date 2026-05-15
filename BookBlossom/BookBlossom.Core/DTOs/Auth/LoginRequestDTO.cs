@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BookBlossom.Core.DTOs
+namespace BookBlossom.Core.DTOs.Auth
 {
     public class LoginRequestDTO
     {

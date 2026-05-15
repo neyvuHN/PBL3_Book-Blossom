@@ -18,8 +18,12 @@ namespace BookBlossom.Core.Entities
         public string? Gender { get; set; }
         public DateTime? Birthday { get; set; }
         public bool? IsActive { get; set; }
+        
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
 
         public virtual StaffDetail StaffDetail { get; set; }
         public virtual CustomerDetail CustomerDetail { get; set; }
+        public virtual GuestDetail GuestDetail { get; set; }
     }
 }
