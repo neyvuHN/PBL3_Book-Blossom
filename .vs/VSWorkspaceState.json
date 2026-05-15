@@ -1,6 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\BookBlossom",
+    "\\BookBlossom\\BookBlossom.Core\\Enums"
   ],
+  "SelectedNode": "\\BookBlossom\\BookBlossom.Web",
   "PreviewInSolutionExplorer": false
 }
