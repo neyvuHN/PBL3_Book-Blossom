@@ -206,108 +206,222 @@
         <div class="container">
             <!-- Search Bar -->
             <div class="search-container">
-                <input type="text" placeholder="Search books, authors, genres..." class="search-input">
-                <button class="search-btn"><i class="fas fa-search"></i></button>
+                <input type="text" placeholder="Search books, authors, genres..." class="search-input" id="search-input">
+                <button class="search-btn" id="search-submit-btn"><i class="fas fa-search"></i></button>
             </div>
 
-            <!-- Categories / Tags -->
-            <div class="category-tags">
-                <span class="tag active">All</span>
-                <span class="tag">Fiction</span>
-                <span class="tag">Skills</span>
-                <span class="tag">Economics</span>
-                <span class="tag">Psychology</span>
-                <span class="tag">History</span>
+            <!-- Actions and Categories -->
+            <div class="explore-header-actions">
+                <div class="left-action">
+                    <button class="btn-toggle-filter" id="btn-toggle-filter">
+                        <i class="fas fa-sliders-h"></i> Hide filters
+                    </button>
+                </div>
+                
+                <!-- Categories / Tags (Centered) -->
+                <div class="category-tags">
+                    <span class="tag active">All</span>
+                    <span class="tag">Fiction</span>
+                    <span class="tag">Skills</span>
+                    <span class="tag">Economics</span>
+                    <span class="tag">Psychology</span>
+                    <span class="tag">History</span>
+                </div>
+                
+                <div class="right-action" style="visibility: hidden;">
+                    <!-- Spacer to keep center balanced -->
+                    <button class="btn-toggle-filter">Hide filters</button>
+                </div>
             </div>
 
-            <!-- Book Grid -->
-            <div class="book-grid">
-                <!-- 8 Books -->
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 1">
-                    <div class="book-info">
-                        <h3>How to Win Friends</h3>
-                        <p>Dale Carnegie</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.8</span>
-                            <span class="price">Free</span>
+            <div class="explore-layout" id="explore-layout">
+                <!-- Sidebar Filter (Shown by default) -->
+                <aside class="filter-sidebar" id="filter-sidebar">
+                    <div class="sidebar-header">
+                        <h3>Search Filters</h3>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h4>Author</h4>
+                        <div class="filter-options">
+                            <label><input type="checkbox"> J.K. Rowling</label>
+                            <label><input type="checkbox"> Dale Carnegie</label>
+                            <label><input type="checkbox"> Paulo Coelho</label>
+                            <label><input type="checkbox"> Napoleon Hill</label>
                         </div>
                     </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 2">
-                    <div class="book-info">
-                        <h3>The Alchemist</h3>
-                        <p>Paulo Coelho</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.7</span>
-                            <span class="price">Free</span>
+
+                    <div class="filter-group">
+                        <h4>Genres</h4>
+                        <div class="filter-options">
+                            <label><input type="checkbox"> Fiction</label>
+                            <label><input type="checkbox"> Skills</label>
+                            <label><input type="checkbox"> Economics</label>
+                            <label><input type="checkbox"> Psychology</label>
+                            <label><input type="checkbox"> History</label>
                         </div>
                     </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 3">
-                    <div class="book-info">
-                        <h3>Think and Grow Rich</h3>
-                        <p>Napoleon Hill</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.5</span>
-                            <span class="price">Free</span>
+
+                    <div class="filter-group">
+                        <h4>Price <span class="price-note">(thousands VNĐ)</span></h4>
+                        <div class="price-slider-container">
+                            <div class="slider-track" id="price-slider-track"></div>
+                            <input type="range" min="0" max="1000" value="0" id="price-min" class="price-range-input">
+                            <div class="slider-tooltip" id="tooltip-min">0</div>
+                            
+                            <input type="range" min="0" max="1000" value="1000" id="price-max" class="price-range-input">
+                            <div class="slider-tooltip" id="tooltip-max">1000</div>
+                        </div>
+                        <div class="price-inputs">
+                            <input type="number" id="price-min-input" value="0" min="0" class="price-num-input">
+                            <span>to</span>
+                            <input type="number" id="price-max-input" value="1000" min="0" class="price-num-input">
                         </div>
                     </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 4">
-                    <div class="book-info">
-                        <h3>The 7 Habits</h3>
-                        <p>Stephen R. Covey</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.6</span>
-                            <span class="price">Free</span>
+
+                    <div class="filter-group">
+                        <h4>Publisher</h4>
+                        <div class="filter-options">
+                            <label><input type="checkbox"> NXB Trẻ</label>
+                            <label><input type="checkbox"> NXB Kim Đồng</label>
+                            <label><input type="checkbox"> NXB Tổng hợp</label>
                         </div>
                     </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 5">
-                    <div class="book-info">
-                        <h3>Atomic Habits</h3>
-                        <p>James Clear</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.9</span>
-                            <span class="price">Free</span>
+
+                    <div class="filter-group">
+                        <h4>Publish Year</h4>
+                        <div class="year-range-inputs">
+                            <div class="custom-dropdown" id="year-from-dropdown">
+                                <div class="dropdown-header">
+                                    <input type="text" id="publish-year-from" class="dropdown-input" placeholder="From">
+                                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                                </div>
+                                <ul class="dropdown-list">
+                                    <li>2024</li>
+                                    <li>2023</li>
+                                    <li>2022</li>
+                                    <li>2021</li>
+                                    <li>2020</li>
+                                    <li>2019</li>
+                                    <li>2018</li>
+                                </ul>
+                            </div>
+                            
+                            <span>to</span>
+                            
+                            <div class="custom-dropdown" id="year-to-dropdown">
+                                <div class="dropdown-header">
+                                    <input type="text" id="publish-year-to" class="dropdown-input" placeholder="To">
+                                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                                </div>
+                                <ul class="dropdown-list">
+                                    <li>2024</li>
+                                    <li>2023</li>
+                                    <li>2022</li>
+                                    <li>2021</li>
+                                    <li>2020</li>
+                                    <li>2019</li>
+                                    <li>2018</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 6">
-                    <div class="book-info">
-                        <h3>The Power of Now</h3>
-                        <p>Eckhart Tolle</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.4</span>
-                            <span class="price">Free</span>
+                    
+                    <button class="btn-apply-filters">Apply</button>
+                </aside>
+
+                <div class="explore-content">
+
+                    <!-- Book Grid -->
+                    <div class="book-grid">
+                        <!-- 8 Books -->
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 1">
+                            <div class="book-info">
+                                <h3>How to Win Friends</h3>
+                                <p>Dale Carnegie</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.8</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 7">
-                    <div class="book-info">
-                        <h3>Zero to One</h3>
-                        <p>Peter Thiel</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.6</span>
-                            <span class="price">Free</span>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 2">
+                            <div class="book-info">
+                                <h3>The Alchemist</h3>
+                                <p>Paulo Coelho</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.7</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Book 8">
-                    <div class="book-info">
-                        <h3>Good to Great</h3>
-                        <p>Jim Collins</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.7</span>
-                            <span class="price">Free</span>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 3">
+                            <div class="book-info">
+                                <h3>Think and Grow Rich</h3>
+                                <p>Napoleon Hill</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.5</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 4">
+                            <div class="book-info">
+                                <h3>The 7 Habits</h3>
+                                <p>Stephen R. Covey</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.6</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 5">
+                            <div class="book-info">
+                                <h3>Atomic Habits</h3>
+                                <p>James Clear</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.9</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 6">
+                            <div class="book-info">
+                                <h3>The Power of Now</h3>
+                                <p>Eckhart Tolle</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.4</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 7">
+                            <div class="book-info">
+                                <h3>Zero to One</h3>
+                                <p>Peter Thiel</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.6</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 8">
+                            <div class="book-info">
+                                <h3>Good to Great</h3>
+                                <p>Jim Collins</p>
+                                <div class="book-meta">
+                                    <span class="rating">⭐ 4.7</span>
+                                    <span class="price">Free</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -440,6 +554,123 @@
                 showDedicatedCommunity();
             });
 
+            // Filter Sidebar Toggle
+            const $filterSidebar = $('#filter-sidebar');
+            const $toggleFilterBtn = $('#btn-toggle-filter');
+            
+            $toggleFilterBtn.on('click', function() {
+                $filterSidebar.toggle();
+                const isVisible = $filterSidebar.is(':visible');
+                $(this).html(isVisible ? '<i class="fas fa-sliders-h"></i> Hide filters' : '<i class="fas fa-sliders-h"></i> Show filters');
+            });
+
+            // Price Slider Logic
+            const $priceMin = $('#price-min');
+            const $priceMax = $('#price-max');
+            const $priceMinInput = $('#price-min-input');
+            const $priceMaxInput = $('#price-max-input');
+            const $tooltipMin = $('#tooltip-min');
+            const $tooltipMax = $('#tooltip-max');
+            const $sliderTrack = $('#price-slider-track');
+            
+            function fillTrack() {
+                const percent1 = ($priceMin.val() / $priceMin.attr('max')) * 100;
+                const percent2 = ($priceMax.val() / $priceMax.attr('max')) * 100;
+                $sliderTrack.css('background', `linear-gradient(to right, #e9ecef ${percent1}%, #EEC7C9 ${percent1}%, #EEC7C9 ${percent2}%, #e9ecef ${percent2}%)`);
+            }
+            
+            function updateTooltips() {
+                const val1 = $priceMin.val();
+                const val2 = $priceMax.val();
+                const percent1 = (val1 / $priceMin.attr('max')) * 100;
+                const percent2 = (val2 / $priceMax.attr('max')) * 100;
+                
+                $tooltipMin.text(val1).css('left', `${percent1}%`);
+                $tooltipMax.text(val2).css('left', `${percent2}%`);
+            }
+
+            function updateInputs() {
+                $priceMinInput.val($priceMin.val());
+                $priceMaxInput.val($priceMax.val());
+            }
+
+            $priceMin.on('input', function() {
+                if (parseInt($priceMin.val()) > parseInt($priceMax.val())) {
+                    $priceMin.val($priceMax.val());
+                }
+                updateInputs();
+                updateTooltips();
+                fillTrack();
+            });
+
+            $priceMax.on('input', function() {
+                if (parseInt($priceMax.val()) < parseInt($priceMin.val())) {
+                    $priceMax.val($priceMin.val());
+                }
+                updateInputs();
+                updateTooltips();
+                fillTrack();
+            });
+            
+            // Manual Input Logic
+            $priceMinInput.on('input', function() {
+                let val = parseInt($(this).val());
+                if (isNaN(val)) return;
+                
+                let sliderVal = val;
+                if (sliderVal > 1000) sliderVal = 1000;
+                if (sliderVal < 0) sliderVal = 0;
+                
+                const currentMax = parseInt($priceMax.val());
+                if (sliderVal > currentMax) {
+                    sliderVal = currentMax;
+                }
+                
+                $priceMin.val(sliderVal);
+                updateTooltips();
+                fillTrack();
+            });
+
+            $priceMaxInput.on('input', function() {
+                let val = parseInt($(this).val());
+                if (isNaN(val)) return;
+                
+                let sliderVal = val;
+                if (sliderVal > 1000) sliderVal = 1000;
+                if (sliderVal < 0) sliderVal = 0;
+                
+                const currentMin = parseInt($priceMin.val());
+                if (sliderVal < currentMin) {
+                    sliderVal = currentMin;
+                }
+                
+                $priceMax.val(sliderVal);
+                updateTooltips();
+                fillTrack();
+            });
+            
+            // Initial fill
+            fillTrack();
+            updateInputs();
+            updateTooltips();
+
+            // Search logic (Mock)
+            const $searchInput = $('#search-input');
+            const $searchBtn = $('#search-submit-btn');
+
+            $searchBtn.on('click', function() {
+                const query = $searchInput.val().trim();
+                if (query !== '') {
+                    console.log(`Searching for: ${query}`);
+                }
+            });
+
+            $searchInput.on('keypress', function(e) {
+                if (e.which == 13) {
+                    $searchBtn.click();
+                }
+            });
+
             // Slider logic
             function setupSlider(sliderId) {
                 const $track = $(`#${sliderId} .slider-track`);
@@ -479,6 +710,39 @@
             $('.category-tags .tag').on('click', function() {
                 $('.category-tags .tag').removeClass('active');
                 $(this).addClass('active');
+            });
+
+            // Custom Dropdown Logic
+            $('.custom-dropdown').each(function() {
+                const $dropdown = $(this);
+                const $input = $dropdown.find('.dropdown-input');
+                const $list = $dropdown.find('.dropdown-list');
+                const $icon = $dropdown.find('.dropdown-icon');
+                
+                // Toggle open on click (header or arrow)
+                $dropdown.find('.dropdown-header').on('click', function(e) {
+                    if (e.target !== $input[0]) {
+                        $dropdown.toggleClass('open');
+                    }
+                });
+                
+                // Open on focus
+                $input.on('focus', function() {
+                    $dropdown.addClass('open');
+                });
+                
+                // Select item
+                $dropdown.find('li').on('click', function() {
+                    $input.val($(this).text());
+                    $dropdown.removeClass('open');
+                });
+                
+                // Close on click outside
+                $(document).on('click', function(e) {
+                    if (!$dropdown.is(e.target) && $dropdown.has(e.target).length === 0) {
+                        $dropdown.removeClass('open');
+                    }
+                });
             });
         });
     </script>
