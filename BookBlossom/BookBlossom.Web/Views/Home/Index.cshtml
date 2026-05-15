@@ -183,7 +183,7 @@
                 <div class="tindbook-content">
                     <h2>Tindbook</h2>
                     <p>Don't know what to read next? Let Tindbook help you. Swipe right to save, swipe left to skip. Finding your soulmate book has never been this easy!</p>
-                    <a href="#" class="btn-cta">Try It Now</a>
+                    <a href="#" id="btn-try-tindbook" class="btn-cta">Try It Now</a>
                 </div>
             </div>
         </section>
@@ -494,6 +494,115 @@
         </div>
     </section>
 
+    <!-- Tindbook Feature Section (Hidden by default) -->
+    <section id="tindbook-feature" class="explore-section" style="display: none;">
+        <div class="container">
+            <h2 class="text-center mb-4" style="font-family: 'Lora', serif; font-size: 2.5rem;">Tindbook</h2>
+            <p class="text-center text-muted mb-5">Swipe RIGHT to like, LEFT to hide, UP to add and DOWN to skip. Find your soulmate book now!</p>
+            
+            <div class="tindbook-app-container">
+                <div class="tindbook-action-label"></div>
+                <div class="tindbook-card-stack">
+                    <div class="tindbook-hover-overlay">
+                        <span>Start Swiping</span>
+                    </div>
+                    <!-- Book Card 1 -->
+                    <div class="tindbook-card" data-book-id="1">
+                        <div class="card-image">
+                            <img src="/images/Book/book1.jpg" alt="Book Cover" draggable="false">
+                            <div class="card-tags">
+                                <span class="tag-genre">Self-Help</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div>
+                                <h3>How to Win Friends</h3>
+                                <p class="author">by Dale Carnegie</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                    <span>4.8</span>
+                                </div>
+                            </div>
+                            <p class="summary">A classic book on how to improve your human relations skills and become more influential.</p>
+                        </div>
+                    </div>
+
+                    <!-- Book Card 2 -->
+                    <div class="tindbook-card" data-book-id="2">
+                        <div class="card-image">
+                            <img src="/images/Book/book1.jpg" alt="Book Cover" draggable="false">
+                            <div class="card-tags">
+                                <span class="tag-genre">Fiction</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div>
+                                <h3>The Alchemist</h3>
+                                <p class="author">by Paulo Coelho</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <span>5.0</span>
+                                </div>
+                            </div>
+                            <p class="summary">A magical story about an Andalusian shepherd boy who yearns to travel in search of a worldly treasure.</p>
+                        </div>
+                    </div>
+
+                    <!-- Book Card 3 -->
+                    <div class="tindbook-card" data-book-id="3">
+                        <div class="card-image">
+                            <img src="/images/Book/book1.jpg" alt="Book Cover" draggable="false">
+                            <div class="card-tags">
+                                <span class="tag-genre">Psychology</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div>
+                                <h3>Atomic Habits</h3>
+                                <p class="author">by James Clear</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <span>4.9</span>
+                                </div>
+                            </div>
+                            <p class="summary">No matter your goals, Atomic Habits offers a proven framework for improving every day.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tindbook-controls">
+                <button class="control-btn btn-back" id="btn-undo">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button class="control-btn btn-nope" id="btn-nope">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button class="control-btn btn-super" id="btn-super">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button class="control-btn btn-like" id="btn-like">
+                    <i class="fas fa-heart"></i>
+                </button>
+                <button class="control-btn btn-skip" id="btn-skip">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="premium-footer">
         <div class="container">
@@ -516,6 +625,7 @@
             const $mainContent = $('#main-content');
             const $exploreSection = $('#explore-section');
             const $dedicatedCommunity = $('#dedicated-community');
+            const $tindbookFeature = $('#tindbook-feature');
             const $mainNavbar = $('#main-navbar');
             const $navLinks = $('.nav-links a');
 
@@ -543,6 +653,7 @@
                 $mainContent.show();
                 $exploreSection.hide();
                 $dedicatedCommunity.hide();
+                $tindbookFeature.hide();
                 $mainNavbar.removeClass('navbar-light');
                 setActiveTab($navHome);
             }
@@ -551,6 +662,7 @@
                 $mainContent.hide();
                 $exploreSection.show();
                 $dedicatedCommunity.hide();
+                $tindbookFeature.hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navExplore);
             }
@@ -559,8 +671,19 @@
                 $mainContent.hide();
                 $exploreSection.hide();
                 $dedicatedCommunity.show();
+                $tindbookFeature.hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navCommunity);
+            }
+
+            function showTindbook() {
+                $mainContent.hide();
+                $exploreSection.hide();
+                $dedicatedCommunity.hide();
+                $tindbookFeature.show();
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navTindbook);
+                updateCards(); // Ensure cards are positioned correctly
             }
 
             $navExplore.on('click', function(e) {
@@ -580,13 +703,239 @@
 
             $navTindbook.on('click', function(e) {
                 e.preventDefault();
-                if ($exploreSection.is(':visible') || $dedicatedCommunity.is(':visible')) {
-                    showHome();
+                showTindbook();
+            });
+
+            $('#btn-try-tindbook').on('click', function(e) {
+                e.preventDefault();
+                showTindbook();
+            });
+
+            // Tindbook Logic
+            let currentCardIndex = 0;
+            const $cards = $('.tindbook-card');
+            let isDragging = false;
+            let startX, startY;
+            let currentX, currentY;
+            
+            function updateCards() {
+                $cards.each(function(index) {
+                    const $card = $(this);
+                    if (index < currentCardIndex) {
+                        $card.css('opacity', '0');
+                        $card.css('pointer-events', 'none');
+                    } else if (index === currentCardIndex) {
+                        $card.css('transform', 'translateX(0) translateY(0) rotate(0)');
+                        $card.css('opacity', '1');
+                        $card.css('z-index', '3');
+                        $card.css('pointer-events', 'auto');
+                    } else if (index === currentCardIndex + 1) {
+                        $card.css('transform', 'translateX(0) translateY(15px) scale(0.95)');
+                        $card.css('opacity', '0.8');
+                        $card.css('z-index', '2');
+                        $card.css('pointer-events', 'none');
+                    } else if (index === currentCardIndex + 2) {
+                        $card.css('transform', 'translateX(0) translateY(30px) scale(0.9)');
+                        $card.css('opacity', '0.5');
+                        $card.css('z-index', '1');
+                        $card.css('pointer-events', 'none');
+                    } else {
+                        $card.css('transform', 'translateX(0) translateY(45px) scale(0.85)');
+                        $card.css('opacity', '0');
+                        $card.css('z-index', '0');
+                        $card.css('pointer-events', 'none');
+                    }
+                });
+            }
+            
+            function swipe(direction) {
+                if (currentCardIndex >= $cards.length) return;
+                
+                const $card = $cards.eq(currentCardIndex);
+                $card.css('transition', 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s');
+                
+                switch(direction) {
+                    case 'right':
+                        $card.css('transform', 'translateX(200%) rotate(30deg)');
+                        console.log("Liked -> Saved to Wishlist");
+                        break;
+                    case 'left':
+                        $card.css('transform', 'translateX(-200%) rotate(-30deg)');
+                        console.log("Disliked -> Hidden");
+                        break;
+                    case 'up':
+                        $card.css('transform', 'translateY(-200%) scale(1.1)');
+                        console.log("Super Liked -> Added to Cart");
+                        break;
+                    case 'down':
+                        $card.css('transform', 'translateY(200%)');
+                        console.log("Skipped");
+                        break;
                 }
-                $('html, body').animate({
-                    scrollTop: $('#tindbook').offset().top - 80
-                }, 500);
-                setActiveTab($navTindbook);
+                
+                $card.css('opacity', '0');
+                currentCardIndex++;
+                setTimeout(updateCards, 300);
+            }
+            
+            $('#btn-nope').on('click', function() {
+                swipe('left');
+            });
+            
+            $('#btn-like').on('click', function() {
+                swipe('right');
+            });
+            
+            $('#btn-super').on('click', function() {
+                swipe('up');
+            });
+
+            $('#btn-skip').on('click', function() {
+                swipe('down');
+            });
+
+            $('#btn-undo').on('click', function() {
+                if (currentCardIndex > 0) {
+                    currentCardIndex--;
+                    const $card = $cards.eq(currentCardIndex);
+                    $card.css('transition', 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s');
+                    updateCards();
+                }
+            });
+
+            // Fullscreen toggle
+            const $hoverOverlay = $('.tindbook-hover-overlay');
+
+            $hoverOverlay.on('click', function() {
+                $('#tindbook-feature').addClass('fullscreen-focus');
+                $hoverOverlay.hide();
+            });
+
+            // Click outside to exit
+            $(document).on('click', function(e) {
+                if ($('#tindbook-feature').hasClass('fullscreen-focus')) {
+                    if (!$(e.target).closest('.tindbook-app-container').length && !$(e.target).closest('.tindbook-controls').length && !$(e.target).closest('.tindbook-hover-overlay').length) {
+                        $('#tindbook-feature').removeClass('fullscreen-focus');
+                        $hoverOverlay.show();
+                    }
+                }
+            });
+
+            // Drag Gestures
+            $cards.on('mousedown touchstart', function(e) {
+                const cardIndex = $cards.index(this);
+                if (cardIndex !== currentCardIndex) return;
+                isDragging = true;
+                const event = e.originalEvent && e.originalEvent.touches ? e.originalEvent.touches[0] : e;
+                startX = event.clientX || event.pageX;
+                startY = event.clientY || event.pageY;
+                currentX = startX;
+                currentY = startY;
+                $(this).css('transition', 'none');
+            });
+
+            $(document).on('mousemove touchmove', function(e) {
+                if (!isDragging) return;
+                const event = e.originalEvent && e.originalEvent.touches ? e.originalEvent.touches[0] : e;
+                currentX = event.clientX || event.pageX;
+                currentY = event.clientY || event.pageY;
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                const rotate = deltaX * 0.1;
+                
+                const $card = $cards.eq(currentCardIndex);
+                $card.css('transform', `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`);
+
+                // Visual Feedback
+                const threshold = 50;
+                $('.control-btn').removeClass('active');
+                $('.tindbook-action-label').text('').css('opacity', '0');
+
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (deltaX > threshold) {
+                        $('#btn-like').addClass('active');
+                        $('.tindbook-action-label').text('Save to Wishlist').css('opacity', '1').css('color', '#4caf50');
+                    } else if (deltaX < -threshold) {
+                        $('#btn-nope').addClass('active');
+                        $('.tindbook-action-label').text('Hide book').css('opacity', '1').css('color', '#f44336');
+                    }
+                } else {
+                    if (deltaY > threshold) {
+                        $('#btn-skip').addClass('active');
+                        $('.tindbook-action-label').text('Skip').css('opacity', '1').css('color', '#9e9e9e');
+                    } else if (deltaY < -threshold) {
+                        $('#btn-super').addClass('active');
+                        $('.tindbook-action-label').text('Add to Cart').css('opacity', '1').css('color', '#2196f3');
+                    }
+                }
+            });
+
+            $(document).on('mouseup touchend', function(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                const threshold = 100;
+                
+                const $card = $cards.eq(currentCardIndex);
+                $card.css('transition', 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s');
+                
+                // Reset feedback
+                $('.control-btn').removeClass('active');
+                $('.tindbook-action-label').css('opacity', '0');
+
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (deltaX > threshold) {
+                        swipe('right');
+                    } else if (deltaX < -threshold) {
+                        swipe('left');
+                    } else {
+                        updateCards();
+                    }
+                } else {
+                    if (deltaY > threshold) {
+                        swipe('down');
+                    } else if (deltaY < -threshold) {
+                        swipe('up');
+                    } else {
+                        updateCards();
+                    }
+                }
+            });
+
+            // Click on Card
+            $cards.on('click', function(e) {
+                const deltaX = Math.abs(currentX - startX);
+                const deltaY = Math.abs(currentY - startY);
+                if (deltaX > 10 || deltaY > 10) return;
+                
+                const cardIndex = $cards.index(this);
+                if (cardIndex === currentCardIndex) {
+                    const bookId = $(this).data('book-id');
+                    window.location.href = `/Book/Details/${bookId}`;
+                }
+            });
+
+            // Keyboard Shortcuts
+            $(document).on('keydown', function(e) {
+                if (!$('#tindbook-feature').hasClass('fullscreen-focus')) return;
+                
+                switch(e.key) {
+                    case 'ArrowRight':
+                        swipe('right');
+                        break;
+                    case 'ArrowLeft':
+                        swipe('left');
+                        break;
+                    case 'ArrowUp':
+                        swipe('up');
+                        break;
+                    case 'ArrowDown':
+                        swipe('down');
+                        break;
+                }
             });
 
             $navCommunity.on('click', function(e) {
