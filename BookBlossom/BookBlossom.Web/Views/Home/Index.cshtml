@@ -129,6 +129,58 @@
             from { width: 100%; }
             to { width: 0%; }
         }
+        .btn-modal-tab {
+            background: #f5f5f5;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .btn-modal-tab.active {
+            background: #C2185B;
+            color: #fff;
+        }
+        .book-select-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .book-select-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+        .book-select-item:hover {
+            background: #f9f9f9;
+        }
+        .book-select-item img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .book-select-item h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 0;
+            color: #333;
+        }
+        .book-select-item p {
+            font-size: 0.8rem;
+            color: #999;
+            margin: 0;
+        }
+        .book-select-item.selected {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+        }
     </style>
 </head>
 <body class="homepage-container">
@@ -2179,10 +2231,24 @@
             $(document).on('click', '.btn-submit-thread-post', function() {
                 const $card = $(this).closest('#create-thread-post-card');
                 const text = $card.find('textarea').val().trim();
+                const $taggedBook = $card.find('.tagged-book-card');
 
-                if (text === '') {
-                    showErrorToast('Please enter your post content.');
+                if (text === '' && $taggedBook.length === 0) {
+                    showErrorToast('Please enter your post content or tag a book.');
                     return;
+                }
+
+                let taggedBookHtml = '';
+                if ($taggedBook.length > 0) {
+                    taggedBookHtml = `
+                        <div class="tagged-book-card" style="margin-top: 10px; display: flex; gap: 10px; align-items: center; background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                            <img src="${$taggedBook.data('img')}" alt="Book" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;">
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0;">${$taggedBook.data('title')}</h4>
+                                <p style="font-size: 0.8rem; color: #666; margin: 0;">${$taggedBook.data('author')}</p>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 // Create Post Card (Simulated)
@@ -2206,6 +2272,7 @@
                         </div>
                         <div class="post-content">
                             <p class="post-text">${text}</p>
+                            ${taggedBookHtml}
                         </div>
                         <div class="post-footer">
                             <button class="post-action btn-like"><i class="far fa-heart"></i> <span class="like-count">0</span></button>
@@ -2363,6 +2430,100 @@
                 }
             });
 
+            // Tag Book Modal Logic
+            $(document).on('click', '.btn-tag-book', function() {
+                $('#tag-book-modal').fadeIn(200);
+            });
+
+            $('#btn-cancel-tag-book').on('click', function() {
+                $('#tag-book-modal').fadeOut(200);
+                // Clear inputs
+                $('#tag-book-link').val('');
+                $('.book-select-item').removeClass('selected');
+                $('#link-error').hide();
+            });
+
+            $('.btn-modal-tab').on('click', function() {
+                $('.btn-modal-tab').removeClass('active');
+                $(this).addClass('active');
+                
+                const target = $(this).data('target');
+                $('.modal-tab-content').hide();
+                $('#' + target).show();
+            });
+
+            $(document).on('click', '.book-select-item', function() {
+                $('.book-select-item').removeClass('selected');
+                $(this).addClass('selected');
+            });
+
+            $('#btn-confirm-tag-book').on('click', function() {
+                const activeTab = $('.btn-modal-tab.active').data('target');
+                let selectedBook = null;
+
+                if (activeTab === 'tab-link') {
+                    const link = $('#tag-book-link').val().trim();
+                    if (link === '') {
+                        showErrorToast('Please enter a book link.');
+                        return;
+                    }
+                    // Validate link (must contain bookblossom or start with /)
+                    if (!link.includes('bookblossom.com') && !link.startsWith('/')) {
+                        $('#link-error').show();
+                        return;
+                    }
+                    $('#link-error').hide();
+                    
+                    // Simulate getting book info from link
+                    selectedBook = {
+                        title: 'Linked Book (From URL)',
+                        author: 'Author Name',
+                        img: '/images/Book/book1.jpg'
+                    };
+                } else {
+                    const $selected = $('.book-select-item.selected');
+                    if ($selected.length === 0) {
+                        showErrorToast('Please select a book.');
+                        return;
+                    }
+                    selectedBook = {
+                        title: $selected.data('title'),
+                        author: $selected.data('author'),
+                        img: $selected.data('img')
+                    };
+                }
+
+                // Tag the book to the current create post card
+                const $card = $('#create-thread-post-card');
+                
+                // Remove existing tag if any
+                $card.find('.tagged-book-card').remove();
+                
+                // Append tag preview
+                const tagHtml = `
+                    <div class="tagged-book-card" style="margin-top: 10px; display: flex; gap: 10px; align-items: center; background: #f5f5f5; padding: 10px; border-radius: 8px;" data-title="${selectedBook.title}" data-author="${selectedBook.author}" data-img="${selectedBook.img}">
+                        <img src="${selectedBook.img}" alt="Book" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;">
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0;">${selectedBook.title}</h4>
+                            <p style="font-size: 0.8rem; color: #666; margin: 0;">${selectedBook.author}</p>
+                        </div>
+                        <button class="btn-remove-tag" style="background: none; border: none; color: #ff4444; cursor: pointer;"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                $card.find('textarea').after(tagHtml);
+
+                $('#tag-book-modal').fadeOut(200);
+                
+                // Clear inputs
+                $('#tag-book-link').val('');
+                $('.book-select-item').removeClass('selected');
+            });
+
+            // Remove Tag Logic
+            $(document).on('click', '.btn-remove-tag', function() {
+                $(this).closest('.tagged-book-card').remove();
+            });
+
         });
     </script>
 
@@ -2397,6 +2558,67 @@
             <div class="modal-btns">
                 <button class="btn-modal-cancel" id="btn-cancel-report">Cancel</button>
                 <button class="btn-modal-confirm" id="btn-submit-report">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Book Modal -->
+    <div class="custom-modal" id="tag-book-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box" style="max-width: 500px;">
+            <h3>Tag a Book</h3>
+            
+            <div class="modal-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-modal-tab active" data-target="tab-link">By Link</button>
+                <button class="btn-modal-tab" data-target="tab-recent">Recent</button>
+                <button class="btn-modal-tab" data-target="tab-wishlist">Wishlist</button>
+            </div>
+            
+            <!-- Tab Link -->
+            <div id="tab-link" class="modal-tab-content">
+                <p>Enter the link to the book page on BookBlossom:</p>
+                <input type="text" id="tag-book-link" class="form-control mb-3" placeholder="https://bookblossom.com/book/123">
+                <div id="link-error" style="color: #ff4444; font-size: 0.85rem; display: none;">Link must be from BookBlossom domain (contains 'bookblossom.com' or starts with '/').</div>
+            </div>
+            
+            <!-- Tab Recent -->
+            <div id="tab-recent" class="modal-tab-content" style="display: none;">
+                <p>Select a recently viewed book:</p>
+                <div class="book-select-list" style="max-height: 200px; overflow-y: auto;">
+                    <div class="book-select-item" data-title="The Secret Garden" data-author="Frances Hodgson Burnett" data-img="/images/Book/book1.jpg">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>The Secret Garden</h4>
+                            <p>Frances Hodgson Burnett</p>
+                        </div>
+                    </div>
+                    <div class="book-select-item" data-title="Think and Grow Rich" data-author="Napoleon Hill" data-img="/images/Book/book1.jpg">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Think and Grow Rich</h4>
+                            <p>Napoleon Hill</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Wishlist -->
+            <div id="tab-wishlist" class="modal-tab-content" style="display: none;">
+                <p>Select a book from your wishlist:</p>
+                <div class="book-select-list" style="max-height: 200px; overflow-y: auto;">
+                    <div class="book-select-item" data-title="Atomic Habits" data-author="James Clear" data-img="/images/Book/book1.jpg">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Atomic Habits</h4>
+                            <p>James Clear</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-btns mt-3">
+                <button class="btn-modal-cancel" id="btn-cancel-tag-book">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-confirm-tag-book">Tag Book</button>
             </div>
         </div>
     </div>
