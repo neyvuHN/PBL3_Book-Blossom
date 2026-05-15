@@ -459,7 +459,8 @@ body {
 
 .premium-navbar .nav-actions {
     display: flex;
-    gap: 15px;
+    gap: 20px;
+    align-items: center;
 }
 
 .premium-navbar .btn-login {
@@ -488,6 +489,131 @@ body {
 
 .premium-navbar .btn-register:hover {
     background: #E5B5B7;
+}
+
+/* User Actions in Navbar */
+.premium-navbar .nav-icon-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.premium-navbar .nav-icon-btn:hover {
+    color: #EEC7C9;
+}
+
+.premium-navbar .notification-btn {
+    position: relative;
+}
+
+.premium-navbar .notification-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: #ff4d4d;
+    border-radius: 50%;
+}
+
+.premium-navbar .user-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    cursor: pointer;
+    position: relative;
+}
+
+.premium-navbar .user-dropdown .avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+}
+
+.premium-navbar .user-dropdown .username {
+    font-weight: 500;
+}
+
+.premium-navbar .user-dropdown i {
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.premium-navbar .user-dropdown .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: none;
+    flex-direction: column;
+    min-width: 220px;
+    margin-top: 10px;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.premium-navbar .user-dropdown.active .dropdown-menu {
+    display: flex;
+}
+
+.premium-navbar .user-dropdown.active > i {
+    transform: rotate(180deg);
+}
+
+.premium-navbar .user-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+/* Hover effect for all items is pink */
+.premium-navbar .user-dropdown .dropdown-item:hover {
+    background: #F4E1E2;
+}
+
+/* Active (click) effect is darker pink */
+.premium-navbar .user-dropdown .dropdown-item:active {
+    background: #EED4D6;
+}
+
+.premium-navbar .user-dropdown .dropdown-item i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+/* My Account - remove default pink background */
+.premium-navbar .user-dropdown .dropdown-item.pink-bg {
+    background: #fff;
+}
+
+.premium-navbar .user-dropdown .dropdown-item.pink-bg:hover {
+    background: #F4E1E2;
+}
+
+/* Log Out starts with grey background as requested */
+.premium-navbar .user-dropdown .dropdown-item.grey-bg {
+    background: #EAEAEA;
+}
+
+.premium-navbar .user-dropdown .dropdown-item.grey-bg:hover {
+    background: #E0E0E0;
 }
 
 /* Hero Carousel */
@@ -1202,6 +1328,22 @@ body {
 .premium-navbar.navbar-light .btn-login:hover {
     background: #000;
     color: #fff;
+}
+
+.premium-navbar.navbar-light .nav-icon-btn {
+    color: #333;
+}
+
+.premium-navbar.navbar-light .nav-icon-btn:hover {
+    color: #EEC7C9;
+}
+
+.premium-navbar.navbar-light .user-dropdown {
+    color: #333;
+}
+
+.premium-navbar.navbar-light .user-dropdown .avatar {
+    border-color: #ddd;
 }
 
 /* Active Tab Styles */

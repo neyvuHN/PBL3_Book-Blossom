@@ -26,8 +26,33 @@
             <li><a href="#" id="nav-community">Community</a></li>
         </ul>
         <div class="nav-actions">
-            <a href="/Auth/Login" class="btn-login">Login</a>
-            <a href="/Auth/Register" class="btn-register">Register</a>
+            @if (true /* User.Identity.IsAuthenticated */)
+            {
+                <a href="#" class="nav-icon-btn"><i class="fas fa-shopping-cart"></i> Cart</a>
+                <a href="#" class="nav-icon-btn notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </a>
+                <div class="user-dropdown">
+                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
+                    <span class="username">@(User.Identity.Name ?? "Jane Doe")</span>
+                    <i class="fas fa-chevron-down"></i>
+                    <div class="dropdown-menu">
+                        <a href="/Profile" class="dropdown-item pink-bg"><i class="far fa-user-circle"></i> My Account</a>
+                        <a href="/Orders" class="dropdown-item"><i class="fas fa-shopping-bag"></i> My Orders</a>
+                        <a href="/Wishlist" class="dropdown-item"><i class="far fa-heart"></i> My Wishlist</a>
+                        <a href="/Messages" class="dropdown-item"><i class="far fa-comment"></i> Messages</a>
+                        <a href="/Settings" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="/Help" class="dropdown-item"><i class="far fa-question-circle"></i> User Manual</a>
+                        <a href="/Auth/Logout" class="dropdown-item grey-bg"><i class="fas fa-sign-out-alt"></i> Log Out</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <a href="/Auth/Login" class="btn-login">Login</a>
+                <a href="/Auth/Register" class="btn-register">Register</a>
+            }
         </div>
     </nav>
 
@@ -493,6 +518,21 @@
             const $dedicatedCommunity = $('#dedicated-community');
             const $mainNavbar = $('#main-navbar');
             const $navLinks = $('.nav-links a');
+
+            // Dropdown Toggle
+            const $userDropdown = $('.user-dropdown');
+            
+            $userDropdown.on('click', function(e) {
+                e.stopPropagation(); // Prevent event from bubbling up to document
+                $(this).toggleClass('active');
+            });
+            
+            // Close dropdown when clicking outside
+            $(document).on('click', function(e) {
+                if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
+                    $userDropdown.removeClass('active');
+                }
+            });
 
             function setActiveTab($element) {
                 $navLinks.removeClass('active');
