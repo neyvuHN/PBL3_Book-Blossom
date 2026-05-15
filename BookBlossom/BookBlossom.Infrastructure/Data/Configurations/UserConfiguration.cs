@@ -12,8 +12,15 @@ namespace BookBlossom.Infrastructure.Data.Configurations
 
             builder.HasKey(u => u.UserID);
             builder.Property(u => u.UserID).HasColumnName("UserID");
-            builder.Property(u => u.RoleID).IsRequired();
+            builder.Property(u => u.RoleID)
+                .HasConversion<byte>()
+                .IsRequired();
 
+            // Mối quan hệ với Role
+            builder.HasOne(u => u.Role)
+                .WithMany(r => r.Users)
+                .HasForeignKey(u => u.RoleID)
+                .OnDelete(DeleteBehavior.Restrict);
             builder.Property(u => u.UserName).IsRequired().HasMaxLength(100);
             builder.Property(u => u.Password).IsRequired().HasMaxLength(255);
             builder.Property(u => u.AccountStatus).IsRequired().HasColumnType("tinyint");
