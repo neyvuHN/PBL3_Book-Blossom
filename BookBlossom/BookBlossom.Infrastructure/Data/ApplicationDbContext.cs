@@ -11,6 +11,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<StaffDetail> StaffDetails { get; set; }
         public DbSet<CustomerDetail> CustomerDetails { get; set; }
+        public DbSet<GuestDetail> GuestDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,4 +1,4 @@
-using BookBlossom.Web.Models;
+using BookBlossom.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
