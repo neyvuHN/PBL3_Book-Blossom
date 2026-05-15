@@ -42,6 +42,16 @@ namespace BookBlossom.Infrastructure.Services
                 throw new Exception("Bạn đã vượt quá giới hạn 5 lần nhận OTP trong ngày!");
             }
 
+            // Kiểm tra giới hạn theo IP (ví dụ: tối đa 20 OTP/ngày/IP)
+            var ipCountToday = await _context.OTPLogs
+                .Where(x => x.IpAddress == ipAddress && x.CreatedAt >= today)
+                .CountAsync();
+
+            if (ipCountToday >= 20)
+            {
+                throw new Exception("Địa chỉ IP của bạn đã yêu cầu quá nhiều mã OTP trong ngày hôm nay.");
+            }
+
             // Tạo mã OTP 6 số
             var random = new Random();
             var otpCode = random.Next(100000, 999999).ToString();

@@ -110,14 +110,22 @@ namespace BookBlossom.Web.Controllers
 
                 if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid guestId)
                 {
-                    var newUser = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == cachedRequest.PhoneNumber);
-                    if (newUser != null)
+                    var newUserObj = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == cachedRequest.PhoneNumber);
+                    if (newUserObj != null)
                     {
-                        await _guestService.MigrateGuestDataToUserAsync(guestId, newUser.UserID);
+                        await _guestService.MigrateGuestDataToUserAsync(guestId, newUserObj.UserID);
                     }
                 }
 
-                return Ok(new { Message = "Đăng ký tài khoản thành công!" });
+                // Tự động đăng nhập sau khi đăng ký thành công
+                var loginRequest = new LoginRequestDTO
+                {
+                    UserName = cachedRequest.UserName,
+                    Password = cachedRequest.Password
+                };
+                var authResponse = await _authService.LoginAsync(loginRequest);
+
+                return Ok(authResponse);
             }
             catch (Exception ex)
             {

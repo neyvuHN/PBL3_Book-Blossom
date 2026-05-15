@@ -8,7 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using System.Text;
-using OpenApiModels = global::Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using BookBlossom.Core.Enums;
+using OpenApiModels = Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,23 +82,6 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
     {
         { securityScheme, Array.Empty<string>() }
-    });
-});
-
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Nhập JWT token (ví dụ: Bearer eyJhbGciOiJ...)"
-    });
-
-    // ✅ Cú pháp mới cho .NET 10 / Swashbuckle mới
-    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-    {
-        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 
