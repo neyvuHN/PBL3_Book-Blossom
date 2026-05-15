@@ -1,8 +1,498 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    Layout = null;
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BookBlossom - Explore the World of Books</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body class="homepage-container">
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+    <!-- Premium Navbar -->
+    <nav class="premium-navbar" id="main-navbar">
+        <a class="nav-logo" href="#" id="nav-logo">
+            <span class="flower">🌸</span> BookBlossom
+        </a>
+        <ul class="nav-links">
+            <li><a href="#" id="nav-home" class="active">Home</a></li>
+            <li><a href="#" id="nav-explore">Explore</a></li>
+            <li><a href="#" id="nav-tindbook">Tindbook</a></li>
+            <li><a href="#" id="nav-community">Community</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="/Auth/Login" class="btn-login">Login</a>
+            <a href="/Auth/Register" class="btn-register">Register</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper (Homepage) -->
+    <div id="main-content">
+        <!-- Hero Section with Slider -->
+        <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            </div>
+            <div class="carousel-inner">
+                <div class="carousel-item active" style="background-image: url('/images/Homepage/homepage1.jpg')">
+                    <div class="carousel-overlay">
+                        <div class="carousel-caption">
+                            <h1>Welcome to BookBlossom</h1>
+                            <p>Where book lovers connect and spread knowledge.</p>
+                            <a href="#" id="cta-explore" class="btn-cta">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item" style="background-image: url('/images/Homepage/homepage2.jpg')">
+                    <div class="carousel-overlay">
+                        <div class="carousel-caption">
+                            <h1>Find Your Soulmate Book</h1>
+                            <p>Use Tindbook to find the perfect book for you.</p>
+                            <a href="#tindbook" class="btn-cta">Try Tindbook</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item" style="background-image: url('/images/Homepage/homepage3.jpg')">
+                    <div class="carousel-overlay">
+                        <div class="carousel-caption">
+                            <h1>Join the Community</h1>
+                            <p>Share your thoughts and discuss with other book lovers.</p>
+                            <a href="/Auth/Register" class="btn-cta">Join Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+
+        <!-- Featured Books Section -->
+        <section id="featured" class="featured-books">
+            <div class="container">
+                <h2>Featured Books</h2>
+                <div class="slider-container" id="featured-slider">
+                    <button class="slider-btn prev"><i class="fas fa-chevron-left"></i></button>
+                    <div class="slider-track">
+                        <!-- 8 Books -->
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 1">
+                            <div class="book-info">
+                                <h3>How to Win Friends</h3>
+                                <p>Dale Carnegie</p>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 2">
+                            <div class="book-info">
+                                <h3>The Alchemist</h3>
+                                <p>Paulo Coelho</p>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 3">
+                            <div class="book-info">
+                                <h3>Think and Grow Rich</h3>
+                                <p>Napoleon Hill</p>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 4">
+                            <div class="book-info">
+                                <h3>The 7 Habits</h3>
+                                <p>Stephen R. Covey</p>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 5">
+                            <div class="book-info">
+                                <h3>Atomic Habits</h3>
+                                <p>James Clear</p>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 6">
+                            <div class="book-info">
+                                <h3>The Power of Now</h3>
+                                <p>Eckhart Tolle</p>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 7">
+                            <div class="book-info">
+                                <h3>Zero to One</h3>
+                                <p>Peter Thiel</p>
+                            </div>
+                        </div>
+                        <div class="book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book 8">
+                            <div class="book-info">
+                                <h3>Good to Great</h3>
+                                <p>Jim Collins</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="slider-btn next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="see-more-container">
+                    <button id="see-more-books" class="btn-see-more">See More Books</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tindbook Section -->
+        <section id="tindbook" class="tindbook-section" style="background-image: url('/images/tindbook.jpg')">
+            <div class="tindbook-overlay">
+                <div class="tindbook-content">
+                    <h2>Tindbook</h2>
+                    <p>Don't know what to read next? Let Tindbook help you. Swipe right to save, swipe left to skip. Finding your soulmate book has never been this easy!</p>
+                    <a href="#" class="btn-cta">Try It Now</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Community Section -->
+        <section id="community" class="community-section">
+            <div class="container">
+                <h2>What the BookBlossom Community Says?</h2>
+                <div class="slider-container" id="community-slider">
+                    <button class="slider-btn prev"><i class="fas fa-chevron-left"></i></button>
+                    <div class="slider-track">
+                        <!-- 4 Reviews -->
+                        <div class="testimonial-card">
+                            <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                            <p>"BookBlossom helped me find friends with the same reading interests and share great books. Highly recommended!"</p>
+                            <span>- Minh Thu</span>
+                        </div>
+                        <div class="testimonial-card">
+                            <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                            <p>"The Tindbook feature is super fun! I found 3 great books in just a few minutes of swiping."</p>
+                            <span>- Hoang Nam</span>
+                        </div>
+                        <div class="testimonial-card">
+                            <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                            <p>"I love the clean interface and the community discussions. It's my go-to site for book recommendations."</p>
+                            <span>- Elena Smith</span>
+                        </div>
+                        <div class="testimonial-card">
+                            <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                            <p>"Great platform! I've read more books this year than ever before thanks to the challenges here."</p>
+                            <span>- David Lee</span>
+                        </div>
+                    </div>
+                    <button class="slider-btn next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="see-more-container">
+                    <button id="see-more-community" class="btn-see-more">See All Reviews</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Explore Section (Hidden by default) -->
+    <section id="explore-section" class="explore-section" style="display: none;">
+        <div class="container">
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" placeholder="Search books, authors, genres..." class="search-input">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+
+            <!-- Categories / Tags -->
+            <div class="category-tags">
+                <span class="tag active">All</span>
+                <span class="tag">Fiction</span>
+                <span class="tag">Skills</span>
+                <span class="tag">Economics</span>
+                <span class="tag">Psychology</span>
+                <span class="tag">History</span>
+            </div>
+
+            <!-- Book Grid -->
+            <div class="book-grid">
+                <!-- 8 Books -->
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 1">
+                    <div class="book-info">
+                        <h3>How to Win Friends</h3>
+                        <p>Dale Carnegie</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.8</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 2">
+                    <div class="book-info">
+                        <h3>The Alchemist</h3>
+                        <p>Paulo Coelho</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.7</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 3">
+                    <div class="book-info">
+                        <h3>Think and Grow Rich</h3>
+                        <p>Napoleon Hill</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.5</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 4">
+                    <div class="book-info">
+                        <h3>The 7 Habits</h3>
+                        <p>Stephen R. Covey</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.6</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 5">
+                    <div class="book-info">
+                        <h3>Atomic Habits</h3>
+                        <p>James Clear</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.9</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 6">
+                    <div class="book-info">
+                        <h3>The Power of Now</h3>
+                        <p>Eckhart Tolle</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.4</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 7">
+                    <div class="book-info">
+                        <h3>Zero to One</h3>
+                        <p>Peter Thiel</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.6</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Book 8">
+                    <div class="book-info">
+                        <h3>Good to Great</h3>
+                        <p>Jim Collins</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.7</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dedicated Community Section (Hidden by default) -->
+    <section id="dedicated-community" class="explore-section" style="display: none;">
+        <div class="container">
+            <h2 class="text-center mb-5">Full Community Reviews</h2>
+            <div class="book-grid"> <!-- Reusing book-grid for masonry-like layout or just grid -->
+                <!-- 6 Reviews -->
+                <div class="testimonial-card">
+                    <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                    <p>"BookBlossom helped me find friends with the same reading interests and share great books. Highly recommended!"</p>
+                    <span>- Minh Thu</span>
+                </div>
+                <div class="testimonial-card">
+                    <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                    <p>"The Tindbook feature is super fun! I found 3 great books in just a few minutes of swiping."</p>
+                    <span>- Hoang Nam</span>
+                </div>
+                <div class="testimonial-card">
+                    <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                    <p>"I love the clean interface and the community discussions. It's my go-to site for book recommendations."</p>
+                    <span>- Elena Smith</span>
+                </div>
+                <div class="testimonial-card">
+                    <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                    <p>"Great platform! I've read more books this year than ever before thanks to the challenges here."</p>
+                    <span>- David Lee</span>
+                </div>
+                <div class="testimonial-card">
+                    <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                    <p>"A wonderful place for bibliophiles. The UI is just gorgeous."</p>
+                    <span>- Sophia Chen</span>
+                </div>
+                <div class="testimonial-card">
+                    <img src="/images/Avatar/avatar1.jpg" alt="User Avatar" class="avatar">
+                    <p>"I've discovered so many indie authors through BookBlossom. Thank you!"</p>
+                    <span>- Alex Turner</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="premium-footer">
+        <div class="container">
+            <p>&copy; 2026 BookBlossom. All rights reserved.</p>
+            <p>Developed by <a href="#">PBL3 Team</a></p>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function() {
+            const $navHome = $('#nav-home');
+            const $navExplore = $('#nav-explore');
+            const $navTindbook = $('#nav-tindbook');
+            const $navCommunity = $('#nav-community');
+            const $navLogo = $('#nav-logo');
+            const $mainContent = $('#main-content');
+            const $exploreSection = $('#explore-section');
+            const $dedicatedCommunity = $('#dedicated-community');
+            const $mainNavbar = $('#main-navbar');
+            const $navLinks = $('.nav-links a');
+
+            function setActiveTab($element) {
+                $navLinks.removeClass('active');
+                $element.addClass('active');
+            }
+
+            function showHome() {
+                $mainContent.show();
+                $exploreSection.hide();
+                $dedicatedCommunity.hide();
+                $mainNavbar.removeClass('navbar-light');
+                setActiveTab($navHome);
+            }
+
+            function showExplore() {
+                $mainContent.hide();
+                $exploreSection.show();
+                $dedicatedCommunity.hide();
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navExplore);
+            }
+
+            function showDedicatedCommunity() {
+                $mainContent.hide();
+                $exploreSection.hide();
+                $dedicatedCommunity.show();
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navCommunity);
+            }
+
+            $navExplore.on('click', function(e) {
+                e.preventDefault();
+                showExplore();
+            });
+
+            $navHome.on('click', function(e) {
+                e.preventDefault();
+                showHome();
+            });
+
+            $navLogo.on('click', function(e) {
+                e.preventDefault();
+                showHome();
+            });
+
+            $navTindbook.on('click', function(e) {
+                e.preventDefault();
+                if ($exploreSection.is(':visible') || $dedicatedCommunity.is(':visible')) {
+                    showHome();
+                }
+                $('html, body').animate({
+                    scrollTop: $('#tindbook').offset().top - 80
+                }, 500);
+                setActiveTab($navTindbook);
+            });
+
+            $navCommunity.on('click', function(e) {
+                e.preventDefault();
+                showDedicatedCommunity();
+            });
+
+            // Slider logic
+            function setupSlider(sliderId) {
+                const $track = $(`#${sliderId} .slider-track`);
+                const $prev = $(`#${sliderId} .slider-btn.prev`);
+                const $next = $(`#${sliderId} .slider-btn.next`);
+                
+                $next.on('click', function() {
+                    $track.animate({
+                        scrollLeft: $track.scrollLeft() + $track.width() * 0.8
+                    }, 500);
+                });
+                
+                $prev.on('click', function() {
+                    $track.animate({
+                        scrollLeft: $track.scrollLeft() - $track.width() * 0.8
+                    }, 500);
+                });
+            }
+            
+            setupSlider('featured-slider');
+            setupSlider('community-slider');
+
+            // See More buttons
+            $('#see-more-books').on('click', function(e) {
+                e.preventDefault();
+                showExplore();
+            });
+
+            $('#cta-explore').on('click', function(e) {
+                e.preventDefault();
+                $('html, body').animate({
+                    scrollTop: $('#featured').offset().top - 80
+                }, 500);
+            });
+
+            $('a[href="#tindbook"].btn-cta').on('click', function(e) {
+                e.preventDefault();
+                $('html, body').animate({
+                    scrollTop: $('#tindbook').offset().top - 80
+                }, 500);
+            });
+
+            $('#see-more-community').on('click', function(e) {
+                e.preventDefault();
+                showDedicatedCommunity();
+            });
+
+            // Handle category tags click
+            $('.category-tags .tag').on('click', function() {
+                $('.category-tags .tag').removeClass('active');
+                $(this).addClass('active');
+            });
+        });
+    </script>
+</body>
+</html>
