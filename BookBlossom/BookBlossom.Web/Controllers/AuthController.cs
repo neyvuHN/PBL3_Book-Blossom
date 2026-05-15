@@ -81,7 +81,10 @@ namespace BookBlossom.Web.Controllers
         }
 
         [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDTO request)
+        public async Task<IActionResult> VerifyOtp(
+            [FromBody] VerifyOtpRequestDTO request,
+            [FromHeader(Name = "X-Guest-Id")] string? guestIdHeader,
+            [FromHeader(Name = "X-Guest-Token")] string? guestTokenHeader)
         {
             try
             {

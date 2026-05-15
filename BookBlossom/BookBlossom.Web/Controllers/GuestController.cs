@@ -34,13 +34,15 @@ namespace BookBlossom.Web.Controllers
         }
 
         [HttpGet("current")]
-        public IActionResult GetCurrentGuest()
+        public IActionResult GetCurrentGuest(
+            [FromHeader(Name = "X-Guest-Id")] string? guestIdHeader, 
+            [FromHeader(Name = "X-Guest-Token")] string? guestTokenHeader)
         {
             if (HttpContext.Items.TryGetValue("GuestID", out var guestId))
             {
                 return Ok(new { GuestID = guestId, Message = "Middleware đã nhận diện được Guest!" });
             }
-            return NotFound(new { Message = "Không tìm thấy thông tin Guest trong Header." });
+            return NotFound(new { Message = "Không tìm thấy thông tin Guest trong Header. Hãy đảm bảo bạn đã nhập đúng 2 Header trên Swagger." });
         }
 
     }

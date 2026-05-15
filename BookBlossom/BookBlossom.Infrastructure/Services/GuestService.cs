@@ -62,7 +62,7 @@ namespace BookBlossom.Infrastructure.Services
             return true;
         }
 
-        public async Task MigrateGuestDataToUserAsync(Guid guestId, int newUserId)
+        public async Task MigrateGuestDataToUserAsync(Guid guestId, long newUserId)
         {
             var guest = await _context.GuestDetails.FindAsync(guestId);
             if (guest != null && guest.ConvertedUserID == null)

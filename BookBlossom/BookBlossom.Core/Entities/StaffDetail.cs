@@ -5,7 +5,7 @@ namespace BookBlossom.Core.Entities
 {
     public class StaffDetail
     {
-        public int StaffID { get; set; } // Vừa là PK, vừa là FK
+        public long StaffID { get; set; } // Vừa là PK, vừa là FK
 
         public string? Address { get; set; }
         public bool IsOnboardingCompleted { get; set; }

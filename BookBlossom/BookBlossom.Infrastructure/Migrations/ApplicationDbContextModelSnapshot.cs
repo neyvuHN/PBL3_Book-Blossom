@@ -133,7 +133,7 @@ namespace BookBlossom.Infrastructure.Migrations
 
                     b.HasKey("LogID");
 
-                    b.ToTable("OTPLogs");
+                    b.ToTable("OTPLogs", (string)null);
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.StaffDetail", b =>
