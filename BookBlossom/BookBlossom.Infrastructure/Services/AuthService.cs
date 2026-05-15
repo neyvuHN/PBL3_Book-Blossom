@@ -22,11 +22,13 @@ namespace BookBlossom.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IGuestService _guestService;
 
-        public AuthService(ApplicationDbContext context, IConfiguration configuration)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration, IGuestService guestService)
         {
             _context = context;
             _configuration = configuration;
+            _guestService = guestService;
         }
 
         public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
@@ -100,6 +102,13 @@ namespace BookBlossom.Infrastructure.Services
             _context.CustomerDetails.Add(customerDetail);
 
             await _context.SaveChangesAsync();
+
+            // Nếu có GuestID, thực hiện migrate dữ liệu sang User mới
+            if (request.GuestID.HasValue)
+            {
+                await _guestService.MigrateGuestDataToUserAsync(request.GuestID.Value, newUser.UserID);
+            }
+
             return true;
         }
 

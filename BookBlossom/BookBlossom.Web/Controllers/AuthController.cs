@@ -58,6 +58,12 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
+                // Nếu FE không gửi GuestID trong body, thử lấy từ Middleware (Header X-Guest-Id)
+                if (!request.GuestID.HasValue && HttpContext.Items.TryGetValue("GuestID", out var gid) && gid is Guid guestGuid)
+                {
+                    request.GuestID = guestGuid;
+                }
+
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                 var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber, ipAddress);
 
