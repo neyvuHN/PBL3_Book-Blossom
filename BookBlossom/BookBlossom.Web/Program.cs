@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using BookBlossom.Infrastructure.BackgroundJobs;
+using BookBlossom.Web.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,8 +22,10 @@ builder.Services.AddMemoryCache();
 // Đăng ký Background Job dọn dẹp OTP
 builder.Services.AddHostedService<OtpCleanupJob>();
 
-// Đăng ký AuthService
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Đăng ký GuestService
+builder.Services.AddScoped<IGuestService, GuestService>();
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -62,6 +65,8 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseMiddleware<GuestSessionMiddleware>();
 
 app.UseAuthentication(); // Thêm dòng này trước UseAuthorization
 app.UseAuthorization();
