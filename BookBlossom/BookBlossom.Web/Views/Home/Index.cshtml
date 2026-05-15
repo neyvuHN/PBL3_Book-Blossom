@@ -106,6 +106,7 @@
             <li><a href="#" id="nav-explore">Explore</a></li>
             <li><a href="#" id="nav-tindbook">Tindbook</a></li>
             <li><a href="#" id="nav-community">Thread</a></li>
+            <li><a href="#" id="nav-community">Thread</a></li>
         </ul>
         <div class="nav-actions">
             @if (true /* User.Identity.IsAuthenticated */)
@@ -647,6 +648,22 @@
                 <div class="thread-header">
                     <button id="btn-toggle-sidebar" class="btn-toggle-sidebar-action"><i class="fas fa-bars"></i></button>
                     <h1 class="thread-title">Community Thread Feed</h1>
+        <div class="container community-thread-container">
+            <!-- Left Sidebar -->
+            <div class="thread-left-sidebar" id="thread-left-sidebar">
+                <ul class="sidebar-nav">
+                    <li class="active"><a href="#"><i class="fas fa-rss"></i> <span>Feed</span></a></li>
+                    <li><a href="#"><i class="fas fa-search"></i> <span>Explore</span></a></li>
+                    <li><a href="#"><i class="fas fa-user-circle"></i> <span>Profile</span></a></li>
+                    <li><a href="#" class="notification-item"><i class="fas fa-bell"></i> <span>Notifications</span> <span class="nav-dot"></span></a></li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="thread-main">
+                <div class="thread-header">
+                    <button id="btn-toggle-sidebar" class="btn-toggle-sidebar-action"><i class="fas fa-bars"></i></button>
+                    <h1 class="thread-title">Community Thread Feed</h1>
                 </div>
                 
                 <!-- Filters -->
@@ -655,7 +672,23 @@
                     <span class="filter-tag">Following</span>
                     <span class="filter-tag">For Sale</span>
                     <span class="filter-tag">Book Clubs</span>
+                
+                <!-- Filters -->
+                <div class="thread-filters">
+                    <span class="filter-tag active">All</span>
+                    <span class="filter-tag">Following</span>
+                    <span class="filter-tag">For Sale</span>
+                    <span class="filter-tag">Book Clubs</span>
                 </div>
+                
+                <!-- Create Post -->
+                <div class="create-post-card">
+                    <h3>Create Post</h3>
+                    <textarea placeholder="What's on your shelf?"></textarea>
+                    <div class="create-post-actions">
+                        <button class="btn-tag-book"><i class="fas fa-book"></i> Tag Book</button>
+
+                    </div>
                 
                 <!-- Create Post -->
                 <div class="create-post-card">
@@ -1704,8 +1737,231 @@
                     alert('Please select a reason for reporting.');
                 }
             });
+
+            // Spoiler Reveal Logic
+            $('.btn-reveal').on('click', function() {
+                const $post = $(this).closest('.thread-post');
+                $post.find('.blurred-content').removeClass('blurred-content');
+                $post.find('.spoiler-overlay').fadeOut(300);
+            });
+
+            // Toggle Sidebar Logic
+            $('#btn-toggle-sidebar').on('click', function() {
+                $('#thread-left-sidebar').toggleClass('collapsed');
+                $('.community-thread-container').toggleClass('sidebar-collapsed');
+            });
+
+            // Like Button Logic
+            $('.btn-like').on('click', function() {
+                const $icon = $(this).find('i');
+                const $count = $(this).find('.like-count');
+                let count = parseInt($count.text());
+                
+                if ($icon.hasClass('far')) {
+                    $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
+                    $count.text(count + 1);
+                } else {
+                    $icon.removeClass('fas').addClass('far').css('color', '');
+                    $count.text(count - 1);
+                }
+            });
+
+            // Comment Button Logic (Toggle)
+            $('.btn-comment').on('click', function() {
+                const $post = $(this).closest('.thread-post');
+                $post.find('.comment-section').slideToggle(300);
+            });
+
+            // Send Comment Logic
+            $('.btn-send-comment').on('click', function() {
+                const $input = $(this).siblings('input');
+                const text = $input.val().trim();
+                
+                if (text !== '') {
+                    const $list = $(this).closest('.comment-section').find('.comment-list');
+                    const newComment = `
+                        <div class="comment-item">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                            <div class="comment-content">
+                                <span class="comment-user">You</span>
+                                <p>${text}</p>
+                                <span class="comment-time">Just now</span>
+                            </div>
+                        </div>
+                    `;
+                    $list.append(newComment);
+                    $input.val('');
+                    
+                    // Update comment count
+                    const $post = $(this).closest('.thread-post');
+                    const $count = $post.find('.comment-count');
+                    $count.text(parseInt($count.text()) + 1);
+                }
+            });
+
+            function showToast(message) {
+                const $toast = $(`
+                    <div class="toast-notification">
+                        <i class="fas fa-check-circle"></i>
+                        <span>${message}</span>
+                        <button class="btn-undo-share">Undo</button>
+                        <div class="toast-progress"></div>
+                    </div>
+                `);
+                $('body').append($toast);
+                $toast.fadeIn(300);
+                
+                // Auto hide after 5 seconds
+                const timeoutId = setTimeout(function() {
+                    $toast.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }, 5000);
+                
+                // Undo action
+                $toast.find('.btn-undo-share').on('click', function() {
+                    clearTimeout(timeoutId);
+                    $toast.fadeOut(200, function() {
+                        $(this).remove();
+                        // You can add further undo logic here if needed
+                    });
+                });
+            }
+
+            // Share Button Logic
+            $('.btn-share').on('click', function() {
+                $('#share-modal').fadeIn(200);
+            });
+
+            $('#btn-cancel-share').on('click', function() {
+                $('#share-modal').fadeOut(200);
+            });
+
+            $('#btn-confirm-share').on('click', function() {
+                $('#share-modal').fadeOut(200);
+                showToast('Post shared successfully to your profile!');
+            });
+
+            // Post Menu Dropdown Toggle
+            $('.post-menu-btn').on('click', function(e) {
+                e.stopPropagation();
+                $(this).find('.post-dropdown-menu').toggle();
+            });
+
+            // Close dropdown on click outside
+            $(document).on('click', function() {
+                $('.post-dropdown-menu').hide();
+            });
+
+            // Hide Post Logic
+            $('.btn-hide-post').on('click', function(e) {
+                e.preventDefault();
+                const $post = $(this).closest('.thread-post');
+                $post.find('.hidden-post-overlay').fadeIn(200);
+                
+                // Set timer to remove post
+                const hideTimeout = setTimeout(function() {
+                    $post.slideUp(300, function() {
+                        $(this).remove();
+                    });
+                }, 5000); // 5 seconds
+                
+                // Store timeout ID on the post element
+                $post.data('hideTimeout', hideTimeout);
+            });
+
+            $('.btn-undo-hide').on('click', function() {
+                const $post = $(this).closest('.thread-post');
+                const $overlay = $post.find('.hidden-post-overlay');
+                
+                // Clear timeout
+                const hideTimeout = $post.data('hideTimeout');
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                }
+                
+                $overlay.fadeOut(200);
+            });
+
+            // Report Post Logic
+            $('.btn-report-post').on('click', function(e) {
+                e.preventDefault();
+                $('#report-modal').fadeIn(200);
+            });
+
+            $('#btn-cancel-report').on('click', function() {
+                $('#report-modal').fadeOut(200);
+            });
+
+            // Toggle other reason input
+            $('input[name="report-reason"]').on('change', function() {
+                if ($(this).val() === 'other') {
+                    $('.other-reason-container').slideDown(200);
+                } else {
+                    $('.other-reason-container').slideUp(200);
+                }
+            });
+
+            $('#btn-submit-report').on('click', function() {
+                const reason = $('input[name="report-reason"]:checked').val();
+                if (reason) {
+                    if (reason === 'other') {
+                        const otherText = $('#other-reason-text').val().trim();
+                        if (otherText === '') {
+                            alert('Please enter your reason.');
+                            return;
+                        }
+                    }
+                    $('#report-modal').fadeOut(200);
+                    showToast('Thank you for reporting. We will review this post.');
+                    
+                    // Reset form after close
+                    setTimeout(function() {
+                        $('input[name="report-reason"]').prop('checked', false);
+                        $('#other-reason-text').val('');
+                        $('.other-reason-container').hide();
+                    }, 200);
+                } else {
+                    alert('Please select a reason for reporting.');
+                }
+            });
         });
     </script>
+
+    <!-- Share Confirmation Modal -->
+    <div class="custom-modal" id="share-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <h3>Share Post</h3>
+            <p>Are you sure you want to share this post to your profile?</p>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-share">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-confirm-share">Share</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Post Modal -->
+    <div class="custom-modal" id="report-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <h3>Report Post</h3>
+            <p>Why are you reporting this post?</p>
+            <div class="report-options" style="text-align: left; margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="spam"> Spam</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="harassment"> Harassment</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="inappropriate"> Inappropriate Content</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="other"> Other</label>
+                <div class="other-reason-container" style="display: none; margin-top: 10px;">
+                    <textarea id="other-reason-text" placeholder="Please specify your reason..." style="width: 100%; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 0.9rem; resize: vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-report">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-submit-report">Submit Report</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Share Confirmation Modal -->
     <div class="custom-modal" id="share-modal" style="display: none;">
