@@ -1,4 +1,8 @@
 /* General Reset & Page Layout */
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
@@ -840,6 +844,11 @@ body {
 
 .premium-navbar.navbar-light .nav-links a.active {
     color: #EEC7C9 !important;
+}
+
+/* Scroll offset for fixed header */
+#featured, #tindbook, #community {
+    scroll-margin-top: 80px;
 }
 
 /* Slider & See More Styles */

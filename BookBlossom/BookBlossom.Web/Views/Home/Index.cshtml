@@ -46,7 +46,7 @@
                         <div class="carousel-caption">
                             <h1>Welcome to BookBlossom</h1>
                             <p>Where book lovers connect and spread knowledge.</p>
-                            <a href="#" id="cta-explore" class="btn-cta">Explore Now</a>
+                            <a href="#featured" class="btn-cta">Explore Now</a>
                         </div>
                     </div>
                 </div>
@@ -468,19 +468,7 @@
                 showExplore();
             });
 
-            $('#cta-explore').on('click', function(e) {
-                e.preventDefault();
-                $('html, body').animate({
-                    scrollTop: $('#featured').offset().top - 80
-                }, 500);
-            });
 
-            $('a[href="#tindbook"].btn-cta').on('click', function(e) {
-                e.preventDefault();
-                $('html, body').animate({
-                    scrollTop: $('#tindbook').offset().top - 80
-                }, 500);
-            });
 
             $('#see-more-community').on('click', function(e) {
                 e.preventDefault();
