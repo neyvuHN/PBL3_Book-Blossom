@@ -1,0 +1,40 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+
+* {
+    -webkit-font-smoothing: antialiased;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0px;
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+}
+
+button:focus-visible {
+    outline: 2px solid #4a90e2 !important;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Fallbacks for custom fonts */
+@font-face {
+    font-family: "Arial-Regular";
+    src: local("Arial");
+}
+
+@font-face {
+    font-family: "Arial-Bold";
+    src: local("Arial Bold"), local("Arial");
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "Lora-Bold";
+    src: local("Lora Bold"), local("Lora"), serif;
+    font-weight: bold;
+}

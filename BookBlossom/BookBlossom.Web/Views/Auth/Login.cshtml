@@ -1,0 +1,120 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+    <title>Đăng nhập - Book Blossom</title>
+    <link rel="stylesheet" href="~/css/globals.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <!-- Import Lora font for headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="login-page-container">
+        <!-- Left Side: Image -->
+        <div class="image-section"></div>
+
+        <!-- Right Side: Form -->
+        <div class="form-section">
+            <div class="form-container">
+                
+                <!-- Logo & Header -->
+                <div class="header-area">
+                    <h1 class="brand-title">Book Blossom <span class="flower">🌸</span></h1>
+                    <h2 class="welcome-text">Welcome Back</h2>
+                    <p class="subtitle">Enter your details to manage your book shelf.</p>
+                </div>
+
+                <!-- Form -->
+                <form asp-controller="Auth" asp-action="Login" method="post">
+                    
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="Email">Email Address</label>
+                        <input type="email" id="Email" name="Email" placeholder="name@example.com" required />
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label for="Password">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="Password" name="Password" placeholder="**********" required />
+                            <div class="eye-toggle" id="togglePassword">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.12 10.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                                <span>Eye</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" name="RememberMe" />
+                            <span>Remember Me</span>
+                        </label>
+                        <a href="/Auth/ForgotPassword" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-submit">Log In</button>
+
+                    <!-- OR Separator -->
+                    <div class="separator">
+                        <span>OR</span>
+                    </div>
+
+                    <!-- Social Buttons -->
+                    <div class="social-buttons">
+                        <a href="/Auth/ExternalLogin?provider=Google" class="btn-social">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.98-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                            </svg>
+                            Google
+                        </a>
+                        <a href="/Auth/ExternalLogin?provider=Facebook" class="btn-social">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 320 512" fill="#1877F2">
+                                <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/>
+                            </svg>
+                            Facebook
+                        </a>
+                    </div>
+
+                    <!-- Sign Up Prompt -->
+                    <p class="signup-prompt">
+                        Don't have an account? <a href="/Auth/Register"><strong>Sign Up</strong></a>
+                    </p>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for password visibility toggle -->
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#Password');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // Toggle icon (optional but good for UX)
+            const icon = this.querySelector('svg');
+            if (type === 'text') {
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            } else {
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.12 10.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            }
+        });
+    </script>
+</body>
+</html>
