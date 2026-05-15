@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using BookBlossom.Infrastructure.BackgroundJobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IOTPService, OTPService>();
 builder.Services.AddScoped<ISMSService, MockSmsService>();
 builder.Services.AddMemoryCache();
+
+// Đăng ký Background Job dọn dẹp OTP
+builder.Services.AddHostedService<OtpCleanupJob>();
 
 // Đăng ký AuthService
 builder.Services.AddScoped<IAuthService, AuthService>();

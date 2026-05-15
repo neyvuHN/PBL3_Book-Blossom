@@ -56,7 +56,8 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
-                var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber, ipAddress);
 
                 var cacheOptions = new MemoryCacheEntryOptions()
                     .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
@@ -80,19 +81,19 @@ namespace BookBlossom.Web.Controllers
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDTO request)
         {
-            var isOtpValid = await _otpService.VerifyOtpAsync(request.PhoneNumber, request.OtpCode);
-            if (!isOtpValid)
-            {
-                return BadRequest(new { Message = "Mã OTP không chính xác hoặc đã hết hạn" });
-            }
-
-            if (!_cache.TryGetValue(request.PhoneNumber, out RegisterRequestDTO? cachedRequest) || cachedRequest == null)
-            {
-                return BadRequest(new { Message = "Phiên đăng ký đã hết hạn hoặc không hợp lệ. Vui lòng đăng ký lại" });
-            }
-            
             try
             {
+                var isOtpValid = await _otpService.VerifyOtpAsync(request.PhoneNumber, request.OtpCode);
+                if (!isOtpValid)
+                {
+                    return BadRequest(new { Message = "Mã OTP không chính xác." });
+                }
+
+                if (!_cache.TryGetValue(request.PhoneNumber, out RegisterRequestDTO? cachedRequest) || cachedRequest == null)
+                {
+                    return BadRequest(new { Message = "Phiên đăng ký đã hết hạn hoặc không hợp lệ. Vui lòng đăng ký lại." });
+                }
+                
                 await _authService.CompleteRegistrationAsync(cachedRequest);
                 _cache.Remove(request.PhoneNumber);
 

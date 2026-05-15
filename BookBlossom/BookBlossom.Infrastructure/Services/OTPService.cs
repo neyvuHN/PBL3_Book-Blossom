@@ -17,9 +17,20 @@ namespace BookBlossom.Infrastructure.Services
             _context = context;
         }
 
-        public async Task<string> GenerateOtpAsync(string phoneNumber)
+        public async Task<string> GenerateOtpAsync(string phoneNumber, string ipAddress)
         {
             var today = DateTime.UtcNow.Date;
+
+            // Kiểm tra cooldown 60 giây
+            var lastOtp = await _context.OTPLogs
+                .Where(x => x.PhoneNumber == phoneNumber)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (lastOtp != null && (DateTime.UtcNow - lastOtp.CreatedAt).TotalSeconds < 60)
+            {
+                throw new Exception("Vui lòng đợi 60 giây trước khi yêu cầu mã OTP mới.");
+            }
 
             // Kiểm tra số lần đã gửi trong ngày
             var sendCountToday = await _context.OTPLogs
@@ -35,14 +46,20 @@ namespace BookBlossom.Infrastructure.Services
             var random = new Random();
             var otpCode = random.Next(100000, 999999).ToString();
 
+            // Hash OTP trước khi lưu
+            var hashedOtp = BCrypt.Net.BCrypt.HashPassword(otpCode);
+
             // Tạo bản ghi log
             var otpLog = new OTPLog
             {
                 PhoneNumber = phoneNumber,
-                OTPCode = otpCode,
+                OTPCode = hashedOtp,
                 CreatedAt = DateTime.UtcNow,
                 ExpireAt = DateTime.UtcNow.AddMinutes(5), // Hết hạn sau 5 phút
-                IsUsed = false
+                IsUsed = false,
+                FailedAttempts = 0,
+                IsLocked = false,
+                IpAddress = ipAddress
             };
 
             _context.OTPLogs.Add(otpLog);
@@ -60,22 +77,40 @@ namespace BookBlossom.Infrastructure.Services
 
             if (latestOtp == null)
             {
+                throw new Exception("Không tìm thấy mã OTP cho số điện thoại này.");
+            }
+
+            if (latestOtp.IsLocked)
+            {
+                throw new Exception("Mã OTP này đã bị khóa do nhập sai quá nhiều lần.");
+            }
+
+            if (latestOtp.ExpireAt < DateTime.UtcNow)
+            {
+                throw new Exception("Mã OTP đã hết hạn.");
+            }
+
+            if (latestOtp.IsUsed)
+            {
+                throw new Exception("Mã OTP đã được sử dụng.");
+            }
+
+            // Kiểm tra mã OTP
+            if (!BCrypt.Net.BCrypt.Verify(otpCode, latestOtp.OTPCode))
+            {
+                latestOtp.FailedAttempts++;
+                if (latestOtp.FailedAttempts >= 5)
+                {
+                    latestOtp.IsLocked = true;
+                }
+                await _context.SaveChangesAsync();
                 return false;
             }
 
-            // Kiểm tra mã, xem đã sử dụng chưa và có còn hạn không
-            if (latestOtp.OTPCode == otpCode && 
-                latestOtp.IsUsed != true && 
-                latestOtp.ExpireAt > DateTime.UtcNow)
-            {
-                // Đánh dấu là đã sử dụng
-                latestOtp.IsUsed = true;
-                await _context.SaveChangesAsync();
-                
-                return true;
-            }
-
-            return false;
+            // Đánh dấu là đã sử dụng
+            latestOtp.IsUsed = true;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

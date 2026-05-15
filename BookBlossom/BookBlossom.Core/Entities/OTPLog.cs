@@ -12,7 +12,10 @@ namespace BookBlossom.Core.Entities
         public string PhoneNumber { get; set; } = string.Empty;
         public string OTPCode { get; set; } = string.Empty;
         public DateTime ExpireAt { get; set; }
-        public bool? IsUsed { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public bool IsUsed { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public int FailedAttempts { get; set; } = 0;
+        public bool IsLocked { get; set; } = false;
+        public string? IpAddress { get; set; }
     }
 }
