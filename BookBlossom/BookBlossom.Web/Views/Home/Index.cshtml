@@ -92,6 +92,43 @@
             margin-bottom: 10px;
             color: #333;
         }
+        .star-rating i {
+            font-size: 1.5rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating i.active,
+        .star-rating i.hover {
+            color: #ffc107 !important;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #fff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            border-left: 4px solid #EEC7C9;
+        }
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #EEC7C9;
+            width: 100%;
+            animation: toast-progress 5s linear forwards;
+        }
+        @@keyframes toast-progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
     </style>
 </head>
 <body class="homepage-container">
@@ -106,6 +143,8 @@
             <li><a href="#" id="nav-explore">Explore</a></li>
             <li><a href="#" id="nav-tindbook">Tindbook</a></li>
             <li><a href="#" id="nav-community">Thread</a></li>
+            <li><a href="#" id="nav-blind-date">Blind Date Books</a></li>
+            <li><a href="#" id="nav-reviews">Reviews</a></li>
         </ul>
         <div class="nav-actions">
             @if (true /* User.Identity.IsAuthenticated */)
@@ -168,15 +207,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="carousel-item" style="background-image: url('/images/Homepage/homepage3.jpg')">
-                    <div class="carousel-overlay">
-                        <div class="carousel-caption">
-                            <h1>Join the Community</h1>
-                            <p>Share your thoughts and discuss with other book lovers.</p>
-                            <a href="#community" id="cta-join-community" class="btn-cta">Join Now</a>
-                        </div>
-                    </div>
-                </div>
                 <div class="carousel-item" style="background-image: url('/images/Homepage/homepage4.jpg')">
                     <div class="carousel-overlay">
                         <div class="carousel-caption">
@@ -192,6 +222,15 @@
                             <h1>Blind Date with a Book</h1>
                             <p>Don't judge a book by its cover. Discover your next favorite read!</p>
                             <a href="#" id="cta-blind-date" class="btn-cta">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item" style="background-image: url('/images/Homepage/homepage3.jpg')">
+                    <div class="carousel-overlay">
+                        <div class="carousel-caption">
+                            <h1>Join the Community</h1>
+                            <p>Share your thoughts and discuss with other book lovers.</p>
+                            <a href="#community" id="cta-join-community" class="btn-cta">Join Now</a>
                         </div>
                     </div>
                 </div>
@@ -658,11 +697,12 @@
                 </div>
                 
                 <!-- Create Post -->
-                <div class="create-post-card">
+                <div id="create-thread-post-card" class="create-post-card">
                     <h3>Create Post</h3>
                     <textarea placeholder="What's on your shelf?"></textarea>
-                    <div class="create-post-actions">
+                    <div class="create-post-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                         <button class="btn-tag-book"><i class="fas fa-book"></i> Tag Book</button>
+                        <button class="btn-cta btn-submit-thread-post">Submit Post</button>
                     </div>
                 </div>
                 
@@ -957,6 +997,217 @@
         </div>
     </section>
 
+    <!-- Blind Date Books Section (Hidden by default) -->
+    <section id="blind-date-section" class="explore-section" style="display: none;">
+        <div class="container">
+            <h2 class="text-center mb-4" style="font-family: 'Lora', serif; font-size: 2.5rem;">Blind Date with a Book</h2>
+            <p class="text-center text-muted mb-5">Don't judge a book by its cover. Discover your next favorite read through clues!</p>
+            
+            <div class="book-grid">
+                <!-- 4 Placeholder Blind Date Books -->
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
+                    <div class="book-info">
+                        <h3>Mystery Book 1</h3>
+                        <p>Clues: Romance, Paris, Secret</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.5</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
+                    <div class="book-info">
+                        <h3>Mystery Book 2</h3>
+                        <p>Clues: Sci-Fi, Space, AI</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.8</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
+                    <div class="book-info">
+                        <h3>Mystery Book 3</h3>
+                        <p>Clues: Thriller, Detective, Murder</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.7</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-card">
+                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
+                    <div class="book-info">
+                        <h3>Mystery Book 4</h3>
+                        <p>Clues: History, War, Courage</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ 4.6</span>
+                            <span class="price">Free</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dedicated Reviews Section (Hidden by default) -->
+    <section id="reviews-section" class="explore-section" style="display: none;">
+        <div class="container">
+            <h2 class="text-center mb-4" style="font-family: 'Lora', serif; font-size: 2.5rem;">Community Reviews</h2>
+            <p class="text-center text-muted mb-5">See what others are saying and share your own experience!</p>
+
+            <div class="explore-layout">
+                <!-- Sidebar Filters -->
+                <aside class="filter-sidebar">
+                    <div class="sidebar-header">
+                        <h3>Filters</h3>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h4>Rating</h4>
+                        <div class="filter-options">
+                            <label><input type="checkbox" class="filter-rating" value="5"> ⭐⭐⭐⭐⭐ 5 Stars</label>
+                            <label><input type="checkbox" class="filter-rating" value="4"> ⭐⭐⭐⭐ 4 Stars</label>
+                            <label><input type="checkbox" class="filter-rating" value="3"> ⭐⭐⭐ 3 Stars</label>
+                            <label><input type="checkbox" class="filter-rating" value="2"> ⭐⭐ 2 Stars</label>
+                            <label><input type="checkbox" class="filter-rating" value="1"> ⭐ 1 Star</label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Time</h4>
+                        <select class="form-select" id="filter-time">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                        </select>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <div class="explore-content">
+                    <!-- Create Review Card -->
+                    <div id="create-review-card" class="thread-card create-post-card mb-4" style="flex: 1 1 100%;">
+                        <h3>Leave a Review</h3>
+                        <div class="rating-input mb-3">
+                            <span class="star-rating">
+                                <i class="far fa-star" data-rating="1"></i>
+                                <i class="far fa-star" data-rating="2"></i>
+                                <i class="far fa-star" data-rating="3"></i>
+                                <i class="far fa-star" data-rating="4"></i>
+                                <i class="far fa-star" data-rating="5"></i>
+                            </span>
+                            <span class="rating-value ms-2">0/5</span>
+                        </div>
+                        <textarea placeholder="Share your thoughts about BookBlossom..." class="form-control mb-3" rows="3"></textarea>
+                        <button class="btn-cta btn-submit-review">Submit Review</button>
+                    </div>
+
+                    <!-- Reviews List -->
+                    <div class="reviews-list">
+                        <!-- Review 1 -->
+                        <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-rating="5">
+                            <div class="thread-header">
+                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
+                                <div class="user-info">
+                                    <h4>Minh Thu</h4>
+                                    <span>2 days ago</span>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="text-warning">⭐⭐⭐⭐⭐</span>
+                                </div>
+                            </div>
+                            <p>"BookBlossom helped me find friends with the same reading interests and share great books. Highly recommended!"</p>
+                            <div class="thread-footer">
+                                <div class="thread-actions">
+                                    <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-heart"></i> <span class="like-count">24</span></button>
+                                    <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-comment"></i> <span class="comment-count">5</span></button>
+                                </div>
+                            </div>
+                            <!-- Comment Section -->
+                            <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
+                                <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                                    <!-- Comments will appear here -->
+                                </div>
+                                <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
+                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                                    <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
+                                    <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;"><i class="far fa-paper-plane"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Review 2 -->
+                        <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-rating="4">
+                            <div class="thread-header">
+                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
+                                <div class="user-info">
+                                    <h4>Hoang Nam</h4>
+                                    <span>1 week ago</span>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="text-warning">⭐⭐⭐⭐</span>
+                                </div>
+                            </div>
+                            <p>"The Tindbook feature is super fun! I found 3 great books in just a few minutes of swiping."</p>
+                            <div class="thread-footer">
+                                <div class="thread-actions">
+                                    <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-heart"></i> <span class="like-count">15</span></button>
+                                    <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-comment"></i> <span class="comment-count">2</span></button>
+                                </div>
+                            </div>
+                            <!-- Comment Section -->
+                            <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
+                                <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                                    <!-- Comments will appear here -->
+                                </div>
+                                <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
+                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                                    <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
+                                    <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;"><i class="far fa-paper-plane"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Review 3 -->
+                        <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-rating="5">
+                            <div class="thread-header">
+                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
+                                <div class="user-info">
+                                    <h4>Elena Smith</h4>
+                                    <span>3 days ago</span>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="text-warning">⭐⭐⭐⭐⭐</span>
+                                </div>
+                            </div>
+                            <p>"I love the clean interface and the community discussions. It's my go-to site for book recommendations."</p>
+                            <div class="thread-footer">
+                                <div class="thread-actions">
+                                    <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-heart"></i> <span class="like-count">32</span></button>
+                                    <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-comment"></i> <span class="comment-count">8</span></button>
+                                </div>
+                            </div>
+                            <!-- Comment Section -->
+                            <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
+                                <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                                    <!-- Comments will appear here -->
+                                </div>
+                                <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
+                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                                    <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
+                                    <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;"><i class="far fa-paper-plane"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="premium-footer">
         <div class="container">
@@ -975,6 +1226,8 @@
             const $navExplore = $('#nav-explore');
             const $navTindbook = $('#nav-tindbook');
             const $navCommunity = $('#nav-community');
+            const $navBlindDate = $('#nav-blind-date');
+            const $navReviews = $('#nav-reviews');
             const $navLogo = $('#nav-logo');
             const $mainContent = $('#main-content');
             const $exploreSection = $('#explore-section');
@@ -1008,6 +1261,8 @@
                 $exploreSection.hide();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.hide();
+                $('#blind-date-section').hide();
+                $('#reviews-section').hide();
                 $mainNavbar.removeClass('navbar-light');
                 setActiveTab($navHome);
                 window.scrollTo(0, 0);
@@ -1018,6 +1273,8 @@
                 $exploreSection.show();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.hide();
+                $('#blind-date-section').hide();
+                $('#reviews-section').hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navExplore);
                 window.scrollTo(0, 0);
@@ -1028,6 +1285,8 @@
                 $exploreSection.hide();
                 $dedicatedCommunity.show();
                 $tindbookFeature.hide();
+                $('#blind-date-section').hide();
+                $('#reviews-section').hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navCommunity);
                 window.scrollTo(0, 0);
@@ -1038,9 +1297,35 @@
                 $exploreSection.hide();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.show();
+                $('#blind-date-section').hide();
+                $('#reviews-section').hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navTindbook);
                 updateCards(); // Ensure cards are positioned correctly
+                window.scrollTo(0, 0);
+            }
+
+            function showBlindDate() {
+                $mainContent.hide();
+                $exploreSection.hide();
+                $dedicatedCommunity.hide();
+                $tindbookFeature.hide();
+                $('#blind-date-section').show();
+                $('#reviews-section').hide();
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navBlindDate);
+                window.scrollTo(0, 0);
+            }
+
+            function showReviews() {
+                $mainContent.hide();
+                $exploreSection.hide();
+                $dedicatedCommunity.hide();
+                $tindbookFeature.hide();
+                $('#blind-date-section').hide();
+                $('#reviews-section').show();
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navReviews);
                 window.scrollTo(0, 0);
             }
 
@@ -1062,6 +1347,21 @@
             $navTindbook.on('click', function(e) {
                 e.preventDefault();
                 showTindbook();
+            });
+
+            $navCommunity.on('click', function(e) {
+                e.preventDefault();
+                showDedicatedCommunity();
+            });
+
+            $navBlindDate.on('click', function(e) {
+                e.preventDefault();
+                showBlindDate();
+            });
+
+            $navReviews.on('click', function(e) {
+                e.preventDefault();
+                showReviews();
             });
 
             $('#btn-try-tindbook').on('click', function(e) {
@@ -1095,12 +1395,17 @@
 
             $('#cta-join-community').on('click', function(e) {
                 e.preventDefault();
-                document.getElementById('community').scrollIntoView({ behavior: 'auto' });
+                showReviews();
+            });
+
+            $('#see-more-community').on('click', function(e) {
+                e.preventDefault();
+                showReviews();
             });
 
             $('#cta-blind-date').on('click', function(e) {
                 e.preventDefault();
-                showExplore();
+                showBlindDate();
             });
 
             // Tindbook Logic
@@ -1540,7 +1845,7 @@
             });
 
             // Like Button Logic
-            $('.btn-like').on('click', function() {
+            $(document).on('click', '.btn-like', function() {
                 const $icon = $(this).find('i');
                 const $count = $(this).find('.like-count');
                 let count = parseInt($count.text());
@@ -1555,13 +1860,13 @@
             });
 
             // Comment Button Logic (Toggle)
-            $('.btn-comment').on('click', function() {
+            $(document).on('click', '.btn-comment', function() {
                 const $post = $(this).closest('.thread-post');
                 $post.find('.comment-section').slideToggle(300);
             });
 
             // Send Comment Logic
-            $('.btn-send-comment').on('click', function() {
+            $(document).on('click', '.btn-send-comment', function() {
                 const $input = $(this).siblings('input');
                 const text = $input.val().trim();
                 
@@ -1617,7 +1922,7 @@
             }
 
             // Share Button Logic
-            $('.btn-share').on('click', function() {
+            $(document).on('click', '.btn-share', function() {
                 $('#share-modal').fadeIn(200);
             });
 
@@ -1631,7 +1936,7 @@
             });
 
             // Post Menu Dropdown Toggle
-            $('.post-menu-btn').on('click', function(e) {
+            $(document).on('click', '.post-menu-btn', function(e) {
                 e.stopPropagation();
                 $(this).find('.post-dropdown-menu').toggle();
             });
@@ -1642,7 +1947,7 @@
             });
 
             // Hide Post Logic
-            $('.btn-hide-post').on('click', function(e) {
+            $(document).on('click', '.btn-hide-post', function(e) {
                 e.preventDefault();
                 const $post = $(this).closest('.thread-post');
                 $post.find('.hidden-post-overlay').fadeIn(200);
@@ -1714,6 +2019,349 @@
                 }
             });
 
+
+            // Star Rating Logic
+            function bindStarRatingEvents() {
+                $('.star-rating i').on('mouseover', function() {
+                    $(this).addClass('hover').prevAll().addClass('hover');
+                }).on('mouseout', function() {
+                    $(this).removeClass('hover').prevAll().removeClass('hover');
+                }).on('click', function() {
+                    const rating = $(this).data('rating');
+                    $(this).siblings().removeClass('active');
+                    $(this).addClass('active').prevAll().addClass('active');
+                    $('.rating-value').text(rating + '/5');
+                });
+            }
+
+            bindStarRatingEvents(); // Bind initially
+
+            // Filter Reviews Logic
+            $('.filter-rating, #filter-time').on('change', function() {
+                const selectedRatings = $('.filter-rating:checked').map(function() {
+                    return $(this).val();
+                }).get();
+
+                const sortOrder = $('#filter-time').val();
+
+                const $reviewsList = $('.reviews-list');
+                const $reviews = $('.review-item').get();
+
+                // Filter
+                $('.review-item').each(function() {
+                    const rating = $(this).data('rating').toString();
+                    if (selectedRatings.length === 0 || selectedRatings.includes(rating)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Sort (Placeholder logic since we don't have real dates, but we can reverse the DOM order!)
+                if (sortOrder === 'oldest') {
+                    $reviewsList.append($reviews.reverse());
+                } else {
+                    $reviewsList.append($reviews);
+                }
+            });
+
+            function showErrorToast(message) {
+                const $toast = $(`
+                    <div class="toast-notification" style="border-left-color: #ff4444;">
+                        <i class="fas fa-exclamation-circle" style="color: #ff4444;"></i>
+                        <span>${message}</span>
+                        <div class="toast-progress" style="background-color: #ff4444;"></div>
+                    </div>
+                `);
+                $('body').append($toast);
+                $toast.fadeIn(300);
+                
+                // Auto hide after 3 seconds
+                setTimeout(function() {
+                    $toast.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+
+            let hasSubmittedReview = false;
+
+            $(document).on('click', '.btn-submit-review', function() {
+                // Check if user is logged in (simulated)
+                const isAuthenticated = true; // Simulated
+                const isBuyer = true; // Simulated
+                
+                if (!isAuthenticated) {
+                    showErrorToast('Please log in to submit a review.');
+                    return;
+                }
+                
+                if (!isBuyer) {
+                    showErrorToast('Only buyers can submit a review.');
+                    return;
+                }
+
+                if (hasSubmittedReview) {
+                    showErrorToast('You have already submitted a review.');
+                    return;
+                }
+
+                const $card = $(this).closest('.create-post-card');
+                const rating = $card.find('.star-rating i.active').length;
+                const text = $card.find('textarea').val().trim();
+
+                if (rating === 0) {
+                    showErrorToast('Please select a star rating.');
+                    return;
+                }
+
+                if (text === '') {
+                    showErrorToast('Please enter your review content.');
+                    return;
+                }
+
+                // Create Review Card
+                const newReview = `
+                    <div class="thread-card review-item mb-3 user-own-review" style="flex: 1 1 100%;" data-rating="${rating}">
+                        <div class="thread-header">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
+                            <div class="user-info">
+                                <h4>You</h4>
+                                <span>Just now</span>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="text-warning">${'⭐'.repeat(rating)}</span>
+                            </div>
+                        </div>
+                        <p class="review-text">"${text}"</p>
+                        <div class="thread-footer">
+                            <div class="thread-actions">
+                                <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-heart"></i> <span class="like-count">0</span></button>
+                                <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-comment"></i> <span class="comment-count">0</span></button>
+                            </div>
+                            <div class="ms-auto">
+                                <button class="btn-edit-review" style="background: none; border: none; color: #666; margin-right: 10px;"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn-delete-review" style="background: none; border: none; color: #ff4444;"><i class="fas fa-trash"></i> Delete</button>
+                            </div>
+                        </div>
+                        <!-- Comment Section -->
+                        <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
+                            <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                                <!-- Comments will appear here -->
+                            </div>
+                            <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
+                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                                <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
+                                <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;"><i class="far fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Show toast with undo
+                showToast('Review submitted successfully!');
+
+                // Append review
+                $('.reviews-list').prepend(newReview);
+                
+                // Clear form
+                $('#create-review-card textarea').val('');
+                $('#create-review-card .star-rating i').removeClass('active');
+                $('#create-review-card .rating-value').text('0/5');
+
+                hasSubmittedReview = true;
+                
+                // Hide or disable the form
+                $('#create-review-card').html('<h3>Your Review</h3><p>You have already submitted a review. You can edit or delete it below.</p>');
+            });
+
+            // Thread Post Submit Logic
+            $(document).on('click', '.btn-submit-thread-post', function() {
+                const $card = $(this).closest('#create-thread-post-card');
+                const text = $card.find('textarea').val().trim();
+
+                if (text === '') {
+                    showErrorToast('Please enter your post content.');
+                    return;
+                }
+
+                // Create Post Card (Simulated)
+                const newPost = `
+                    <div class="thread-post user-own-post">
+                        <div class="post-header">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="post-avatar">
+                            <div class="post-user-info">
+                                <div class="user-name-badge">
+                                    <span class="user-name">You</span>
+                                </div>
+                                <span class="post-time">Just now</span>
+                            </div>
+                            <div class="post-menu-btn">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <div class="post-dropdown-menu" style="display: none;">
+                                    <a href="#" class="dropdown-item btn-report-post"><i class="far fa-flag"></i> Report Post</a>
+                                    <a href="#" class="dropdown-item btn-hide-post"><i class="far fa-eye-slash"></i> Hide Post</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <p class="post-text">${text}</p>
+                        </div>
+                        <div class="post-footer">
+                            <button class="post-action btn-like"><i class="far fa-heart"></i> <span class="like-count">0</span></button>
+                            <button class="post-action btn-comment"><i class="far fa-comment"></i> <span class="comment-count">0</span></button>
+                            <button class="post-action btn-share"><i class="far fa-share-square"></i> Share</button>
+                            <div class="ms-auto" style="display: flex; gap: 10px;">
+                                <button class="btn-edit-thread-post" style="background: none; border: none; color: #666; cursor: pointer;"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn-delete-thread-post" style="background: none; border: none; color: #ff4444; cursor: pointer;"><i class="fas fa-trash"></i> Delete</button>
+                            </div>
+                        </div>
+                        <!-- Comment Section -->
+                        <div class="comment-section" style="display: none;">
+                            <div class="comment-list"></div>
+                            <div class="comment-input-area">
+                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                                <input type="text" placeholder="Write a comment...">
+                                <button class="btn-send-comment"><i class="far fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Show toast
+                showToast('Post created successfully!');
+
+                // Append post (after create post card)
+                $card.after(newPost);
+                
+                // Clear form
+                $card.find('textarea').val('');
+            });
+
+            // Delete Thread Post Logic
+            $(document).on('click', '.btn-delete-thread-post', function() {
+                if (confirm('Are you sure you want to delete this post?')) {
+                    $(this).closest('.thread-post').remove();
+                }
+            });
+
+            // Edit Thread Post Logic
+            $(document).on('click', '.btn-edit-thread-post', function() {
+                const $post = $(this).closest('.thread-post');
+                const text = $post.find('.post-text').text();
+                
+                // Set text to form
+                $('#create-thread-post-card textarea').val(text);
+                
+                // Remove post
+                $post.remove();
+                
+                // Scroll to top of thread
+                document.getElementById('dedicated-community').scrollIntoView({ behavior: 'auto' });
+            });
+
+            // Delete Review Logic
+            $(document).on('click', '.btn-delete-review', function() {
+                if (confirm('Are you sure you want to delete your review?')) {
+                    $(this).closest('.review-item').remove();
+                    hasSubmittedReview = false;
+                    // Restore form
+                    $('.create-post-card').html(`
+                        <h3>Leave a Review</h3>
+                        <div class="rating-input mb-3">
+                            <span class="star-rating">
+                                <i class="far fa-star" data-rating="1"></i>
+                                <i class="far fa-star" data-rating="2"></i>
+                                <i class="far fa-star" data-rating="3"></i>
+                                <i class="far fa-star" data-rating="4"></i>
+                                <i class="far fa-star" data-rating="5"></i>
+                            </span>
+                            <span class="rating-value ms-2">0/5</span>
+                        </div>
+                        <textarea placeholder="Share your thoughts about BookBlossom..." class="form-control mb-3" rows="3"></textarea>
+                        <button class="btn-cta btn-submit-review">Submit Review</button>
+                    `);
+                    
+                    bindStarRatingEvents();
+                }
+            });
+
+            // Edit Review Logic
+            $(document).on('click', '.btn-edit-review', function() {
+                const $review = $(this).closest('.review-item');
+                const text = $review.find('.review-text').text().replace(/^"|"$/g, ''); // Remove quotes
+                
+                // Restore form with text
+                $('.create-post-card').html(`
+                    <h3>Edit Your Review</h3>
+                    <div class="rating-input mb-3">
+                        <span class="star-rating">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </span>
+                        <span class="rating-value ms-2">0/5</span>
+                    </div>
+                    <textarea class="form-control mb-3" rows="3">${text}</textarea>
+                    <button class="btn-cta btn-submit-review">Update Review</button>
+                `);
+                
+                // Remove the card
+                $review.remove();
+                hasSubmittedReview = false; // Allow submitting again
+                
+                bindStarRatingEvents();
+            });
+
+            // Review Like Logic
+            $(document).on('click', '.btn-like-review', function() {
+                const $icon = $(this).find('i');
+                const $count = $(this).find('.like-count');
+                let count = parseInt($count.text());
+                
+                if ($icon.hasClass('far')) {
+                    $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
+                    $count.text(count + 1);
+                } else {
+                    $icon.removeClass('fas').addClass('far').css('color', '');
+                    $count.text(count - 1);
+                }
+            });
+
+            // Review Comment Toggle Logic
+            $(document).on('click', '.btn-comment-review', function() {
+                const $post = $(this).closest('.review-item');
+                $post.find('.comment-section').slideToggle(300);
+            });
+
+            // Review Send Comment Logic
+            $(document).on('click', '.btn-send-comment-review', function() {
+                const $input = $(this).siblings('input');
+                const text = $input.val().trim();
+                
+                if (text !== '') {
+                    const $list = $(this).closest('.comment-section').find('.comment-list');
+                    const newComment = `
+                        <div class="comment-item" style="display: flex; gap: 10px; align-items: flex-start;">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                            <div class="comment-content" style="background: #f5f5f5; padding: 8px 12px; border-radius: 12px; flex: 1;">
+                                <span class="comment-user" style="font-weight: 700; font-size: 0.85rem; color: #333;">You</span>
+                                <p style="font-size: 0.85rem; color: #666; margin: 2px 0;">${text}</p>
+                                <span class="comment-time" style="font-size: 0.75rem; color: #999;">Just now</span>
+                            </div>
+                        </div>
+                    `;
+                    $list.append(newComment);
+                    $input.val('');
+                    
+                    // Update comment count
+                    const $post = $(this).closest('.review-item');
+                    const $count = $post.find('.comment-count');
+                    $count.text(parseInt($count.text()) + 1);
+                }
+            });
 
         });
     </script>
