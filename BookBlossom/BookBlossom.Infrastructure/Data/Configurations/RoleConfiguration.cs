@@ -17,6 +17,8 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             
             // RoleID sử dụng UserRole (byte)
             builder.Property(r => r.RoleID)
+                .HasColumnType("tinyint")
+                .HasConversion<byte>()
                 .ValueGeneratedNever();
 
             builder.Property(r => r.RoleName)

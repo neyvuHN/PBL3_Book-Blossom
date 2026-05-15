@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookBlossom.Web.Areas.Management.Controllers
 {
     [Area("Management")]
+    [Route("api/management/[controller]")]
     [Authorize(Policy = "MarketingManagerOnly")]
     public class VoucherController : Controller
     {

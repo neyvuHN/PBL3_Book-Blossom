@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookBlossom.Web.Areas.Moderation.Controllers
 {
     [Area("Moderation")]
+    [Route("api/moderation/[controller]")]
     [Authorize(Policy = "ModeratorOnly")]
     public class ReportController : Controller
     {
