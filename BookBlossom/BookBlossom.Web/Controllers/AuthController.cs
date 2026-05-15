@@ -7,6 +7,7 @@ using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BookBlossom.Core.DTOs;
+using BookBlossom.Core.DTOs.Auth;
 
 namespace BookBlossom.Web.Controllers
 {
@@ -15,15 +16,19 @@ namespace BookBlossom.Web.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IOTPService _otpService;
+        private readonly ISMSService _smsService;
         private readonly IMemoryCache _cache;
         private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
 
         // Khai báo và tiêm các dependency cần thiết
-        public AuthController(IOTPService otpService, IMemoryCache cache, ApplicationDbContext context)
+        public AuthController(IOTPService otpService, ISMSService smsService, IMemoryCache cache, ApplicationDbContext context, IAuthService authService)
         {
             _otpService = otpService;
+            _smsService = smsService;
             _cache = cache;
             _context = context;
+            _authService = authService;
         }
 
         [HttpPost("login")]
@@ -40,11 +45,9 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
-        // Triển khai API đăng ký
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDTO request)
         {
-            // Kiểm tra số điện thoại đã tồn tại trong DB chưa
             var userExists = await _context.Users.AnyAsync(u => u.PhoneNumber == request.PhoneNumber);
             if (userExists)
             {
@@ -53,22 +56,19 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
-                // Gọi OtpService tạo mã
                 var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber);
 
-                // Lưu thông tin người dùng tạm vào IMemoryCache
-                // Khóa là số điện thoại, thời gian sống bằng với thời gian OTP (5 phút)
                 var cacheOptions = new MemoryCacheEntryOptions()
                     .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
 
                 _cache.Set(request.PhoneNumber, request, cacheOptions);
 
-                // Ở thực tế, bạn sẽ gọi SMS Service ở đây để gửi otpCode tới người dùng.
-                // Trong môi trường dev, chúng ta trả thẳng về response để dễ test.
+                // Gửi SMS mô phỏng
+                await _smsService.SendSmsAsync(request.PhoneNumber, $"Mã xác thực BookBlossom của bạn là: {otpCode}");
+
                 return Ok(new 
                 { 
-                    Message = "Mã OTP đã được gửi", 
-                    Developer_OtpCode_For_Testing = otpCode 
+                    Message = "Mã OTP đã được gửi" 
                 });
             }
             catch (Exception ex)
@@ -77,46 +77,31 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
-        // Triển khai API xác thực OTP
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDTO request)
         {
-            // Kiểm tra OTP
             var isOtpValid = await _otpService.VerifyOtpAsync(request.PhoneNumber, request.OtpCode);
             if (!isOtpValid)
             {
                 return BadRequest(new { Message = "Mã OTP không chính xác hoặc đã hết hạn" });
             }
 
-            // Lấy thông tin đăng ký từ Cache
-            if (!_cache.TryGetValue(request.PhoneNumber, out RegisterRequestDTO cachedRequest))
+            if (!_cache.TryGetValue(request.PhoneNumber, out RegisterRequestDTO? cachedRequest) || cachedRequest == null)
             {
-                return BadRequest(new { Message = "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại" });
+                return BadRequest(new { Message = "Phiên đăng ký đã hết hạn hoặc không hợp lệ. Vui lòng đăng ký lại" });
             }
-
-            // Hash password (Nên dùng BCrypt.Net hoặc thư viện hash tương tự)
-            // Tạm thời ở đây gán thẳng hoặc bạn có thể tự thêm hàm Hash
-            var hashedPassword = cachedRequest.Password; // TODO: Implement Hashing
-
-            // Tạo User chính thức
-            var newUser = new User
+            
+            try
             {
-                PhoneNumber = cachedRequest.PhoneNumber,
-                UserName = cachedRequest.UserName,
-                Email = cachedRequest.Email,
-                Password = hashedPassword,
-                AccountStatus = 1, // Kích hoạt
-                IsActive = true
-                // Khởi tạo các trường khác nếu cần
-            };
+                await _authService.CompleteRegistrationAsync(cachedRequest);
+                _cache.Remove(request.PhoneNumber);
 
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
-
-            // Xóa thông tin tạm khỏi cache
-            _cache.Remove(request.PhoneNumber);
-
-            return Ok(new { Message = "Đăng ký tài khoản thành công!", UserId = newUser.UserID });
+                return Ok(new { Message = "Đăng ký tài khoản thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
         }
 
         [HttpPost("refresh-token")]

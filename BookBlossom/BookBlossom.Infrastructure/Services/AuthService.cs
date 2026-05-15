@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using BookBlossom.Core.Entities;
 using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Core.DTOs.Auth;
+using BookBlossom.Core.DTOs;
+using BookBlossom.Core.Enums;
 using BookBlossom.Core.Exceptions;
 using BookBlossom.Infrastructure.Data;
 
@@ -58,7 +60,7 @@ namespace BookBlossom.Infrastructure.Services
             };
         }
 
-        public async Task<bool> RegisterAsync(RegisterRequestDTO request)
+        public async Task<bool> CompleteRegistrationAsync(RegisterRequestDTO request)
         {
             if (await _context.Users.AnyAsync(u => u.UserName == request.UserName))
             {
@@ -71,18 +73,29 @@ namespace BookBlossom.Infrastructure.Services
             {
                 UserName = request.UserName,
                 Password = hashedPassword,
-                RoleID = 2, 
+                PhoneNumber = request.PhoneNumber,
+                Email = request.Email,
+                LastName = request.LastName,
+                FirstName = request.FirstName,
+                Avatar = request.Avatar,
+                Gender = request.Gender,
+                Birthday = request.Birthday,
+                RoleID = UserRole.Customer,
+                AccountStatus = AccountStatus.Active,
+                IsActive = true
             };
 
             _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
             
             var customerDetail = new CustomerDetail
             {
                 CustomerID = newUser.UserID,
-                User = newUser,
                 IsOnboardingCompleted = false,
                 TotalSpending = 0,
-                DailyUndoCount = 0
+                DailyUndoCount = 0,
+                CurrentMonthThreadCount = 0,
+                CurrentOrderStreak = 0
             };
             _context.CustomerDetails.Add(customerDetail);
 

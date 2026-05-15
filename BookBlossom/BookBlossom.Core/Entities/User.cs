@@ -1,15 +1,16 @@
-using System;
+using System.Collections.Generic;
+using BookBlossom.Core.Enums;
 
 namespace BookBlossom.Core.Entities
 {
     public class User
     {
         public int UserID { get; set; }
-        public int RoleID { get; set; }
+        public UserRole RoleID { get; set; }
         
         public string UserName { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public int AccountStatus { get; set; }
+        public AccountStatus AccountStatus { get; set; }
         public string? LastName { get; set; }
         public string? FirstName { get; set; }
         public string? Avatar { get; set; }
@@ -24,6 +25,6 @@ namespace BookBlossom.Core.Entities
 
         public virtual StaffDetail StaffDetail { get; set; }
         public virtual CustomerDetail CustomerDetail { get; set; }
-        public virtual GuestDetail GuestDetail { get; set; }
+        public virtual ICollection<GuestDetail> GuestDetails { get; set; } = new List<GuestDetail>();
     }
 }

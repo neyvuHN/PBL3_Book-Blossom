@@ -1,4 +1,5 @@
 using BookBlossom.Core.DTOs.Auth;
+using BookBlossom.Core.DTOs;
 using System.Threading.Tasks;
 
 namespace BookBlossom.Core.Interfaces.Services
@@ -9,7 +10,7 @@ namespace BookBlossom.Core.Interfaces.Services
         Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request);
         Task<AuthResponseDTO> RefreshTokenAsync(TokenRequestDTO request);
         
-        // Hàm đăng ký (thêm vào để luồng Auth được hoàn chỉnh)
-        Task<bool> RegisterAsync(RegisterRequestDTO request);
+        // Hàm hoàn tất đăng ký sau khi xác thực OTP thành công
+        Task<bool> CompleteRegistrationAsync(RegisterRequestDTO request);
     }
 }

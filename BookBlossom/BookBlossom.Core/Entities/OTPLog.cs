@@ -1,9 +1,11 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace BookBlossom.Core.Entities
 {
     public class OTPLog
     {
+        [Key]
         public long LogID { get; set; }
         public long? UserID { get; set; }
         public Guid? GuestID { get; set; }

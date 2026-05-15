@@ -29,9 +29,9 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.Property(g => g.LastActiveAt).HasColumnType("datetime");
 
             builder.HasOne(g => g.ConvertedUser)
-                   .WithMany() 
+                   .WithMany(u => u.GuestDetails) 
                    .HasForeignKey(g => g.ConvertedUserID)
-                   .OnDelete(DeleteBehavior.SetNull); 
+                   .OnDelete(DeleteBehavior.Restrict); 
         }
     }
 }

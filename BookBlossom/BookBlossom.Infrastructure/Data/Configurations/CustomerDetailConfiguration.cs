@@ -13,11 +13,11 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.HasKey(c => c.CustomerID);
             builder.Property(c => c.CustomerID).ValueGeneratedNever();
 
-            builder.Property(c => c.IsOnboardingCompleted).IsRequired(false);
+            builder.Property(c => c.IsOnboardingCompleted).IsRequired();
             
             builder.Property(c => c.TotalSpending)
                    .HasColumnType("decimal(18,2)")
-                   .IsRequired(false);
+                   .IsRequired();
 
             builder.Property(c => c.DailyUndoCount).IsRequired();
             builder.Property(c => c.LastUndoDate).HasColumnType("date");
