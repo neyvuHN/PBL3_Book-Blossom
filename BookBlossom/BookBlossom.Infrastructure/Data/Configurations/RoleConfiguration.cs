@@ -15,9 +15,8 @@ namespace BookBlossom.Infrastructure.Data.Configurations
 
             builder.HasKey(r => r.RoleID);
             
-            // Ép kiểu UserRole thành byte (tinyint trong SQL Server)
+            // RoleID sử dụng UserRole (byte)
             builder.Property(r => r.RoleID)
-                .HasConversion<byte>()
                 .ValueGeneratedNever();
 
             builder.Property(r => r.RoleName)

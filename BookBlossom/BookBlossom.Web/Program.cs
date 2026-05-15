@@ -1,11 +1,15 @@
 using BookBlossom.Infrastructure.Data;
 using BookBlossom.Infrastructure.Services;
 using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Infrastructure.BackgroundJobs;
+using BookBlossom.Core.Enums;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+
 using System.Text;
-using BookBlossom.Infrastructure.BackgroundJobs;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,8 +48,63 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Hằng số cho AccountStatus.Active
+    var activeStatus = ((int)AccountStatus.Active).ToString();
 
+    // 1. Policy cho Admin (Toàn quyền)
+    options.AddPolicy("AdminOnly", policy => 
+    {
+        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.SystemAdmin).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
+
+    // 2. Policy cho tất cả Staff (Admin, Moderator, Marketing, Store)
+    options.AddPolicy("StaffOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(),
+            ((int)UserRole.Moderator).ToString(),
+            ((int)UserRole.MarketingManager).ToString(),
+            ((int)UserRole.StoreManager).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
+
+    // 3. Policy riêng cho Marketing
+    options.AddPolicy("MarketingManagerOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(),
+            ((int)UserRole.MarketingManager).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
+
+    // 4. Policy riêng cho Moderator
+    options.AddPolicy("ModeratorOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(),
+            ((int)UserRole.Moderator).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
+
+    // 5. Policy riêng cho Store Manager
+    options.AddPolicy("StoreManagerOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(),
+            ((int)UserRole.StoreManager).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
+            
+    // 6. Policy cho Khách hàng đã định danh
+    options.AddPolicy("CustomerOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.Customer).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -36,11 +36,15 @@ namespace BookBlossom.Infrastructure.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
                 throw new UnauthorizedActionException("Tên đăng nhập hoặc mật khẩu không chính xác.");
 
+            if (user.AccountStatus != AccountStatus.Active)
+                throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa hoặc chưa được xác thực.");
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, user.RoleID.ToString())
+                new Claim(ClaimTypes.Role, ((int)user.RoleID).ToString()),
+                new Claim("AccountStatus", ((int)user.AccountStatus).ToString())
             };
 
             var token = CreateJwtToken(claims);

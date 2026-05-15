@@ -13,7 +13,6 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.HasKey(u => u.UserID);
             builder.Property(u => u.UserID).HasColumnName("UserID");
             builder.Property(u => u.RoleID)
-                .HasConversion<byte>()
                 .IsRequired();
 
             // Mối quan hệ với Role

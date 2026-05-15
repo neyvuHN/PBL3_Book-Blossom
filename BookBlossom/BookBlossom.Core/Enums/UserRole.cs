@@ -1,6 +1,6 @@
 namespace BookBlossom.Core.Enums
 {
-    public enum UserRole
+    public enum UserRole : byte
     {
         Guest = 1,
         Customer = 2,
