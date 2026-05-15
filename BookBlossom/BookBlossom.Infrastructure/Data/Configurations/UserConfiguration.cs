@@ -12,11 +12,18 @@ namespace BookBlossom.Infrastructure.Data.Configurations
 
             builder.HasKey(u => u.UserID);
             builder.Property(u => u.UserID).HasColumnName("UserID");
-            builder.Property(u => u.RoleID).IsRequired();
+            
+            builder.Property(u => u.RoleID)
+                .IsRequired()
+                .HasColumnType("tinyint")
+                .HasConversion<byte>();
 
             builder.Property(u => u.UserName).IsRequired().HasMaxLength(100);
             builder.Property(u => u.Password).IsRequired().HasMaxLength(255);
-            builder.Property(u => u.AccountStatus).IsRequired().HasColumnType("tinyint");
+            builder.Property(u => u.AccountStatus)
+                .IsRequired()
+                .HasColumnType("tinyint")
+                .HasConversion<byte>();
             builder.Property(u => u.LastName).HasMaxLength(50);
             builder.Property(u => u.FirstName).HasMaxLength(50);
             builder.Property(u => u.Avatar).HasMaxLength(255);

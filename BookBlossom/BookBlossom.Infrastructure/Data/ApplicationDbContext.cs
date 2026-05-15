@@ -13,6 +13,9 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<CustomerDetail> CustomerDetails { get; set; }
         public DbSet<GuestDetail> GuestDetails { get; set; }
         public DbSet<OTPLog> OTPLogs { get; set; }
+        public DbSet<ServicePackage> ServicePackages { get; set; }
+        public DbSet<CustomerService> CustomerServices { get; set; }
+        public DbSet<ServiceHistory> ServiceHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -25,6 +25,7 @@ namespace BookBlossom.Core.Entities
 
         public virtual StaffDetail StaffDetail { get; set; }
         public virtual CustomerDetail CustomerDetail { get; set; }
+        public virtual CustomerService CustomerService { get; set; }
         public virtual ICollection<GuestDetail> GuestDetails { get; set; } = new List<GuestDetail>();
     }
 }
