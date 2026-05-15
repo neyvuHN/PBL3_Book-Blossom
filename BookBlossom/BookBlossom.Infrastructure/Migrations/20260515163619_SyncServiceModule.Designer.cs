@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260515163619_SyncServiceModule")]
+    partial class SyncServiceModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -261,63 +264,6 @@ namespace BookBlossom.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.Role", b =>
-                {
-                    b.Property<byte>("RoleID")
-                        .HasColumnType("tinyint");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("RoleID");
-
-                    b.ToTable("Roles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            RoleID = (byte)1,
-                            Description = "Quyền Guest",
-                            RoleName = "Guest"
-                        },
-                        new
-                        {
-                            RoleID = (byte)2,
-                            Description = "Quyền Customer",
-                            RoleName = "Customer"
-                        },
-                        new
-                        {
-                            RoleID = (byte)3,
-                            Description = "Quyền SystemAdmin",
-                            RoleName = "SystemAdmin"
-                        },
-                        new
-                        {
-                            RoleID = (byte)4,
-                            Description = "Quyền Moderator",
-                            RoleName = "Moderator"
-                        },
-                        new
-                        {
-                            RoleID = (byte)5,
-                            Description = "Quyền MarketingManager",
-                            RoleName = "MarketingManager"
-                        },
-                        new
-                        {
-                            RoleID = (byte)6,
-                            Description = "Quyền StoreManager",
-                            RoleName = "StoreManager"
-                        });
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.StaffDetail", b =>
                 {
                     b.Property<long>("StaffID")
@@ -419,8 +365,8 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<byte>("RoleID")
-                        .HasColumnType("tinyint");
+                    b.Property<int>("RoleID")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -497,22 +443,6 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.ServicePackage", b =>
                 {
                     b.Navigation("CustomerServices");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.User", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Role", b =>
-                {
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.User", b =>

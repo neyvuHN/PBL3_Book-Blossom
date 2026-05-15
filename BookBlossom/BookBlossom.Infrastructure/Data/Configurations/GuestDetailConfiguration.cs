@@ -8,7 +8,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<GuestDetail> builder)
         {
-            builder.ToTable("GuestDetail");
+            builder.ToTable("GuestDetail", "UserSystem");
 
             builder.HasKey(g => g.GuestID);
             builder.Property(g => g.GuestID).HasColumnName("GuestID");

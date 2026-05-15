@@ -1,16 +1,14 @@
-using BookBlossom.Infrastructure.Data;
-using BookBlossom.Infrastructure.Services;
 using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Infrastructure.BackgroundJobs;
-using BookBlossom.Core.Enums;
-
-using Microsoft.EntityFrameworkCore;
+using BookBlossom.Infrastructure.Data;
+using BookBlossom.Infrastructure.Services;
+using BookBlossom.Web.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using System.Text;
-using System.Security.Claims;
-using Microsoft.OpenApi;                 
+using OpenApiModels = global::Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +27,13 @@ builder.Services.AddHostedService<OtpCleanupJob>();
 // Đăng ký AuthService
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Đăng ký GuestService
+builder.Services.AddScoped<IGuestService, GuestService>();
+
+// Đăng ký Service Module
+builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
+builder.Services.AddHostedService<SubscriptionExpiryJob>();
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -46,14 +51,37 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+
+builder.Services.AddSwaggerGen(c =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    c.SwaggerDoc("v1", new OpenApiModels.OpenApiInfo
     {
         Title = "BookBlossom API",
         Version = "v1"
     });
+
+    var securityScheme = new OpenApiModels.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Nhập token theo định dạng: Bearer {your_token}",
+        In = OpenApiModels.ParameterLocation.Header,
+        Type = OpenApiModels.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiModels.OpenApiReference
+        {
+            Id = "Bearer",
+            Type = OpenApiModels.ReferenceType.SecurityScheme
+        }
+    };
+
+    c.AddSecurityDefinition("Bearer", securityScheme);
+
+    c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
+    {
+        { securityScheme, Array.Empty<string>() }
+    });
+});
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -146,6 +174,8 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseMiddleware<GuestSessionMiddleware>();
 
 app.UseAuthentication(); // Thêm dòng này trước UseAuthorization
 app.UseAuthorization();

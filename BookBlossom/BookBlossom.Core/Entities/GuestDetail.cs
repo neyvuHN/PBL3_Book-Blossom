@@ -14,7 +14,7 @@ namespace BookBlossom.Core.Entities
         public string? DeviceInfo { get; set; }
 
         // Khóa ngoại (Cho phép NULL, lưu ID của User sau khi Guest này đăng ký tài khoản)
-        public int? ConvertedUserID { get; set; } 
+        public long? ConvertedUserID { get; set; } 
 
         // Navigation property trỏ tới User
         public virtual User? ConvertedUser { get; set; }

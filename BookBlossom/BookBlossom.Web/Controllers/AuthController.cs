@@ -20,15 +20,17 @@ namespace BookBlossom.Web.Controllers
         private readonly IMemoryCache _cache;
         private readonly ApplicationDbContext _context;
         private readonly IAuthService _authService;
+        private readonly IGuestService _guestService;
 
         // Khai báo và tiêm các dependency cần thiết
-        public AuthController(IOTPService otpService, ISMSService smsService, IMemoryCache cache, ApplicationDbContext context, IAuthService authService)
+        public AuthController(IOTPService otpService, ISMSService smsService, IMemoryCache cache, ApplicationDbContext context, IAuthService authService, IGuestService guestService)
         {
             _otpService = otpService;
             _smsService = smsService;
             _cache = cache;
             _context = context;
             _authService = authService;
+            _guestService = guestService;
         }
 
         [HttpPost("login")]
@@ -56,6 +58,12 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
+                // Nếu FE không gửi GuestID trong body, thử lấy từ Middleware (Header X-Guest-Id)
+                if (!request.GuestID.HasValue && HttpContext.Items.TryGetValue("GuestID", out var gid) && gid is Guid guestGuid)
+                {
+                    request.GuestID = guestGuid;
+                }
+
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                 var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber, ipAddress);
 
@@ -79,7 +87,10 @@ namespace BookBlossom.Web.Controllers
         }
 
         [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDTO request)
+        public async Task<IActionResult> VerifyOtp(
+            [FromBody] VerifyOtpRequestDTO request,
+            [FromHeader(Name = "X-Guest-Id")] string? guestIdHeader,
+            [FromHeader(Name = "X-Guest-Token")] string? guestTokenHeader)
         {
             try
             {
@@ -96,6 +107,15 @@ namespace BookBlossom.Web.Controllers
                 
                 await _authService.CompleteRegistrationAsync(cachedRequest);
                 _cache.Remove(request.PhoneNumber);
+
+                if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid guestId)
+                {
+                    var newUser = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == cachedRequest.PhoneNumber);
+                    if (newUser != null)
+                    {
+                        await _guestService.MigrateGuestDataToUserAsync(guestId, newUser.UserID);
+                    }
+                }
 
                 return Ok(new { Message = "Đăng ký tài khoản thành công!" });
             }

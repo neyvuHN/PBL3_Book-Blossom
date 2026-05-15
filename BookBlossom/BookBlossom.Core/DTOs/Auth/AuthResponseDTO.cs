@@ -6,7 +6,7 @@ namespace BookBlossom.Core.DTOs.Auth
     {
         public string Token { get; set; }
         public string RefreshToken { get; set; }
-        public int UserId { get; set; }
+        public long UserId { get; set; }
         public string UserName { get; set; }
         public UserRole RoleID { get; set; }
     }

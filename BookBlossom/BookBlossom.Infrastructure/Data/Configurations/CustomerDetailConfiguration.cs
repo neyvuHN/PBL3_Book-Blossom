@@ -8,7 +8,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<CustomerDetail> builder)
         {
-            builder.ToTable("CustomerDetail");
+            builder.ToTable("CustomerDetail", "UserSystem");
 
             builder.HasKey(c => c.CustomerID);
             builder.Property(c => c.CustomerID).ValueGeneratedNever();

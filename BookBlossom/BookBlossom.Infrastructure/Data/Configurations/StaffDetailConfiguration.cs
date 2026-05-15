@@ -8,7 +8,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<StaffDetail> builder)
         {
-            builder.ToTable("StaffDetail");
+            builder.ToTable("StaffDetail", "UserSystem");
 
             // Thiết lập StaffID là Khóa chính
             builder.HasKey(s => s.StaffID);
