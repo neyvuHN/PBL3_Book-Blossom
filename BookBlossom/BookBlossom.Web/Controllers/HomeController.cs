@@ -6,20 +6,25 @@ namespace BookBlossom.Web.Controllers
 {
     public class HomeController : Controller
     {
+        // public IActionResult Index()
+        // {
+        //     return View();
+        // }
+
+        // public IActionResult Privacy()
+        // {
+        //     return View();
+        // }
+
+        // [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        // public IActionResult Error()
+        // {
+        //     return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        // }
         public IActionResult Index()
         {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // Trả về một dòng chữ đơn giản để biết server đang chạy
+            return Content("Backend BookBlossom is running. Please use Postman to test APIs.");
         }
     }
 }

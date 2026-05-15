@@ -1,0 +1,22 @@
+### Biến môi trường
+@hostname = http://localhost:5245
+
+### 1. Yêu cầu gửi OTP (Đăng ký)
+POST {{hostname}}/api/auth/register
+Content-Type: application/json
+
+{
+  "phoneNumber": "0987654321",
+  "userName": "nguyenvana",
+  "email": "vana@gmail.com",
+  "password": "Password123!"
+}
+
+### 2. Xác thực OTP (Thay mã OTP nhận được vào đây)
+POST {{hostname}}/api/auth/verify-otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "0987654321",
+  "otpCode": "123456"
+}
