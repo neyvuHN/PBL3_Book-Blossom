@@ -1,0 +1,250 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+    <title>Chọn sở thích - Book Blossom</title>
+    <link rel="stylesheet" href="~/css/globals.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Hiệu ứng ẩn/hiện mượt mà */
+        .reveal-item {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .reveal-item.show {
+            opacity: 1;
+            max-height: 1000px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Điều chỉnh cho layout lúc đầu (Căn giữa màn hình) */
+        .header-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            transition: min-height 0.6s ease;
+        }
+        
+        .header-area.shifted {
+            min-height: 15vh; /* Thu nhỏ khoảng cách khi đã hiện list */
+        }
+
+        /* Font chữ TO lúc đầu và nhỏ lại sau */
+        .welcome-text {
+            font-family: 'Lora', serif;
+            font-size: 55px; /* To lúc đầu */
+            font-weight: 700;
+            color: #000;
+            margin: 15px 0;
+            transition: font-size 0.6s ease;
+        }
+        
+        .header-area.shifted .welcome-text {
+            font-size: 35px; /* Nhỏ lại sau khi bấm */
+        }
+
+        /* Nút Ready to Bloom TO lúc đầu và nhỏ lại sau */
+        .status-pill {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 25px; /* To lúc đầu */
+            padding: 12px 30px; /* To lúc đầu */
+            background-color: #EBBAB9;
+            border-radius: 25px;
+            font-weight: 700;
+            color: #000;
+            margin: 20px auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.6s ease;
+        }
+        
+        .header-area.shifted .status-pill {
+            font-size: 14px; /* Nhỏ lại sau khi bấm */
+            padding: 8px 20px;
+            margin: 10px auto;
+        }
+        
+        .status-pill:hover {
+            transform: scale(1.05);
+        }
+
+        .actions-area {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            border: 1px solid #000;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        
+        .btn-small:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Ẩn thanh bottom bar lúc đầu */
+        .bottom-bar {
+            transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .bottom-bar.show {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="interest-page-container">
+        <!-- Main Content (Scrollable) -->
+        <div class="main-content">
+            
+            <!-- Header Area -->
+            <div class="header-area" id="headerArea">
+                <h1 class="brand-title">Book Blossom <span class="flower">🌸</span></h1>
+                
+                <!-- Sửa: Thanh line hồng nằm ở GIỮA Book Blossom và What makes you bloom (Ẩn lúc đầu) -->
+                <div class="pink-line reveal-item" id="pinkLine" style="max-width: 600px; height: 4px; background-color: #EEC7C9; border-radius: 2px;"></div>
+                
+                <h2 class="welcome-text">What makes you bloom?</h2>
+                
+                <!-- Sửa: Dòng chữ Select nằm TRÊN nút Ready to bloom (Ẩn lúc đầu) -->
+                <p class="subtitle reveal-item" id="subtitleText" style="font-size: 16px; color: #666; margin-bottom: 10px;">Select at least 3 genres to seed your discovery feed.</p>
+                
+                <!-- Nút bấm Kích hoạt (Ready to Bloom) -->
+                <div class="status-pill" id="mainActionBtn">Ready to Bloom! 🌸</div>
+            </div>
+
+            <!-- Content Section cần được hé lộ (Ẩn lúc đầu) -->
+            <div class="reveal-item" id="genresSection">
+                
+                <!-- Actions Area (Nút chọn hết) -->
+                <div class="actions-area">
+                    <button id="selectAllBtn" class="btn-small">Select All</button>
+                </div>
+
+                <!-- Tags Cloud -->
+                <div class="tags-cloud">
+                    <div class="tag">Romance 💓</div>
+                    <div class="tag">Sci-Fi 👽</div>
+                    <div class="tag">Fantasy 🐉</div>
+                    <div class="tag">Thriller 🔪</div>
+                    <div class="tag">Self-Help 🧠</div>
+                    <div class="tag">Cookbooks 🔍</div>
+                    <div class="tag">Manga 📚</div>
+                    <div class="tag">Art 🎨</div>
+                    <div class="tag">Philosophy 🦉</div>
+                    <div class="tag">Young Adult 🌱</div>
+                    <div class="tag">True Crime 🕵️‍♂️</div>
+                    <div class="tag">History 📜</div>
+                    <div class="tag">Biography ✒️</div>
+                    <div class="tag">Poetry 📝</div>
+                    <div class="tag">Business 💼</div>
+                    <div class="tag">Travel ✈️</div>
+                </div>
+                
+            </div>
+            
+        </div>
+
+        <!-- Fixed Bottom Bar (Ẩn lúc đầu) -->
+        <div class="bottom-bar" id="bottomBar">
+            <button class="btn-explore" onclick="window.location.href='/Home'">Start Exploring</button>
+            <a href="/Home" class="skip-link">I'll let fate decide (Skip)</a>
+        </div>
+    </div>
+
+    <!-- Script xử lý tương tác -->
+    <script>
+        const mainActionBtn = document.querySelector('#mainActionBtn');
+        const headerArea = document.querySelector('#headerArea');
+        const pinkLine = document.querySelector('#pinkLine');
+        const subtitleText = document.querySelector('#subtitleText');
+        const genresSection = document.querySelector('#genresSection');
+        const bottomBar = document.querySelector('#bottomBar');
+        
+        const tags = document.querySelectorAll('.tag');
+        const selectAllBtn = document.querySelector('#selectAllBtn');
+
+        let isRevealed = false;
+
+        // 1. Xử lý sự kiện bấm nút "Ready to Bloom!" để hiện danh sách
+        mainActionBtn.addEventListener('click', () => {
+            if (!isRevealed) {
+                // Hiện các phần tử mượt mà
+                headerArea.classList.add('shifted');
+                pinkLine.classList.add('show');
+                subtitleText.classList.add('show');
+                genresSection.classList.add('show');
+                bottomBar.classList.add('show');
+                
+                isRevealed = true;
+                updateCount(); // Cập nhật lại text đếm
+            }
+        });
+
+        // 2. Hàm đếm số lượng đã chọn
+        function updateCount() {
+            if (!isRevealed) return; // Nếu chưa mở thì không đổi text
+            
+            const selectedCount = document.querySelectorAll('.tag.selected').length;
+            if (selectedCount < 3) {
+                mainActionBtn.textContent = `${selectedCount}/3 selected`;
+                mainActionBtn.style.backgroundColor = '#EBBAB9';
+            } else {
+                mainActionBtn.textContent = `Ready to Bloom! 🌸 (${selectedCount} selected)`;
+                mainActionBtn.style.backgroundColor = '#EEC7C9';
+            }
+        }
+
+        // 3. Xử lý click chọn Tag
+        tags.forEach(tag => {
+            tag.addEventListener('click', () => {
+                tag.classList.toggle('selected');
+                updateCount();
+            });
+        });
+
+        // 4. Xử lý nút Select All
+        selectAllBtn.addEventListener('click', () => {
+            const allSelected = Array.from(tags).every(tag => tag.classList.contains('selected'));
+            
+            tags.forEach(tag => {
+                if (allSelected) {
+                    tag.classList.remove('selected');
+                } else {
+                    tag.classList.add('selected');
+                }
+            });
+            
+            updateCount();
+            selectAllBtn.textContent = allSelected ? 'Select All' : 'Deselect All';
+        });
+    </script>
+</body>
+</html>

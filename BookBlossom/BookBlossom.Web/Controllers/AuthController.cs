@@ -13,5 +13,10 @@ namespace BookBlossom.Web.Controllers
         {
             return View();
         }
+
+        public IActionResult InterestSelection()
+        {
+            return View();
+        }
     }
 }
