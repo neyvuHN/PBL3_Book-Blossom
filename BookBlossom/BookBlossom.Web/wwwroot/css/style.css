@@ -1743,3 +1743,14 @@ body {
         flex: 0 0 100%;
     }
 }
+
+/* User Dropdown Customization */
+.dropdown-item.btn-logout {
+    background-color: #f5f5f5 !important;
+    color: #333 !important;
+}
+
+.dropdown-item.btn-logout:hover {
+    background-color: #EEC7C9 !important;
+    color: #000 !important;
+}
