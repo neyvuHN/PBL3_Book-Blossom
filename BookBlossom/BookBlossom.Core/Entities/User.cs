@@ -1,0 +1,25 @@
+using System;
+
+namespace BookBlossom.Core.Entities
+{
+    public class User
+    {
+        public int UserID { get; set; }
+        public int RoleID { get; set; }
+        
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public int AccountStatus { get; set; }
+        public string? LastName { get; set; }
+        public string? FirstName { get; set; }
+        public string? Avatar { get; set; }
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? Gender { get; set; }
+        public DateTime? Birthday { get; set; }
+        public bool? IsActive { get; set; }
+
+        public virtual StaffDetail StaffDetail { get; set; }
+        public virtual CustomerDetail CustomerDetail { get; set; }
+    }
+}
