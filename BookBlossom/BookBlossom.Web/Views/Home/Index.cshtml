@@ -181,6 +181,407 @@
             background: #e8f5e9;
             border: 1px solid #4caf50;
         }
+
+        /* Blind Date Section Styles - New Redesign */
+        #blind-date-section {
+            padding: 0;
+            background: #fff;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Hero Banner */
+        .blind-hero {
+            background: linear-gradient(90deg, #1f2937 0%, #a291b5 100%);
+            color: #fff;
+            padding: 100px 0 80px; /* Increased top padding */
+            min-height: 400px; /* Increased min-height */
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blind-hero-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .blind-hero-text h1 {
+            font-family: 'Lora', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .blind-hero-text p {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .blind-hero-text span {
+            display: block;
+            font-family: 'Lora', serif;
+            font-style: italic;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+
+        .btn-how-it-works {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-how-it-works:hover {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        .blind-hero-illustration {
+            width: 350px;
+            opacity: 0.9;
+        }
+
+        /* Layout */
+        .blind-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 40px;
+        }
+
+        /* Sidebar: The Matchmaker */
+        .blind-sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 100px;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+
+        .blind-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .blind-sidebar::-webkit-scrollbar-thumb {
+            background: #eee;
+            border-radius: 10px;
+        }
+
+        .blind-sidebar.collapsed {
+            width: 0;
+            opacity: 0;
+            margin-right: -40px;
+            overflow: hidden;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #111;
+        }
+
+        .filter-section {
+            margin-bottom: 30px;
+        }
+
+        .filter-section h4 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+            text-transform: none;
+            font-weight: 500;
+        }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .vibe-tag {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vibe-tag:hover {
+            background: #e0e0e0;
+        }
+
+        .vibe-tag.active {
+            background: #e9d5ff;
+            color: #7c3aed;
+        }
+
+        .filter-checkbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .filter-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .filter-checkbox-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: #7c3aed;
+        }
+
+        /* Dual Range Slider Styles */
+        .price-range-wrapper {
+            padding: 10px 0;
+        }
+
+        .dual-range-slider {
+            position: relative;
+            width: 100%;
+            height: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dual-range-slider input[type="range"] {
+            position: absolute;
+            width: 100%;
+            pointer-events: none;
+            -webkit-appearance: none;
+            z-index: 2;
+            height: 6px;
+            top: 0;
+            background: none;
+        }
+
+        .dual-range-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #a291b5;
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-top: -7px;
+        }
+
+        .dual-range-slider input[type="range"]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #a291b5;
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .price-slider-track {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: #eee;
+            top: 0;
+            border-radius: 3px;
+            z-index: 1;
+        }
+
+        .slider-tooltip {
+            position: absolute;
+            top: 25px;
+            background: #a291b5;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            transform: translateX(-50%);
+            z-index: 3;
+            pointer-events: none;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .blind-main {
+            flex-grow: 1;
+        }
+
+        .clear-filters {
+            color: #a291b5;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .clear-filters:hover {
+            text-decoration: underline;
+        }
+
+        /* Book Grid & Cards */
+        .blind-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .blind-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: transform 0.2s;
+            border: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blind-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .blind-card-image {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blind-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .view-overlay {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #111;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .blind-card:hover .view-overlay {
+            opacity: 1;
+        }
+
+        .blind-card-body {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-hashtags {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #111;
+            margin-bottom: 4px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 2.8em;
+        }
+
+        .card-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .verified-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-price {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #111;
+        }
+
+        .card-condition {
+            font-size: 0.8rem;
+            color: #888;
+            border-top: 1px solid #f5f5f5;
+            padding-top: 10px;
+            margin-top: 5px;
+        }
+
+        /* Toggle Button */
+        .btn-toggle-matchmaker {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            z-index: 1000;
+            background: #111;
+            color: #fff;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-toggle-matchmaker:hover {
+            transform: scale(1.1);
+            background: #333;
+        }
     </style>
 </head>
 <body class="homepage-container">
@@ -526,7 +927,7 @@
             </div>
 
             <div class="explore-layout" id="explore-layout">
-                <!-- Sidebar Filter (Shown by default) -->
+                <!-- Sidebar Filter (Ex) -->
                 <aside class="filter-sidebar" id="filter-sidebar">
                     <div class="sidebar-header">
                         <h3>Search Filters</h3>
@@ -556,7 +957,7 @@
                     <div class="filter-group">
                         <h4>Price <span class="price-note">(thousands VNĐ)</span></h4>
                         <div class="price-slider-container">
-                            <div class="slider-track" id="price-slider-track"></div>
+                            <div id="price-slider-track"></div> 
                             <input type="range" min="0" max="1000" value="0" id="price-min" class="price-range-input">
                             <div class="slider-tooltip" id="tooltip-min">0</div>
                             
@@ -1051,58 +1452,224 @@
 
     <!-- Blind Date Books Section (Hidden by default) -->
     <section id="blind-date-section" class="explore-section" style="display: none;">
-        <div class="container">
-            <h2 class="text-center mb-4" style="font-family: 'Lora', serif; font-size: 2.5rem;">Blind Date with a Book</h2>
-            <p class="text-center text-muted mb-5">Don't judge a book by its cover. Discover your next favorite read through clues!</p>
-            
-            <div class="book-grid">
-                <!-- 4 Placeholder Blind Date Books -->
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
-                    <div class="book-info">
-                        <h3>Mystery Book 1</h3>
-                        <p>Clues: Romance, Paris, Secret</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.5</span>
-                            <span class="price">Free</span>
-                        </div>
-                    </div>
+        <!-- Hero Banner -->
+        <div class="blind-hero">
+            <div class="blind-hero-content">
+                <div class="blind-hero-text">
+                    <h1>Find Your Next Bookish Love.</h1>
+                    <p>Unbox a mystery read based on vibe, not cover.</p>
+                    <span>Blind Date with a Book.</span>
+                    <a href="#" class="btn-how-it-works">How it works <i class="fas fa-chevron-down"></i></a>
                 </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
-                    <div class="book-info">
-                        <h3>Mystery Book 2</h3>
-                        <p>Clues: Sci-Fi, Space, AI</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.8</span>
-                            <span class="price">Free</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
-                    <div class="book-info">
-                        <h3>Mystery Book 3</h3>
-                        <p>Clues: Thriller, Detective, Murder</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.7</span>
-                            <span class="price">Free</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="book-card">
-                    <img src="/images/Book/book1.jpg" alt="Wrapped Book" style="filter: blur(5px);">
-                    <div class="book-info">
-                        <h3>Mystery Book 4</h3>
-                        <p>Clues: History, War, Courage</p>
-                        <div class="book-meta">
-                            <span class="rating">⭐ 4.6</span>
-                            <span class="price">Free</span>
-                        </div>
-                    </div>
+                <div class="blind-hero-illustration">
+                    <img src="/images/BlindDateBook/Vector.png">
                 </div>
             </div>
         </div>
+
+        <!-- Main Content Area -->
+        <div class="blind-container">
+            <!-- Sidebar Filters: The Matchmaker -->
+            <aside class="blind-sidebar" id="blind-sidebar">
+                <div class="sidebar-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="sidebar-title" style="margin-bottom: 0;">The Matchmaker</h2>
+                    <button class="btn-hide-sidebar" id="btn-hide-sidebar" style="background: none; border: none; color: #a291b5; cursor: pointer; font-size: 0.9rem;">
+                        <i class="fas fa-times"></i> Hide
+                    </button>
+                </div>
+
+                <div class="filter-section">
+                    <h4>Vibe Tag Cloud</h4>
+                    <div class="tag-cloud">
+                        <span class="vibe-tag">Tear-jerker</span>
+                        <span class="vibe-tag active">#SlowBurn</span>
+                        <span class="vibe-tag">Mind-Bending</span>
+                        <span class="vibe-tag">Cozy Mystery</span>
+                        <span class="vibe-tag">Laugh Out Loud</span>
+                        <span class="vibe-tag">World-Building</span>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h4>Price Slider (thousand VNĐ)</h4>
+                    <div class="price-range-wrapper">
+                        <div class="dual-range-slider">
+                            <div class="price-slider-track" id="blind-price-track"></div>
+                            <input type="range" min="0" max="1000" value="150" class="min-range" id="blind-price-min">
+                            <input type="range" min="0" max="1000" value="850" class="max-range" id="blind-price-max">
+                            <div class="slider-tooltip" id="blind-tooltip-min">150</div>
+                            <div class="slider-tooltip" id="blind-tooltip-max">850</div>
+                        </div>
+                        <div class="price-input-group" style="display: flex; gap: 10px; margin-top: 25px;">
+                            <div class="price-field">
+                                <span style="font-size: 0.8rem; color: #888;">Min</span>
+                                <input type="number" id="blind-price-min-input" value="150" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <div class="price-field">
+                                <span style="font-size: 0.8rem; color: #888;">Max</span>
+                                <input type="number" id="blind-price-max-input" value="850" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h4>Genre</h4>
+                    <div class="filter-checkbox-list">
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox" checked> 💖 Romance
+                        </label>
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox"> 💀 Thriller
+                        </label>
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox" checked> 🚀 Sci-Fi
+                        </label>
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox"> 🍃 General Fiction
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h4>Condition</h4>
+                    <div class="filter-checkbox-list">
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox"> 🎁 Gift-ready
+                        </label>
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox" checked> 💓 Well Loved
+                        </label>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Grid -->
+            <main class="blind-main">
+                <a href="#" class="clear-filters">Clear All Filters</a>
+
+                <div class="blind-grid">
+                    <!-- Card 1 -->
+                    <div class="blind-card">
+                        <div class="blind-card-image">
+                            <img src="/images/BlindDateBook/BlindBook1.jpg">
+                            <div class="view-overlay">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="blind-card-body">
+                            <div class="card-hashtags">#SlowBurn #EnemiesToLovers #Paris</div>
+                            <p class="card-desc">A baker and a grumpy food critic clash in the City of Light...</p>
+                            <div class="card-status">
+                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
+                                <span class="card-price">$12.00</span>
+                            </div>
+                            <div class="card-condition">Condition: Well Loved - Has character</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="blind-card">
+                        <div class="blind-card-image">
+                            <img src="/images/BlindDateBook/BlindBook3.jpg">
+                            <div class="view-overlay">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="blind-card-body">
+                            <div class="card-hashtags">#SpaceOpera #AI #FirstContact</div>
+                            <p class="card-desc">A pilot discovers an ancient alien artifact on a distant moon...</p>
+                            <div class="card-status">
+                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
+                                <span class="card-price">$15.00</span>
+                            </div>
+                            <div class="card-condition">Condition: Gift-ready</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="blind-card">
+                        <div class="blind-card-image">
+                            <img src="/images/BlindDateBook/BlindBook2.jpg">
+                            <div class="view-overlay">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="blind-card-body">
+                            <div class="card-hashtags">#Literary #FamilySaga #ComingOfAge</div>
+                            <p class="card-desc">Three generations of women navigate secrets in a small town...</p>
+                            <div class="card-status">
+                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
+                                <span class="card-price">$10.00</span>
+                            </div>
+                            <div class="card-condition">Condition: Well Loved</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="blind-card">
+                        <div class="blind-card-image">
+                            <img src="/images/BlindDateBook/BlindBook4.jpg">
+                            <div class="view-overlay">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="blind-card-body">
+                            <div class="card-hashtags">#SlowBurn #EnemiesToLovers #Paris</div>
+                            <p class="card-desc">A baker and a grumpy food critic clash in the City of Light...</p>
+                            <div class="card-status">
+                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
+                                <span class="card-price">$12.00</span>
+                            </div>
+                            <div class="card-condition">Condition: Well Loved - Has character</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 5 -->
+                    <div class="blind-card">
+                        <div class="blind-card-image">
+                            <img src="/images/BlindDateBook/BlindBook5.jpg">
+                            <div class="view-overlay">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="blind-card-body">
+                            <div class="card-hashtags">#SpaceOpera #AI #FirstContact</div>
+                            <p class="card-desc">A pilot discovers an ancient alien artifact on a distant moon...</p>
+                            <div class="card-status">
+                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
+                                <span class="card-price">$15.00</span>
+                            </div>
+                            <div class="card-condition">Condition: Gift-ready</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="blind-card">
+                        <div class="blind-card-image">
+                            <img src="/images/BlindDateBook/BlindBook2.jpg">
+                            <div class="view-overlay">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="blind-card-body">
+                            <div class="card-hashtags">#Literary #FamilySaga #ComingOfAge</div>
+                            <p class="card-desc">Three generations of women navigate secrets in a small town...</p>
+                            <div class="card-status">
+                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
+                                <span class="card-price">$10.00</span>
+                            </div>
+                            <div class="card-condition">Condition: Well Loved</div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Toggle Button for Mobile/Control -->
+        <button class="btn-toggle-matchmaker" id="btn-toggle-matchmaker">
+            <i class="fas fa-filter"></i>
+        </button>
     </section>
 
     <!-- Dedicated Reviews Section (Hidden by default) -->
@@ -1421,6 +1988,14 @@
                 showTindbook();
             });
 
+            // Explore Filter Sidebar Toggle
+            $('#btn-toggle-filter').on('click', function() {
+                const $filterSidebar = $('#filter-sidebar');
+                $filterSidebar.toggle();
+                const isVisible = $filterSidebar.is(':visible');
+                $(this).html(isVisible ? '<i class="fas fa-sliders-h"></i> Hide filters' : '<i class="fas fa-sliders-h"></i> Show filters');
+            });
+
             // Thread Slider & Button Logic
             const $threadTrack = $('#thread-slider .slider-track');
             $('#thread-slider .slider-btn.next').on('click', function() {
@@ -1433,31 +2008,6 @@
                 $threadTrack.animate({
                     scrollLeft: $threadTrack.scrollLeft() - $threadTrack.width() * 0.8
                 }, 500);
-            });
-
-            $('#see-more-thread').on('click', function(e) {
-                e.preventDefault();
-                showDedicatedCommunity();
-            });
-
-            $('#cta-thread').on('click', function(e) {
-                e.preventDefault();
-                document.getElementById('thread-preview').scrollIntoView({ behavior: 'auto' });
-            });
-
-            $('#cta-join-community').on('click', function(e) {
-                e.preventDefault();
-                showReviews();
-            });
-
-            $('#see-more-community').on('click', function(e) {
-                e.preventDefault();
-                showReviews();
-            });
-
-            $('#cta-blind-date').on('click', function(e) {
-                e.preventDefault();
-                showBlindDate();
             });
 
             // Tindbook Logic
@@ -1687,161 +2237,209 @@
                 }
             });
 
-            $navCommunity.on('click', function(e) {
-                e.preventDefault();
-                showDedicatedCommunity();
-            });
-
-            // Filter Sidebar Toggle
-            const $filterSidebar = $('#filter-sidebar');
-            const $toggleFilterBtn = $('#btn-toggle-filter');
-            
-            $toggleFilterBtn.on('click', function() {
-                $filterSidebar.toggle();
-                const isVisible = $filterSidebar.is(':visible');
-                $(this).html(isVisible ? '<i class="fas fa-sliders-h"></i> Hide filters' : '<i class="fas fa-sliders-h"></i> Show filters');
-            });
-
-            // Price Slider Logic
-            const $priceMin = $('#price-min');
-            const $priceMax = $('#price-max');
-            const $priceMinInput = $('#price-min-input');
-            const $priceMaxInput = $('#price-max-input');
-            const $tooltipMin = $('#tooltip-min');
-            const $tooltipMax = $('#tooltip-max');
-            const $sliderTrack = $('#price-slider-track');
-            
-            function fillTrack() {
-                const percent1 = ($priceMin.val() / $priceMin.attr('max')) * 100;
-                const percent2 = ($priceMax.val() / $priceMax.attr('max')) * 100;
-                $sliderTrack.css('background', `linear-gradient(to right, #e9ecef ${percent1}%, #EEC7C9 ${percent1}%, #EEC7C9 ${percent2}%, #e9ecef ${percent2}%)`);
-            }
-            
-            function updateTooltips() {
-                const val1 = $priceMin.val();
-                const val2 = $priceMax.val();
-                const percent1 = (val1 / $priceMin.attr('max')) * 100;
-                const percent2 = (val2 / $priceMax.attr('max')) * 100;
-                
-                $tooltipMin.text(val1).css('left', `${percent1}%`);
-                $tooltipMax.text(val2).css('left', `${percent2}%`);
-            }
-
-            function updateInputs() {
-                $priceMinInput.val($priceMin.val());
-                $priceMaxInput.val($priceMax.val());
-            }
-
-            $priceMin.on('input', function() {
-                if (parseInt($priceMin.val()) > parseInt($priceMax.val())) {
-                    $priceMin.val($priceMax.val());
-                }
-                updateInputs();
-                updateTooltips();
-                fillTrack();
-            });
-
-            $priceMax.on('input', function() {
-                if (parseInt($priceMax.val()) < parseInt($priceMin.val())) {
-                    $priceMax.val($priceMin.val());
-                }
-                updateInputs();
-                updateTooltips();
-                fillTrack();
-            });
-            
-            // Manual Input Logic
-            $priceMinInput.on('input', function() {
-                let val = parseInt($(this).val());
-                if (isNaN(val)) return;
-                
-                let sliderVal = val;
-                if (sliderVal > 1000) sliderVal = 1000;
-                if (sliderVal < 0) sliderVal = 0;
-                
-                const currentMax = parseInt($priceMax.val());
-                if (sliderVal > currentMax) {
-                    sliderVal = currentMax;
-                }
-                
-                $priceMin.val(sliderVal);
-                updateTooltips();
-                fillTrack();
-            });
-
-            $priceMaxInput.on('input', function() {
-                let val = parseInt($(this).val());
-                if (isNaN(val)) return;
-                
-                let sliderVal = val;
-                if (sliderVal > 1000) sliderVal = 1000;
-                if (sliderVal < 0) sliderVal = 0;
-                
-                const currentMin = parseInt($priceMin.val());
-                if (sliderVal < currentMin) {
-                    sliderVal = currentMin;
-                }
-                
-                $priceMax.val(sliderVal);
-                updateTooltips();
-                fillTrack();
-            });
-            
-            // Initial fill
-            fillTrack();
-            updateInputs();
-            updateTooltips();
-
-            // Search logic (Mock)
-            const $searchInput = $('#search-input');
-            const $searchBtn = $('#search-submit-btn');
-
-            $searchBtn.on('click', function() {
-                const query = $searchInput.val().trim();
-                if (query !== '') {
-                    console.log(`Searching for: ${query}`);
-                }
-            });
-
-            $searchInput.on('keypress', function(e) {
-                if (e.which == 13) {
-                    $searchBtn.click();
-                }
-            });
-
             // Slider logic
             function setupSlider(sliderId) {
                 const $track = $(`#${sliderId} .slider-track`);
                 const $prev = $(`#${sliderId} .slider-btn.prev`);
                 const $next = $(`#${sliderId} .slider-btn.next`);
                 
-                $next.on('click', function() {
-                    $track.animate({
-                        scrollLeft: $track.scrollLeft() + $track.width() * 0.8
-                    }, 500);
-                });
-                
-                $prev.on('click', function() {
-                    $track.animate({
-                        scrollLeft: $track.scrollLeft() - $track.width() * 0.8
-                    }, 500);
-                });
+                if ($track.length) {
+                    $next.on('click', function() {
+                        $track.animate({
+                            scrollLeft: $track.scrollLeft() + $track.width() * 0.8
+                        }, 500);
+                    });
+                    
+                    $prev.on('click', function() {
+                        $track.animate({
+                            scrollLeft: $track.scrollLeft() - $track.width() * 0.8
+                        }, 500);
+                    });
+                }
             }
             
             setupSlider('featured-slider');
             setupSlider('community-slider');
 
-            // See More buttons
+            // Blind Date Books Redesign Logic
+            const $blindSidebar = $('#blind-sidebar');
+            const $btnToggleMatchmaker = $('#btn-toggle-matchmaker');
+            const $btnHideSidebar = $('#btn-hide-sidebar');
+
+            // Price Range Slider Reusable Logic
+            function initPriceSlider(prefix) {
+                const $minRange = $(`#${prefix}-price-min`);
+                const $maxRange = $(`#${prefix}-price-max`);
+                const $minInput = $(`#${prefix}-price-min-input`);
+                const $maxInput = $(`#${prefix}-price-max-input`);
+                const $tooltipMin = $(`#${prefix}-tooltip-min`);
+                const $tooltipMax = $(`#${prefix}-tooltip-max`);
+                const $track = $(`#${prefix}-price-track`);
+                const maxRangeValue = 1000;
+
+                if (!$minRange.length) return;
+
+                function updateSlider() {
+                    let minVal = parseInt($minRange.val()) || 0;
+                    let maxVal = parseInt($maxRange.val()) || 0;
+
+                    const movingId = $(this).attr('id') || "";
+                    if (minVal > maxVal) {
+                        if (movingId.includes('min')) {
+                            $minRange.val(maxVal);
+                            minVal = maxVal;
+                        } else {
+                            $maxRange.val(minVal);
+                            maxVal = minVal;
+                        }
+                    }
+
+                    const percent1 = (minVal / maxRangeValue) * 100;
+                    const percent2 = (maxVal / maxRangeValue) * 100;
+
+                    $track.css('background', `linear-gradient(to right, #eee ${percent1}%, #a291b5 ${percent1}%, #a291b5 ${percent2}%, #eee ${percent2}%)`);
+                    
+                    $tooltipMin.text(minVal).css('left', `${percent1}%`);
+                    $tooltipMax.text(maxVal).css('left', `${percent2}%`);
+
+                    $minInput.val(minVal);
+                    $maxInput.val(maxVal);
+                }
+
+                function handleManualInput() {
+                    let val = parseInt($(this).val()) || 0;
+                    const clampedVal = Math.min(Math.max(val, 0), maxRangeValue);
+                    
+                    const movingId = $(this).attr('id') || "";
+                    if (movingId.includes('min')) {
+                        const currentMax = parseInt($maxRange.val()) || 1000;
+                        $minRange.val(Math.min(clampedVal, currentMax));
+                    } else {
+                        const currentMin = parseInt($minRange.val()) || 0;
+                        $maxRange.val(Math.max(clampedVal, currentMin));
+                    }
+                    
+                    updateSlider.call(this);
+                    $(this).val(val);
+                }
+
+                $minRange.on('input', updateSlider);
+                $maxRange.on('input', updateSlider);
+                $minInput.on('input', handleManualInput);
+                $maxInput.on('input', handleManualInput);
+
+                updateSlider.call($minRange[0]);
+            }
+
+            // Initialize sliders with error catching to prevent breaking other scripts
+            try {
+                initPriceSlider('explore');
+                initPriceSlider('blind');
+            } catch (err) {
+                console.error("Price slider initialization failed:", err);
+            }
+
+            // Banner CTA Logic - High Performance Scroll
+            $('#cta-join-community').on('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                // Stop carousel to prevent transition conflicts
+                $('#heroCarousel').carousel('pause');
+                
+                const target = document.getElementById('community');
+                if (target) {
+                    // Immediate tab switch if needed
+                    if (!$('#nav-home').hasClass('active')) {
+                        $('#main-content').show();
+                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section').hide();
+                        $('#main-navbar').removeClass('navbar-light');
+                        $('.nav-links a').removeClass('active');
+                        $('#nav-home').addClass('active');
+                    }
+
+                    // Native browser smooth scroll (bypass JS animation loop for speed)
+                    const offset = 80;
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = target.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+
+            $('#cta-blind-date').on('click', function(e) {
+                e.preventDefault();
+                showBlindDate();
+            });
+
+            $('#cta-thread').on('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                $('#heroCarousel').carousel('pause');
+
+                const target = document.getElementById('thread-preview');
+                if (target) {
+                    if (!$('#nav-home').hasClass('active')) {
+                        $('#main-content').show();
+                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section').hide();
+                        $('#main-navbar').removeClass('navbar-light');
+                        $('.nav-links a').removeClass('active');
+                        $('#nav-home').addClass('active');
+                    }
+
+                    const offset = 80;
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = target.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+
             $('#see-more-books').on('click', function(e) {
                 e.preventDefault();
                 showExplore();
             });
 
+            // Re-initialize carousel after a while if desired
+            $('.btn-cta').on('mouseleave', function() {
+                $('#heroCarousel').carousel('cycle');
+            });
 
+            // Toggle Sidebar
+            $btnToggleMatchmaker.on('click', function() {
+                $blindSidebar.toggleClass('collapsed');
+                const isCollapsed = $blindSidebar.hasClass('collapsed');
+                $(this).find('i').attr('class', isCollapsed ? 'fas fa-filter' : 'fas fa-times');
+            });
+
+            $btnHideSidebar.on('click', function() {
+                $blindSidebar.addClass('collapsed');
+                $btnToggleMatchmaker.find('i').attr('class', 'fas fa-filter');
+            });
+
+            // Vibe Tag Selection
+            $('.vibe-tag').on('click', function() {
+                $(this).toggleClass('active');
+            });
+
+            $('#see-more-thread').on('click', function(e) {
+                e.preventDefault();
+                showDedicatedCommunity();
+            });
 
             $('#see-more-community').on('click', function(e) {
                 e.preventDefault();
-                showDedicatedCommunity();
+                showReviews();
             });
 
             // Handle category tags click
