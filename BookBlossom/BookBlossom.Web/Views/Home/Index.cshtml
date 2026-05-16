@@ -417,7 +417,7 @@
         .slider-tooltip {
             position: absolute;
             top: 25px;
-            background: #a291b5;
+            background: #a291b5; /* Default Purple */
             color: #fff;
             padding: 2px 6px;
             border-radius: 4px;
@@ -426,6 +426,19 @@
             z-index: 3;
             pointer-events: none;
             font-weight: 600;
+        }
+
+        /* Specific Color for Explore Tab */
+        #explore-section .slider-tooltip {
+            background: #EEC7C9 !important;
+        }
+
+        #explore-section .dual-range-slider input[type="range"]::-webkit-slider-thumb {
+            border-color: #EEC7C9 !important;
+        }
+
+        #explore-section .dual-range-slider input[type="range"]::-moz-range-thumb {
+            border-color: #EEC7C9 !important;
         }
 
         /* Main Content */
@@ -956,18 +969,24 @@
 
                     <div class="filter-group">
                         <h4>Price <span class="price-note">(thousands VNĐ)</span></h4>
-                        <div class="price-slider-container">
-                            <div id="price-slider-track"></div> 
-                            <input type="range" min="0" max="1000" value="0" id="price-min" class="price-range-input">
-                            <div class="slider-tooltip" id="tooltip-min">0</div>
-                            
-                            <input type="range" min="0" max="1000" value="1000" id="price-max" class="price-range-input">
-                            <div class="slider-tooltip" id="tooltip-max">1000</div>
-                        </div>
-                        <div class="price-inputs">
-                            <input type="number" id="price-min-input" value="0" min="0" class="price-num-input">
-                            <span>to</span>
-                            <input type="number" id="price-max-input" value="1000" min="0" class="price-num-input">
+                        <div class="price-range-wrapper">
+                            <div class="dual-range-slider">
+                                <div class="price-slider-track" id="explore-price-track"></div> 
+                                <input type="range" min="0" max="1000" value="0" id="explore-price-min">
+                                <div class="slider-tooltip" id="explore-tooltip-min">0</div>
+                                
+                                <input type="range" min="0" max="1000" value="1000" id="explore-price-max">
+                                <div class="slider-tooltip" id="explore-tooltip-max">1000</div>
+                            </div>
+                            <div class="price-inputs" style="display: flex; gap: 10px; margin-top: 25px;">
+                                <div class="price-field" style="flex: 1;">
+                                    <input type="number" id="explore-price-min-input" value="0" min="0" class="price-num-input" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                </div>
+                                <span style="align-self: center;">to</span>
+                                <div class="price-field" style="flex: 1;">
+                                    <input type="number" id="explore-price-max-input" value="1000" min="0" class="price-num-input" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2267,7 +2286,7 @@
             const $btnHideSidebar = $('#btn-hide-sidebar');
 
             // Price Range Slider Reusable Logic
-            function initPriceSlider(prefix) {
+            function initPriceSlider(prefix, accentColor = '#a291b5') {
                 const $minRange = $(`#${prefix}-price-min`);
                 const $maxRange = $(`#${prefix}-price-max`);
                 const $minInput = $(`#${prefix}-price-min-input`);
@@ -2297,7 +2316,7 @@
                     const percent1 = (minVal / maxRangeValue) * 100;
                     const percent2 = (maxVal / maxRangeValue) * 100;
 
-                    $track.css('background', `linear-gradient(to right, #eee ${percent1}%, #a291b5 ${percent1}%, #a291b5 ${percent2}%, #eee ${percent2}%)`);
+                    $track.css('background', `linear-gradient(to right, #eee ${percent1}%, ${accentColor} ${percent1}%, ${accentColor} ${percent2}%, #eee ${percent2}%)`);
                     
                     $tooltipMin.text(minVal).css('left', `${percent1}%`);
                     $tooltipMax.text(maxVal).css('left', `${percent2}%`);
@@ -2333,8 +2352,8 @@
 
             // Initialize sliders with error catching to prevent breaking other scripts
             try {
-                initPriceSlider('explore');
-                initPriceSlider('blind');
+                initPriceSlider('explore', '#EEC7C9'); // Pink theme for Explore
+                initPriceSlider('blind', '#a291b5');   // Purple theme for Blind Date
             } catch (err) {
                 console.error("Price slider initialization failed:", err);
             }
