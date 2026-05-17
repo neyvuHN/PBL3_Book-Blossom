@@ -43,16 +43,10 @@
                     <input type="text" id="UserName" name="UserName" placeholder="johndoe123" required />
                 </div>
 
-                <!-- Email -->
-                <div class="form-group">
-                    <label for="Email">Email Address</label>
-                    <input type="email" id="Email" name="Email" placeholder="name@example.com" required />
-                </div>
-
                 <!-- Phone Number -->
                 <div class="form-group">
                     <label for="PhoneNumber">Phone Number</label>
-                    <input type="tel" id="PhoneNumber" name="PhoneNumber" placeholder="0901234567" />
+                    <input type="tel" id="PhoneNumber" name="PhoneNumber" placeholder="0901234567" pattern="[0-9]{10,11}" required />
                 </div>
 
                 <!-- Birthday & Gender (Row) -->
@@ -95,5 +89,251 @@
             </form>
         </div>
     </div>
+
+    <!-- OTP Verification Modal -->
+    <div class="otp-modal-overlay" id="otpModal">
+        <div class="otp-modal-content">
+            <button type="button" class="otp-close-btn" id="closeOtp">&times;</button>
+            <div class="otp-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EBBAB9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+            </div>
+            <h3>Verify Phone Number</h3>
+            <p class="otp-instruction">We have sent a 6-digit verification code to <span id="displayPhone" class="highlight-phone"></span>. Please enter it below.</p>
+            
+            <div class="otp-input-container">
+                <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required />
+                <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required />
+                <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required />
+                <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required />
+                <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required />
+                <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required />
+            </div>
+
+            <div class="otp-timer-container">
+                <p id="timerText">Resend code in <span id="timerCountdown">300</span> seconds </p>
+                <button type="button" class="btn-resend-otp" id="resendOtpBtn" style="display: none;">Resend Code</button>
+            </div>
+
+            <button type="button" class="btn-submit btn-verify-otp" id="verifyOtpBtn">Verify & Sign Up</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Reusable Toast Helper function
+            function showToast(message, type = 'success', title = '') {
+                let container = document.getElementById('toastContainer');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toastContainer';
+                    container.className = 'toast-container';
+                    document.body.appendChild(container);
+                }
+
+                const toast = document.createElement('div');
+                toast.className = `custom-toast ${type}`;
+
+                let iconSvg = '';
+                if (type === 'success') {
+                    iconSvg = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EBBAB9" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>`;
+                    if (!title) title = 'Success';
+                } else if (type === 'error') {
+                    iconSvg = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EA4335" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>`;
+                    if (!title) title = 'Error';
+                } else {
+                    iconSvg = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#4285F4" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>`;
+                    if (!title) title = 'Info';
+                }
+
+                toast.innerHTML = `
+                    <div class="toast-icon">${iconSvg}</div>
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                    <button class="toast-close" type="button">&times;</button>
+                    <div class="toast-timer-bar">
+                        <div class="toast-timer-fill"></div>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+
+                // Trigger transition
+                setTimeout(() => {
+                    toast.classList.add('active');
+                    const fill = toast.querySelector('.toast-timer-fill');
+                    if (fill) fill.style.width = '0%';
+                }, 10);
+
+                // Close logic
+                const closeBtn = toast.querySelector('.toast-close');
+                const dismissToast = () => {
+                    toast.classList.remove('active');
+                    setTimeout(() => toast.remove(), 400);
+                };
+
+                closeBtn.addEventListener('click', dismissToast);
+
+                // Auto remove after 4 seconds
+                setTimeout(dismissToast, 4000);
+            }
+
+            const form = document.querySelector('form');
+            const otpModal = document.getElementById('otpModal');
+            const closeOtp = document.getElementById('closeOtp');
+            const displayPhone = document.getElementById('displayPhone');
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+            const resendOtpBtn = document.getElementById('resendOtpBtn');
+            const timerCountdown = document.getElementById('timerCountdown');
+            const timerText = document.getElementById('timerText');
+            const otpDigits = document.querySelectorAll('.otp-digit');
+            const phoneInput = document.getElementById('PhoneNumber');
+
+            let timerInterval;
+            let countdown = 300;
+            let isOtpVerified = false;
+
+            // Form Submit handler
+            form.addEventListener('submit', function(e) {
+                if (!isOtpVerified) {
+                    e.preventDefault(); // Stop normal form submit
+
+                    // Standard HTML5 validation check
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    // Check if Password matches Confirm Password
+                    const password = document.getElementById('Password');
+                    const confirmPassword = document.getElementById('ConfirmPassword');
+                    if (password.value !== confirmPassword.value) {
+                        showToast('Password and Confirm Password do not match.', 'error', 'Password Mismatch');
+                        confirmPassword.focus();
+                        return;
+                    }
+
+                    // Display user phone number inside the modal
+                    displayPhone.textContent = phoneInput.value;
+
+                    // Open OTP Modal
+                    otpModal.classList.add('active');
+                    resetOtpInputs();
+                    startResendTimer();
+                    
+                    // Focus on first input
+                    setTimeout(() => otpDigits[0].focus(), 100);
+                }
+            });
+
+            // Close Modal
+            closeOtp.addEventListener('click', function() {
+                otpModal.classList.remove('active');
+                clearInterval(timerInterval);
+            });
+
+            // Resend Timer Logic
+            function startResendTimer() {
+                clearInterval(timerInterval);
+                countdown = 300;
+                resendOtpBtn.style.display = 'none';
+                timerText.style.display = 'block';
+                timerCountdown.textContent = countdown;
+
+                timerInterval = setInterval(() => {
+                    countdown--;
+                    timerCountdown.textContent = countdown;
+                    if (countdown <= 0) {
+                        clearInterval(timerInterval);
+                        timerText.style.display = 'none';
+                        resendOtpBtn.style.display = 'inline-block';
+                    }
+                }, 1000);
+            }
+
+            // Resend Button Click
+            resendOtpBtn.addEventListener('click', function() {
+                showToast('A new OTP has been sent to ' + phoneInput.value, 'success', 'OTP Sent');
+                startResendTimer();
+                resetOtpInputs();
+                otpDigits[0].focus();
+            });
+
+            // Reset Digit Inputs
+            function resetOtpInputs() {
+                otpDigits.forEach(input => input.value = '');
+            }
+
+            // Input handlers for the digits
+            otpDigits.forEach((digit, index) => {
+                // Moving to next/prev input field based on character entry
+                digit.addEventListener('input', function(e) {
+                    const value = e.target.value;
+                    if (value.length === 1 && index < otpDigits.length - 1) {
+                        otpDigits[index + 1].focus();
+                    }
+                });
+
+                // Keydown logic (specifically backspace handling)
+                digit.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace') {
+                        if (digit.value === '' && index > 0) {
+                            otpDigits[index - 1].value = '';
+                            otpDigits[index - 1].focus();
+                        } else {
+                            digit.value = '';
+                        }
+                        e.preventDefault();
+                    }
+                });
+
+                // Paste logic (users can copy/paste a 6-digit OTP)
+                digit.addEventListener('paste', function(e) {
+                    const pastedData = e.clipboardData.getData('text').trim();
+                    if (/^\d{6}$/.test(pastedData)) {
+                        for (let i = 0; i < otpDigits.length; i++) {
+                            otpDigits[i].value = pastedData[i];
+                        }
+                        otpDigits[otpDigits.length - 1].focus();
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            // Verify OTP Button Action
+            verifyOtpBtn.addEventListener('click', function() {
+                let enteredOtp = '';
+                otpDigits.forEach(input => enteredOtp += input.value);
+
+                if (enteredOtp.length < 6) {
+                    showToast('Please enter all 6 digits of the OTP verification code.', 'error', 'Invalid OTP');
+                    return;
+                }
+
+                // Simulate validation
+                showToast('Phone number verified successfully!', 'success', 'Verified');
+                isOtpVerified = true;
+                otpModal.classList.remove('active');
+                
+                // Submit form now that verification is complete with small delay to let toast show
+                setTimeout(() => {
+                    form.submit();
+                }, 1500);
+            });
+        });
+    </script>
 </body>
 </html>
