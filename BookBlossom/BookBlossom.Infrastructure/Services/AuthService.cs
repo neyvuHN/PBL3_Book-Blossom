@@ -45,7 +45,7 @@ namespace BookBlossom.Infrastructure.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, ((int)user.RoleID).ToString()),
+                new Claim(ClaimTypes.Role, user.RoleID.ToString()),
                 new Claim("AccountStatus", ((int)user.AccountStatus).ToString())
             };
 

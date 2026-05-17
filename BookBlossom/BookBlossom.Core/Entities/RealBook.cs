@@ -1,7 +1,11 @@
 namespace BookBlossom.Core.Entities;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class RealBook
 {
+   [Key]
+   [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
    public long BookID {get; set;}
    public long CategoryID {get; set; }
    public string Title {get; set; }
