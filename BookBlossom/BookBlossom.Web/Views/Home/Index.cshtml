@@ -722,6 +722,15 @@
         .coupon-slider::-webkit-scrollbar-thumb:hover {
             background: #d0c7b9;
         }
+        #btn-detail-buy {
+            transition: all 0.3s ease !important;
+        }
+        #btn-detail-buy:hover {
+            background: #C2185B !important;
+            color: #fff !important;
+            transform: translateY(-3px) scale(1.02) !important;
+            box-shadow: 0 8px 25px rgba(194, 24, 91, 0.45) !important;
+        }
     </style>
 </head>
 <body class="homepage-container">
@@ -1985,16 +1994,13 @@
     </section>
 
     <!-- Product Details Section (Hidden by default) -->
-    <section id="product-details-section" class="explore-section" style="display: none; padding: 50px 0; background: #fffdfb; min-height: 100vh;">
+    <section id="product-details-section" class="explore-section" style="display: none; padding: 100px 0 50px 0; background: #fffdfb; min-height: 100vh;">
         <div class="container">
             <!-- Back Button and Breadcrumbs -->
             <div class="details-top-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <button id="btn-back-to-list" class="btn-back-to-list" style="background: none; border: none; font-size: 1rem; font-weight: 700; color: #C2185B; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 0; transition: all 0.2s;">
                     <i class="fas fa-arrow-left"></i> Back to Books
                 </button>
-                <div class="book-breadcrumbs" style="font-size: 0.85rem; color: #888; font-weight: 500;">
-                    Home / <span id="breadcrumb-genre">Fiction</span> / <span id="breadcrumb-title">Book Title</span>
-                </div>
             </div>
 
             <div class="row" style="margin-bottom: 50px;">
@@ -2065,7 +2071,7 @@
                             <strong id="detail-rating-num" style="color: #111; margin-left: 2px;">4.8</strong>
                         </span>
                         <span style="color: #ddd;">|</span>
-                        <span id="detail-reviews-count" style="font-weight: 500; color: #666;">124 Reviews</span>
+                        <span id="detail-reviews-count" style="font-weight: 500; color: #666; cursor: pointer; text-decoration: underline; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#666'">124 Reviews</span>
                         <span style="color: #ddd;">|</span>
                         <span id="detail-sold-count" style="font-weight: 600; color: #2e7d32;"><i class="fas fa-shopping-bag"></i> 1,250 Sold</span>
                     </div>
@@ -2087,9 +2093,10 @@
                     </div>
 
                     <!-- Price Block -->
-                    <div class="detail-price-block" style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px; width: 100%;">
-                        <div id="detail-price" style="font-size: 2.2rem; font-weight: 700; color: #111; letter-spacing: -0.5px;">250,000 VND</div>
-                        <span id="detail-discount" style="background: #ffebee; color: #e53935; padding: 4px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 700;">-20%</span>
+                    <div class="detail-price-block" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; width: 100%; flex-wrap: wrap;">
+                        <div id="detail-price" style="font-size: 2.2rem; font-weight: 700; color: #C2185B; letter-spacing: -0.5px;">250,000 VND</div>
+                        <span id="detail-original-price" style="font-size: 1.15rem; color: #888; text-decoration: line-through; font-weight: 500;">312,500 VND</span>
+                        <span id="detail-discount" style="background: #C2185B; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.9rem; font-weight: 700; display: inline-block;">-20%</span>
                         
                         <!-- Wishlist button (Heart inline) -->
                         <button id="btn-toggle-wishlist" class="btn-wishlist-circle" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid #ddd; background: #fff; display: flex; align-items: center; justify-content: center; color: #888; cursor: pointer; transition: all 0.2s; margin-left: auto;">
@@ -3070,12 +3077,12 @@
                 }
             });
 
-            function showToast(message) {
+            function showToast(message, onUndo) {
                 const $toast = $(`
                     <div class="toast-notification">
                         <i class="fas fa-check-circle"></i>
                         <span>${message}</span>
-                        <button class="btn-undo-share">Undo</button>
+                        <button class="btn-undo-share" style="${onUndo ? '' : 'display: none;'}">Undo</button>
                         <div class="toast-progress"></div>
                     </div>
                 `);
@@ -3094,7 +3101,9 @@
                     clearTimeout(timeoutId);
                     $toast.fadeOut(200, function() {
                         $(this).remove();
-                        // You can add further undo logic here if needed
+                        if (typeof onUndo === 'function') {
+                            onUndo();
+                        }
                     });
                 });
             }
@@ -3778,6 +3787,7 @@
                 let discountedPrice = Math.round(numericPrice * (100 - discountPercent) / 100);
                 
                 $('#detail-price').text(discountedPrice.toLocaleString() + ' VND');
+                $('#detail-original-price').text(numericPrice.toLocaleString() + ' VND');
                 $('#detail-discount').text(`-${discountPercent}%`);
 
                 // Specs table dynamic population
@@ -3927,14 +3937,49 @@
             // Wishlist Heart toggle
             $('#btn-toggle-wishlist').on('click', function() {
                 const $icon = $(this).find('i');
-                if ($icon.hasClass('far')) {
+                const $btn = $(this);
+                
+                function setHeartActive() {
                     $icon.removeClass('far').addClass('fas').css('color', '#ff4444');
-                    $(this).css('border-color', '#ff4444').css('background', '#fff5f5');
-                    showToast('Book added to your wishlist!');
-                } else {
+                    $btn.css('border-color', '#ff4444').css('background', '#fff5f5');
+                }
+                
+                function setHeartInactive() {
                     $icon.removeClass('fas').addClass('far').css('color', '');
-                    $(this).css('border-color', '#ddd').css('background', '#fff');
-                    showToast('Book removed from your wishlist.');
+                    $btn.css('border-color', '#ddd').css('background', '#fff');
+                }
+
+                if ($icon.hasClass('far')) {
+                    setHeartActive();
+                    showToast('Book added to your wishlist!', function() {
+                        setHeartInactive();
+                        showToast('Book removed from your wishlist.');
+                    });
+                } else {
+                    setHeartInactive();
+                    showToast('Book removed from your wishlist.', function() {
+                        setHeartActive();
+                        showToast('Book added to your wishlist!');
+                    });
+                }
+            });
+
+            // Smooth scroll and auto tab switch to Reviews tab when reviews count clicked
+            $(document).on('click', '#detail-reviews-count', function(e) {
+                e.preventDefault();
+                
+                // Active Reviews tab
+                $('.detail-tab-header').removeClass('active');
+                $('[data-tab="tab-rev"]').addClass('active');
+                
+                // Show reviews panel
+                $('.detail-tab-pane').hide();
+                $('#tab-rev').fadeIn(250);
+                
+                // Smooth scroll to the reviews tab bar section
+                const $tabBar = $('.detail-tab-header').parent();
+                if ($tabBar.length > 0) {
+                    $tabBar[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
 
