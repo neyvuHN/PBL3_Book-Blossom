@@ -23,5 +23,10 @@ namespace BookBlossom.Web.Controllers
         {
             return View();
         }
+
+        public IActionResult Logout()
+        {
+            return RedirectToAction("Login");
+        }
     }
 }
