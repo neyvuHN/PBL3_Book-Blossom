@@ -13,7 +13,7 @@ namespace BookBlossom.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : Controller
     {
         private readonly IOTPService _otpService;
         private readonly ISMSService _smsService;
@@ -32,6 +32,45 @@ namespace BookBlossom.Web.Controllers
             _authService = authService;
             _guestService = guestService;
         }
+
+        // ==================== MVC Razor Views ====================
+
+        [HttpGet("/Auth/Login")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/Register")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/InterestSelection")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult InterestSelection()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/ForgotPassword")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/Logout")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Logout()
+        {
+            return RedirectToAction("Login");
+        }
+
+        // ==================== API Endpoints ====================
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO request)
@@ -77,7 +116,8 @@ namespace BookBlossom.Web.Controllers
 
                 return Ok(new 
                 { 
-                    Message = "Mã OTP đã được gửi" 
+                    Message = "Mã OTP đã được gửi",
+                    OtpCode = otpCode
                 });
             }
             catch (Exception ex)
@@ -145,6 +185,89 @@ namespace BookBlossom.Web.Controllers
             {
                 var result = await _authService.RefreshTokenAsync(request);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPost("forgot-password/send-otp")]
+        public async Task<IActionResult> ForgotPasswordSendOtp([FromBody] ForgotPasswordRequestDTO request)
+        {
+            try
+            {
+                // Kiểm tra xem số điện thoại có tồn tại trong hệ thống hay chưa
+                var userExists = await _context.Users.AnyAsync(u => u.PhoneNumber == request.PhoneNumber);
+                if (!userExists)
+                {
+                    return BadRequest(new { Message = "Số điện thoại này chưa được đăng ký trong hệ thống." });
+                }
+
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber, ipAddress);
+
+                // Gửi SMS chứa mã OTP
+                await _smsService.SendSmsAsync(request.PhoneNumber, $"Mã xác nhận khôi phục mật khẩu BookBlossom của bạn là: {otpCode}");
+
+                return Ok(new 
+                { 
+                    Message = "Mã OTP khôi phục mật khẩu đã được gửi thành công.",
+                    OtpCode = otpCode
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPost("forgot-password/verify-otp")]
+        public async Task<IActionResult> ForgotPasswordVerifyOtp([FromBody] VerifyOtpRequestDTO request)
+        {
+            try
+            {
+                var isOtpValid = await _otpService.VerifyOtpAsync(request.PhoneNumber, request.OtpCode);
+                if (!isOtpValid)
+                {
+                    return BadRequest(new { Message = "Mã OTP không chính xác." });
+                }
+
+                // Đánh dấu là số điện thoại này đã xác thực OTP khôi phục thành công trong 5 phút
+                var cacheOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+                _cache.Set($"ForgotPassword_Verified_{request.PhoneNumber}", true, cacheOptions);
+
+                return Ok(new { Message = "Xác thực mã OTP thành công. Vui lòng đặt lại mật khẩu mới." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPost("forgot-password/reset")]
+        public async Task<IActionResult> ForgotPasswordReset([FromBody] ResetPasswordRequestDTO request)
+        {
+            try
+            {
+                // Kiểm tra xem số điện thoại đã được xác thực OTP khôi phục mật khẩu trước đó chưa
+                if (!_cache.TryGetValue($"ForgotPassword_Verified_{request.PhoneNumber}", out bool isVerified) || !isVerified)
+                {
+                    return BadRequest(new { Message = "Yêu cầu khôi phục mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng xác thực lại mã OTP." });
+                }
+
+                if (request.NewPassword != request.ConfirmPassword)
+                {
+                    return BadRequest(new { Message = "Mật khẩu xác nhận không khớp với mật khẩu mới." });
+                }
+
+                await _authService.ResetPasswordAsync(request.PhoneNumber, request.NewPassword);
+
+                // Xóa cache xác thực để tránh dùng lại
+                _cache.Remove($"ForgotPassword_Verified_{request.PhoneNumber}");
+
+                return Ok(new { Message = "Đặt lại mật khẩu mới thành công!" });
             }
             catch (Exception ex)
             {

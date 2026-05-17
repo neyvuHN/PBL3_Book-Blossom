@@ -33,10 +33,10 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName || u.PhoneNumber == request.UserName);
             
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
-                throw new UnauthorizedActionException("Tên đăng nhập hoặc mật khẩu không chính xác.");
+                throw new UnauthorizedActionException("Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác.");
 
             if (user.AccountStatus != AccountStatus.Active)
                 throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa hoặc chưa được xác thực.");
@@ -197,6 +197,19 @@ namespace BookBlossom.Infrastructure.Services
             }
 
             return principal;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string phoneNumber, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+            if (user == null)
+            {
+                throw new Exception("Không tìm thấy người dùng với số điện thoại này.");
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
