@@ -13,7 +13,7 @@ namespace BookBlossom.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : Controller
     {
         private readonly IOTPService _otpService;
         private readonly ISMSService _smsService;
@@ -30,6 +30,45 @@ namespace BookBlossom.Web.Controllers
             _context = context;
             _authService = authService;
         }
+
+        // ==================== MVC Razor Views ====================
+
+        [HttpGet("/Auth/Login")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/Register")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/InterestSelection")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult InterestSelection()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/ForgotPassword")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpGet("/Auth/Logout")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Logout()
+        {
+            return RedirectToAction("Login");
+        }
+
+        // ==================== API Endpoints ====================
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO request)

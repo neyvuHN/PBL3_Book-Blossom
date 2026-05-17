@@ -1,0 +1,95 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+    <title>Đăng nhập - Book Blossom</title>
+    <link rel="stylesheet" href="~/css/globals.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <!-- Import Lora font for headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="login-page-container">
+        <!-- Left Side: Image -->
+        <div class="image-section"></div>
+
+        <!-- Right Side: Form -->
+        <div class="form-section">
+            <div class="form-container">
+                
+                <!-- Logo & Header -->
+                <div class="header-area">
+                    <h1 class="brand-title">Book Blossom <span class="flower">🌸</span></h1>
+                    <h2 class="welcome-text">Welcome Back</h2>
+                    <p class="subtitle">Enter your details to manage your book shelf.</p>
+                </div>
+
+                <!-- Form -->
+                <form asp-controller="Auth" asp-action="Login" method="post">
+                    
+                    <!-- Phone Number -->
+                    <div class="form-group">
+                        <label for="PhoneNumber">Phone Number</label>
+                        <input type="tel" id="PhoneNumber" name="PhoneNumber" placeholder="0901234567" pattern="[0-9]{10,11}" required />
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label for="Password">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="Password" name="Password" placeholder="**********" required />
+                            <div class="eye-toggle" id="togglePassword">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.12 10.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" name="RememberMe" />
+                            <span>Remember Me</span>
+                        </label>
+                        <a href="/Auth/ForgotPassword" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-submit">Log In</button>
+
+                    <!-- Sign Up Prompt -->
+                    <p class="signup-prompt" style="margin-top: 25px;">
+                        Don't have an account? <a href="/Auth/Register"><strong>Sign Up</strong></a>
+                    </p>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for password visibility toggle -->
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#Password');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // Toggle icon (optional but good for UX)
+            const icon = this.querySelector('svg');
+            if (type === 'text') {
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            } else {
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.12 10.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            }
+        });
+    </script>
+</body>
+</html>
