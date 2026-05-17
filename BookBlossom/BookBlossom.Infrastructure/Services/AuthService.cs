@@ -31,10 +31,10 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName || u.PhoneNumber == request.UserName);
             
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
-                throw new UnauthorizedActionException("Tên đăng nhập hoặc mật khẩu không chính xác.");
+                throw new UnauthorizedActionException("Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác.");
 
             var claims = new List<Claim>
             {
