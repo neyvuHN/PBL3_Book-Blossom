@@ -788,6 +788,58 @@ body {
     margin-bottom: 30px;
 }
 
+/* Blind Date Promo Section */
+.blind-date-promo-section {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    height: 60vh;
+    position: relative;
+}
+
+.blind-date-promo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.blind-date-promo-content {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 50px;
+    border-radius: 20px;
+    text-align: center;
+    color: #fff;
+    max-width: 600px;
+}
+
+.blind-date-promo-content h2 {
+    font-family: 'Lora', serif;
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.blind-date-promo-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.blind-date-promo-content .btn-cta {
+    background: #c6b3dd;
+    /* Purple theme to match Blind Date */
+}
+
+.blind-date-promo-content .btn-cta:hover {
+    background: #a291b5;
+}
+
 /* Tindbook Feature App */
 #tindbook-feature {
     padding: 80px 0;
@@ -2413,7 +2465,7 @@ input:checked+.slider:before {
     padding: 30px;
     border-radius: 15px;
     width: 400px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     text-align: center;
     z-index: 10001;
 }
@@ -2476,7 +2528,7 @@ input:checked+.slider:before {
     color: #333;
     padding: 15px 25px;
     border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -2523,7 +2575,7 @@ input:checked+.slider:before {
     right: 0;
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     width: 150px;
     z-index: 10;
     overflow: hidden;
@@ -2606,8 +2658,13 @@ input:checked+.slider:before {
 }
 
 @keyframes toast-timer {
-    from { width: 100%; }
-    to { width: 0%; }
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
 }
 
 .hide-progress {
@@ -2621,6 +2678,11 @@ input:checked+.slider:before {
 }
 
 @keyframes hide-timer {
-    from { width: 100%; }
-    to { width: 0%; }
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
 }

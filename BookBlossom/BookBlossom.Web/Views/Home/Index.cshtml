@@ -595,6 +595,16 @@
             transform: scale(1.1);
             background: #333;
         }
+
+        /* Danger/Delete Confirmation Button Style */
+        .btn-modal-danger {
+            background: #e74c3c !important;
+            color: #fff !important;
+        }
+        
+        .btn-modal-danger:hover {
+            background: #c0392b !important;
+        }
     </style>
 </head>
 <body class="homepage-container">
@@ -864,6 +874,17 @@
                 </div>
                 <div class="see-more-container">
                     <button id="see-more-thread" class="btn-see-more">Go to Threads</button>
+                </div>
+            </div>
+        </section>
+
+         <!-- Blind Date Book Promo Section -->
+        <section id="blind-date-promo" class="blind-date-promo-section" style="background-image: url('/images/BlindDateBook/BlindBook.jpg')">
+            <div class="blind-date-promo-overlay">
+                <div class="blind-date-promo-content">
+                    <h2>Blind Date with a Book</h2>
+                    <p>Unbox a mystery read based on vibe, not cover. Let fate decide your next favorite story. No spoilers, just pure bookish excitement!</p>
+                    <a href="#" id="btn-try-blind-date" class="btn-cta">Explore Mystery</a>
                 </div>
             </div>
         </section>
@@ -2393,6 +2414,30 @@
 
             $('#cta-blind-date').on('click', function(e) {
                 e.preventDefault();
+                e.stopImmediatePropagation();
+                $('#heroCarousel').carousel('pause');
+
+                const target = document.getElementById('blind-date-promo');
+                if (target) {
+                    if (!$('#nav-home').hasClass('active')) {
+                        showHome();
+                    }
+
+                    const offset = 80;
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = target.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+
+            $('#btn-try-blind-date').on('click', function(e) {
+                e.preventDefault();
                 showBlindDate();
             });
 
@@ -2922,10 +2967,29 @@
                 $card.find('textarea').val('');
             });
 
+            // Tracker variables for custom delete popups
+            let postToDelete = null;
+            let reviewToDelete = null;
+
             // Delete Thread Post Logic
             $(document).on('click', '.btn-delete-thread-post', function() {
-                if (confirm('Are you sure you want to delete this post?')) {
-                    $(this).closest('.thread-post').remove();
+                postToDelete = $(this).closest('.thread-post');
+                $('#delete-post-modal').fadeIn(200);
+            });
+
+            $('#btn-cancel-delete-post, #delete-post-modal .modal-backdrop').on('click', function() {
+                $('#delete-post-modal').fadeOut(200);
+                postToDelete = null;
+            });
+
+            $('#btn-confirm-delete-post').on('click', function() {
+                if (postToDelete) {
+                    postToDelete.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                    $('#delete-post-modal').fadeOut(200);
+                    showToast('Post deleted successfully!');
+                    postToDelete = null;
                 }
             });
 
@@ -2946,9 +3010,22 @@
 
             // Delete Review Logic
             $(document).on('click', '.btn-delete-review', function() {
-                if (confirm('Are you sure you want to delete your review?')) {
-                    $(this).closest('.review-item').remove();
+                reviewToDelete = $(this).closest('.review-item');
+                $('#delete-review-modal').fadeIn(200);
+            });
+
+            $('#btn-cancel-delete-review, #delete-review-modal .modal-backdrop').on('click', function() {
+                $('#delete-review-modal').fadeOut(200);
+                reviewToDelete = null;
+            });
+
+            $('#btn-confirm-delete-review').on('click', function() {
+                if (reviewToDelete) {
+                    reviewToDelete.fadeOut(300, function() {
+                        $(this).remove();
+                    });
                     hasSubmittedReview = false;
+                    
                     // Restore form
                     $('.create-post-card').html(`
                         <h3>Leave a Review</h3>
@@ -2967,6 +3044,9 @@
                     `);
                     
                     bindStarRatingEvents();
+                    $('#delete-review-modal').fadeOut(200);
+                    showToast('Review deleted successfully!');
+                    reviewToDelete = null;
                 }
             });
 
@@ -3236,6 +3316,34 @@
             <div class="modal-btns mt-3">
                 <button class="btn-modal-cancel" id="btn-cancel-tag-book">Cancel</button>
                 <button class="btn-modal-confirm" id="btn-confirm-tag-book">Tag Book</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Post Confirmation Modal -->
+    <div class="custom-modal" id="delete-post-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <div style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"><i class="fas fa-exclamation-circle"></i></div>
+            <h3>Delete Post</h3>
+            <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-delete-post">Cancel</button>
+                <button class="btn-modal-confirm btn-modal-danger" id="btn-confirm-delete-post">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Review Confirmation Modal -->
+    <div class="custom-modal" id="delete-review-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <div style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"><i class="fas fa-exclamation-circle"></i></div>
+            <h3>Delete Review</h3>
+            <p>Are you sure you want to delete your review? This action cannot be undone.</p>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-delete-review">Cancel</button>
+                <button class="btn-modal-confirm btn-modal-danger" id="btn-confirm-delete-review">Delete</button>
             </div>
         </div>
     </div>
