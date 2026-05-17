@@ -2772,8 +2772,19 @@
                 
                 const cardIndex = $cards.index(this);
                 if (cardIndex === currentCardIndex) {
-                    const bookId = $(this).data('book-id');
-                    window.location.href = `/Book/Details/${bookId}`;
+                    const $card = $(this);
+                    const title = $card.find('h3').text().trim();
+                    let author = $card.find('.author').text().trim();
+                    if (author.startsWith('by ')) {
+                        author = author.substring(3);
+                    }
+                    const imgSrc = $card.find('.card-image img').attr('src');
+                    
+                    showProductDetails({
+                        title: title,
+                        author: author,
+                        imgSrc: imgSrc
+                    });
                 }
             });
 
