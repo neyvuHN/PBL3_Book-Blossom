@@ -32,7 +32,7 @@ namespace BookBlossom.Infrastructure.Services
                 throw new Exception("Vui lòng đợi 60 giây trước khi yêu cầu mã OTP mới.");
             }
 
-            // Kiểm tra số lần đã gửi trong ngày
+            // Kiểm tra số lần đã gửi trong ngày (theo số điện thoại - tối đa 5 lần)
             var sendCountToday = await _context.OTPLogs
                 .Where(x => x.PhoneNumber == phoneNumber && x.CreatedAt >= today)
                 .CountAsync();
@@ -42,9 +42,22 @@ namespace BookBlossom.Infrastructure.Services
                 throw new Exception("Bạn đã vượt quá giới hạn 5 lần nhận OTP trong ngày!");
             }
 
-            // Tạo mã OTP 6 số
+            // Kiểm tra số lần gửi trong ngày theo địa chỉ IP (tối đa 15 lần) để chống spam diện rộng
+            if (!string.IsNullOrEmpty(ipAddress) && ipAddress != "unknown")
+            {
+                var sendCountTodayByIp = await _context.OTPLogs
+                    .Where(x => x.IpAddress == ipAddress && x.CreatedAt >= today)
+                    .CountAsync();
+
+                if (sendCountTodayByIp >= 15)
+                {
+                    throw new Exception("Thiết bị hoặc địa chỉ mạng của bạn đã vượt quá giới hạn 15 lần yêu cầu OTP trong ngày!");
+                }
+            }
+
+            // Tạo mã OTP 6 số (sinh từ 100000 đến 999999)
             var random = new Random();
-            var otpCode = random.Next(100000, 999999).ToString();
+            var otpCode = random.Next(100000, 1000000).ToString();
 
             // Hash OTP trước khi lưu
             var hashedOtp = BCrypt.Net.BCrypt.HashPassword(otpCode);

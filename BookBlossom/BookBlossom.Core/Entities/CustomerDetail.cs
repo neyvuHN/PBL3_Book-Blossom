@@ -4,7 +4,7 @@ namespace BookBlossom.Core.Entities
 {
     public class CustomerDetail
     {
-        public int CustomerID { get; set; } // Vừa là PK, vừa là FK
+        public long CustomerID { get; set; } // Vừa là PK, vừa là FK
 
         public bool IsOnboardingCompleted { get; set; }
         public decimal TotalSpending { get; set; }

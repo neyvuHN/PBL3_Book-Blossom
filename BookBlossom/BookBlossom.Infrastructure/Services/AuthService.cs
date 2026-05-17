@@ -184,5 +184,18 @@ namespace BookBlossom.Infrastructure.Services
 
             return principal;
         }
+
+        public async Task<bool> ResetPasswordAsync(string phoneNumber, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+            if (user == null)
+            {
+                throw new Exception("Không tìm thấy người dùng với số điện thoại này.");
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

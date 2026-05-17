@@ -5,7 +5,7 @@ namespace BookBlossom.Core.Entities
 {
     public class User
     {
-        public int UserID { get; set; }
+        public long UserID { get; set; }
         public UserRole RoleID { get; set; }
         
         public string UserName { get; set; } = string.Empty;

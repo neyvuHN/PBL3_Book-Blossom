@@ -12,5 +12,8 @@ namespace BookBlossom.Core.Interfaces.Services
         
         // Hàm hoàn tất đăng ký sau khi xác thực OTP thành công
         Task<bool> CompleteRegistrationAsync(RegisterRequestDTO request);
+
+        // Hàm đặt lại mật khẩu sau khi xác thực thành công
+        Task<bool> ResetPasswordAsync(string phoneNumber, string newPassword);
     }
 }
