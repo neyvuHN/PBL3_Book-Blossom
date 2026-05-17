@@ -3221,6 +3221,16 @@
                 $(this).closest('.tagged-book-card').remove();
             });
 
+            // How It Works Modal Logic
+            $(document).on('click', '.btn-how-it-works', function(e) {
+                e.preventDefault();
+                $('#how-it-works-modal').fadeIn(200);
+            });
+
+            $('#btn-close-how-it-works, #how-it-works-modal .modal-backdrop').on('click', function() {
+                $('#how-it-works-modal').fadeOut(200);
+            });
+
         });
     </script>
 
@@ -3344,6 +3354,76 @@
             <div class="modal-btns">
                 <button class="btn-modal-cancel" id="btn-cancel-delete-review">Cancel</button>
                 <button class="btn-modal-confirm btn-modal-danger" id="btn-confirm-delete-review">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- How it works Modal -->
+    <div class="custom-modal" id="how-it-works-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box" style="max-width: 550px; text-align: left; padding: 35px; border-radius: 20px; max-height: 90vh; overflow-y: auto;">
+            <h3 style="font-family: 'Lora', serif; font-size: 1.6rem; color: #333; margin-bottom: 20px; text-align: center; font-weight: 700;">
+                🌸 How Blind Date Books Work
+            </h3>
+            
+            <!-- The Concept -->
+            <div style="background: #FDF2F4; border-radius: 12px; padding: 15px; margin-bottom: 20px; border-left: 4px solid #EEC7C9;">
+                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #6D4C41; font-weight: 500;">
+                    <i class="fas fa-heart" style="color: #E91E63; margin-right: 8px;"></i>
+                    <strong>Concept:</strong> Fall in love with a book based on its <strong>"Keywords" & "Vibe"</strong> instead of its cover! The exact title and author remain a beautiful mystery until delivery.
+                </p>
+            </div>
+
+            <!-- Step-by-Step Guide -->
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: #333; margin-bottom: 15px;">Buyer Journey & Guidelines</h4>
+            
+            <div class="how-it-works-steps" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Step 1 -->
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #FFF0F2; color: #C2185B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 0.9rem; border: 1px solid #FADBD8;">
+                        1
+                    </div>
+                    <div>
+                        <h5 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: #444;">Hidden Descriptions</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.4;">Browse mystery listings and view only keywords, vibes, condition, and prices. The identity of the book is hidden.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #FFF0F2; color: #C2185B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 0.9rem; border: 1px solid #FADBD8;">
+                        2
+                    </div>
+                    <div>
+                        <h5 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: #444;">Receive & Reveal</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.4;">Once your order is delivered, click <strong>"Order Received"</strong> on the website. The system will instantly reveal the real book details for your cross-check.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #FFF0F2; color: #C2185B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 0.9rem; border: 1px solid #FADBD8;">
+                        3
+                    </div>
+                    <div>
+                        <h5 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: #444;">Unboxing Protection & Reports</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.4;">If the book does not match the description, upload your <strong>unboxing video</strong> and report it. The Store Manager will handle your return/refund query.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strict Warning Alert -->
+            <div style="background: #FFF9E6; border: 1px solid #FFE0B2; border-radius: 12px; padding: 15px; margin-top: 20px; display: flex; gap: 12px; align-items: flex-start;">
+                <i class="fas fa-video" style="color: #FF9800; font-size: 1.2rem; margin-top: 2px;"></i>
+                <div style="font-size: 0.85rem; line-height: 1.4; color: #5D4037;">
+                    <strong style="color: #E65100;">CRITICAL UNBOXING POLICY:</strong><br>
+                    For buyer safety, you <strong>MUST record a continuous video while opening the package</strong>. Complaints and reports will <strong>ONLY</strong> be accepted with a valid unboxing video.
+                    <span style="display: block; margin-top: 4px; font-style: italic; color: #8D6E63;">(A reminder is also shown on your Order Tracking page)</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; margin-top: 25px;">
+                <button class="btn-modal-confirm" id="btn-close-how-it-works" style="width: 120px;">Got it!</button>
             </div>
         </div>
     </div>
