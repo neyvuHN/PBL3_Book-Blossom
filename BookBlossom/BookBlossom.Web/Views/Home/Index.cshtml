@@ -637,6 +637,9 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            border: 2px solid transparent !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         .thumb-item img {
             transition: all 0.2s ease;
@@ -649,11 +652,49 @@
             border-color: #C2185B !important;
             box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2) !important;
         }
+        
+        /* Navigation Arrows on Cover Hover */
+        .product-cover-container:hover .nav-arrow {
+            opacity: 1 !important;
+        }
+        .nav-arrow:hover {
+            background: rgba(17, 17, 17, 0.95) !important;
+            transform: translateY(-50%) scale(1.08) !important;
+        }
         #detail-main-img {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: zoom-in !important;
         }
         #detail-main-img:hover {
             transform: scale(1.02);
+        }
+        
+        /* Fullscreen Lightbox Custom Styles */
+        .lightbox-wrapper {
+            cursor: zoom-out !important;
+        }
+        .lightbox-img-container img {
+            cursor: default !important;
+        }
+        .lightbox-close-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            cursor: pointer !important;
+        }
+        .lightbox-close-btn:hover {
+            background: rgba(255, 255, 255, 0.25) !important;
+            transform: scale(1.08) rotate(90deg) !important;
+            color: #ff4d4d !important;
+        }
+        .lightbox-arrow {
+            transition: all 0.25s ease !important;
+            cursor: pointer !important;
+        }
+        .lightbox-arrow:hover {
+            background: rgba(255, 255, 255, 0.25) !important;
+            transform: scale(1.08) !important;
+        }
+        .lightbox-arrow:active {
+            transform: scale(0.95) !important;
         }
         .btn-wishlist-circle:hover {
             transform: scale(1.08);
@@ -2006,8 +2047,16 @@
             <div class="row" style="margin-bottom: 50px;">
                 <!-- Left Column: Cover & Thumbnails -->
                 <div class="col-md-5">
-                    <div class="product-cover-container" style="background: #fdfcf9; border: 1px solid #f2ede4; border-radius: 20px; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.02); height: 500px;">
-                        <img id="detail-main-img" src="/images/Book/book1.jpg" alt="Book Cover" style="max-height: 380px; max-width: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); transition: transform 0.3s ease;">
+                    <div class="product-cover-container" style="background: #fdfcf9; border: 1px solid #f2ede4; border-radius: 20px; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.02); height: 500px; user-select: none;">
+                        <!-- Navigation Arrows (appear on hover) -->
+                        <button class="nav-arrow prev-arrow" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); background: rgba(17, 17, 17, 0.55); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: all 0.25s ease; z-index: 10;" aria-label="Previous image">
+                            <i class="fas fa-chevron-left" style="font-size: 1.1rem;"></i>
+                        </button>
+                        <button class="nav-arrow next-arrow" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(17, 17, 17, 0.55); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: all 0.25s ease; z-index: 10;" aria-label="Next image">
+                            <i class="fas fa-chevron-right" style="font-size: 1.1rem;"></i>
+                        </button>
+
+                        <img id="detail-main-img" src="/images/Book/book1.jpg" alt="Book Cover" style="max-height: 380px; max-width: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); transition: transform 0.3s ease;" draggable="false">
                         <button class="btn-read-preview" style="background: rgba(17, 17, 17, 0.75); color: #fff; border: none; padding: 10px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; position: absolute; bottom: 25px; backdrop-filter: blur(5px); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                             <i class="fas fa-book-open"></i> Read Preview
                         </button>
@@ -2015,17 +2064,17 @@
 
                     <!-- Thumbnails -->
                     <div class="product-thumbnails" style="display: flex; gap: 15px; margin-top: 20px; justify-content: center;">
-                        <div class="thumb-item active" style="width: 70px; height: 95px; border-radius: 8px; border: 2px solid #C2185B; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.1);">
+                        <div class="thumb-item active" style="width: 70px; height: 95px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.1);">
                             <img src="/images/Book/book1.jpg" alt="Preview 1" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
                         </div>
-                        <div class="thumb-item" style="width: 70px; height: 95px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px;">
-                            <img src="/images/Book/book1.jpg" alt="Preview 2" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; filter: hue-rotate(15deg) contrast(1.05);">
+                        <div class="thumb-item" style="width: 70px; height: 95px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px;">
+                            <img src="/images/Book/book1.jpg" alt="Preview 2" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
                         </div>
-                        <div class="thumb-item" style="width: 70px; height: 95px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px;">
-                            <img src="/images/Book/book1.jpg" alt="Preview 3" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; filter: hue-rotate(45deg) saturate(1.2);">
+                        <div class="thumb-item" style="width: 70px; height: 95px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px;">
+                            <img src="/images/Book/book1.jpg" alt="Preview 3" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
                         </div>
-                        <div class="thumb-item" style="width: 70px; height: 95px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px;">
-                            <img src="/images/Book/book1.jpg" alt="Preview 4" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; filter: sepia(0.3) brightness(0.9);">
+                        <div class="thumb-item" style="width: 70px; height: 95px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: #fdfcf9; padding: 5px;">
+                            <img src="/images/Book/book1.jpg" alt="Preview 4" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
                         </div>
                     </div>
 
@@ -3706,6 +3755,8 @@
 
             // --- PREMIUM PRODUCT DETAILS SPA LOGIC ---
             let previousActiveSection = '#main-content';
+            let detailImagesArray = [];
+            let currentDetailImageIndex = 0;
 
             function showProductDetails(bookData) {
                 // Determine current visible section to save as return point
@@ -3736,11 +3787,38 @@
                 $('#breadcrumb-title').text(bookData.title);
                 $('#detail-author').text(bookData.author);
                 
-                // Update covers and thumbnails
-                $('#detail-main-img').attr('src', bookData.imgSrc);
-                $('.thumb-item img').attr('src', bookData.imgSrc);
+                // Reset active thumbnail & tracking array
+                currentDetailImageIndex = 0;
                 
-                // Reset active thumbnail
+                // Update covers and thumbnails with actual distinct book images from wwwroot/images/Book for demo
+                const demoImages = [
+                    '/images/Book/book1.jpg',
+                    '/images/Book/book2.webp',
+                    '/images/Book/book3.avif',
+                    '/images/Book/book4.jpg',
+                    '/images/Book/book5.jpg',
+                    '/images/Book/book6.webp'
+                ];
+                
+                // Filter out the current main image to avoid duplicating it in subsequent thumbnails
+                const otherImages = demoImages.filter(img => img !== bookData.imgSrc);
+                
+                // We want 4 images in total: main image + 3 distinct other images
+                detailImagesArray = [bookData.imgSrc, ...otherImages.slice(0, 3)];
+                
+                // Update the thumbnails
+                $('.thumb-item').each(function(index) {
+                    if (index < detailImagesArray.length) {
+                        $(this).show();
+                        $(this).find('img').attr('src', detailImagesArray[index]);
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                
+                $('#detail-main-img').attr('src', bookData.imgSrc);
+                
+                // Reset active thumbnail class
                 $('.thumb-item').removeClass('active');
                 $('.thumb-item').first().addClass('active');
 
@@ -3909,12 +3987,16 @@
                 window.scrollTo(0, 0);
             });
 
-            // Thumbnail Click logic
-            $(document).on('click', '.thumb-item', function() {
-                $('.thumb-item').removeClass('active');
-                $(this).addClass('active');
+            function setActiveDetailImage(index) {
+                if (index < 0 || index >= detailImagesArray.length) return;
                 
-                const clickedImgSrc = $(this).find('img').attr('src');
+                currentDetailImageIndex = index;
+                
+                // Update active thumbnail class
+                $('.thumb-item').removeClass('active');
+                $('.thumb-item').eq(index).addClass('active');
+                
+                const clickedImgSrc = detailImagesArray[index];
                 const $mainImg = $('#detail-main-img');
                 
                 $mainImg.css('transform', 'scale(0.95)').css('opacity', '0.7');
@@ -3922,6 +4004,282 @@
                     $mainImg.attr('src', clickedImgSrc);
                     $mainImg.css('transform', 'scale(1)').css('opacity', '1');
                 }, 150);
+            }
+
+            // Thumbnail Click logic
+            $(document).on('click', '.thumb-item', function() {
+                const clickedIndex = $('.thumb-item').index(this);
+                setActiveDetailImage(clickedIndex);
+            });
+
+            // Arrow Controls Click Logic
+            $(document).on('click', '.prev-arrow', function(e) {
+                e.stopPropagation();
+                let targetIndex = currentDetailImageIndex - 1;
+                if (targetIndex < 0) {
+                    targetIndex = detailImagesArray.length - 1;
+                }
+                setActiveDetailImage(targetIndex);
+            });
+            
+            $(document).on('click', '.next-arrow', function(e) {
+                e.stopPropagation();
+                let targetIndex = currentDetailImageIndex + 1;
+                if (targetIndex >= detailImagesArray.length) {
+                    targetIndex = 0;
+                }
+                setActiveDetailImage(targetIndex);
+            });
+
+            // Touchpad scroll (wheel event) logic
+            let wheelAccumulator = 0;
+            const wheelThreshold = 80;
+            let wheelTimer = null;
+            
+            $(document).on('wheel', '.product-cover-container', function(e) {
+                const originalEvent = e.originalEvent;
+                const delta = originalEvent.deltaX || originalEvent.deltaY;
+                
+                // Prevent vertical page scroll when hovering/scrolling horizontally/vertically over the main cover
+                e.preventDefault();
+                
+                if (wheelTimer) clearTimeout(wheelTimer);
+                
+                wheelAccumulator += delta;
+                
+                if (Math.abs(wheelAccumulator) >= wheelThreshold) {
+                    if (wheelAccumulator > 0) {
+                        let targetIndex = currentDetailImageIndex + 1;
+                        if (targetIndex >= detailImagesArray.length) targetIndex = 0;
+                        setActiveDetailImage(targetIndex);
+                    } else {
+                        let targetIndex = currentDetailImageIndex - 1;
+                        if (targetIndex < 0) targetIndex = detailImagesArray.length - 1;
+                        setActiveDetailImage(targetIndex);
+                    }
+                    wheelAccumulator = 0;
+                }
+                
+                wheelTimer = setTimeout(function() {
+                    wheelAccumulator = 0;
+                }, 200);
+            });
+
+            // Drag / Swipe / Laptop touchpad swipe logic
+            let detailIsDragging = false;
+            let detailStartX = 0;
+            let detailStartY = 0;
+            
+            $(document).on('mousedown touchstart', '.product-cover-container', function(e) {
+                if ($(e.target).closest('button').length > 0) return;
+                
+                detailIsDragging = true;
+                const pageX = e.pageX || (e.originalEvent.touches ? e.originalEvent.touches[0].pageX : 0);
+                const pageY = e.pageY || (e.originalEvent.touches ? e.originalEvent.touches[0].pageY : 0);
+                detailStartX = pageX;
+                detailStartY = pageY;
+                
+                if (e.type === 'mousedown') {
+                    e.preventDefault();
+                }
+            });
+            
+            $(document).on('mouseup touchend', function(e) {
+                if (!detailIsDragging) return;
+                detailIsDragging = false;
+                
+                const pageX = e.pageX || (e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0].pageX : 0);
+                const pageY = e.pageY || (e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0].pageY : 0);
+                
+                const deltaX = pageX - detailStartX;
+                const deltaY = pageY - detailStartY;
+                const dragThreshold = 55;
+                
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > dragThreshold) {
+                    if (deltaX < 0) {
+                        let targetIndex = currentDetailImageIndex + 1;
+                        if (targetIndex >= detailImagesArray.length) targetIndex = 0;
+                        setActiveDetailImage(targetIndex);
+                    } else {
+                        let targetIndex = currentDetailImageIndex - 1;
+                        if (targetIndex < 0) targetIndex = detailImagesArray.length - 1;
+                        setActiveDetailImage(targetIndex);
+                    }
+                }
+            });
+
+            // --- FULLSCREEN LIGHTBOX INTERACTIVE LOGIC ---
+            function openLightbox(index) {
+                if (index < 0 || index >= detailImagesArray.length) return;
+                
+                const $modal = $('#book-lightbox-modal');
+                $modal.fadeIn(300);
+                
+                updateLightboxImage(index);
+                $('body').css('overflow', 'hidden');
+            }
+
+            function closeLightbox() {
+                $('#book-lightbox-modal').fadeOut(250, function() {
+                    $('body').css('overflow', '');
+                });
+            }
+
+            function updateLightboxImage(index) {
+                if (index < 0 || index >= detailImagesArray.length) return;
+                
+                currentDetailImageIndex = index;
+                
+                $('#lightbox-current-idx').text(index + 1);
+                $('#lightbox-total-idx').text(detailImagesArray.length);
+                
+                const clickedImgSrc = detailImagesArray[index];
+                const $lightboxImg = $('#lightbox-main-img');
+                
+                $lightboxImg.css('transform', 'scale(0.95)').css('opacity', '0.7');
+                setTimeout(function() {
+                    $lightboxImg.attr('src', clickedImgSrc);
+                    $lightboxImg.css('transform', 'scale(1)').css('opacity', '1');
+                }, 150);
+                
+                // Sync the main page details view perfectly
+                $('.thumb-item').removeClass('active');
+                $('.thumb-item').eq(index).addClass('active');
+                $('#detail-main-img').attr('src', clickedImgSrc);
+            }
+
+            // Click main cover image to open fullscreen lightbox
+            $(document).on('click', '#detail-main-img', function() {
+                openLightbox(currentDetailImageIndex);
+            });
+
+            // Close actions
+            $(document).on('click', '.lightbox-close-btn, #book-lightbox-modal .modal-backdrop', function() {
+                closeLightbox();
+            });
+
+            // Close lightbox when clicking background areas (empty wrapper space around image)
+            $(document).on('click', '.lightbox-wrapper', function(e) {
+                if ($(e.target).closest('#lightbox-main-img, .lightbox-arrow, .lightbox-toolbar, button').length === 0) {
+                    closeLightbox();
+                }
+            });
+
+            // Inside Lightbox arrow clicks
+            $(document).on('click', '.lightbox-prev', function(e) {
+                e.stopPropagation();
+                let targetIndex = currentDetailImageIndex - 1;
+                if (targetIndex < 0) {
+                    targetIndex = detailImagesArray.length - 1;
+                }
+                updateLightboxImage(targetIndex);
+            });
+            
+            $(document).on('click', '.lightbox-next', function(e) {
+                e.stopPropagation();
+                let targetIndex = currentDetailImageIndex + 1;
+                if (targetIndex >= detailImagesArray.length) {
+                    targetIndex = 0;
+                }
+                updateLightboxImage(targetIndex);
+            });
+
+            // Keyboard navigation (Esc to close, Left/Right arrows to flip)
+            $(document).on('keydown', function(e) {
+                const $modal = $('#book-lightbox-modal');
+                if (!$modal.is(':visible')) return;
+                
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowLeft') {
+                    let targetIndex = currentDetailImageIndex - 1;
+                    if (targetIndex < 0) {
+                        targetIndex = detailImagesArray.length - 1;
+                    }
+                    updateLightboxImage(targetIndex);
+                } else if (e.key === 'ArrowRight') {
+                    let targetIndex = currentDetailImageIndex + 1;
+                    if (targetIndex >= detailImagesArray.length) {
+                        targetIndex = 0;
+                    }
+                    updateLightboxImage(targetIndex);
+                }
+            });
+
+            // Laptop touchpad horizontal/vertical scrolling inside fullscreen lightbox
+            let lightboxWheelAccumulator = 0;
+            const lightboxWheelThreshold = 80;
+            let lightboxWheelTimer = null;
+            
+            $(document).on('wheel', '.lightbox-wrapper', function(e) {
+                const originalEvent = e.originalEvent;
+                const delta = originalEvent.deltaX || originalEvent.deltaY;
+                
+                e.preventDefault();
+                
+                if (lightboxWheelTimer) clearTimeout(lightboxWheelTimer);
+                
+                lightboxWheelAccumulator += delta;
+                
+                if (Math.abs(lightboxWheelAccumulator) >= lightboxWheelThreshold) {
+                    if (lightboxWheelAccumulator > 0) {
+                        let targetIndex = currentDetailImageIndex + 1;
+                        if (targetIndex >= detailImagesArray.length) targetIndex = 0;
+                        updateLightboxImage(targetIndex);
+                    } else {
+                        let targetIndex = currentDetailImageIndex - 1;
+                        if (targetIndex < 0) targetIndex = detailImagesArray.length - 1;
+                        updateLightboxImage(targetIndex);
+                    }
+                    lightboxWheelAccumulator = 0;
+                }
+                
+                lightboxWheelTimer = setTimeout(function() {
+                    lightboxWheelAccumulator = 0;
+                }, 200);
+            });
+
+            // Mouse Drag / Touch Swipe gesture inside fullscreen lightbox
+            let lightboxIsDragging = false;
+            let lightboxStartX = 0;
+            let lightboxStartY = 0;
+            
+            $(document).on('mousedown touchstart', '.lightbox-wrapper', function(e) {
+                if ($(e.target).closest('button').length > 0) return;
+                
+                lightboxIsDragging = true;
+                const pageX = e.pageX || (e.originalEvent.touches ? e.originalEvent.touches[0].pageX : 0);
+                const pageY = e.pageY || (e.originalEvent.touches ? e.originalEvent.touches[0].pageY : 0);
+                lightboxStartX = pageX;
+                lightboxStartY = pageY;
+                
+                if (e.type === 'mousedown') {
+                    e.preventDefault();
+                }
+            });
+            
+            $(document).on('mouseup touchend', function(e) {
+                if (!lightboxIsDragging) return;
+                lightboxIsDragging = false;
+                
+                const pageX = e.pageX || (e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0].pageX : 0);
+                const pageY = e.pageY || (e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0].pageY : 0);
+                
+                const deltaX = pageX - lightboxStartX;
+                const deltaY = pageY - lightboxStartY;
+                const dragThreshold = 55;
+                
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > dragThreshold) {
+                    if (deltaX < 0) {
+                        let targetIndex = currentDetailImageIndex + 1;
+                        if (targetIndex >= detailImagesArray.length) targetIndex = 0;
+                        updateLightboxImage(targetIndex);
+                    } else {
+                        let targetIndex = currentDetailImageIndex - 1;
+                        if (targetIndex < 0) targetIndex = detailImagesArray.length - 1;
+                        updateLightboxImage(targetIndex);
+                    }
+                }
             });
 
             // Details Tabs clicking logic
@@ -4239,6 +4597,39 @@
             <div style="display: flex; justify-content: center; margin-top: 25px;">
                 <button class="btn-modal-confirm" id="btn-close-how-it-works" style="width: 120px;">Got it!</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Book Image Fullscreen Lightbox Modal -->
+    <div class="custom-modal lightbox-modal" id="book-lightbox-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"></div>
+        
+        <!-- Top Toolbar for Close and Indicator -->
+        <div class="lightbox-toolbar" style="position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 10001; pointer-events: none;">
+            <div class="lightbox-indicator" style="color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; font-weight: 500; background: rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(5px); pointer-events: auto; font-family: 'Outfit', sans-serif;">
+                Image <span id="lightbox-current-idx">1</span> of <span id="lightbox-total-idx">4</span>
+            </div>
+            <button class="lightbox-close-btn" style="background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; pointer-events: auto; backdrop-filter: blur(5px);" aria-label="Close fullscreen view">
+                <i class="fas fa-times" style="font-size: 1.25rem;"></i>
+            </button>
+        </div>
+
+        <!-- Lightbox Content Wrap -->
+        <div class="lightbox-wrapper" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 10000; overflow: hidden; user-select: none;">
+            <!-- Left Arrow -->
+            <button class="lightbox-arrow lightbox-prev" style="position: absolute; left: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Previous image">
+                <i class="fas fa-chevron-left" style="font-size: 1.25rem;"></i>
+            </button>
+
+            <!-- Main Large Image -->
+            <div class="lightbox-img-container" style="max-width: 85%; max-height: 80%; display: flex; align-items: center; justify-content: center; position: relative;">
+                <img id="lightbox-main-img" src="" alt="Book Fullscreen View" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;" draggable="false">
+            </div>
+
+            <!-- Right Arrow -->
+            <button class="lightbox-arrow lightbox-next" style="position: absolute; right: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Next image">
+                <i class="fas fa-chevron-right" style="font-size: 1.25rem;"></i>
+            </button>
         </div>
     </div>
 
