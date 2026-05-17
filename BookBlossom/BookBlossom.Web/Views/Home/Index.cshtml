@@ -1181,6 +1181,130 @@
                 display: none !important;
             }
         }
+
+        /* PREMIUM CART BADGE & FLYING ANIMATION SYSTEM */
+        .premium-navbar .cart-badge {
+            background-color: #C2185B;
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 6px rgba(194, 24, 91, 0.4);
+            border: 1.5px solid #fff;
+        }
+
+        .cart-badge-bounce {
+            animation: cart-badge-bounce-anim 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @@keyframes cart-badge-bounce-anim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.45); }
+            100% { transform: scale(1); }
+        }
+
+        .cart-flyer {
+            position: fixed;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: #C2185B;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10005;
+            pointer-events: none;
+            box-shadow: 0 5px 15px rgba(194, 24, 91, 0.5);
+            border: 1.5px solid #fff;
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.5s ease-out;
+        }
+
+        /* PREMIUM VOUCHER SELECTION & MODAL STYLES */
+        .coupon-card {
+            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            position: relative;
+        }
+        .coupon-card.selected {
+            border-style: solid !important;
+            border-width: 2px !important;
+            border-color: #C2185B !important;
+            background: #FFF5F7 !important;
+            box-shadow: 0 4px 12px rgba(194, 24, 91, 0.12) !important;
+            transform: translateY(-3px) !important;
+        }
+        .coupon-card.selected::after {
+            content: '\f058'; /* FontAwesome circle-check */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            color: #C2185B;
+            font-size: 1.15rem;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .modal-voucher-item {
+            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            position: relative;
+            flex-shrink: 0 !important; /* PREVENT FLEX SHRINK SQUISHING */
+            min-height: 85px !important; /* GUARANTEE SPACIOUS HEIGHT FOR TEXT */
+        }
+        .modal-voucher-item.selected {
+            border-style: solid !important;
+            border-width: 2px !important;
+            border-color: #C2185B !important;
+            background: #FFF5F7 !important;
+            box-shadow: 0 5px 15px rgba(194, 24, 91, 0.08) !important;
+        }
+        .modal-voucher-item.selected::after {
+            content: '\f058'; /* FontAwesome circle-check */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            color: #C2185B;
+            font-size: 1.15rem;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .modal-voucher-item.selected .btn-modal-apply-voucher {
+            background: #C2185B !important;
+            color: #fff !important;
+            border-color: #C2185B !important;
+        }
+
+        .vouchers-modal-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .vouchers-modal-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .vouchers-modal-list::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.15);
+            border-radius: 3px;
+        }
+        .vouchers-modal-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(194, 24, 91, 0.3);
+        }
     </style>
 </head>
 <body class="homepage-container">
@@ -1201,7 +1325,7 @@
         <div class="nav-actions">
             @if (true /*User.Identity.IsAuthenticated*/)
             {
-                <a href="#" class="nav-icon-btn"><i class="fas fa-shopping-cart"></i> Cart</a>
+                <a href="#" class="nav-icon-btn nav-cart-btn" id="nav-cart-btn"><i class="fas fa-shopping-cart"></i> Cart <span class="cart-badge" id="cart-badge" style="display: none;">0</span></a>
                 <a href="#" class="nav-icon-btn notification-btn">
                     <i class="fas fa-bell"></i>
                     <span class="notification-dot"></span>
@@ -2577,7 +2701,7 @@
                         </div>
                         
                         <!-- Horizontal coupon slider -->
-                        <div class="coupon-slider" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; width: 100%;">
+                        <div class="coupon-slider" style="display: flex; gap: 12px; overflow-x: auto; padding-top: 12px; padding-bottom: 12px; padding-left: 8px; padding-right: 8px; scrollbar-width: thin; width: 100%; box-sizing: border-box;">
                             <!-- Card 1 -->
                             <div class="coupon-card" style="flex: 0 0 170px; background: #fffdfb; border: 1.5px dashed #f07c7c; border-radius: 10px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='none';">
                                 <div style="font-size: 0.7rem; font-weight: 700; color: #f07c7c; background: #ffebee; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">BLOSSOM70</div>
@@ -5043,12 +5167,254 @@
                 const qty = $('#input-qty').val();
                 showToast(`Redirecting to checkout for ${qty}x "${title}"!`);
             });
+            // Global Cart Count State & Animation Logic
+            let globalCartCount = 0;
+
+            function updateCartBadge(count) {
+                const $badge = $('#cart-badge');
+                if (count > 0) {
+                    $badge.text(count).show();
+                    // Bounce animation
+                    $badge.removeClass('cart-badge-bounce');
+                    void $badge[0].offsetWidth; // trigger reflow
+                    $badge.addClass('cart-badge-bounce');
+                } else {
+                    $badge.hide();
+                }
+            }
 
             $('#btn-detail-add-cart').on('click', function() {
                 const title = $('#detail-title').text();
-                const qty = $('#input-qty').val();
+                const qty = parseInt($('#input-qty').val()) || 1;
+                
+                const $addCartBtn = $(this);
+                const $cartIcon = $('#nav-cart-btn');
+
+                if ($addCartBtn.length && $cartIcon.length) {
+                    // Get viewport bounds of the source button and target cart icon
+                    const rectBtn = $addCartBtn[0].getBoundingClientRect();
+                    const rectCart = $cartIcon[0].getBoundingClientRect();
+
+                    // Calculate start and end coordinates in the viewport
+                    const startX = rectBtn.left + rectBtn.width / 2 - 13;
+                    const startY = rectBtn.top + rectBtn.height / 2 - 13;
+                    
+                    const endX = rectCart.left + rectCart.width / 2 - 13;
+                    const endY = rectCart.top + rectCart.height / 2 - 13;
+
+                    const deltaX = endX - startX;
+                    const deltaY = endY - startY;
+
+                    // Create flyer representing the added book count
+                    const $flyer = $('<div class="cart-flyer"></div>').text(qty);
+                    $flyer.css({
+                        top: startY,
+                        left: startX
+                    });
+
+                    $('body').append($flyer);
+
+                    // Force browser reflow to register initial styles
+                    void $flyer[0].offsetHeight;
+
+                    // Smooth flyer motion using hardware-accelerated CSS translate
+                    $flyer.css({
+                        transform: `translate(${deltaX}px, ${deltaY}px) scale(0.4)`,
+                        opacity: '0.2'
+                    });
+
+                    // Update states and cleanup flyer once transition finishes (1.5s / 1500ms)
+                    setTimeout(function() {
+                        $flyer.remove();
+                        globalCartCount += qty;
+                        updateCartBadge(globalCartCount);
+                    }, 1500);
+                } else {
+                    // Fallback if elements are missing
+                    globalCartCount += qty;
+                    updateCartBadge(globalCartCount);
+                }
+
                 showToast(`Added ${qty}x "${title}" to your cart!`);
             });
+
+            // --- EXCLUSIVE VOUCHER LOGIC & STATE SYSTEM (SYNCHRONIZED & DYNAMIC RE-ORDERING) ---
+            const VOUCHERS_DATA = [
+                {
+                    code: 'BLOSSOM70',
+                    title: 'Save 70k VND',
+                    desc: 'Min order 500k',
+                    textColor: '#f07c7c',
+                    tagBg: '#ffebee',
+                    borderColor: '#f07c7c',
+                    bg: '#fffdfb'
+                },
+                {
+                    code: 'READMORE30',
+                    title: 'Save 30k VND',
+                    desc: 'First book purchase',
+                    textColor: '#f07c7c',
+                    tagBg: '#ffebee',
+                    borderColor: '#f07c7c',
+                    bg: '#fffdfb'
+                },
+                {
+                    code: 'ZALOPAY50',
+                    title: 'ZaloPay Extra 50k',
+                    desc: 'Pay via ZaloPay app',
+                    textColor: '#2b6cb0',
+                    tagBg: '#eef7fc',
+                    borderColor: '#2b6cb0',
+                    bg: '#fdfcff'
+                },
+                {
+                    code: 'MOMO12',
+                    title: 'Momo: Get 12k',
+                    desc: 'Cashback on Momo',
+                    textColor: '#d53f8c',
+                    tagBg: '#fdf2f8',
+                    borderColor: '#d53f8c',
+                    bg: '#fffafc'
+                },
+                {
+                    code: 'SUMMER20',
+                    title: '20% OFF Summer',
+                    desc: 'Max discount 50k',
+                    textColor: '#dd6b20',
+                    tagBg: '#feebc8',
+                    borderColor: '#dd6b20',
+                    bg: '#fffaf0'
+                },
+                {
+                    code: 'FREESHIP',
+                    title: 'Free Shipping',
+                    desc: 'Min order 150k',
+                    textColor: '#319795',
+                    tagBg: '#e6fffa',
+                    borderColor: '#319795',
+                    bg: '#f0fdf4'
+                }
+            ];
+
+            let selectedVouchers = new Set();
+
+            function renderMainPageVouchers() {
+                const $slider = $('.coupon-slider');
+                if (!$slider.length) return;
+
+                $slider.empty();
+
+                // Sort: selected vouchers FIRST (1), unselected LATER (0)
+                const sortedVouchers = [...VOUCHERS_DATA].sort((a, b) => {
+                    const aSelected = selectedVouchers.has(a.code) ? 1 : 0;
+                    const bSelected = selectedVouchers.has(b.code) ? 1 : 0;
+                    return bSelected - aSelected; // descending (1 first)
+                });
+
+                sortedVouchers.forEach(v => {
+                    const isSelected = selectedVouchers.has(v.code);
+                    const selectedClass = isSelected ? 'selected' : '';
+                    
+                    const cardHtml = `
+                        <div class="coupon-card ${selectedClass}" data-code="${v.code}" style="flex: 0 0 190px; background: ${v.bg}; border: 1.5px dashed ${v.borderColor}; border-radius: 10px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='none';">
+                            <div style="font-size: 0.7rem; font-weight: 700; color: ${v.textColor}; background: ${v.tagBg}; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">${v.code}</div>
+                            <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">${v.title}</div>
+                            <div style="font-size: 0.72rem; color: #888;">${v.desc}</div>
+                        </div>
+                    `;
+                    $slider.append(cardHtml);
+                });
+            }
+
+            function updateVoucherSync(code, isSelected) {
+                // Find modal items matching this voucher code and toggle active styling classes
+                $('.modal-voucher-item').each(function() {
+                    const itemCode = $(this).attr('data-code');
+                    if (itemCode === code) {
+                        if (isSelected) {
+                            $(this).addClass('selected');
+                            $(this).find('.btn-modal-apply-voucher').text('Applied');
+                        } else {
+                            $(this).removeClass('selected');
+                            $(this).find('.btn-modal-apply-voucher').text('Apply');
+                        }
+                    }
+                });
+
+                // Dynamically re-sort and render the main page slider cards
+                renderMainPageVouchers();
+
+                // Update selected count inside the modal footer
+                $('#modal-selected-count').text(selectedVouchers.size);
+            }
+
+            // Click on main page coupon cards
+            $(document).on('click', '.coupon-card', function() {
+                const code = $(this).attr('data-code') || $(this).find('div').first().text().trim();
+                
+                if (selectedVouchers.has(code)) {
+                    selectedVouchers.delete(code);
+                    updateVoucherSync(code, false);
+                    showToast(`Voucher "${code}" removed.`);
+                } else {
+                    selectedVouchers.add(code);
+                    updateVoucherSync(code, true);
+                    showToast(`Voucher "${code}" applied successfully!`);
+                }
+            });
+
+            // See All Vouchers button click
+            $(document).on('click', '.btn-see-all-vouchers', function(e) {
+                e.preventDefault();
+                
+                // Set the initial selections in the modal list
+                $('.modal-voucher-item').each(function() {
+                    const code = $(this).attr('data-code');
+                    const isSelected = selectedVouchers.has(code);
+                    if (isSelected) {
+                        $(this).addClass('selected');
+                        $(this).find('.btn-modal-apply-voucher').text('Applied');
+                    } else {
+                        $(this).removeClass('selected');
+                        $(this).find('.btn-modal-apply-voucher').text('Apply');
+                    }
+                });
+
+                $('#modal-selected-count').text(selectedVouchers.size);
+                $('#vouchers-modal').fadeIn(250);
+            });
+
+            // Close Voucher Modal
+            $(document).on('click', '#btn-close-vouchers, #btn-confirm-vouchers, #vouchers-modal .modal-backdrop', function() {
+                $('#vouchers-modal').fadeOut(250);
+                if ($(this).attr('id') === 'btn-confirm-vouchers' && selectedVouchers.size > 0) {
+                    showToast(`Successfully applied ${selectedVouchers.size} voucher(s) to order!`);
+                }
+            });
+
+            // Click on a voucher item inside the See All Modal
+            $(document).on('click', '.modal-voucher-item', function(e) {
+                const code = $(this).attr('data-code');
+                
+                if (selectedVouchers.has(code)) {
+                    selectedVouchers.delete(code);
+                    updateVoucherSync(code, false);
+                    showToast(`Voucher "${code}" removed.`);
+                } else {
+                    selectedVouchers.add(code);
+                    updateVoucherSync(code, true);
+                    showToast(`Voucher "${code}" applied!`);
+                }
+            });
+
+            // Prevent double-trigger when clicking the inner Apply button
+            $(document).on('click', '.btn-modal-apply-voucher', function(e) {
+                e.stopPropagation(); // Stop bubble so we don't trigger .modal-voucher-item click twice
+                $(this).closest('.modal-voucher-item').trigger('click');
+            });
+
+            // Initialize dynamic slider rendering on page load
+            renderMainPageVouchers();
 
             // --- SECURE FLIPBOOK DIGITAL PREVIEW LOGIC ---
             let pdfDoc = null;
@@ -5526,6 +5892,128 @@
             <div class="modal-btns mt-3">
                 <button class="btn-modal-cancel" id="btn-cancel-tag-book">Cancel</button>
                 <button class="btn-modal-confirm" id="btn-confirm-tag-book">Tag Book</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BookBlossom Vouchers Modal -->
+    <div class="custom-modal" id="vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(194, 24, 91, 0.1);">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #333; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🌸 BookBlossom Vouchers
+                </h3>
+                <button class="btn-close-vouchers" id="btn-close-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content - Scrollable List -->
+            <div class="vouchers-modal-list" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <!-- Item 1: BLOSSOM70 -->
+                <div class="modal-voucher-item" data-code="BLOSSOM70" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                        <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to all books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 2: READMORE30 -->
+                <div class="modal-voucher-item" data-code="READMORE30" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">READMORE30</span>
+                        <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first BookBlossom purchase.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 3: ZALOPAY50 -->
+                <div class="modal-voucher-item" data-code="ZALOPAY50" style="display: flex; border: 1.5px dashed #2b6cb0; border-radius: 12px; overflow: hidden; background: #fdfcff; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #eef7fc; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #2b6cb0; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #2b6cb0; letter-spacing: 0.5px;">ZALOPAY50</span>
+                        <span style="font-size: 0.65rem; color: #2b6cb0; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">ZaloPay Extra 50k</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 50k off when paying through ZaloPay app.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 4: MOMO12 -->
+                <div class="modal-voucher-item" data-code="MOMO12" style="display: flex; border: 1.5px dashed #d53f8c; border-radius: 12px; overflow: hidden; background: #fffafc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #fdf2f8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #d53f8c; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #d53f8c; letter-spacing: 0.5px;">MOMO12</span>
+                        <span style="font-size: 0.65rem; color: #d53f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Momo: Get 12k Cashback</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Cashback directly to Momo wallet after order.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 5: SUMMER20 -->
+                <div class="modal-voucher-item" data-code="SUMMER20" style="display: flex; border: 1.5px dashed #dd6b20; border-radius: 12px; overflow: hidden; background: #fffaf0; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #feebc8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #dd6b20; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #dd6b20; letter-spacing: 0.5px;">SUMMER20</span>
+                        <span style="font-size: 0.65rem; color: #dd6b20; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">20% OFF Summer Special</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 20% off all Classic Literature. Max discount 50k VNĐ.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Aug 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 6: FREESHIP -->
+                <div class="modal-voucher-item" data-code="FREESHIP" style="display: flex; border: 1.5px dashed #319795; border-radius: 12px; overflow: hidden; background: #f0fdf4; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e6fffa; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #319795; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #319795; letter-spacing: 0.5px;">FREESHIP</span>
+                        <span style="font-size: 0.65rem; color: #319795; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Free Standard Shipping</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Free standard shipping nationwide. Min order 150k VNĐ.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;"><strong id="modal-selected-count">0</strong> voucher(s) selected</span>
+                <button class="btn-modal-confirm" id="btn-confirm-vouchers" style="width: 140px; margin: 0; background: #C2185B; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">Apply Selected</button>
             </div>
         </div>
     </div>
