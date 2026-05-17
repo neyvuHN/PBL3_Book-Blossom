@@ -33,7 +33,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+            var user = await _context.Users.Include(u => u.CustomerDetail).FirstOrDefaultAsync(u => u.UserName == request.UserName);
             
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
                 throw new UnauthorizedActionException("Tên đăng nhập hoặc mật khẩu không chính xác.");
@@ -56,13 +56,20 @@ namespace BookBlossom.Infrastructure.Services
             user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
             await _context.SaveChangesAsync();
 
+            bool isOnboarding = true; 
+            if (user.RoleID == UserRole.Customer)
+            {
+                isOnboarding = user.CustomerDetail?.IsOnboardingCompleted ?? false;
+            }
+
             return new AuthResponseDTO 
             { 
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 RefreshToken = refreshToken,
                 UserId = user.UserID,
                 UserName = user.UserName, 
-                RoleID = user.RoleID 
+                RoleID = user.RoleID,
+                IsOnboardingCompleted = isOnboarding
             };
         }
 

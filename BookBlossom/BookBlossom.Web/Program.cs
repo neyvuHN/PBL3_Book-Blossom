@@ -1,4 +1,5 @@
 using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Core.Interfaces;
 using BookBlossom.Infrastructure.BackgroundJobs;
 using BookBlossom.Infrastructure.Data;
 using BookBlossom.Infrastructure.Services;
@@ -35,6 +36,12 @@ builder.Services.AddScoped<IGuestService, GuestService>();
 // Đăng ký Service Module
 builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
 builder.Services.AddHostedService<SubscriptionExpiryJob>();
+
+// Đăng ký IOnboardingService
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
+
+// Đăng ký ITindbookService
+builder.Services.AddScoped<ITindbookService, TindbookService>();
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
