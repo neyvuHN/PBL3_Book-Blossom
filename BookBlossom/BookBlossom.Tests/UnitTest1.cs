@@ -1,4 +1,6 @@
-﻿namespace BookBlossom.Tests
+using Xunit;
+
+namespace BookBlossom.Tests
 {
     public class UnitTest1
     {

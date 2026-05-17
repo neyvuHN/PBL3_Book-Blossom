@@ -40,6 +40,9 @@ builder.Services.AddHostedService<SubscriptionExpiryJob>();
 // Đăng ký IOnboardingService
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 
+// Đăng ký ICategoryService
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
 // Đăng ký ITindbookService
 builder.Services.AddScoped<ITindbookService, TindbookService>();
 
@@ -147,6 +150,16 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("CustomerOnly", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.Customer).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
+
+    // 7. Policy RequireStaff (StoreManager, MarketingManager, SystemAdmin)
+    options.AddPolicy("RequireStaff", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(),
+            ((int)UserRole.MarketingManager).ToString(),
+            ((int)UserRole.StoreManager).ToString());
         policy.RequireClaim("AccountStatus", activeStatus);
     });
 });

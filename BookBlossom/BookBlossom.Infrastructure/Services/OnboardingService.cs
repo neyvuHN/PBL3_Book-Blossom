@@ -19,6 +19,7 @@ namespace BookBlossom.Infrastructure.Services
         public async Task<IEnumerable<CategoryResponseDTO>> GetOnboardingTagsAsync()
         {
             return await _context.Categories
+                .Where(c => c.Status == BookBlossom.Core.Enums.CategoryStatus.Active)
                 .Select(c => new CategoryResponseDTO
                 {
                     CategoryID = c.CategoryID,
