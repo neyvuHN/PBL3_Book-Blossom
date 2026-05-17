@@ -45,7 +45,7 @@ namespace BookBlossom.Infrastructure.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, ((int)user.RoleID).ToString()),
+                new Claim(ClaimTypes.Role, user.RoleID.ToString()),
                 new Claim("AccountStatus", ((int)user.AccountStatus).ToString())
             };
 
@@ -56,13 +56,20 @@ namespace BookBlossom.Infrastructure.Services
             user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
             await _context.SaveChangesAsync();
 
+            bool isOnboarding = true; 
+            if (user.RoleID == UserRole.Customer)
+            {
+                isOnboarding = user.CustomerDetail?.IsOnboardingCompleted ?? false;
+            }
+
             return new AuthResponseDTO 
             { 
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 RefreshToken = refreshToken,
                 UserId = user.UserID,
                 UserName = user.UserName, 
-                RoleID = user.RoleID 
+                RoleID = user.RoleID,
+                IsOnboardingCompleted = isOnboarding
             };
         }
 
