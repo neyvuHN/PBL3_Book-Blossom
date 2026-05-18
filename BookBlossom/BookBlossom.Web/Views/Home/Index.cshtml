@@ -476,6 +476,7 @@
             border: 1px solid #f0f0f0;
             display: flex;
             flex-direction: column;
+            cursor: pointer;
         }
 
         .blind-card:hover {
@@ -1391,6 +1392,83 @@
             object-fit: cover !important; /* 'cover' giúp lấp đầy khung ảnh (full frame), loại bỏ hoàn toàn khoảng trắng */
             background: none !important; /* Loại bỏ khoảng đệm màu nền */
             transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Blind Date Details Hover Effects for Buttons */
+        .btn-buy-blind:hover {
+            background: #a8124c !important; /* Thay đổi màu nền sang tím hoàng gia */
+            color: #fff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(106, 79, 140, 0.3) !important;
+        }
+        .btn-buy-blind:active {
+            transform: translateY(1px);
+        }
+
+        .btn-cart-blind:hover {
+            background: #a291b5 !important; /* Thay đổi nền sang màu tím lavender */
+            border-color: #a291b5 !important;
+            color: #fff !important; /* Đổi màu chữ sang trắng */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(162, 145, 181, 0.3) !important;
+        }
+        .btn-cart-blind:active {
+            transform: translateY(1px);
+        }
+
+        .btn-chat-owner:hover {
+            background: #a291b5 !important; /* Thay đổi nền sang màu tím valender */
+            border-color: #a291b5 !important;
+            color: #fff !important; /* Đổi màu chữ sang trắng */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(238, 124, 139, 0.3) !important;
+        }
+        .btn-chat-owner:active {
+            transform: translateY(1px);
+        }
+
+        /* Visual & Condition Gallery Hover Effects */
+        .blind-main-image-card {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        }
+        .blind-main-image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(162, 145, 181, 0.25) !important;
+        }
+
+        .blind-main-image-card:hover .blind-gallery-prev,
+        .blind-main-image-card:hover .blind-gallery-next {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        .blind-gallery-prev:hover,
+        .blind-gallery-next:hover {
+            background: #fff !important;
+            transform: translateY(-50%) scale(1.1) !important;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+        }
+        .blind-gallery-prev:active,
+        .blind-gallery-next:active {
+            transform: translateY(-50%) scale(0.95) !important;
+        }
+
+        .blind-thumb-wrapper {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        }
+        .blind-thumb-wrapper:hover {
+            transform: scale(1.06);
+            border-color: #a291b5 !important;
+            box-shadow: 0 6px 16px rgba(162, 145, 181, 0.25) !important;
+        }
+
+        /* Zoom Cursor on Blind Date Main Image hover */
+        #blind-detail-main-img {
+            cursor: zoom-in !important;
+            transition: transform 0.3s ease !important;
+        }
+        #blind-detail-main-img:hover {
+            transform: scale(1.02);
         }
     </style>
 </head>
@@ -2389,7 +2467,7 @@
                             <p class="card-desc">A baker and a grumpy food critic clash in the City of Light...</p>
                             <div class="card-status">
                                 <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">$12.00</span>
+                                <span class="card-price">120.000 VNĐ</span>
                             </div>
                             <div class="card-condition">Condition: Well Loved - Has character</div>
                         </div>
@@ -2408,7 +2486,7 @@
                             <p class="card-desc">A pilot discovers an ancient alien artifact on a distant moon...</p>
                             <div class="card-status">
                                 <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">$15.00</span>
+                                <span class="card-price">150.000 VNĐ</span>
                             </div>
                             <div class="card-condition">Condition: Gift-ready</div>
                         </div>
@@ -2427,7 +2505,7 @@
                             <p class="card-desc">Three generations of women navigate secrets in a small town...</p>
                             <div class="card-status">
                                 <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">$10.00</span>
+                                <span class="card-price">100.000 VNĐ</span>
                             </div>
                             <div class="card-condition">Condition: Well Loved</div>
                         </div>
@@ -2446,7 +2524,7 @@
                             <p class="card-desc">A baker and a grumpy food critic clash in the City of Light...</p>
                             <div class="card-status">
                                 <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">$12.00</span>
+                                <span class="card-price">120.000 VNĐ</span>
                             </div>
                             <div class="card-condition">Condition: Well Loved - Has character</div>
                         </div>
@@ -2465,7 +2543,7 @@
                             <p class="card-desc">A pilot discovers an ancient alien artifact on a distant moon...</p>
                             <div class="card-status">
                                 <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">$15.00</span>
+                                <span class="card-price">150.000 VNĐ</span>
                             </div>
                             <div class="card-condition">Condition: Gift-ready</div>
                         </div>
@@ -2484,7 +2562,7 @@
                             <p class="card-desc">Three generations of women navigate secrets in a small town...</p>
                             <div class="card-status">
                                 <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">$10.00</span>
+                                <span class="card-price">100.000 VNĐ</span>
                             </div>
                             <div class="card-condition">Condition: Well Loved</div>
                         </div>
@@ -3137,8 +3215,17 @@
                 <!-- Left Column: Visual Gallery & Condition Gallery -->
                 <div class="blind-visual-col">
                     <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Visual Gallery</h3>
-                    <div class="blind-main-image-card" style="background: #f7f3ed; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.1); position: relative; text-align: center;">
+                    <div class="blind-main-image-card" style="background: #f7f3ed; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.1); position: relative; text-align: center; overflow: hidden;">
                         <img id="blind-detail-main-img" src="/images/BlindDateBook/BlindBook1.jpg" alt="Mystery Gift Wrapped Book" style="width: 100%; border-radius: 12px; object-fit: cover; max-height: 450px;">
+                        
+                        <!-- Navigation Arrows inside Visual Gallery, hidden by default, shown on hover -->
+                        <button class="blind-gallery-prev" style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.2s ease; opacity: 0; pointer-events: none; z-index: 10;">
+                            <i class="fas fa-chevron-left" style="color: #6a4f8c; font-size: 1.1rem;"></i>
+                        </button>
+                        <button class="blind-gallery-next" style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.2s ease; opacity: 0; pointer-events: none; z-index: 10;">
+                            <i class="fas fa-chevron-right" style="color: #6a4f8c; font-size: 1.1rem;"></i>
+                        </button>
+
                         <div style="position: absolute; bottom: 30px; right: 30px; background: rgba(255,255,255,0.8); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                             <i class="fas fa-sparkles" style="color: #a291b5;"></i>
                         </div>
@@ -3205,7 +3292,7 @@
                     <div class="blind-chat-box" style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.08); border: 1px solid #f1edf5;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="/images/Home/favicon.png" onerror="this.src='/images/avatar/admin-avatar.jpg'" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #a291b5; object-fit: cover;">
+                                <img src="/images/Avatar/avatar1.jpg" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #a291b5; object-fit: cover;">
                                 <div>
                                     <strong style="color: #333; font-size: 0.95rem;">Book Blossom</strong>
                                     <span style="background: #C2185B; color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 10px; margin-left: 5px; font-weight: bold; text-transform: uppercase;"><i class="fas fa-check-circle"></i> Shop Owner</span>
@@ -3238,23 +3325,17 @@
                         <div style="margin-bottom: 20px;">
                             <span style="font-size: 0.85rem; color: #777;">Price Block</span>
                             <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 4px;">
-                                <span id="blind-detail-price" style="font-size: 2.2rem; font-weight: 800; color: #a291b5; font-family: 'Playfair Display', serif;">$12.00</span>
-                                <span style="font-size: 0.9rem; color: #888; text-decoration: line-through;">$18.00</span>
+                                <span id="blind-detail-price" style="font-size: 2.2rem; font-weight: 800; color: #a291b5; font-family: 'Playfair Display', serif;">120.000 VNĐ</span>
+                                <span style="font-size: 0.9rem; color: #888; text-decoration: line-through;">180.000 VNĐ</span>
                             </div>
                             <div style="font-size: 0.85rem; color: #555; margin-top: 4px; display: flex; gap: 10px;">
-                                <span>Shipping: <strong>$3.50</strong></span>
+                                <span>Shipping: <strong>30.000 VNĐ</strong></span>
                                 <span>&bull;</span>
                                 <span>Wrap: <strong>Premium Kraft</strong></span>
                             </div>
                         </div>
 
                         <!-- Trust Notices -->
-                        <div class="trust-notice-escrow" style="background: #e1edf0; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: #1e5a6a; display: flex; gap: 10px; margin-bottom: 12px; line-height: 1.4;">
-                            <i class="fas fa-shield-alt" style="margin-top: 2px;"></i>
-                            <div>
-                                <strong>Escrow Notice:</strong> Funds held until you confirm Genre match & unboxing.
-                            </div>
-                        </div>
 
                         <div class="trust-notice-dispute" style="background: #fff0dc; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: #7f551c; display: flex; gap: 10px; margin-bottom: 20px; line-height: 1.4;">
                             <i class="fas fa-video" style="margin-top: 2px;"></i>
@@ -3273,7 +3354,7 @@
 
                         <div style="border-top: 1px solid #f1edf5; padding-top: 15px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="/images/Home/favicon.png" style="width: 32px; height: 32px; border-radius: 50%;">
+                                <img src="/images/Avatar/avatar1.jpg" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
                                 <div style="font-size: 0.85rem;">
                                     <strong style="color: #333;">Book Blossom</strong>
                                     <span style="color: #777; display: block; font-size: 0.75rem;">Mystery Specialist</span>
@@ -3330,35 +3411,35 @@
                     <!-- Star Distribution -->
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
-                            <span style="width: 50px; font-weight: 600;">5 Stars</span>
+                            <span style="width: 60px; font-weight: 600; white-space: nowrap;">5 Stars</span>
                             <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
                                 <div style="width: 85%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
                             </div>
                             <span style="width: 30px; text-align: right; color: #888;">85%</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
-                            <span style="width: 50px; font-weight: 600;">4 Stars</span>
+                            <span style="width: 60px; font-weight: 600; white-space: nowrap;">4 Stars</span>
                             <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
                                 <div style="width: 10%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
                             </div>
                             <span style="width: 30px; text-align: right; color: #888;">10%</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
-                            <span style="width: 50px; font-weight: 600;">3 Stars</span>
+                            <span style="width: 60px; font-weight: 600; white-space: nowrap;">3 Stars</span>
                             <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
                                 <div style="width: 5%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
                             </div>
                             <span style="width: 30px; text-align: right; color: #888;">5%</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
-                            <span style="width: 50px; font-weight: 600;">2 Stars</span>
+                            <span style="width: 60px; font-weight: 600; white-space: nowrap;">2 Stars</span>
                             <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
                                 <div style="width: 0%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
                             </div>
                             <span style="width: 30px; text-align: right; color: #888;">0%</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
-                            <span style="width: 50px; font-weight: 600;">1 Star</span>
+                            <span style="width: 60px; font-weight: 600; white-space: nowrap;">1 Star</span>
                             <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
                                 <div style="width: 0%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
                             </div>
@@ -4096,6 +4177,21 @@
             $btnHideSidebar.on('click', function() {
                 $blindSidebar.addClass('collapsed');
                 $btnToggleMatchmaker.find('i').attr('class', 'fas fa-filter');
+            });
+
+            // Clear All Filters Logic
+            $('.clear-filters').on('click', function(e) {
+                e.preventDefault();
+                
+                // 1. Reset all checkboxes inside #blind-sidebar
+                $('#blind-sidebar input[type="checkbox"]').prop('checked', false);
+                
+                // 2. Reset price range sliders and inputs to 0
+                $('#blind-price-min').val(0).trigger('input');
+                $('#blind-price-max').val(0).trigger('input');
+                
+                // 3. Reset vibe tag cloud (remove active class / purple style)
+                $('#blind-sidebar .vibe-tag').removeClass('active');
             });
 
             // Vibe Tag Selection
@@ -5053,11 +5149,32 @@
                 $('#blind-clue-rating-range').text('Community Rating: ★ ' + blindBookData.ratingRange);
                 $('#blind-clue-year').text('Publication Year: ' + blindBookData.year);
 
-                // Populate thumbnails
+                // Populate thumbnails dynamically using distinct images from wwwroot/images/BlindDateBook
+                const demoBlindImages = [
+                    '/images/BlindDateBook/BlindBook1.jpg',
+                    '/images/BlindDateBook/BlindBook2.jpg',
+                    '/images/BlindDateBook/BlindBook3.jpg',
+                    '/images/BlindDateBook/BlindBook4.jpg',
+                    '/images/BlindDateBook/BlindBook5.jpg',
+                    '/images/BlindDateBook/BlindBook.jpg'
+                ];
+                const otherBlindImages = demoBlindImages.filter(img => img !== blindBookData.imgSrc);
+                const blindImagesArray = [blindBookData.imgSrc, ...otherBlindImages.slice(0, 2)];
+                
                 const $thumbs = $('.blind-condition-gallery img');
-                $thumbs.eq(0).attr('src', blindBookData.imgSrc);
-                $thumbs.eq(1).attr('src', blindBookData.imgSrc);
-                $thumbs.eq(2).attr('src', blindBookData.imgSrc);
+                $thumbs.each(function(index) {
+                    if (index < blindImagesArray.length) {
+                        $(this).parent().show();
+                        $(this).attr('src', blindImagesArray[index]);
+                    } else {
+                        $(this).parent().hide();
+                    }
+                });
+                
+                // Reset border highlight of thumbnails to first element
+                $('.blind-thumb-wrapper').css('border-color', 'transparent');
+                $('.blind-thumb-wrapper').first().css('border-color', '#a291b5');
+                currentBlindImageIndex = 0;
 
                 // Show Section
                 $('#blind-date-details-section').show();
@@ -5179,6 +5296,166 @@
                     ratingRange: ratingRange,
                     year: year
                 });
+            });
+
+            // Global tracker for current active Blind Date detail image index
+            let currentBlindImageIndex = 0;
+
+            // Blind Date Detail Gallery Thumbnail Switching
+            $(document).on('click', '.blind-thumb-wrapper', function() {
+                const imgSrc = $(this).find('img').attr('src');
+                $('#blind-detail-main-img').attr('src', imgSrc);
+                
+                // Track active index
+                const $thumbs = $('.blind-thumb-wrapper');
+                currentBlindImageIndex = $thumbs.index(this);
+                
+                // Update border highlight
+                $thumbs.css('border-color', 'transparent');
+                $(this).css('border-color', '#a291b5');
+            });
+
+            // Arrow navigation for Blind Date main image gallery
+            $(document).on('click', '.blind-gallery-prev', function(e) {
+                e.stopPropagation(); // Prevent triggering parent actions
+                
+                const $thumbs = $('.blind-thumb-wrapper');
+                let currentIndex = -1;
+                const mainSrc = $('#blind-detail-main-img').attr('src');
+                
+                $thumbs.each(function(index) {
+                    const thumbSrc = $(this).find('img').attr('src');
+                    if (mainSrc === thumbSrc) {
+                        currentIndex = index;
+                    }
+                });
+                
+                if (currentIndex !== -1) {
+                    let prevIndex = currentIndex - 1;
+                    if (prevIndex < 0) prevIndex = $thumbs.length - 1;
+                    $thumbs.eq(prevIndex).trigger('click');
+                }
+            });
+
+            $(document).on('click', '.blind-gallery-next', function(e) {
+                e.stopPropagation(); // Prevent triggering parent actions
+                
+                const $thumbs = $('.blind-thumb-wrapper');
+                let currentIndex = -1;
+                const mainSrc = $('#blind-detail-main-img').attr('src');
+                
+                $thumbs.each(function(index) {
+                    const thumbSrc = $(this).find('img').attr('src');
+                    if (mainSrc === thumbSrc) {
+                        currentIndex = index;
+                    }
+                });
+                
+                if (currentIndex !== -1) {
+                    let nextIndex = currentIndex + 1;
+                    if (nextIndex >= $thumbs.length) nextIndex = 0;
+                    $thumbs.eq(nextIndex).trigger('click');
+                }
+            });
+
+            // --- BLIND DATE FULLSCREEN LIGHTBOX INTERACTIVE LOGIC ---
+            function openBlindLightbox() {
+                const $modal = $('#blind-lightbox-modal');
+                $modal.fadeIn(300);
+                
+                updateBlindLightboxImage(currentBlindImageIndex);
+                $('body').css('overflow', 'hidden');
+            }
+
+            function closeBlindLightbox() {
+                $('#blind-lightbox-modal').fadeOut(250, function() {
+                    $('body').css('overflow', '');
+                });
+            }
+
+            function updateBlindLightboxImage(index) {
+                const $thumbs = $('.blind-thumb-wrapper');
+                if (index < 0 || index >= $thumbs.length) return;
+                
+                currentBlindImageIndex = index;
+                
+                $('#blind-lightbox-current-idx').text(index + 1);
+                $('#blind-lightbox-total-idx').text($thumbs.length);
+                
+                const clickedImgSrc = $thumbs.eq(index).find('img').attr('src');
+                const $lightboxImg = $('#blind-lightbox-main-img');
+                
+                $lightboxImg.css('transform', 'scale(0.95)').css('opacity', '0.7');
+                setTimeout(function() {
+                    $lightboxImg.attr('src', clickedImgSrc);
+                    $lightboxImg.css('transform', 'scale(1)').css('opacity', '1');
+                }, 150);
+                
+                // Sync the main page details gallery view perfectly
+                $thumbs.css('border-color', 'transparent');
+                $thumbs.eq(index).css('border-color', '#a291b5');
+                $('#blind-detail-main-img').attr('src', clickedImgSrc);
+            }
+
+            // Click main cover image to open fullscreen lightbox
+            $(document).on('click', '#blind-detail-main-img', function() {
+                openBlindLightbox();
+            });
+
+            // Close actions for Blind Date Lightbox
+            $(document).on('click', '.blind-lightbox-close, #blind-lightbox-modal .modal-backdrop', function() {
+                closeBlindLightbox();
+            });
+
+            // Close lightbox when clicking background areas
+            $(document).on('click', '#blind-lightbox-wrapper', function(e) {
+                if ($(e.target).closest('#blind-lightbox-main-img, .lightbox-arrow, .lightbox-toolbar, button').length === 0) {
+                    closeBlindLightbox();
+                }
+            });
+
+            // Inside Lightbox arrow clicks
+            $(document).on('click', '.blind-lightbox-prev', function(e) {
+                e.stopPropagation();
+                const $thumbs = $('.blind-thumb-wrapper');
+                let targetIndex = currentBlindImageIndex - 1;
+                if (targetIndex < 0) {
+                    targetIndex = $thumbs.length - 1;
+                }
+                updateBlindLightboxImage(targetIndex);
+            });
+            
+            $(document).on('click', '.blind-lightbox-next', function(e) {
+                e.stopPropagation();
+                const $thumbs = $('.blind-thumb-wrapper');
+                let targetIndex = currentBlindImageIndex + 1;
+                if (targetIndex >= $thumbs.length) {
+                    targetIndex = 0;
+                }
+                updateBlindLightboxImage(targetIndex);
+            });
+
+            // Keyboard navigation for Blind Date Lightbox (Esc to close, Left/Right arrows to flip)
+            $(document).on('keydown', function(e) {
+                const $modal = $('#blind-lightbox-modal');
+                if (!$modal.is(':visible')) return;
+                
+                const $thumbs = $('.blind-thumb-wrapper');
+                if (e.key === 'Escape') {
+                    closeBlindLightbox();
+                } else if (e.key === 'ArrowLeft') {
+                    let targetIndex = currentBlindImageIndex - 1;
+                    if (targetIndex < 0) {
+                        targetIndex = $thumbs.length - 1;
+                    }
+                    updateBlindLightboxImage(targetIndex);
+                } else if (e.key === 'ArrowRight') {
+                    let targetIndex = currentBlindImageIndex + 1;
+                    if (targetIndex >= $thumbs.length) {
+                        targetIndex = 0;
+                    }
+                    updateBlindLightboxImage(targetIndex);
+                }
             });
 
             // Back from Blind Date button logic
@@ -6736,6 +7013,39 @@
 
             <!-- Right Arrow -->
             <button class="lightbox-arrow lightbox-next" style="position: absolute; right: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Next image">
+                <i class="fas fa-chevron-right" style="font-size: 1.25rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Blind Date Image Fullscreen Lightbox Modal -->
+    <div class="custom-modal lightbox-modal" id="blind-lightbox-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"></div>
+        
+        <!-- Top Toolbar for Close and Indicator -->
+        <div class="lightbox-toolbar" style="position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 10001; pointer-events: none;">
+            <div class="lightbox-indicator" style="color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; font-weight: 500; background: rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(5px); pointer-events: auto; font-family: 'Outfit', sans-serif;">
+                Image <span id="blind-lightbox-current-idx">1</span> of <span id="blind-lightbox-total-idx">3</span>
+            </div>
+            <button class="lightbox-close-btn blind-lightbox-close" style="background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; pointer-events: auto; backdrop-filter: blur(5px);" aria-label="Close fullscreen view">
+                <i class="fas fa-times" style="font-size: 1.25rem;"></i>
+            </button>
+        </div>
+
+        <!-- Lightbox Content Wrap -->
+        <div class="lightbox-wrapper" id="blind-lightbox-wrapper" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 10000; overflow: hidden; user-select: none;">
+            <!-- Left Arrow -->
+            <button class="lightbox-arrow blind-lightbox-prev" style="position: absolute; left: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Previous image">
+                <i class="fas fa-chevron-left" style="font-size: 1.25rem;"></i>
+            </button>
+
+            <!-- Main Large Image -->
+            <div class="lightbox-img-container" style="max-width: 85%; max-height: 80%; display: flex; align-items: center; justify-content: center; position: relative;">
+                <img id="blind-lightbox-main-img" src="" alt="Blind Date Fullscreen View" style="width: 800px; max-width: 90%; height: auto; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;" draggable="false">
+            </div>
+
+            <!-- Right Arrow -->
+            <button class="lightbox-arrow blind-lightbox-next" style="position: absolute; right: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Next image">
                 <i class="fas fa-chevron-right" style="font-size: 1.25rem;"></i>
             </button>
         </div>
