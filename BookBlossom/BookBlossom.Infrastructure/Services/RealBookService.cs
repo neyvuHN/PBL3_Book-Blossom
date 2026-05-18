@@ -45,8 +45,6 @@ namespace BookBlossom.Infrastructure.Services
                 storedPath = await HandleUploadFileAsync(request.SampleFile);
             }
 
-            DateTime parsedPublishDate = new DateTime(request.PublishYear, 1, 1);
-
             // Ánh xạ chuẩn xác 100% các trường vào Entity lưu xuống SQL
             var realBook = new RealBook
             {
