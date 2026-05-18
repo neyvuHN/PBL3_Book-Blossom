@@ -43,6 +43,9 @@ builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 // Đăng ký ICategoryService
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
+// Đăng ký IInventoryService
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+
 // Đăng ký ITindbookService
 builder.Services.AddScoped<ITindbookService, TindbookService>();
 
@@ -145,6 +148,14 @@ builder.Services.AddAuthorization(options =>
             ((int)UserRole.StoreManager).ToString());
         policy.RequireClaim("AccountStatus", activeStatus);
     });
+
+    options.AddPolicy("RequireStoreManager", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(),
+            ((int)UserRole.StoreManager).ToString());
+        policy.RequireClaim("AccountStatus", activeStatus);
+    });
             
     // 6. Policy cho Khách hàng đã định danh
     options.AddPolicy("CustomerOnly", policy =>
@@ -164,6 +175,22 @@ builder.Services.AddAuthorization(options =>
     });
 });
 var app = builder.Build();
+
+// Seed dữ liệu mặc định hệ thống
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<BookBlossom.Infrastructure.Data.ApplicationDbContext>();
+        await BookBlossom.Infrastructure.Data.SeedData.InitializeAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Lỗi khi seed dữ liệu người dùng.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
