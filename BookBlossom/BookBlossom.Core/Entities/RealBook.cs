@@ -11,7 +11,7 @@ public class RealBook
    public string Title {get; set; }
    public string Publisher {get; set; }
    public string ISBN {get; set; }
-   public DateTime PublishYear {get; set;}
+   public int PublishYear {get; set;}
    public string Description {get; set; }
    public decimal Price {get; set; }
    public string SampleFilePath {get; set; }
@@ -19,5 +19,7 @@ public class RealBook
    public int UnitsInStock {get; set; }
    public int ReservedQuantity {get; set; } 
    public bool IsContinued {get; set; }
+
+   [ForeignKey("CategoryID")]
     public virtual Category Category { get; set; } 
 }

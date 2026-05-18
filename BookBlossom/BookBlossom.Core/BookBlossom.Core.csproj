@@ -21,4 +21,9 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="10.0.8" />
   </ItemGroup>
 
+  <!-- Nhằm đọc được file PDF từ request-->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>

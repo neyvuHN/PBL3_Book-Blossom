@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
+
 using System.Text;
 using System.Security.Claims;
 using BookBlossom.Core.Enums;
@@ -46,6 +47,9 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 // Đăng ký ITindbookService
 builder.Services.AddScoped<ITindbookService, TindbookService>();
 
+// Đăng ký IRealBookService
+builder.Services.AddScoped<IRealBookService, RealBookService>();
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -58,7 +62,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "ChuoiBiMatMacDinhSieuDaiCuaBan123!"))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "ChuoiBiMatMacDinhSieuDaiCuaBan123!")),
+
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
@@ -101,66 +107,66 @@ builder.Services.AddAuthorization(options =>
     // Hằng số cho AccountStatus.Active
     var activeStatus = ((int)AccountStatus.Active).ToString();
 
-    // 1. Policy cho Admin (Toàn quyền)
+    // 1. Policy cho Admin (Toàn quyền) - Chấp nhận cả số enum lẫn chữ cứng
     options.AddPolicy("AdminOnly", policy => 
     {
-        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.SystemAdmin).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
 
     // 2. Policy cho tất cả Staff (Admin, Moderator, Marketing, Store)
     options.AddPolicy("StaffOnly", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, 
-            ((int)UserRole.SystemAdmin).ToString(),
-            ((int)UserRole.Moderator).ToString(),
-            ((int)UserRole.MarketingManager).ToString(),
-            ((int)UserRole.StoreManager).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.Moderator).ToString(), "Moderator",
+            ((int)UserRole.MarketingManager).ToString(), "MarketingManager",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
 
     // 3. Policy riêng cho Marketing
     options.AddPolicy("MarketingManagerOnly", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, 
-            ((int)UserRole.SystemAdmin).ToString(),
-            ((int)UserRole.MarketingManager).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.MarketingManager).ToString(), "MarketingManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
 
     // 4. Policy riêng cho Moderator
     options.AddPolicy("ModeratorOnly", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, 
-            ((int)UserRole.SystemAdmin).ToString(),
-            ((int)UserRole.Moderator).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.Moderator).ToString(), "Moderator");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
 
-    // 5. Policy riêng cho Store Manager
+    // 5. Policy riêng cho Store Manager (Áp dụng cho RealBookController của bạn)
     options.AddPolicy("StoreManagerOnly", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, 
-            ((int)UserRole.SystemAdmin).ToString(),
-            ((int)UserRole.StoreManager).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
             
     // 6. Policy cho Khách hàng đã định danh
     options.AddPolicy("CustomerOnly", policy =>
     {
-        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.Customer).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.Customer).ToString(), "Customer");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
 
-    // 7. Policy RequireStaff (StoreManager, MarketingManager, SystemAdmin)
+    // 7. Policy RequireStaff
     options.AddPolicy("RequireStaff", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, 
-            ((int)UserRole.SystemAdmin).ToString(),
-            ((int)UserRole.MarketingManager).ToString(),
-            ((int)UserRole.StoreManager).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.MarketingManager).ToString(), "MarketingManager",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
 });
 var app = builder.Build();
