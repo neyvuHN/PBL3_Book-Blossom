@@ -1305,6 +1305,93 @@
         .vouchers-modal-list::-webkit-scrollbar-thumb:hover {
             background: rgba(194, 24, 91, 0.3);
         }
+
+        /* Explore Layout Sidebar Transitions */
+        .explore-layout {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .filter-sidebar {
+            flex: 0 0 250px;
+            width: 250px;
+            max-width: 250px;
+            opacity: 1;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .explore-layout.filters-hidden {
+            gap: 0px;
+        }
+
+        .explore-layout.filters-hidden .filter-sidebar {
+            flex: 0 0 0px;
+            width: 0px;
+            max-width: 0px;
+            padding: 20px 0;
+            margin: 0;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: none;
+            border: none;
+        }
+
+        .explore-content {
+            flex: 1;
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Force the grid columns:
+           - Show filter (co lại) = exactly 4 cards per row
+           - Hide filter (giãn ra) = exactly 5 cards per row
+        */
+        .book-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important; /* 4 columns when filters are shown (co lại) */
+            gap: 20px !important; /* Adjust spacing between cards here */
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .explore-layout.filters-hidden .book-grid {
+            grid-template-columns: repeat(5, 1fr) !important; /* 5 columns when filters are hidden (giãn ra) */
+        }
+
+        /* 
+           ==================================================================
+           CÁCH ĐIỀU CHỈNH KÍCH THƯỚC CARD SÁCH (WIDTH & HEIGHT):
+           ==================================================================
+           1. Chiều rộng (Width):
+              - Khi co lại (hiện bộ lọc) sẽ chia đều thành 4 cột. Khi giãn ra (ẩn bộ lọc) sẽ chia đều thành 5 cột.
+              - Nếu bạn muốn đặt một chiều rộng tối đa cố định cho card sách (ví dụ 220px), 
+                hãy bỏ dấu chú thích và sửa ở thuộc tính 'max-width' trong class .book-card dưới đây.
+
+           2. Chiều dài/cao (Height) và Tỷ lệ ảnh sách:
+              - Sửa chiều cao của ảnh bìa sách ở thuộc tính 'height' trong class .book-card img bên dưới 
+                (ví dụ: 300px, 320px, 340px...). Điều này giúp card sách dài ra hoặc ngắn lại.
+              - Thuộc tính 'object-fit: cover' giúp lấp đầy khung ảnh bìa (full frame) không có khoảng trắng.
+           ==================================================================
+        */
+        .book-card {
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            /* Bỏ chú thích dòng dưới nếu muốn giới hạn chiều rộng tối đa cố định: */
+            /* max-width: 220px; margin: 0 auto; */
+        }
+
+        /* Ảnh bìa của sách */
+        .book-card img {
+            width: 100% !important;
+            height: 320px !important; /* <<< ĐIỀU CHỈNH CHIỀU CAO ẢNH BÌA SÁCH Ở ĐÂY ĐỂ THAY ĐỔI CHIỀU DÀI CARD SÁCH */
+            object-fit: cover !important; /* 'cover' giúp lấp đầy khung ảnh (full frame), loại bỏ hoàn toàn khoảng trắng */
+            background: none !important; /* Loại bỏ khoảng đệm màu nền */
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
     </style>
 </head>
 <body class="homepage-container">
@@ -3034,6 +3121,256 @@
         </div>
     </section>
 
+    <!-- Blind Date Details Section -->
+    <section id="blind-date-details-section" class="explore-section" style="display: none; padding: 100px 0 50px 0; background: #fffdfb; min-height: 100vh;">
+        <div class="container">
+            <!-- Breadcrumb / Back Button -->
+            <div class="detail-navigation" style="margin-bottom: 30px;">
+                <button class="btn-back-to-blind" id="btn-back-to-blind" style="background: none; border: none; color: #a291b5; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 1rem; transition: transform 0.2s ease;">
+                    <i class="fas fa-arrow-left"></i> Back to Blind Date
+                </button>
+            </div>
+
+            <!-- Figma Two/Three Column Layout -->
+            <div class="blind-detail-layout" style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 30px; align-items: start;">
+                
+                <!-- Left Column: Visual Gallery & Condition Gallery -->
+                <div class="blind-visual-col">
+                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Visual Gallery</h3>
+                    <div class="blind-main-image-card" style="background: #f7f3ed; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.1); position: relative; text-align: center;">
+                        <img id="blind-detail-main-img" src="/images/BlindDateBook/BlindBook1.jpg" alt="Mystery Gift Wrapped Book" style="width: 100%; border-radius: 12px; object-fit: cover; max-height: 450px;">
+                        <div style="position: absolute; bottom: 30px; right: 30px; background: rgba(255,255,255,0.8); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <i class="fas fa-sparkles" style="color: #a291b5;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Condition Gallery Title & Thumbnails -->
+                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-top: 30px; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Condition Gallery</h3>
+                    <div class="blind-condition-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                        <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid #a291b5; cursor: pointer; transition: all 0.2s ease;">
+                            <img src="/images/BlindDateBook/BlindBook1.jpg" style="width: 100%; height: 100px; object-fit: cover;">
+                        </div>
+                        <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease;">
+                            <img src="/images/BlindDateBook/BlindBook2.jpg" style="width: 100%; height: 100px; object-fit: cover;">
+                        </div>
+                        <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease;">
+                            <img src="/images/BlindDateBook/BlindBook3.jpg" style="width: 100%; height: 100px; object-fit: cover;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Column: Investigation & Chat -->
+                <div class="blind-investigation-col">
+                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Investigation</h3>
+                    
+                    <!-- The Clues Box -->
+                    <div class="clues-box" style="background: #e8e3f0; border-radius: 16px; padding: 25px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.15); margin-bottom: 25px;">
+                        <h4 style="color: #6a4f8c; font-weight: 800; font-size: 1.1rem; margin-top: 0; margin-bottom: 15px;">The Clues</h4>
+                        
+                        <div class="clue-item" style="margin-bottom: 15px;">
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Hook</span>
+                            <p id="blind-clue-hook" style="font-weight: 700; font-size: 1.1rem; color: #333; margin: 4px 0 0 0;">A cozy mystery in 1920s London...</p>
+                        </div>
+
+                        <div class="clue-item" style="margin-bottom: 20px;">
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">The First Line</span>
+                            <blockquote style="border-left: none; padding: 0; margin: 8px 0 0 0; position: relative;">
+                                <span style="font-size: 3rem; color: #ee7c8b; font-family: Georgia, serif; line-height: 1; position: absolute; left: -10px; top: -15px; opacity: 0.3;">“</span>
+                                <p id="blind-clue-quote" style="font-style: italic; color: #444; font-size: 1.05rem; padding-left: 20px; line-height: 1.5; margin: 0;">"The clock struck thirteen, and I knew I was in trouble.."</p>
+                            </blockquote>
+                        </div>
+
+                        <div class="clue-item" style="margin-bottom: 15px;">
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Goodreads Score</span>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                <div class="rating-stars" style="color: #ffb400; font-size: 1.2rem;">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <span id="blind-clue-goodreads" style="font-weight: 600; color: #555;">★ 4.2 / 5</span>
+                            </div>
+                            <span id="blind-clue-rating-range" style="font-size: 0.85rem; color: #777; display: block; margin-top: 2px;">Community Rating: ★ 4.0 - 4.2</span>
+                        </div>
+
+                        <div class="clue-item">
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Publication Year</span>
+                            <p id="blind-clue-year" style="font-weight: 600; color: #333; margin: 4px 0 0 0; filter: blur(3px); user-select: none;" title="Revealed upon receipt">Publication Year: 1994</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat with BookBlossom Box -->
+                    <div class="blind-chat-box" style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.08); border: 1px solid #f1edf5;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="/images/Home/favicon.png" onerror="this.src='/images/avatar/admin-avatar.jpg'" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #a291b5; object-fit: cover;">
+                                <div>
+                                    <strong style="color: #333; font-size: 0.95rem;">Book Blossom</strong>
+                                    <span style="background: #C2185B; color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 10px; margin-left: 5px; font-weight: bold; text-transform: uppercase;"><i class="fas fa-check-circle"></i> Shop Owner</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="#" class="btn-chat-owner" style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid #a291b5; border-radius: 30px; padding: 8px 20px; color: #6a4f8c; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: all 0.2s ease; margin-bottom: 15px; background: transparent;">
+                            <i class="far fa-comment-dots"></i> Chat with Book Blossom
+                        </a>
+
+                        <!-- Small Chat Bubbles -->
+                        <div class="mock-chat-container" style="background: #faf8fc; border-radius: 12px; padding: 12px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px;">
+                            <div class="chat-bubble-buyer" style="align-self: flex-end; background: #6a4f8c; color: white; padding: 8px 12px; border-radius: 12px 12px 2px 12px; max-width: 85%; line-height: 1.4;">
+                                Hi! I'm interested in this Blind Date. Can you confirm if it is [Book Title]? I don't want a duplicate.
+                            </div>
+                            <div class="chat-bubble-seller" style="align-self: flex-start; background: #e8e3f0; color: #333; padding: 8px 12px; border-radius: 12px 12px 12px 2px; max-width: 85%; line-height: 1.4;">
+                                Hi! Yes, I can confirm it's [Book Title] 😊 Don't worry, it won't be a duplicate.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Transaction Box, Condition Report & Rules -->
+                <div class="blind-transaction-col">
+                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Transaction Box</h3>
+                    
+                    <div class="transaction-box" style="background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.1); border: 1px solid #f1edf5; margin-bottom: 25px;">
+                        <!-- Price Block -->
+                        <div style="margin-bottom: 20px;">
+                            <span style="font-size: 0.85rem; color: #777;">Price Block</span>
+                            <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 4px;">
+                                <span id="blind-detail-price" style="font-size: 2.2rem; font-weight: 800; color: #a291b5; font-family: 'Playfair Display', serif;">$12.00</span>
+                                <span style="font-size: 0.9rem; color: #888; text-decoration: line-through;">$18.00</span>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #555; margin-top: 4px; display: flex; gap: 10px;">
+                                <span>Shipping: <strong>$3.50</strong></span>
+                                <span>&bull;</span>
+                                <span>Wrap: <strong>Premium Kraft</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Trust Notices -->
+                        <div class="trust-notice-escrow" style="background: #e1edf0; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: #1e5a6a; display: flex; gap: 10px; margin-bottom: 12px; line-height: 1.4;">
+                            <i class="fas fa-shield-alt" style="margin-top: 2px;"></i>
+                            <div>
+                                <strong>Escrow Notice:</strong> Funds held until you confirm Genre match & unboxing.
+                            </div>
+                        </div>
+
+                        <div class="trust-notice-dispute" style="background: #fff0dc; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: #7f551c; display: flex; gap: 10px; margin-bottom: 20px; line-height: 1.4;">
+                            <i class="fas fa-video" style="margin-top: 2px;"></i>
+                            <div>
+                                <strong>Dispute Policy:</strong> Unboxing video required for returns.
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <button class="btn-buy-blind" style="width: 100%; border: none; background: #ee7c8b; color: white; padding: 14px; border-radius: 30px; font-weight: 700; font-size: 1rem; margin-bottom: 12px; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 4px 12px rgba(238, 124, 139, 0.3);">
+                            Buy Mystery Book
+                        </button>
+                        <button class="btn-cart-blind" style="width: 100%; border: 1.5px solid #a291b5; background: white; color: #6a4f8c; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1rem; transition: all 0.2s ease; cursor: pointer; margin-bottom: 20px;">
+                            Add to Cart
+                        </button>
+
+                        <div style="border-top: 1px solid #f1edf5; padding-top: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="/images/Home/favicon.png" style="width: 32px; height: 32px; border-radius: 50%;">
+                                <div style="font-size: 0.85rem;">
+                                    <strong style="color: #333;">Book Blossom</strong>
+                                    <span style="color: #777; display: block; font-size: 0.75rem;">Mystery Specialist</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Condition Report -->
+                    <div class="condition-report-box" style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.05); border: 1px solid #f1edf5; margin-bottom: 25px;">
+                        <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 1rem; color: #333; font-weight: 700;">Condition Report</h4>
+                        <p id="blind-condition-desc" style="font-size: 0.85rem; color: #666; line-height: 1.5; margin: 0;">
+                            Condition: 8/10. Cover is obscured, but the binding is tight. No highlighting. Small water stain on bottom right of pages 50-60.
+                        </p>
+                    </div>
+
+                    <!-- How This Works Collapsible -->
+                    <div class="how-this-works-box" style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.05); border: 1px solid #f1edf5;">
+                        <div class="collapsible-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                            <h4 style="margin: 0; font-size: 1rem; color: #333; font-weight: 700;">How this works</h4>
+                            <i class="fas fa-chevron-up" style="color: #a291b5;"></i>
+                        </div>
+                        <div class="collapsible-content" style="margin-top: 15px; font-size: 0.85rem; color: #555; line-height: 1.5;">
+                            <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                                <li>You buy based on vibes.</li>
+                                <li>We hold the money.</li>
+                                <li>You film the unboxing.</li>
+                                <li>If the genre is wrong, you get a refund. If you just 'don't like it', sales are final.</li>
+                            </ol>
+                            <a href="#" style="color: #ee7c8b; font-size: 0.8rem; display: block; margin-top: 15px; font-weight: 600;"><i class="far fa-flag"></i> Report this listing</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rated Section (Stars ONLY, no text reviews) -->
+            <div class="blind-ratings-section" style="margin-top: 50px; background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.05); border: 1px solid #f1edf5;">
+                <h3 style="font-size: 1.5rem; color: #333; font-weight: 700; margin-bottom: 25px; font-family: 'Playfair Display', serif;">Buyer Ratings</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 40px; align-items: center;">
+                    <!-- Rating Summary -->
+                    <div style="text-align: center; border-right: 1px solid #f1edf5; padding-right: 40px;">
+                        <h2 style="font-size: 4rem; font-weight: 800; color: #a291b5; margin: 0; font-family: 'Playfair Display', serif;">4.8</h2>
+                        <div style="color: #ffb400; font-size: 1.5rem; margin: 10px 0;">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span style="font-size: 0.9rem; color: #888;">Based on 24 mystery orders</span>
+                    </div>
+
+                    <!-- Star Distribution -->
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
+                            <span style="width: 50px; font-weight: 600;">5 Stars</span>
+                            <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
+                                <div style="width: 85%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
+                            </div>
+                            <span style="width: 30px; text-align: right; color: #888;">85%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
+                            <span style="width: 50px; font-weight: 600;">4 Stars</span>
+                            <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
+                                <div style="width: 10%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
+                            </div>
+                            <span style="width: 30px; text-align: right; color: #888;">10%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
+                            <span style="width: 50px; font-weight: 600;">3 Stars</span>
+                            <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
+                                <div style="width: 5%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
+                            </div>
+                            <span style="width: 30px; text-align: right; color: #888;">5%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
+                            <span style="width: 50px; font-weight: 600;">2 Stars</span>
+                            <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
+                                <div style="width: 0%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
+                            </div>
+                            <span style="width: 30px; text-align: right; color: #888;">0%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px; font-size: 0.9rem;">
+                            <span style="width: 50px; font-weight: 600;">1 Star</span>
+                            <div style="flex-grow: 1; height: 10px; background: #faf8fc; border-radius: 5px; overflow: hidden;">
+                                <div style="width: 0%; height: 100%; background: #a291b5; border-radius: 5px;"></div>
+                            </div>
+                            <span style="width: 30px; text-align: right; color: #888;">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="premium-footer">
         <div class="container">
@@ -3090,6 +3427,7 @@
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
+                $('#blind-date-details-section').hide(); // Hide blind date details
                 $mainNavbar.removeClass('navbar-light');
                 setActiveTab($navHome);
                 window.scrollTo(0, 0);
@@ -3106,6 +3444,7 @@
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
+                $('#blind-date-details-section').hide(); // Hide blind date details
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navExplore);
                 window.scrollTo(0, 0);
@@ -3122,6 +3461,7 @@
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
+                $('#blind-date-details-section').hide(); // Hide blind date details
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navCommunity);
                 window.scrollTo(0, 0);
@@ -3138,6 +3478,7 @@
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
+                $('#blind-date-details-section').hide(); // Hide blind date details
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navTindbook);
                 updateCards(); // Ensure cards are positioned correctly
@@ -3155,6 +3496,7 @@
                 $('#blind-date-section').show();
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
+                $('#blind-date-details-section').hide(); // Hide blind date details
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navBlindDate);
                 window.scrollTo(0, 0);
@@ -3171,6 +3513,7 @@
                 $('#blind-date-section').hide();
                 $('#reviews-section').show();
                 $('#product-details-section').hide(); // Hide book details if open
+                $('#blind-date-details-section').hide(); // Hide blind date details
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navReviews);
                 window.scrollTo(0, 0);
@@ -3241,6 +3584,11 @@
                             previousActiveSection = state.previousActiveSection;
                         }
                         showProductDetails(state.bookData, false);
+                    } else if (view === 'blind-date-details') {
+                        if (state.previousActiveSection) {
+                            previousActiveSection = state.previousActiveSection;
+                        }
+                        showBlindDateDetails(state.blindBookData, false);
                     }
                 } else {
                     showHome(false);
@@ -3267,17 +3615,21 @@
             } else if (initialHash.startsWith('#book-details-')) {
                 showHome(false);
                 history.replaceState({ view: 'home' }, '', '#home');
+            } else if (initialHash.startsWith('#blind-details-')) {
+                showBlindDate(false);
+                history.replaceState({ view: 'blind-date' }, '', '#blind-date');
             } else {
                 showHome(false);
                 history.replaceState({ view: 'home' }, '', '#home');
             }
 
             // Explore Filter Sidebar Toggle
-            $('#btn-toggle-filter').on('click', function() {
-                const $filterSidebar = $('#filter-sidebar');
-                $filterSidebar.toggle();
-                const isVisible = $filterSidebar.is(':visible');
-                $(this).html(isVisible ? '<i class="fas fa-sliders-h"></i> Hide filters' : '<i class="fas fa-sliders-h"></i> Show filters');
+            $('#btn-toggle-filter').on('click', function(e) {
+                e.preventDefault();
+                const $layout = $('#explore-layout');
+                $layout.toggleClass('filters-hidden');
+                const isHidden = $layout.hasClass('filters-hidden');
+                $(this).html(isHidden ? '<i class="fas fa-sliders-h"></i> Show filters' : '<i class="fas fa-sliders-h"></i> Hide filters');
             });
 
             // Thread Slider & Button Logic
@@ -3647,7 +3999,7 @@
                     // Immediate tab switch if needed
                     if (!$('#nav-home').hasClass('active')) {
                         $('#main-content').show();
-                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section, #product-details-section').hide(); // Hide all sections including book details
+                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section, #product-details-section, #blind-date-details-section').hide(); // Hide all sections including details
                         $('#main-navbar').removeClass('navbar-light');
                         $('.nav-links a').removeClass('active');
                         $('#nav-home').addClass('active');
@@ -3705,7 +4057,7 @@
                 if (target) {
                     if (!$('#nav-home').hasClass('active')) {
                         $('#main-content').show();
-                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section, #product-details-section').hide(); // Hide all sections including book details
+                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section, #product-details-section, #blind-date-details-section').hide(); // Hide all sections including details
                         $('#main-navbar').removeClass('navbar-light');
                         $('.nav-links a').removeClass('active');
                         $('#nav-home').addClass('active');
@@ -4666,6 +5018,58 @@
                 }
             }
 
+            function showBlindDateDetails(blindBookData, push = true) {
+                // Determine current visible section to save as return point
+                if ($mainContent.is(':visible')) {
+                    previousActiveSection = '#main-content';
+                } else if ($exploreSection.is(':visible')) {
+                    previousActiveSection = '#explore-section';
+                } else if ($dedicatedCommunity.is(':visible')) {
+                    previousActiveSection = '#dedicated-community';
+                } else if ($tindbookFeature.is(':visible')) {
+                    previousActiveSection = '#tindbook-feature';
+                } else if ($('#blind-date-section').is(':visible')) {
+                    previousActiveSection = '#blind-date-section';
+                } else if ($('#reviews-section').is(':visible')) {
+                    previousActiveSection = '#reviews-section';
+                }
+
+                // Hide other sections
+                $mainContent.hide();
+                $exploreSection.hide();
+                $dedicatedCommunity.hide();
+                $tindbookFeature.hide();
+                $('#blind-date-section').hide();
+                $('#reviews-section').hide();
+                $('#product-details-section').hide();
+
+                // Populate Blind Date detail elements
+                $('#blind-detail-main-img').attr('src', blindBookData.imgSrc);
+                $('#blind-clue-hook').text(blindBookData.desc);
+                $('#blind-clue-quote').text(blindBookData.firstLine);
+                $('#blind-detail-price').text(blindBookData.price);
+                $('#blind-condition-desc').text('Condition: ' + blindBookData.condition);
+                $('#blind-clue-goodreads').text('★ ' + blindBookData.rating + ' / 5');
+                $('#blind-clue-rating-range').text('Community Rating: ★ ' + blindBookData.ratingRange);
+                $('#blind-clue-year').text('Publication Year: ' + blindBookData.year);
+
+                // Populate thumbnails
+                const $thumbs = $('.blind-condition-gallery img');
+                $thumbs.eq(0).attr('src', blindBookData.imgSrc);
+                $thumbs.eq(1).attr('src', blindBookData.imgSrc);
+                $thumbs.eq(2).attr('src', blindBookData.imgSrc);
+
+                // Show Section
+                $('#blind-date-details-section').show();
+                $mainNavbar.addClass('navbar-light');
+
+                window.scrollTo(0, 0);
+
+                if (push) {
+                    history.pushState({ view: 'blind-date-details', blindBookData: blindBookData, previousActiveSection: previousActiveSection }, '', `#blind-details-${encodeURIComponent(blindBookData.hashtags.replace(/\s/g, ''))}`);
+                }
+            }
+
             // Click listener for Home/Explore book cards
             $(document).on('click', '.featured-books .book-card, #explore-section .book-grid .book-card', function(e) {
                 e.preventDefault();
@@ -4729,6 +5133,106 @@
                     
                     window.scrollTo(0, 0);
                 }
+            });
+
+            // Blind Date Card Click Listener
+            $(document).on('click', '.blind-card', function(e) {
+                e.preventDefault();
+                const $card = $(this);
+                const imgSrc = $card.find('.blind-card-image img').attr('src');
+                const hashtags = $card.find('.card-hashtags').text().trim();
+                const desc = $card.find('.card-desc').text().trim();
+                const price = $card.find('.card-price').text().trim();
+                const condition = $card.find('.card-condition').text().replace('Condition:', '').trim();
+
+                // Dynamic extra clues based on description / hashtags keywords
+                let firstLine = "The clock struck thirteen, and I knew I was in trouble...";
+                let rating = "4.2";
+                let ratingRange = "4.0 - 4.2";
+                let year = "1994";
+
+                if (hashtags.includes('Paris') || hashtags.includes('SlowBurn')) {
+                    firstLine = "The dough was cold, but their glances were fiery.";
+                    rating = "4.3";
+                    ratingRange = "4.1 - 4.4";
+                    year = "2018";
+                } else if (hashtags.includes('SpaceOpera') || hashtags.includes('AI')) {
+                    firstLine = "The stars did not welcome us; they watched us in silence.";
+                    rating = "4.6";
+                    ratingRange = "4.4 - 4.7";
+                    year = "2021";
+                } else if (hashtags.includes('FamilySaga') || hashtags.includes('Literary')) {
+                    firstLine = "Grandmother's cedar chest smelled of lavender and unspoken truths.";
+                    rating = "4.1";
+                    ratingRange = "3.9 - 4.2";
+                    year = "1998";
+                }
+
+                showBlindDateDetails({
+                    imgSrc: imgSrc,
+                    hashtags: hashtags,
+                    desc: desc,
+                    price: price,
+                    condition: condition,
+                    firstLine: firstLine,
+                    rating: rating,
+                    ratingRange: ratingRange,
+                    year: year
+                });
+            });
+
+            // Back from Blind Date button logic
+            $('#btn-back-to-blind').on('click', function(e) {
+                e.preventDefault();
+                if (history.state && history.state.view === 'blind-date-details') {
+                    history.back();
+                } else {
+                    $('#blind-date-details-section').hide();
+                    $(previousActiveSection).show();
+                    
+                    if (previousActiveSection === '#main-content') {
+                        $mainNavbar.removeClass('navbar-light');
+                        setActiveTab($navHome);
+                    } else if (previousActiveSection === '#explore-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navExplore);
+                    } else if (previousActiveSection === '#dedicated-community') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navCommunity);
+                    } else if (previousActiveSection === '#tindbook-feature') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navTindbook);
+                    } else if (previousActiveSection === '#blind-date-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navBlindDate);
+                    } else if (previousActiveSection === '#reviews-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navReviews);
+                    }
+                    
+                    window.scrollTo(0, 0);
+                }
+            });
+
+            // How this works Collapsible Toggle
+            $(document).on('click', '.how-this-works-box .collapsible-header', function() {
+                const $content = $(this).next('.collapsible-content');
+                const $icon = $(this).find('i');
+                if ($content.is(':visible')) {
+                    $content.slideUp(200);
+                    $icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                } else {
+                    $content.slideDown(200);
+                    $icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                }
+            });
+
+            // Condition Gallery image switcher
+            $(document).on('click', '.blind-thumb-wrapper', function() {
+                $('.blind-thumb-wrapper').css('border-color', 'transparent');
+                $(this).css('border-color', '#a291b5');
+                const newImgSrc = $(this).find('img').attr('src');
+                $('#blind-detail-main-img').attr('src', newImgSrc);
             });
 
             function setActiveDetailImage(index) {
