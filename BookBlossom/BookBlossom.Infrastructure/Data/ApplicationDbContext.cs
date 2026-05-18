@@ -20,7 +20,8 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<CustomerPreference> CustomerPreferences {get; set; }
         public DbSet<Category> Categories {get; set; }
         public DbSet<RealBook> RealBooks {get; set; }
-        
+        public DbSet<Importing> Importings { get; set; }
+        public DbSet<ImportingDetail> ImportingDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260517151127_AddImportTables")]
+    partial class AddImportTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -318,13 +321,12 @@ namespace BookBlossom.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ISBN")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<bool>("IsContinued")
                         .HasColumnType("bit");
@@ -332,8 +334,8 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("PublishYear")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("PublishYear")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Publisher")
                         .IsRequired()
@@ -355,15 +357,12 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<int>("UnitsInStock")
                         .HasColumnType("int");
 
-                    b.Property<double>("Weight")
-                        .HasColumnType("double precision");
+                    b.Property<decimal>("Weight")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("BookID");
 
                     b.HasIndex("CategoryID");
-
-                    b.HasIndex("ISBN")
-                        .IsUnique();
 
                     b.ToTable("RealBook", "Book");
                 });
@@ -734,7 +733,7 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.RealBook", b =>
                 {
                     b.HasOne("BookBlossom.Core.Entities.Category", "Category")
-                        .WithMany("RealBooks")
+                        .WithMany()
                         .HasForeignKey("CategoryID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -778,8 +777,6 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.Category", b =>
                 {
                     b.Navigation("CustomerPreferences");
-
-                    b.Navigation("RealBooks");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>
