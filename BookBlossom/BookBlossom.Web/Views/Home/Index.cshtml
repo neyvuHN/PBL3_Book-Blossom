@@ -3082,77 +3082,101 @@
                 $element.addClass('active');
             }
 
-            function showHome() {
+            function showHome(push = true) {
                 $mainContent.show();
                 $exploreSection.hide();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.hide();
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
+                $('#product-details-section').hide();
                 $mainNavbar.removeClass('navbar-light');
                 setActiveTab($navHome);
                 window.scrollTo(0, 0);
+                if (push) {
+                    history.pushState({ view: 'home' }, '', '#home');
+                }
             }
 
-            function showExplore() {
+            function showExplore(push = true) {
                 $mainContent.hide();
                 $exploreSection.show();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.hide();
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
+                $('#product-details-section').hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navExplore);
                 window.scrollTo(0, 0);
+                if (push) {
+                    history.pushState({ view: 'explore' }, '', '#explore');
+                }
             }
 
-            function showDedicatedCommunity() {
+            function showDedicatedCommunity(push = true) {
                 $mainContent.hide();
                 $exploreSection.hide();
                 $dedicatedCommunity.show();
                 $tindbookFeature.hide();
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
+                $('#product-details-section').hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navCommunity);
                 window.scrollTo(0, 0);
+                if (push) {
+                    history.pushState({ view: 'community' }, '', '#community');
+                }
             }
 
-            function showTindbook() {
+            function showTindbook(push = true) {
                 $mainContent.hide();
                 $exploreSection.hide();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.show();
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
+                $('#product-details-section').hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navTindbook);
                 updateCards(); // Ensure cards are positioned correctly
                 window.scrollTo(0, 0);
+                if (push) {
+                    history.pushState({ view: 'tindbook' }, '', '#tindbook');
+                }
             }
 
-            function showBlindDate() {
+            function showBlindDate(push = true) {
                 $mainContent.hide();
                 $exploreSection.hide();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.hide();
                 $('#blind-date-section').show();
                 $('#reviews-section').hide();
+                $('#product-details-section').hide();
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navBlindDate);
                 window.scrollTo(0, 0);
+                if (push) {
+                    history.pushState({ view: 'blind-date' }, '', '#blind-date');
+                }
             }
 
-            function showReviews() {
+            function showReviews(push = true) {
                 $mainContent.hide();
                 $exploreSection.hide();
                 $dedicatedCommunity.hide();
                 $tindbookFeature.hide();
                 $('#blind-date-section').hide();
                 $('#reviews-section').show();
+                $('#product-details-section').hide(); // Hide book details if open
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navReviews);
                 window.scrollTo(0, 0);
+                if (push) {
+                    history.pushState({ view: 'reviews' }, '', '#reviews');
+                }
             }
 
             $navExplore.on('click', function(e) {
@@ -3194,6 +3218,59 @@
                 e.preventDefault();
                 showTindbook();
             });
+
+            // SPA History & Routing Logic
+            window.addEventListener('popstate', function(event) {
+                const state = event.state;
+                if (state && state.view) {
+                    const view = state.view;
+                    if (view === 'home') {
+                        showHome(false);
+                    } else if (view === 'explore') {
+                        showExplore(false);
+                    } else if (view === 'community') {
+                        showDedicatedCommunity(false);
+                    } else if (view === 'tindbook') {
+                        showTindbook(false);
+                    } else if (view === 'blind-date') {
+                        showBlindDate(false);
+                    } else if (view === 'reviews') {
+                        showReviews(false);
+                    } else if (view === 'product-details') {
+                        if (state.previousActiveSection) {
+                            previousActiveSection = state.previousActiveSection;
+                        }
+                        showProductDetails(state.bookData, false);
+                    }
+                } else {
+                    showHome(false);
+                }
+            });
+
+            // Initial Router parsing on Page Load
+            const initialHash = window.location.hash;
+            if (initialHash === '#explore') {
+                showExplore(false);
+                history.replaceState({ view: 'explore' }, '', '#explore');
+            } else if (initialHash === '#community') {
+                showDedicatedCommunity(false);
+                history.replaceState({ view: 'community' }, '', '#community');
+            } else if (initialHash === '#tindbook') {
+                showTindbook(false);
+                history.replaceState({ view: 'tindbook' }, '', '#tindbook');
+            } else if (initialHash === '#blind-date') {
+                showBlindDate(false);
+                history.replaceState({ view: 'blind-date' }, '', '#blind-date');
+            } else if (initialHash === '#reviews') {
+                showReviews(false);
+                history.replaceState({ view: 'reviews' }, '', '#reviews');
+            } else if (initialHash.startsWith('#book-details-')) {
+                showHome(false);
+                history.replaceState({ view: 'home' }, '', '#home');
+            } else {
+                showHome(false);
+                history.replaceState({ view: 'home' }, '', '#home');
+            }
 
             // Explore Filter Sidebar Toggle
             $('#btn-toggle-filter').on('click', function() {
@@ -3570,7 +3647,7 @@
                     // Immediate tab switch if needed
                     if (!$('#nav-home').hasClass('active')) {
                         $('#main-content').show();
-                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section').hide();
+                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section, #product-details-section').hide(); // Hide all sections including book details
                         $('#main-navbar').removeClass('navbar-light');
                         $('.nav-links a').removeClass('active');
                         $('#nav-home').addClass('active');
@@ -3628,7 +3705,7 @@
                 if (target) {
                     if (!$('#nav-home').hasClass('active')) {
                         $('#main-content').show();
-                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section').hide();
+                        $('#explore-section, #dedicated-community, #tindbook-feature, #blind-date-section, #reviews-section, #product-details-section').hide(); // Hide all sections including book details
                         $('#main-navbar').removeClass('navbar-light');
                         $('.nav-links a').removeClass('active');
                         $('#nav-home').addClass('active');
@@ -4418,7 +4495,7 @@
             let detailImagesArray = [];
             let currentDetailImageIndex = 0;
 
-            function showProductDetails(bookData) {
+            function showProductDetails(bookData, push = true) {
                 // Determine current visible section to save as return point
                 if ($mainContent.is(':visible')) {
                     previousActiveSection = '#main-content';
@@ -4583,6 +4660,10 @@
                 
                 // Scroll to top
                 window.scrollTo(0, 0);
+
+                if (push) {
+                    history.pushState({ view: 'product-details', bookData: bookData, previousActiveSection: previousActiveSection }, '', `#book-details-${encodeURIComponent(bookData.title)}`);
+                }
             }
 
             // Click listener for Home/Explore book cards
@@ -4620,31 +4701,34 @@
             // Back button logic
             $('#btn-back-to-list').on('click', function(e) {
                 e.preventDefault();
-                $('#product-details-section').hide();
-                
-                $(previousActiveSection).show();
-                
-                if (previousActiveSection === '#main-content') {
-                    $mainNavbar.removeClass('navbar-light');
-                    setActiveTab($navHome);
-                } else if (previousActiveSection === '#explore-section') {
-                    $mainNavbar.addClass('navbar-light');
-                    setActiveTab($navExplore);
-                } else if (previousActiveSection === '#dedicated-community') {
-                    $mainNavbar.addClass('navbar-light');
-                    setActiveTab($navCommunity);
-                } else if (previousActiveSection === '#tindbook-feature') {
-                    $mainNavbar.addClass('navbar-light');
-                    setActiveTab($navTindbook);
-                } else if (previousActiveSection === '#blind-date-section') {
-                    $mainNavbar.addClass('navbar-light');
-                    setActiveTab($navBlindDate);
-                } else if (previousActiveSection === '#reviews-section') {
-                    $mainNavbar.addClass('navbar-light');
-                    setActiveTab($navReviews);
+                if (history.state && history.state.view === 'product-details') {
+                    history.back();
+                } else {
+                    $('#product-details-section').hide();
+                    $(previousActiveSection).show();
+                    
+                    if (previousActiveSection === '#main-content') {
+                        $mainNavbar.removeClass('navbar-light');
+                        setActiveTab($navHome);
+                    } else if (previousActiveSection === '#explore-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navExplore);
+                    } else if (previousActiveSection === '#dedicated-community') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navCommunity);
+                    } else if (previousActiveSection === '#tindbook-feature') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navTindbook);
+                    } else if (previousActiveSection === '#blind-date-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navBlindDate);
+                    } else if (previousActiveSection === '#reviews-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navReviews);
+                    }
+                    
+                    window.scrollTo(0, 0);
                 }
-                
-                window.scrollTo(0, 0);
             });
 
             function setActiveDetailImage(index) {
