@@ -1144,7 +1144,24 @@
                 
                 <div class="chat-header-actions">
                     <button class="header-action-btn" title="Call center"><i class="fas fa-phone"></i></button>
-                    <button class="header-action-btn" title="View shop info"><i class="fas fa-info-circle"></i></button>
+                    <button class="header-action-btn" id="btn-toggle-chat-search" title="Search messages"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <!-- Chat Search Bar (Slides down under header) -->
+            <div id="chat-search-bar" style="display: none; background: #fff; border-bottom: 1.5px solid #F4E1E2; padding: 10px 20px; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.03); transition: all 0.2s ease;">
+                <div style="position: relative; flex-grow: 1; max-width: 400px; display: flex; align-items: center;">
+                    <i class="fas fa-search" style="position: absolute; left: 12px; color: #C2185B; font-size: 0.85rem;"></i>
+                    <input type="text" id="chat-search-input" placeholder="Search messages..." style="width: 100%; border: 1.5px solid #EEC7C9; border-radius: 20px; padding: 6px 15px 6px 34px; font-size: 0.85rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#C2185B'" onblur="this.style.borderColor='#EEC7C9'">
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.82rem; font-weight: 600; color: #666;">
+                    <span id="chat-search-results-count" style="background: #fdf5f6; color: #C2185B; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(194, 24, 91, 0.1);">0 matches</span>
+                    <div style="display: flex; gap: 4px;">
+                        <button id="btn-chat-search-prev" style="border: none; background: #fbf8f9; color: #888; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#F4E1E2'; this.style.color='#C2185B';" onmouseout="this.style.background='#fbf8f9'; this.style.color='#888';"><i class="fas fa-chevron-up" style="font-size: 0.75rem;"></i></button>
+                        <button id="btn-chat-search-next" style="border: none; background: #fbf8f9; color: #888; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#F4E1E2'; this.style.color='#C2185B';" onmouseout="this.style.background='#fbf8f9'; this.style.color='#888';"><i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i></button>
+                    </div>
+                    <button id="btn-close-chat-search" style="border: none; background: none; color: #aaa; cursor: pointer; font-size: 1.1rem; transition: color 0.2s; padding: 0;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'"><i class="fas fa-times"></i></button>
                 </div>
             </div>
 
@@ -2011,6 +2028,151 @@
                         $('#shared-pictures-modal').show();
                     }
                 });
+            });
+
+            // --- Chat Message Search Engine Logic ---
+            let searchMatches = [];
+            let currentMatchIndex = -1;
+
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            function clearSearchHighlights() {
+                $('#chat-stream .msg-text-bubble').each(function() {
+                    const $bubble = $(this);
+                    const originalHtml = $bubble.data('original-html');
+                    if (originalHtml) {
+                        $bubble.html(originalHtml);
+                        $bubble.removeData('original-html');
+                    }
+                });
+                searchMatches = [];
+                currentMatchIndex = -1;
+                $('#chat-search-results-count').text('0 matches');
+            }
+
+            function highlightActiveMatch() {
+                if (searchMatches.length === 0 || currentMatchIndex < 0) return;
+                
+                // Reset styling for all matches
+                $('.chat-search-highlight').css({
+                    'background': '#FFF59D',
+                    'box-shadow': 'none',
+                    'transform': 'none'
+                });
+                
+                // Target and style current active match
+                const $active = searchMatches[currentMatchIndex];
+                $active.css({
+                    'background': '#FBC02D',
+                    'box-shadow': '0 0 0 3px rgba(251, 192, 45, 0.45)',
+                    'transform': 'scale(1.1)',
+                    'display': 'inline-block'
+                });
+                
+                // Scroll container to target match
+                const stream = document.getElementById('chat-stream');
+                const $stream = $('#chat-stream');
+                const targetScrollTop = $active.offset().top - $stream.offset().top + $stream.scrollTop() - 60;
+                
+                stream.scrollTo({
+                    top: targetScrollTop,
+                    behavior: 'smooth'
+                });
+                
+                $('#chat-search-results-count').text((currentMatchIndex + 1) + ' of ' + searchMatches.length + ' matches');
+            }
+
+            function performSearch(query) {
+                clearSearchHighlights();
+                
+                if (!query || query.trim() === '') {
+                    return;
+                }
+                
+                query = query.trim().toLowerCase();
+                searchMatches = [];
+                
+                $('#chat-stream .msg-text-bubble').each(function() {
+                    const $bubble = $(this);
+                    let originalHtml = $bubble.data('original-html');
+                    
+                    if (!originalHtml) {
+                        originalHtml = $bubble.html();
+                        $bubble.data('original-html', originalHtml);
+                    }
+                    
+                    // Regex replacement avoiding html tag internals
+                    const regex = new RegExp('(' + escapeRegExp(query) + ')(?![^<]*>)', 'gi');
+                    
+                    if (regex.test(originalHtml)) {
+                        const highlightedHtml = originalHtml.replace(regex, '<mark class="chat-search-highlight" style="background: #FFF59D; color: #333; padding: 2px 0; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); transition: all 0.2s; font-weight: inherit;">$1</mark>');
+                        $bubble.html(highlightedHtml);
+                        
+                        $bubble.find('.chat-search-highlight').each(function() {
+                            searchMatches.push($(this));
+                        });
+                    }
+                });
+                
+                if (searchMatches.length > 0) {
+                    currentMatchIndex = 0;
+                    highlightActiveMatch();
+                } else {
+                    $('#chat-search-results-count').text('No matches');
+                }
+            }
+
+            // Search toggle button
+            $('#btn-toggle-chat-search').on('click', function(e) {
+                e.preventDefault();
+                const $searchBar = $('#chat-search-bar');
+                if ($searchBar.is(':visible')) {
+                    $searchBar.slideUp(200);
+                    clearSearchHighlights();
+                    $('#chat-search-input').val('');
+                } else {
+                    $searchBar.slideDown(200, function() {
+                        $('#chat-search-input').focus();
+                    }).css('display', 'flex');
+                }
+            });
+
+            // Close search bar button
+            $('#btn-close-chat-search').on('click', function(e) {
+                e.preventDefault();
+                $('#chat-search-bar').slideUp(200);
+                clearSearchHighlights();
+                $('#chat-search-input').val('');
+            });
+
+            // Input listener with debounce logic
+            let searchTimeout = null;
+            $('#chat-search-input').on('input', function() {
+                const query = $(this).val();
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    performSearch(query);
+                }, 250);
+            });
+
+            // Next Match
+            $('#btn-chat-search-next').on('click', function(e) {
+                e.preventDefault();
+                if (searchMatches.length > 0) {
+                    currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
+                    highlightActiveMatch();
+                }
+            });
+
+            // Prev Match
+            $('#btn-chat-search-prev').on('click', function(e) {
+                e.preventDefault();
+                if (searchMatches.length > 0) {
+                    currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+                    highlightActiveMatch();
+                }
             });
 
             // Tag Book Modal Triggers
