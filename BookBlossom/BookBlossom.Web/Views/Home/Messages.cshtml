@@ -1,0 +1,2264 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages - BookBlossom</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        /* Base Themes and Styling for Messages Section */
+        body {
+            background-color: #fcf8f9;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Custom Modal Layout */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .custom-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+        }
+
+        .modal-box {
+            position: relative;
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 15px 40px rgba(194, 24, 91, 0.1);
+            border: 1px solid rgba(194, 24, 91, 0.1);
+            z-index: 2;
+            transform: scale(0.9);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .custom-modal.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-box h3 {
+            font-family: 'Lora', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #111;
+            text-align: left;
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f0e2e5;
+            padding-bottom: 10px;
+        }
+
+        .btn-modal-tab {
+            background: none;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #777;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.25s;
+        }
+
+        .btn-modal-tab:hover {
+            color: #C2185B;
+            background: #fff5f6;
+        }
+
+        .btn-modal-tab.active {
+            background: #C2185B;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(194, 24, 91, 0.2);
+        }
+
+        .modal-tab-content {
+            display: none;
+        }
+
+        .modal-tab-content.active {
+            display: block;
+        }
+
+        .modal-tab-content p {
+            font-size: 0.88rem;
+            color: #666;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .book-select-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .book-select-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .book-select-list::-webkit-scrollbar-thumb {
+            background: rgba(194, 24, 91, 0.1);
+            border-radius: 1.5px;
+        }
+
+        .book-select-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border: 1px solid #f0e2e5;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .book-select-item:hover {
+            background: #fff5f6;
+            border-color: #EEC7C9;
+            transform: translateY(-1px);
+        }
+
+        .book-select-item.selected {
+            background: #F4E1E2;
+            border-color: #C2185B;
+        }
+
+        .book-select-item img {
+            width: 35px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .book-select-item div {
+            flex: 1;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .book-select-item h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0 0 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .book-select-item p {
+            font-size: 0.75rem;
+            color: #888;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modal-btns {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn-modal-cancel {
+            background: #f7f3f5;
+            color: #555;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #ebdce0;
+            color: #111;
+        }
+
+        .btn-modal-confirm {
+            background: #C2185B;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(194, 24, 91, 0.2);
+        }
+
+        .btn-modal-confirm:hover {
+            background: #a8124c;
+        }
+
+        /* Adjust global wrapper for Navbar offset */
+        .messages-wrapper {
+            margin-top: 80px; /* offset for sticky absolute navbar */
+            flex: 1;
+            display: flex;
+            padding: 20px 40px;
+            gap: 20px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            height: calc(100vh - 100px);
+            box-sizing: border-box;
+        }
+
+        /* Glassmorphic Container Panels */
+        .chat-panel {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 35px rgba(194, 24, 91, 0.04);
+            border: 1px solid rgba(194, 24, 91, 0.06);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        /* Left Side: Conversation List */
+        .conversation-sidebar {
+            flex: 0 0 320px;
+            width: 320px;
+        }
+
+        .sidebar-header-search {
+            padding: 20px;
+            border-bottom: 1px solid #f9f2f4;
+        }
+
+        .sidebar-header-search h2 {
+            font-family: 'Lora', serif;
+            font-size: 1.4rem;
+            color: #111;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .search-box-wrapper {
+            position: relative;
+        }
+
+        .search-box-wrapper input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            background: #f7f3f5;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box-wrapper input:focus {
+            background: #fff;
+            border-color: #EEC7C9;
+            box-shadow: 0 0 0 3px rgba(238, 199, 201, 0.2);
+            outline: none;
+        }
+
+        .search-box-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a09095;
+            font-size: 0.9rem;
+        }
+
+        .conversation-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .conversation-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .conversation-list::-webkit-scrollbar-thumb {
+            background: rgba(194, 24, 91, 0.1);
+            border-radius: 2px;
+        }
+
+        .convo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            margin-bottom: 5px;
+        }
+
+        .convo-item:hover {
+            background: #fff5f6;
+        }
+
+        .convo-item.active {
+            background: #F4E1E2;
+            border-left: 4px solid #C2185B;
+        }
+
+        .convo-avatar-wrapper {
+            position: relative;
+            width: 48px;
+            height: 48px;
+        }
+
+        .convo-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background-color: #2e7d32;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .convo-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .convo-name-time {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .convo-name {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .convo-time {
+            font-size: 0.72rem;
+            color: #888;
+        }
+
+        .convo-preview {
+            font-size: 0.8rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .unread-badge {
+            background: #C2185B;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 2px 5px rgba(194, 24, 91, 0.3);
+        }
+
+        /* Center Section: Main Chat Area */
+        .chat-main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-header {
+            padding: 15px 25px;
+            border-bottom: 1px solid #f9f2f4;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            z-index: 10;
+        }
+
+        .chat-header-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-header-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #111;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shop-verified-tag {
+            font-size: 0.7rem;
+            background: #ffebee;
+            color: #C2185B;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            border: 1px solid rgba(194, 24, 91, 0.1);
+        }
+
+        .chat-header-status {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-action-btn {
+            background: none;
+            border: 1px solid #f0e6e8;
+            color: #777;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .header-action-btn:hover {
+            background: #fff5f6;
+            color: #C2185B;
+            border-color: #EEC7C9;
+        }
+
+        /* Product context card inside chat */
+        .chat-product-context {
+            background: #fff5f6;
+            border-bottom: 1px solid rgba(194, 24, 91, 0.08);
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+
+        @@keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .product-context-img {
+            width: 45px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .product-context-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-context-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #333;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-context-desc {
+            font-size: 0.78rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .product-context-price {
+            font-weight: 700;
+            color: #C2185B;
+            font-size: 0.85rem;
+        }
+
+        .product-context-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-context-action {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-context-buy {
+            background: #C2185B;
+            color: #fff;
+        }
+
+        .btn-context-buy:hover {
+            background: #a8124c;
+        }
+
+        .btn-context-close {
+            background: none;
+            border: 1px solid rgba(0,0,0,0.1);
+            color: #777;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-context-close:hover {
+            background: rgba(0,0,0,0.05);
+            color: #111;
+        }
+
+        /* Message Bubbles Pane */
+        .chat-messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            background: #faf8f9;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-messages-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .chat-messages-container::-webkit-scrollbar-thumb {
+            background: rgba(194, 24, 91, 0.1);
+            border-radius: 3px;
+        }
+
+        .chat-date-separator {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #a09095;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .chat-date-separator span {
+            background: #faf8f9;
+            padding: 0 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chat-date-separator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: #f0e2e5;
+            z-index: 1;
+        }
+
+        .msg-bubble-group {
+            display: flex;
+            gap: 12px;
+            max-width: 75%;
+        }
+
+        .msg-bubble-group.outgoing {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .msg-bubble-group.incoming {
+            align-self: flex-start;
+        }
+
+        .msg-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            align-self: flex-end;
+        }
+
+        .msg-bubble-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .msg-text-bubble {
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.88rem;
+            line-height: 1.45;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .incoming .msg-text-bubble {
+            background: #ffffff;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(194, 24, 91, 0.05);
+        }
+
+        .outgoing .msg-text-bubble {
+            background: #EEC7C9;
+            color: #000;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-meta {
+            font-size: 0.72rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .outgoing .msg-meta {
+            justify-content: flex-end;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 18px;
+            background: #fff;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            border: 1px solid rgba(194, 24, 91, 0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            animation: pulse-typing 1.5s infinite;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            background: #a8124c;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce-dot 1.2s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @@keyframes bounce-dot {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+        }
+
+        /* Bottom chat input */
+        .chat-input-container {
+            padding: 15px 25px;
+            background: #ffffff;
+            border-top: 1px solid #f9f2f4;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .quick-replies-row {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .quick-replies-row::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .quick-replies-row::-webkit-scrollbar-thumb {
+            background: rgba(194, 24, 91, 0.08);
+            border-radius: 1.5px;
+        }
+
+        .quick-reply-chip {
+            background: #faf8f9;
+            color: #C2185B;
+            border: 1px solid rgba(194, 24, 91, 0.08);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-reply-chip:hover {
+            background: #C2185B;
+            color: #fff;
+            transform: translateY(-1.5px);
+            box-shadow: 0 3px 8px rgba(194,24,91,0.15);
+        }
+
+        .input-bar-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-input-attachment {
+            background: none;
+            border: none;
+            color: #777;
+            font-size: 1.15rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .btn-input-attachment:hover {
+            color: #C2185B;
+            background: #fff5f6;
+        }
+
+        .chat-main-input {
+            flex: 1;
+            border: 1px solid #f0e2e5;
+            background: #fcf8f9;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.88rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-main-input:focus {
+            background: #fff;
+            border-color: #C2185B;
+            box-shadow: 0 0 0 3px rgba(194, 24, 91, 0.1);
+            outline: none;
+        }
+
+        .btn-send-message {
+            background: #C2185B;
+            color: #fff;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(194, 24, 91, 0.2);
+        }
+
+        .btn-send-message:hover {
+            background: #a8124c;
+            transform: scale(1.08) rotate(15deg);
+        }
+
+        .btn-send-message:active {
+            transform: scale(0.95);
+        }
+
+        /* Right Section: Shop Information */
+        .shop-info-sidebar {
+            flex: 0 0 300px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .shop-info-sidebar::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .shop-profile-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(194, 24, 91, 0.05);
+            box-shadow: 0 8px 24px rgba(194, 24, 91, 0.02);
+            text-align: center;
+        }
+
+        .shop-profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #F4E1E2;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(194, 24, 91, 0.1);
+        }
+
+        .shop-profile-name {
+            font-family: 'Lora', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 5px;
+        }
+
+        .shop-profile-rating {
+            color: #ffb400;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .shop-metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            border-top: 1px solid #f9f2f4;
+            padding-top: 15px;
+            text-align: left;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            color: #888;
+        }
+
+        .metric-value {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        /* Active Shop Vouchers Card */
+        .shop-vouchers-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(194, 24, 91, 0.05);
+            box-shadow: 0 8px 24px rgba(194, 24, 91, 0.02);
+        }
+
+        .vouchers-header {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111;
+        }
+
+        .voucher-mini-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .voucher-mini-item {
+            background: #fffafb;
+            border: 1px dashed #EEC7C9;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .voucher-mini-item:hover {
+            transform: translateY(-1.5px);
+            border-color: #C2185B;
+            background: #fff5f6;
+        }
+
+        .voucher-mini-code {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #C2185B;
+            background: #F4E1E2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .voucher-mini-value {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #333;
+        }
+
+        .voucher-mini-apply {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #C2185B;
+            text-decoration: underline;
+        }
+
+        /* Shop policies */
+        .shop-policies-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(194, 24, 91, 0.05);
+            box-shadow: 0 8px 24px rgba(194, 24, 91, 0.02);
+            font-size: 0.82rem;
+            color: #666;
+        }
+
+        .policy-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .policy-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .policy-icon {
+            color: #2e7d32;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive Breakpoints */
+        @@media (max-width: 1200px) {
+            .shop-info-sidebar {
+                display: none; /* Hide right sidebar on tablets and below */
+            }
+        }
+
+        @@media (max-width: 900px) {
+            .messages-wrapper {
+                padding: 10px;
+                height: calc(100vh - 80px);
+            }
+            .conversation-sidebar {
+                display: none; /* In very small mobile screens, sidebar could toggle, default to hide */
+            }
+        }
+
+        /* Notification Toast styles */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #ffffff;
+            border-left: 4px solid #2e7d32;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 15px 25px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 10005;
+            min-width: 320px;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: #2e7d32;
+            width: 100%;
+            animation: toast-timer 5s linear forwards;
+        }
+
+        @@keyframes toast-timer {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+</head>
+<body class="homepage-container">
+
+    <!-- Premium Navbar (Consistent with Index.cshtml vibe) -->
+    <nav class="premium-navbar navbar-light" id="main-navbar" style="position: fixed; background: rgba(255, 255, 255, 0.9); border-bottom: 1px solid #f0e2e5;">
+        <a class="nav-logo" href="/" id="nav-logo" style="color: #333;">
+            <span class="flower">🌸</span> BookBlossom
+        </a>
+        <ul class="nav-links">
+            <li><a href="/" style="color: #333;">Home</a></li>
+            <li><a href="/#explore" style="color: #333;">Explore</a></li>
+            <li><a href="/#tindbook" style="color: #333;">Tindbook</a></li>
+            <li><a href="/#community" style="color: #333;">Thread</a></li>
+            <li><a href="/#blind-date" style="color: #333;">Blind Date Books</a></li>
+            <li><a href="/#reviews" style="color: #333;">Reviews</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="/#cart" class="nav-icon-btn nav-cart-btn" id="nav-cart-btn" style="color: #333;">
+                <i class="fas fa-shopping-cart"></i> Cart <span class="cart-badge" id="cart-badge" style="display: inline-block;">1</span>
+            </a>
+            <a href="#" class="nav-icon-btn notification-btn" style="color: #333;">
+                <i class="fas fa-bell"></i>
+                <span class="notification-dot"></span>
+            </a>
+            <div class="user-dropdown">
+                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar" style="border-color: #C2185B;">
+                <span class="username" style="color: #333;">@(User.Identity?.Name ?? "Jane Doe")</span>
+                <i class="fas fa-chevron-down" style="color: #333;"></i>
+                <div class="dropdown-menu">
+                    <a href="/Profile" class="dropdown-item"><i class="far fa-user-circle"></i> My Account</a>
+                    <a href="/Orders" class="dropdown-item"><i class="fas fa-shopping-bag"></i> My Orders</a>
+                    <a href="/Wishlist" class="dropdown-item"><i class="far fa-heart"></i> My Wishlist</a>
+                    <a href="/Messages" class="dropdown-item pink-bg"><i class="far fa-comment"></i> Messages</a>
+                    <a href="/Settings" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="/Help" class="dropdown-item"><i class="far fa-question-circle"></i> User Manual</a>
+                    <a href="/Auth/Logout" class="dropdown-item btn-logout grey-bg"><i class="fas fa-sign-out-alt"></i> Log Out</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Messages Workspace -->
+    <div class="messages-wrapper">
+
+        <!-- Center Sidebar: Active Conversation and Bubbles -->
+        <div class="chat-panel chat-main-area">
+            
+            <!-- Chat Window Header -->
+            <div class="chat-header">
+                <div class="chat-header-user">
+                    <div class="convo-avatar-wrapper">
+                        <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="convo-avatar">
+                        <span class="online-dot"></span>
+                    </div>
+                    <div>
+                        <div class="chat-header-title">
+                            BookBlossom Shop 
+                            <span class="shop-verified-tag">Official Shop</span>
+                        </div>
+                        <div class="chat-header-status">
+                            <i class="fas fa-bolt" style="color: #2e7d32;"></i> Active now • Highly responsive (responses in mins)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-header-actions">
+                    <button class="header-action-btn" title="Call center"><i class="fas fa-phone"></i></button>
+                    <button class="header-action-btn" title="View shop info"><i class="fas fa-info-circle"></i></button>
+                </div>
+            </div>
+
+            <!-- Active Product Reference Context Bar (Tied dynamically to details) -->
+            <div class="chat-product-context" id="chat-product-bar">
+                <img src="/images/Book/book1.jpg" alt="Active book" class="product-context-img" id="context-book-img">
+                <div class="product-context-details">
+                    <div class="product-context-title" id="context-book-title">Mystery Blind Book (Science Fiction Vibe)</div>
+                    <div class="product-context-desc">Inquiring about this book currently active on your date list</div>
+                    <div class="product-context-price" id="context-book-price">120.000 VND</div>
+                </div>
+                <div class="product-context-actions">
+                    <button class="btn-context-action btn-context-buy" id="btn-context-checkout">Checkout Now</button>
+                    <button class="btn-context-close" id="btn-close-context-bar" title="Dismiss context"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+
+            <!-- Chat messages stream -->
+            <div class="chat-messages-container" id="chat-stream">
+                <div class="chat-date-separator">
+                    <span>Today</span>
+                </div>
+
+                <!-- Shop greeting message -->
+                <div class="msg-bubble-group incoming">
+                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                    <div class="msg-bubble-content">
+                        <div class="msg-text-bubble">
+                            Welcome to <strong>BookBlossom</strong> official shop chat channel! 🌸<br><br>
+                            How can we guide you today? We are online and happy to answer questions regarding our <strong>Blind Date Books</strong> condition, shipping durations, or active coupon codes!
+                        </div>
+                        <div class="msg-meta">18:01 • Shop Supporter</div>
+                    </div>
+                </div>
+
+                <!-- Active context inquiry -->
+                <div class="msg-bubble-group incoming">
+                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                    <div class="msg-bubble-content">
+                        <div class="msg-text-bubble">
+                            I see you are inquiring about our <strong>Mystery Science Fiction Blind Date Book</strong>! It is currently one of our best-selling categories. The clues hint at an ancient alien artifact on a distant moon! 🌌 It features standard condition wrapper decoration.
+                        </div>
+                        <div class="msg-meta">18:01 • Shop Supporter</div>
+                    </div>
+                </div>
+
+                <!-- User placeholder/initial messages if any -->
+            </div>
+
+            <!-- Typing indicator (hidden by default) -->
+            <div class="chat-messages-container" style="display: none; flex: 0; padding: 0 25px 15px 25px; background: #faf8f9;" id="typing-indicator-wrapper">
+                <div class="msg-bubble-group incoming">
+                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                    <div class="msg-bubble-content">
+                        <div class="typing-indicator">
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom chat actions and text area input -->
+            <div class="chat-input-container">
+                <!-- Quick replies chips -->
+                <div class="quick-replies-row">
+                    <div class="quick-reply-chip" data-text="Is this Mystery Book currently in stock?">Is it in stock? 📦</div>
+                    <div class="quick-reply-chip" data-text="Can you explain how Blind Date Books work?">How it works? 🌸</div>
+                    <div class="quick-reply-chip" data-text="What coupon codes can I use for discount?">Active Coupons? 🎫</div>
+                    <div class="quick-reply-chip" data-text="How long does standard shipping take?">Delivery Time? 🚚</div>
+                </div>
+
+                <!-- Tagged Books Preview Bar -->
+                <div class="tagged-books-preview-bar" id="tagged-books-preview" style="display: none; padding: 10px 15px; background: #fffcfd; border-top: 1px dashed rgba(194, 24, 91, 0.15); gap: 8px; flex-wrap: wrap; align-items: center; border-bottom: 1px dashed rgba(194, 24, 91, 0.15);">
+                </div>
+
+                <!-- Media Attachment Preview Bar -->
+                <div class="media-attachment-preview-bar" id="media-attachment-preview" style="display: none; padding: 10px 15px; background: #fffcfd; border-top: 1px dashed rgba(194, 24, 91, 0.15); gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px dashed rgba(194, 24, 91, 0.15);">
+                </div>
+
+                <!-- Rich Input form bar -->
+                <div class="input-bar-wrapper">
+                    <button class="btn-input-attachment" id="btn-media-attachment-trigger" title="Attach picture/video"><i class="far fa-image"></i></button>
+                    <input type="file" id="media-attachment-input" accept="image/*,video/*" multiple style="display: none;">
+                    <button class="btn-input-attachment" id="btn-tag-book-trigger" title="Tag a Book"><i class="fas fa-link"></i></button>
+                    <input type="text" class="chat-main-input" placeholder="Type a message to BookBlossom Shop..." id="message-text-input">
+                    <button class="btn-send-message" id="btn-submit-chat"><i class="far fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Sidebar: Shop Profile, Metrics, Vouchers & Policies -->
+        <div class="shop-info-sidebar">
+            
+            <!-- Shop Profile Details -->
+            <div class="shop-profile-card">
+                <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="shop-profile-avatar">
+                <div class="shop-profile-name">BookBlossom Official</div>
+                <div class="shop-profile-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <strong style="color: #333; margin-left: 5px;">4.9</strong>
+                    <span style="color: #888;">(1.2k ratings)</span>
+                </div>
+                
+                <div class="shop-metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Products</span>
+                        <span class="metric-value">250+ Books</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Response Rate</span>
+                        <span class="metric-value">99%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Users</span>
+                        <span class="metric-value">12.5k</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Established</span>
+                        <span class="metric-value">1 year ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shared Materials (Pictures & Links) -->
+            <div class="shop-vouchers-card">
+                <div class="vouchers-header">
+                    <i class="fas fa-folder-open" style="color: #C2185B;"></i> Shared Materials
+                </div>
+                
+                <div class="voucher-mini-list">
+                    <!-- Pictures Button -->
+                    <div class="voucher-mini-item" id="btn-view-shared-pictures" style="padding: 15px; border-style: solid; border-color: rgba(194, 24, 91, 0.1); border-width: 1px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 12px; background: #fffafb; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#C2185B';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(194, 24, 91, 0.1)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #F4E1E2; display: flex; align-items: center; justify-content: center; color: #C2185B;">
+                                <i class="far fa-images" style="font-size: 1.2rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: #333; text-align: left;">Shared Pictures</div>
+                                <div style="font-size: 0.72rem; color: #777; text-align: left;">View photos & documents</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color: #C2185B; font-size: 0.85rem;"></i>
+                    </div>
+
+                    <!-- Book Links Button -->
+                    <div class="voucher-mini-item" id="btn-view-shared-links" style="padding: 15px; border-style: solid; border-color: rgba(194, 24, 91, 0.1); border-width: 1px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 12px; background: #fffafb; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#C2185B';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(194, 24, 91, 0.1)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #F4E1E2; display: flex; align-items: center; justify-content: center; color: #C2185B;">
+                                <i class="fas fa-link" style="font-size: 1.1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: #333; text-align: left;">Shared Book Links</div>
+                                <div style="font-size: 0.72rem; color: #777; text-align: left;">View books exchanged</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color: #C2185B; font-size: 0.85rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Trust Policies -->
+            <div class="shop-policies-card">
+                <div class="policy-item">
+                    <i class="fas fa-shield-alt policy-icon"></i>
+                    <div>
+                        <strong>100% Authentic Guarantee</strong>
+                        <div style="font-size: 0.75rem; color: #888; margin-top: 2px;">Double refund if counterfeit book is found.</div>
+                    </div>
+                </div>
+                <div class="policy-item">
+                    <i class="fas fa-undo-alt policy-icon"></i>
+                    <div>
+                        <strong>7 Days Free Returns</strong>
+                        <div style="font-size: 0.75rem; color: #888; margin-top: 2px;">Returns allowed for defective wrappers or wrong items.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Notification Toast wrapper -->
+    <div class="toast-notification" id="chat-toast">
+        <i class="fas fa-check-circle" style="color: #2e7d32; font-size: 1.2rem;"></i>
+        <span id="toast-message">Voucher applied successfully!</span>
+        <div class="toast-progress"></div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function() {
+            // Dropdown Toggle
+            const $userDropdown = $('.user-dropdown');
+            $userDropdown.on('click', function(e) {
+                e.stopPropagation();
+                $(this).toggleClass('active');
+            });
+            $(document).on('click', function(e) {
+                if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
+                    $userDropdown.removeClass('active');
+                }
+            });
+
+            // Conversation search filtering
+            $('#convo-search-input').on('input', function() {
+                const query = $(this).val().toLowerCase().trim();
+                $('.convo-item').each(function() {
+                    const name = $(this).find('.convo-name').text().toLowerCase();
+                    const text = $(this).find('.convo-preview').text().toLowerCase();
+                    if (name.includes(query) || text.includes(query)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Dismiss product context bar inside chat
+            $('#btn-close-context-bar').on('click', function() {
+                $('#chat-product-bar').slideUp(250);
+            });
+
+            // Toast trigger helper
+            function triggerToast(message) {
+                const $toast = $('#chat-toast');
+                $('#toast-message').text(message);
+                $toast.fadeIn(300);
+                
+                setTimeout(function() {
+                    $toast.fadeOut(300);
+                }, 5000);
+            }
+
+            // View Shared Pictures Trigger
+            $('#btn-view-shared-pictures').on('click', function(e) {
+                e.preventDefault();
+                
+                // Clear grid first
+                const $grid = $('#shared-pictures-grid');
+                $grid.empty();
+                
+                // Assign unique IDs to any untagged lightbox triggers in chat stream
+                $('#chat-stream .chat-lightbox-trigger').each(function(index) {
+                    if (!$(this).attr('id')) {
+                        $(this).attr('id', 'chat-img-' + index);
+                    }
+                });
+                
+                // Assign unique IDs to any untagged videos in chat stream
+                $('#chat-stream video').each(function(index) {
+                    if (!$(this).attr('id')) {
+                        $(this).attr('id', 'chat-video-' + index);
+                    }
+                });
+                
+                const $images = $('#chat-stream .chat-lightbox-trigger');
+                const $videos = $('#chat-stream video');
+                
+                if ($images.length === 0 && $videos.length === 0) {
+                    $('#shared-pictures-empty').show();
+                    $grid.hide();
+                } else {
+                    $('#shared-pictures-empty').hide();
+                    $grid.show();
+                    
+                    // Render Images
+                    $images.each(function() {
+                        const src = $(this).data('src');
+                        const targetId = $(this).attr('id');
+                        
+                        const itemHtml = `
+                            <div class="shared-picture-card" style="position: relative; border-radius: 12px; overflow: hidden; border: 1.5px solid rgba(194, 24, 91, 0.1); background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.04); height: 120px; cursor: pointer; transition: all 0.25s;">
+                                <img src="${src}" class="shared-grid-img" data-src="${src}" data-target-id="${targetId}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                                
+                                <!-- Overlay visible on hover -->
+                                <div class="shared-card-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(194, 24, 91, 0.65) 0%, rgba(0,0,0,0) 65%); opacity: 0; transition: opacity 0.25s ease; display: flex; align-items: flex-end; justify-content: flex-end; padding: 10px; box-sizing: border-box;">
+                                    <button class="btn-scroll-to-msg btn-hover-eye-icon" data-target-id="${targetId}" title="View in Chat" style="background: #fff; color: #C2185B; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: translateY(10px); transition: all 0.25s; outline: none; padding: 0;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        $grid.append(itemHtml);
+                    });
+                    
+                    // Render Videos
+                    $videos.each(function() {
+                        const src = $(this).attr('src');
+                        const targetId = $(this).attr('id');
+                        
+                        const itemHtml = `
+                            <div class="shared-picture-card" style="position: relative; border-radius: 12px; overflow: hidden; border: 1.5px solid rgba(194, 24, 91, 0.1); background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.04); height: 120px; cursor: pointer; transition: all 0.25s;">
+                                <video src="${src}" class="shared-grid-video" data-src="${src}" data-target-id="${targetId}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;"></video>
+                                
+                                <!-- Play icon overlay indicator -->
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.55); color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; pointer-events: none; z-index: 10;">
+                                    <i class="fas fa-play"></i>
+                                </div>
+
+                                <!-- Overlay visible on hover -->
+                                <div class="shared-card-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(194, 24, 91, 0.65) 0%, rgba(0,0,0,0) 65%); opacity: 0; transition: opacity 0.25s ease; display: flex; align-items: flex-end; justify-content: flex-end; padding: 10px; box-sizing: border-box; z-index: 15;">
+                                    <button class="btn-scroll-to-msg btn-hover-eye-icon" data-target-id="${targetId}" title="View in Chat" style="background: #fff; color: #C2185B; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: translateY(10px); transition: all 0.25s; outline: none; padding: 0;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        $grid.append(itemHtml);
+                    });
+                }
+                
+                $('#shared-pictures-modal').fadeIn(200).addClass('active').css('display', 'flex');
+            });
+
+            // View Shared Book Links Trigger
+            $('#btn-view-shared-links').on('click', function(e) {
+                e.preventDefault();
+                
+                const $list = $('#shared-links-list');
+                $list.empty();
+                
+                // Scan chat stream for tagged book link cards
+                const $cards = $('#chat-stream a[href*="#book-details-"], #chat-stream a[href*="#blind-details-"]').closest('div[style*="display: flex; gap: 12px;"]');
+                
+                if ($cards.length === 0) {
+                    $('#shared-links-empty').show();
+                    $list.hide();
+                } else {
+                    $('#shared-links-empty').hide();
+                    $list.show();
+                    
+                    const uniqueLinks = new Set();
+                    
+                    $cards.each(function() {
+                        const title = $(this).find('h4').text();
+                        const author = $(this).find('p').text();
+                        const img = $(this).find('img').attr('src');
+                        const link = $(this).find('a').attr('href');
+                        
+                        // Prevent duplicates in popup list
+                        if (uniqueLinks.has(link)) return;
+                        uniqueLinks.add(link);
+                        
+                        const itemHtml = `
+                            <div style="display: flex; gap: 12px; align-items: center; background: #fffafb; padding: 12px; border-radius: 12px; border: 1.5px solid rgba(194, 24, 91, 0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s;" onmouseover="this.style.borderColor='#C2185B';" onmouseout="this.style.borderColor='rgba(194, 24, 91, 0.1)';">
+                                <img src="${img}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
+                                <div style="flex: 1; min-width: 0; text-align: left;">
+                                    <h4 style="font-size: 0.85rem; font-weight: 700; color: #111; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</h4>
+                                    <p style="font-size: 0.72rem; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${author}</p>
+                                </div>
+                                <a href="${link}" style="font-size: 0.75rem; font-weight: 700; color: #fff; background: #C2185B; padding: 6px 12px; border-radius: 20px; text-decoration: none; display: flex; align-items: center; gap: 4px; transition: background 0.2s;" onmouseover="this.style.background='#a0134a'" onmouseout="this.style.background='#C2185B'">
+                                    <i class="fas fa-external-link-alt"></i> Go Detail
+                                </a>
+                            </div>
+                        `;
+                        $list.append(itemHtml);
+                    });
+                }
+                
+                $('#shared-links-modal').fadeIn(200).addClass('active').css('display', 'flex');
+            });
+
+            // Scroll to message in Chat Trigger
+            $(document).on('click', '.btn-scroll-to-msg', function(e) {
+                e.preventDefault();
+                const targetId = $(this).data('target-id');
+                
+                // Hide modal
+                $('#shared-pictures-modal').fadeOut(150).removeClass('active');
+                
+                const $target = $('#' + targetId);
+                if ($target.length > 0) {
+                    const stream = document.getElementById('chat-stream');
+                    const $stream = $('#chat-stream');
+                    
+                    // Bulletproof nested vertical offset calculation
+                    const targetScrollTop = $target.offset().top - $stream.offset().top + $stream.scrollTop() - 40;
+                    
+                    stream.scrollTo({
+                        top: targetScrollTop,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Target the surrounding bubble for high-quality highlight pulse effect
+                    const $highlightTarget = $target.closest('.msg-text-bubble');
+                    $highlightTarget.css({
+                        'box-shadow': '0 0 0 5px rgba(194, 24, 91, 0.45)',
+                        'transition': 'all 0.3s ease',
+                        'transform': 'scale(1.015)'
+                    });
+                    
+                    setTimeout(function() {
+                        $highlightTarget.css({
+                            'box-shadow': 'none',
+                            'transform': 'none'
+                        });
+                    }, 1800);
+                }
+            });
+
+            // Close modals handler
+            $('.btn-close-shared-modal, .custom-modal .modal-backdrop').on('click', function() {
+                $(this).closest('.custom-modal').fadeOut(200).removeClass('active');
+            });
+
+            // Checkout Now Button Reference Click
+            $('#btn-context-checkout').on('click', function() {
+                triggerToast("Redirecting to checkout session with active mystery book...");
+                setTimeout(function() {
+                    window.location.href = "/#blind-date";
+                }, 1000);
+            });
+
+            // Chat input submit trigger
+            function submitMessage(text) {
+                // If there is no text, no tagged books, and no media attachments, return
+                const $chips = $('#tagged-books-preview .tagged-book-preview-chip');
+                const $mediaItems = $('#media-attachment-preview .media-preview-item');
+                if (text === '' && $chips.length === 0 && $mediaItems.length === 0) return;
+
+                const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                
+                // Construct books html if there are tagged books
+                let booksHtml = "";
+                let bookTitlesList = [];
+                if ($chips.length > 0) {
+                    booksHtml += `<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(194, 24, 91, 0.15);">`;
+                    $chips.each(function() {
+                        const title = $(this).data('title');
+                        const author = $(this).data('author');
+                        const img = $(this).data('img');
+                        const link = $(this).data('link');
+                        bookTitlesList.push(title);
+                        
+                        booksHtml += `
+                            <div style="display: flex; gap: 12px; align-items: start; background: #fff; padding: 12px; border-radius: 12px; border: 1.5px solid rgba(194, 24, 91, 0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s;">
+                                <img src="${img}" style="width: 45px; height: 62px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
+                                <div style="flex: 1; min-width: 0; text-align: left;">
+                                    <span style="font-size: 0.65rem; text-transform: uppercase; font-weight: 700; color: #C2185B; background: #F4E1E2; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 4px;">Book Tagged</span>
+                                    <h4 style="font-size: 0.85rem; font-weight: 700; color: #111; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</h4>
+                                    <p style="font-size: 0.72rem; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${author}</p>
+                                    <a href="${link}" style="font-size: 0.72rem; font-weight: 700; color: #C2185B; text-decoration: none; display: inline-block; margin-top: 6px;" target="_blank"><i class="fas fa-external-link-alt"></i> View Book</a>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    booksHtml += `</div>`;
+                }
+
+                // Construct media attachments HTML
+                let mediaHtml = "";
+                if ($mediaItems.length > 0) {
+                    mediaHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(194, 24, 91, 0.15);">`;
+                    $mediaItems.each(function() {
+                        const type = $(this).data('type');
+                        const src = $(this).data('src');
+                        
+                        if (type === 'image') {
+                            mediaHtml += `
+                                <div class="chat-lightbox-trigger" data-src="${src}" style="cursor: zoom-in; width: calc(50% - 4px); min-width: 100px; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s;">
+                                    <img src="${src}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                                </div>
+                            `;
+                        } else {
+                            mediaHtml += `
+                                <div style="width: calc(50% - 4px); min-width: 100px; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+                                    <video src="${src}" controls style="width: 100%; height: 180px; object-fit: contain; background: #000; display: block;"></video>
+                                </div>
+                            `;
+                        }
+                    });
+                    mediaHtml += `</div>`;
+                }
+
+                // Construct user message bubble
+                const userBubble = `
+                    <div class="msg-bubble-group outgoing">
+                        <div class="msg-bubble-content">
+                            <div class="msg-text-bubble" style="${($chips.length > 0 || $mediaItems.length > 0) ? 'background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333; box-shadow: 0 5px 20px rgba(194, 24, 91, 0.03);' : ''}">
+                                ${text !== '' ? `<div style="font-weight: 500;">${text}</div>` : ''}
+                                ${booksHtml}
+                                ${mediaHtml}
+                            </div>
+                            <div class="msg-meta">${time} • Sent <i class="fas fa-check-double" style="color: #C2185B; margin-left: 2px;"></i></div>
+                        </div>
+                    </div>
+                `;
+
+                // Append user bubble and scroll to bottom
+                const $stream = $('#chat-stream');
+                $stream.append(userBubble);
+                scrollToBottom();
+
+                // Clear and hide tagged books preview bar and media preview bar
+                $('#tagged-books-preview').empty().hide();
+                $('#media-attachment-preview').empty().hide();
+
+                // Update convo preview snippet
+                let previewText = text !== '' ? text : "";
+                if ($chips.length > 0) {
+                    previewText = `[Tagged ${$chips.length} Book(s)] ` + previewText;
+                }
+                if ($mediaItems.length > 0) {
+                    previewText = `[Sent ${$mediaItems.length} media file(s)] ` + previewText;
+                }
+                $('[data-shop-id="bookblossom"] .convo-preview').text(previewText);
+                $('[data-shop-id="bookblossom"] .convo-time').text("Just now");
+
+                // Trigger simulated shop reply
+                if ($chips.length > 0) {
+                    // Custom auto-responder for tagged books
+                    setTimeout(function() {
+                        const $typingWrapper = $('#typing-indicator-wrapper');
+                        $typingWrapper.show();
+                        scrollToBottom();
+                        
+                        setTimeout(function() {
+                            $typingWrapper.hide();
+                            let replyText = "";
+                            if (bookTitlesList.length === 1) {
+                                replyText = `Oh! I see you tagged <strong>${bookTitlesList[0]}</strong>. That is an amazing choice! We have this title in excellent condition and packaged elegantly. Would you like to check out now or add a custom message wrapper? 🌸`;
+                            } else {
+                                replyText = `Wow! You tagged multiple books: <strong>${bookTitlesList.join(', ')}</strong>. Those are absolutely wonderful selections! We can bundle them together beautifully in a special gift wrapper with dynamic vibes. Do you have any custom requests for this order? 📦💖`;
+                            }
+                            const shopBubble = `
+                                <div class="msg-bubble-group incoming">
+                                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                    <div class="msg-bubble-content">
+                                        <div class="msg-text-bubble">${replyText}</div>
+                                        <div class="msg-meta">${time} • Shop Supporter</div>
+                                    </div>
+                                </div>
+                            `;
+                            $('#chat-stream').append(shopBubble);
+                            scrollToBottom();
+                        }, 1800);
+                    }, 1000);
+                } else if ($mediaItems.length > 0) {
+                    // Simulated reply for media shared
+                    setTimeout(function() {
+                        const $typingWrapper = $('#typing-indicator-wrapper');
+                        $typingWrapper.show();
+                        scrollToBottom();
+                        
+                        setTimeout(function() {
+                            $typingWrapper.hide();
+                            const replyText = "Oh! Thank you for sharing these media files. 📸 Our curators are looking at them right now! Let us know if you need any assistance or have specific preferences. 🌸";
+                            const shopBubble = `
+                                <div class="msg-bubble-group incoming">
+                                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                    <div class="msg-bubble-content">
+                                        <div class="msg-text-bubble">${replyText}</div>
+                                        <div class="msg-meta">${time} • Shop Supporter</div>
+                                    </div>
+                                </div>
+                            `;
+                            $('#chat-stream').append(shopBubble);
+                            scrollToBottom();
+                        }, 1800);
+                    }, 1000);
+                } else {
+                    simulateShopReply(text);
+                }
+            }
+
+            function scrollToBottom() {
+                const stream = document.getElementById('chat-stream');
+                stream.scrollTop = stream.scrollHeight;
+            }
+
+            // Autoscroll initially
+            scrollToBottom();
+
+            // Submit on Send button click
+            $('#btn-submit-chat').on('click', function() {
+                const text = $('#message-text-input').val().trim();
+                submitMessage(text);
+                $('#message-text-input').val('');
+            });
+
+            // Submit on Enter key press
+            $('#message-text-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    const text = $(this).val().trim();
+                    submitMessage(text);
+                    $(this).val('');
+                }
+            });
+
+            // Quick reply chips triggers
+            $('.quick-reply-chip').on('click', function() {
+                const text = $(this).data('text');
+                submitMessage(text);
+            });
+
+            // Custom simulated auto-responder mapping context
+            function simulateShopReply(userQuery) {
+                const $typingWrapper = $('#typing-indicator-wrapper');
+                
+                // Wait 1.2 seconds, show typing
+                setTimeout(function() {
+                    $typingWrapper.show();
+                    scrollToBottom();
+                    
+                    // Wait another 1.8 seconds, hide typing and send message
+                    setTimeout(function() {
+                        $typingWrapper.hide();
+                        
+                        let replyText = "Thank you for writing to Book Blossom! 🌸 Our customer service agents are currently assisting other readers, but we will write back to you in just a brief moment. Please feel free to check our Shop Vouchers sidebar to apply special discounts!";
+                        const queryLower = userQuery.toLowerCase();
+
+                        // Contextual replies mapping
+                        if (queryLower.includes('stock') || queryLower.includes('mystery book')) {
+                            replyText = "Yes! Our <strong>Mystery Science Fiction Book</strong> is fully in stock and ready to ship! Every order is premium-wrapped and unboxed directly by our curators with no spoilers. 📦✨";
+                        } else if (queryLower.includes('how') || queryLower.includes('works') || queryLower.includes('blind date')) {
+                            replyText = "It is super simple! You browse mystery titles based entirely on genre, clues, publication year, and Goodreads scores, instead of covers. We print wrappers decorated beautifully with vibes. It's a wonderful gift for yourself! 🌸";
+                        } else if (queryLower.includes('coupon') || queryLower.includes('discount') || queryLower.includes('voucher')) {
+                            replyText = "Absolutely! We currently have active shop coupon codes like <strong>BLOSSOM10</strong> (10k off orders above 150k) and <strong>MYSTERY50</strong> (50k off orders above 500k). Just tap 'Apply' on the right sidebar to add them! 🎫";
+                        } else if (queryLower.includes('shipping') || queryLower.includes('deliver') || queryLower.includes('delivery')) {
+                            replyText = "Standard delivery takes approximately <strong>2 to 3 business days</strong> to Ho Chi Minh City and surrounding areas. For other provinces, delivery normally takes 3 to 5 business days. 🚚";
+                        }
+
+                        const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                        const shopBubble = `
+                            <div class="msg-bubble-group incoming">
+                                <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                <div class="msg-bubble-content">
+                                    <div class="msg-text-bubble">${replyText}</div>
+                                    <div class="msg-meta">${time} • Shop Supporter</div>
+                                </div>
+                            </div>
+                        `;
+
+                        $('#chat-stream').append(shopBubble);
+                        scrollToBottom();
+
+                        // Update convo preview
+                        $('[data-shop-id="bookblossom"] .convo-preview').html(replyText);
+                    }, 1800);
+
+                }, 1000);
+            }
+
+            // Trigger Media Attachment File Browser
+            $('#btn-media-attachment-trigger').on('click', function(e) {
+                e.preventDefault();
+                $('#media-attachment-input').click();
+            });
+
+            // Handle Media Selection and Validation
+            $('#media-attachment-input').on('change', function(e) {
+                const files = e.target.files;
+                if (!files || files.length === 0) return;
+
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        // Image size validation (<= 10MB)
+                        const maxImgSize = 10 * 1024 * 1024;
+                        if (file.size > maxImgSize) {
+                            triggerToast(`Image "${file.name}" exceeds the 10MB size limit! (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            addMediaPreviewChip(evt.target.result, 'image', file.name);
+                        };
+                        reader.readAsDataURL(file);
+                    } else if (file.type.startsWith('video/')) {
+                        // Video size validation (<= 50MB)
+                        const maxVidSize = 50 * 1024 * 1024;
+                        if (file.size > maxVidSize) {
+                            triggerToast(`Video "${file.name}" exceeds the 50MB size limit! (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
+                            return;
+                        }
+
+                        // Video file validation (Duration <= 60s)
+                        const video = document.createElement('video');
+                        video.preload = 'metadata';
+                        video.src = URL.createObjectURL(file);
+                        
+                        video.onloadedmetadata = function() {
+                            URL.revokeObjectURL(video.src);
+                            const duration = Math.round(video.duration);
+                            if (duration > 60) {
+                                triggerToast(`Video "${file.name}" exceeds the 60 seconds limit! (${duration}s)`);
+                            } else {
+                                const reader = new FileReader();
+                                reader.onload = function(evt) {
+                                    addMediaPreviewChip(evt.target.result, 'video', file.name, duration);
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        };
+                        
+                        video.onerror = function() {
+                            triggerToast(`Failed to load video file: "${file.name}"`);
+                        };
+                    } else {
+                        triggerToast(`Unsupported file type: "${file.name}"`);
+                    }
+                });
+
+                // Clear input value to allow re-selecting same file
+                $(this).val('');
+            });
+
+            // Helper to render media chips in preview bar
+            function addMediaPreviewChip(dataUrl, type, filename, duration = 0) {
+                let previewItem = "";
+                if (type === 'image') {
+                    previewItem = `
+                        <div class="media-preview-item" data-type="image" data-src="${dataUrl}" style="position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex;">
+                            <img src="${dataUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <button class="btn-remove-media" style="position: absolute; top: 2px; right: 2px; background: rgba(194, 24, 91, 0.85); color: #fff; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; outline: none;"><i class="fas fa-times"></i></button>
+                        </div>
+                    `;
+                } else {
+                    previewItem = `
+                        <div class="media-preview-item" data-type="video" data-src="${dataUrl}" style="position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; background: #000;">
+                            <video src="${dataUrl}" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                            <div style="position: absolute; bottom: 2px; left: 2px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.55rem; padding: 1px 4px; border-radius: 3px; font-weight: 700;"><i class="fas fa-video" style="font-size: 0.5rem; margin-right: 2px;"></i>${duration}s</div>
+                            <button class="btn-remove-media" style="position: absolute; top: 2px; right: 2px; background: rgba(194, 24, 91, 0.85); color: #fff; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; outline: none;"><i class="fas fa-times"></i></button>
+                        </div>
+                    `;
+                }
+
+                $('#media-attachment-preview').append(previewItem).css('display', 'flex');
+                scrollToBottom();
+            }
+
+            // Remove media preview chip trigger
+            $(document).on('click', '.btn-remove-media', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).closest('.media-preview-item').remove();
+                if ($('#media-attachment-preview .media-preview-item').length === 0) {
+                    $('#media-attachment-preview').hide();
+                }
+            });
+
+            // Lightbox Modal triggers for image elements in chat
+            $(document).on('click', '.chat-lightbox-trigger', function() {
+                const src = $(this).data('src');
+                // Hide video, show image
+                $('#lightbox-video').hide().attr('src', '');
+                $('#lightbox-img').attr('src', src).show();
+                // Hide "View in Chat" since we are already viewing it in chat!
+                $('#btn-lightbox-scroll-to-msg').hide();
+                $('#chat-image-lightbox').fadeIn(200).css('display', 'flex');
+            });
+
+            // Lightbox Modal triggers for video elements in chat stream
+            $(document).on('click', '#chat-stream video', function() {
+                const src = $(this).attr('src');
+                // Hide image, show video
+                $('#lightbox-img').hide().attr('src', '');
+                $('#lightbox-video').attr('src', src).show();
+                // Hide "View in Chat" since we are already viewing it in chat!
+                $('#btn-lightbox-scroll-to-msg').hide();
+                $('#chat-image-lightbox').fadeIn(200).css('display', 'flex');
+            });
+
+            // Unified click on Shared Picture/Video Grid Card
+            $(document).on('click', '.shared-picture-card', function(e) {
+                // If they clicked the eye button (or inside it), let the button's click handler run
+                if ($(e.target).closest('.btn-hover-eye-icon').length > 0) {
+                    return;
+                }
+                
+                const $img = $(this).find('.shared-grid-img');
+                const $vid = $(this).find('.shared-grid-video');
+                
+                if ($img.length > 0) {
+                    const src = $img.data('src');
+                    const targetId = $img.data('target-id');
+                    
+                    // Show image, hide video
+                    $('#lightbox-video').hide().attr('src', '');
+                    $('#lightbox-img').attr('src', src).show();
+                    
+                    $('#btn-lightbox-scroll-to-msg').attr('data-target-id', targetId).show();
+                } else if ($vid.length > 0) {
+                    const src = $vid.attr('src');
+                    const targetId = $vid.data('target-id');
+                    
+                    // Show video, hide image
+                    $('#lightbox-img').hide().attr('src', '');
+                    $('#lightbox-video').attr('src', src).show();
+                    
+                    $('#btn-lightbox-scroll-to-msg').attr('data-target-id', targetId).show();
+                }
+                
+                // Hide pictures modal temporarily to avoid overlapping backdrops
+                $('#shared-pictures-modal').hide();
+                $('#chat-image-lightbox').fadeIn(200).css('display', 'flex');
+            });
+
+            // Scroll to message from Lightbox "View in Chat" button click
+            $('#btn-lightbox-scroll-to-msg').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const targetId = $(this).attr('data-target-id');
+                
+                // Hide both modals completely
+                $('#chat-image-lightbox').fadeOut(150);
+                $('#shared-pictures-modal').fadeOut(150).removeClass('active');
+                
+                const $target = $('#' + targetId);
+                if ($target.length > 0) {
+                    const stream = document.getElementById('chat-stream');
+                    const $stream = $('#chat-stream');
+                    
+                    const targetScrollTop = $target.offset().top - $stream.offset().top + $stream.scrollTop() - 40;
+                    
+                    stream.scrollTo({
+                        top: targetScrollTop,
+                        behavior: 'smooth'
+                    });
+                    
+                    const $highlightTarget = $target.closest('.msg-text-bubble');
+                    $highlightTarget.css({
+                        'box-shadow': '0 0 0 5px rgba(194, 24, 91, 0.45)',
+                        'transition': 'all 0.3s ease',
+                        'transform': 'scale(1.015)'
+                    });
+                    
+                    setTimeout(function() {
+                        $highlightTarget.css({
+                            'box-shadow': 'none',
+                            'transform': 'none'
+                        });
+                    }, 1800);
+                }
+            });
+
+            // Hide Lightbox Modal
+            $('#chat-image-lightbox').on('click', function(e) {
+                // If clicked on "View in Chat" button itself, or on the video controls, do not close here
+                if ($(e.target).closest('#btn-lightbox-scroll-to-msg').length > 0 || $(e.target).closest('#lightbox-video').length > 0) {
+                    return;
+                }
+                
+                // Pause fullscreen video on hide to prevent audio playing in the background
+                const videoEl = document.getElementById('lightbox-video');
+                if (videoEl) {
+                    videoEl.pause();
+                }
+                
+                $(this).fadeOut(150, function() {
+                    // Restore Shared Pictures modal wrapper if it is still active
+                    if ($('#shared-pictures-modal').hasClass('active')) {
+                        $('#shared-pictures-modal').show();
+                    }
+                });
+            });
+
+            // Tag Book Modal Triggers
+            $('#btn-tag-book-trigger').on('click', function(e) {
+                e.preventDefault();
+                $('#tag-book-modal').fadeIn(200).addClass('active').css('display', 'flex');
+                // Reset inputs and selections
+                $('#tag-book-link').val('');
+                $('#link-error').hide();
+                $('#tag-book-modal .book-select-item').removeClass('selected');
+            });
+
+            // Dismiss Modal
+            $('#btn-cancel-tag-book, #tag-book-modal .modal-backdrop').on('click', function() {
+                $('#tag-book-modal').fadeOut(200).removeClass('active');
+            });
+
+            // Tabs toggle inside Tag Book Modal
+            $('#tag-book-modal .btn-modal-tab').on('click', function() {
+                $('#tag-book-modal .btn-modal-tab').removeClass('active');
+                $(this).addClass('active');
+                
+                const target = $(this).data('target');
+                $('#tag-book-modal .modal-tab-content').hide().removeClass('active');
+                $('#' + target).fadeIn(150).addClass('active');
+            });
+
+            // Select Book inside lists
+            $('#tag-book-modal .book-select-item').on('click', function() {
+                $('#tag-book-modal .book-select-item').removeClass('selected');
+                $(this).addClass('selected');
+            });
+
+            // Delegate event to remove tagged book chip
+            $(document).on('click', '.btn-remove-tagged-book', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).closest('.tagged-book-preview-chip').remove();
+                if ($('#tagged-books-preview .tagged-book-preview-chip').length === 0) {
+                    $('#tagged-books-preview').hide();
+                }
+            });
+
+            // Confirm Tag Book click
+            $('#btn-confirm-tag-book').on('click', function() {
+                const activeTab = $('#tag-book-modal .btn-modal-tab.active').data('target');
+                let bookTitle = "", bookAuthor = "", bookImg = "", bookLink = "";
+
+                if (activeTab === 'tab-link') {
+                    const linkVal = $('#tag-book-link').val().trim();
+                    if (linkVal === '') {
+                        $('#link-error').text("Please enter a valid link.").show();
+                        return;
+                    }
+                    if (!linkVal.includes('bookblossom.com') && !linkVal.startsWith('/') && !linkVal.includes('#book-details') && !linkVal.includes('#blind-details')) {
+                        $('#link-error').text("Link must contain 'bookblossom.com', start with '/', or use hash views like '#book-details-' / '#blind-details-'.").show();
+                        return;
+                    }
+                    
+                    // Construct metadata from link
+                    if (linkVal.includes('#blind-details-')) {
+                        const hashPart = linkVal.split('#blind-details-')[1];
+                        bookTitle = "Mystery Blind Book (" + decodeURIComponent(hashPart) + ")";
+                        bookAuthor = "BookBlossom Curated";
+                        bookImg = "/images/Book/book1.jpg";
+                    } else if (linkVal.includes('#book-details-')) {
+                        const hashPart = linkVal.split('#book-details-')[1];
+                        bookTitle = decodeURIComponent(hashPart);
+                        bookAuthor = "BookBlossom Curated";
+                        bookImg = "/images/Book/book1.jpg";
+                    } else {
+                        bookTitle = "BookBlossom Shared Book";
+                        bookAuthor = "Community Curator";
+                        bookImg = "/images/Book/book1.jpg";
+                    }
+                    bookLink = linkVal;
+                } else {
+                    // Selection tabs
+                    const $selectedItem = $(`#${activeTab} .book-select-item.selected`);
+                    if ($selectedItem.length === 0) {
+                        triggerToast("Please select a book first!");
+                        return;
+                    }
+                    bookTitle = $selectedItem.data('title');
+                    bookAuthor = $selectedItem.data('author');
+                    bookImg = $selectedItem.data('img');
+                    bookLink = $selectedItem.data('link');
+                }
+
+                // Append chip into the preview bar instead of sending!
+                const previewChip = `
+                    <div class="tagged-book-preview-chip" data-title="${bookTitle}" data-author="${bookAuthor}" data-img="${bookImg}" data-link="${bookLink}" style="display: inline-flex; align-items: center; gap: 8px; background: #F4E1E2; border: 1.5px solid #EEC7C9; padding: 6px 12px; border-radius: 20px; font-size: 0.82rem; color: #C2185B; font-weight: 600; margin: 2px;">
+                        <img src="${bookImg}" style="width: 18px; height: 26px; object-fit: cover; border-radius: 3px;">
+                        <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${bookTitle}</span>
+                        <button class="btn-remove-tagged-book" style="background: none; border: none; color: #C2185B; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; outline: none;"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                `;
+
+                $('#tagged-books-preview').append(previewChip).css('display', 'flex');
+                scrollToBottom();
+
+                // Close Modal
+                $('#tag-book-modal').fadeOut(200).removeClass('active');
+            });
+        });
+    </script>
+
+    <!-- Tag Book Modal -->
+    <div class="custom-modal" id="tag-book-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box" style="max-width: 500px;">
+            <h3>Tag a Book</h3>
+            
+            <div class="modal-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-modal-tab active" data-target="tab-link">By Link</button>
+                <button class="btn-modal-tab" data-target="tab-recent">Recent</button>
+                <button class="btn-modal-tab" data-target="tab-wishlist">Wishlist</button>
+            </div>
+            
+            <!-- Tab Link -->
+            <div id="tab-link" class="modal-tab-content active">
+                <p>Enter the link to the book page on BookBlossom:</p>
+                <input type="text" id="tag-book-link" class="form-control mb-3" placeholder="https://bookblossom.com/book/123" style="width: 100%; border: 1px solid #f0e2e5; padding: 10px 15px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 10px;">
+                <div id="link-error" style="color: #ff4444; font-size: 0.85rem; display: none; margin-bottom: 10px; text-align: left;">Link must be from BookBlossom domain (contains 'bookblossom.com' or starts with '/').</div>
+            </div>
+            
+            <!-- Tab Recent -->
+            <div id="tab-recent" class="modal-tab-content" style="display: none;">
+                <p>Select a recently viewed book:</p>
+                <div class="book-select-list" style="max-height: 200px; overflow-y: auto;">
+                    <div class="book-select-item" data-title="Mystery Blind Book (Sci-Fi Vibe)" data-author="BookBlossom Curated" data-img="/images/Book/book1.jpg" data-link="/#blind-details-%23SciFi%23Space%23AI">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Mystery Blind Book (Sci-Fi Vibe)</h4>
+                            <p>BookBlossom Curated • Blind Date Book</p>
+                        </div>
+                    </div>
+                    <div class="book-select-item" data-title="The Secret Garden" data-author="Frances Hodgson Burnett" data-img="/images/Book/book1.jpg" data-link="/#book-details-The%20Secret%20Garden">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>The Secret Garden</h4>
+                            <p>Frances Hodgson Burnett • Premium Edition</p>
+                        </div>
+                    </div>
+                    <div class="book-select-item" data-title="Think and Grow Rich" data-author="Napoleon Hill" data-img="/images/Book/book1.jpg" data-link="/#book-details-Think%20and%20Grow%20Rich">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Think and Grow Rich</h4>
+                            <p>Napoleon Hill • Self-Help</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Wishlist -->
+            <div id="tab-wishlist" class="modal-tab-content" style="display: none;">
+                <p>Select a book from your wishlist:</p>
+                <div class="book-select-list" style="max-height: 200px; overflow-y: auto;">
+                    <div class="book-select-item" data-title="Atomic Habits" data-author="James Clear" data-img="/images/Book/book1.jpg" data-link="/#book-details-Atomic%20Habits">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Atomic Habits</h4>
+                            <p>James Clear • Personal Growth</p>
+                        </div>
+                    </div>
+                    <div class="book-select-item" data-title="Mystery Blind Book (Romance Vibe)" data-author="BookBlossom Curated" data-img="/images/Book/book1.jpg" data-link="/#blind-details-%23Romance%23Drama%23Fate">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Mystery Blind Book (Romance)</h4>
+                            <p>BookBlossom Curated • Blind Date Book</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-btns mt-3">
+                <button class="btn-modal-cancel" id="btn-cancel-tag-book">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-confirm-tag-book">Tag Book</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .shared-picture-card:hover .shared-grid-img {
+            transform: scale(1.08);
+        }
+        .shared-picture-card:hover .shared-card-overlay {
+            opacity: 1 !important;
+        }
+        .shared-picture-card:hover .btn-hover-eye-icon {
+            transform: translateY(0) !important;
+        }
+        .shared-picture-card:hover {
+            border-color: #C2185B !important;
+            box-shadow: 0 6px 20px rgba(194, 24, 91, 0.15) !important;
+        }
+    </style>
+
+    <!-- Shared Pictures Modal -->
+    <div class="custom-modal" id="shared-pictures-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 4, 6, 0.85); backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; background: #fff; border-radius: 20px; border: 1.5px solid #EEC7C9; box-shadow: 0 10px 40px rgba(194, 24, 91, 0.15); padding: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #F4E1E2; padding-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #C2185B; display: flex; align-items: center; gap: 8px;"><i class="far fa-images"></i> Shared Pictures</h3>
+                <button class="btn-close-shared-modal" style="background: none; border: none; font-size: 1.25rem; color: #888; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#888'"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="shared-pictures-grid-container" id="shared-pictures-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 5px;">
+                <!-- Populated dynamically via JS -->
+            </div>
+            
+            <div id="shared-pictures-empty" style="display: none; text-align: center; padding: 40px 20px; color: #999;">
+                <i class="far fa-image" style="font-size: 3rem; color: #EEC7C9; margin-bottom: 12px; display: block;"></i>
+                <p style="margin: 0; font-size: 0.95rem; font-weight: 500;">No pictures have been shared in this chat yet. 🌸</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shared Book Links Modal -->
+    <div class="custom-modal" id="shared-links-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 4, 6, 0.85); backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 500px; background: #fff; border-radius: 20px; border: 1.5px solid #EEC7C9; box-shadow: 0 10px 40px rgba(194, 24, 91, 0.15); padding: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #F4E1E2; padding-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #C2185B; display: flex; align-items: center; gap: 8px;"><i class="fas fa-link"></i> Shared Book Links</h3>
+                <button class="btn-close-shared-modal" style="background: none; border: none; font-size: 1.25rem; color: #888; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#888'"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="shared-links-list-container" id="shared-links-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding: 5px;">
+                <!-- Populated dynamically via JS -->
+            </div>
+            
+            <div id="shared-links-empty" style="display: none; text-align: center; padding: 40px 20px; color: #999;">
+                <i class="fas fa-link" style="font-size: 3rem; color: #EEC7C9; margin-bottom: 12px; display: block;"></i>
+                <p style="margin: 0; font-size: 0.95rem; font-weight: 500;">No book links have been shared in this chat yet. 🌸</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="chat-image-lightbox" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 4, 6, 0.9); backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; cursor: zoom-out;">
+        <img id="lightbox-img" src="" style="max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); transition: transform 0.3s ease;">
+        <video id="lightbox-video" src="" controls style="display: none; max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); outline: none;"></video>
+        <button style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"><i class="fas fa-times"></i></button>
+        
+        <!-- View in Chat button inside Lightbox -->
+        <button id="btn-lightbox-scroll-to-msg" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #C2185B; color: #fff; border: none; padding: 12px 28px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: none; align-items: center; gap: 8px; box-shadow: 0 6px 20px rgba(194, 24, 91, 0.4); transition: all 0.2s; outline: none; z-index: 10000;" onmouseover="this.style.background='#a0134a'; this.style.transform='translateX(-50%) scale(1.05)';" onmouseout="this.style.background='#C2185B'; this.style.transform='translateX(-50%)';">
+            <i class="fas fa-eye"></i> View in Chat
+        </button>
+    </div>
+</body>
+</html>

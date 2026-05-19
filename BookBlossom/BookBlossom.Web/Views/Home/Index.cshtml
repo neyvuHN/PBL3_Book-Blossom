@@ -1466,8 +1466,8 @@
         }
 
         .btn-cart-blind:hover {
-            background: #a291b5 !important; /* Thay đổi nền sang màu tím lavender */
-            border-color: #a291b5 !important;
+            background: #000000ff !important; /* Thay đổi nền sang màu đen */
+            border-color: #000000ff !important;
             color: #fff !important; /* Đổi màu chữ sang trắng */
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(162, 145, 181, 0.3) !important;
@@ -3315,7 +3315,7 @@
                             </div>
                         </div>
 
-                        <a href="#" class="btn-chat-owner" style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid #a291b5; border-radius: 30px; padding: 10px 20px; color: #6a4f8c; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: all 0.2s ease; margin-bottom: 15px; background: transparent;" onmouseover="this.style.background='#6a4f8c'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#6a4f8c';">
+                        <a href="/Messages" class="btn-chat-owner" style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid #a291b5; border-radius: 30px; padding: 10px 20px; color: #6a4f8c; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: all 0.2s ease; margin-bottom: 15px; background: transparent;" onmouseover="this.style.background='#6a4f8c'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#6a4f8c';">
                             <i class="far fa-comment-dots"></i> Chat with Book Blossom
                         </a>
 
@@ -3896,11 +3896,31 @@
                 showReviews(false);
                 history.replaceState({ view: 'reviews' }, '', '#reviews');
             } else if (initialHash.startsWith('#book-details-')) {
+                const bookTitleDecoded = decodeURIComponent(initialHash.substring('#book-details-'.length));
                 showHome(false);
-                history.replaceState({ view: 'home' }, '', '#home');
+                setTimeout(function() {
+                    const mockBook = {
+                        title: bookTitleDecoded,
+                        author: bookTitleDecoded === "The Secret Garden" ? "Frances Hodgson Burnett" : (bookTitleDecoded === "Think and Grow Rich" ? "Napoleon Hill" : (bookTitleDecoded === "Atomic Habits" ? "James Clear" : "BookBlossom Curator")),
+                        imgSrc: "/images/Book/book1.jpg"
+                    };
+                    showProductDetails(mockBook, false);
+                    history.replaceState({ view: 'product-details', bookData: mockBook }, '', initialHash);
+                }, 300);
             } else if (initialHash.startsWith('#blind-details-')) {
+                const tagsDecoded = decodeURIComponent(initialHash.substring('#blind-details-'.length));
                 showBlindDate(false);
-                history.replaceState({ view: 'blind-date' }, '', '#blind-date');
+                setTimeout(function() {
+                    const mockBlindBook = {
+                        imgSrc: "/images/Book/book1.jpg",
+                        desc: "A handpicked mystery treasure featuring clues: " + tagsDecoded + ". Fully wrapped with dynamic vibes and custom visual decorations. 🌸",
+                        firstLine: "What is written in the stars shall blossom in your hands.",
+                        price: "120.000 VND",
+                        hashtags: tagsDecoded
+                    };
+                    showBlindDateDetails(mockBlindBook, false);
+                    history.replaceState({ view: 'blind-date-details', blindBookData: mockBlindBook }, '', initialHash);
+                }, 300);
             } else {
                 showHome(false);
                 history.replaceState({ view: 'home' }, '', '#home');

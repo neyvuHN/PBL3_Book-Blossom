@@ -16,6 +16,12 @@ namespace BookBlossom.Web.Controllers
             return View();
         }
 
+        [Route("Messages")]
+        public IActionResult Messages()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
