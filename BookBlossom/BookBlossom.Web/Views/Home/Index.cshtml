@@ -787,6 +787,20 @@
         .coupon-slider::-webkit-scrollbar-thumb:hover {
             background: #d0c7b9;
         }
+        .blind-coupons-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .blind-coupons-container::-webkit-scrollbar-track {
+            background: #faf8fc;
+            border-radius: 4px;
+        }
+        .blind-coupons-container::-webkit-scrollbar-thumb {
+            background: #e8e3f0;
+            border-radius: 4px;
+        }
+        .blind-coupons-container::-webkit-scrollbar-thumb:hover {
+            background: #a291b5;
+        }
         #btn-detail-buy {
             transition: all 0.3s ease !important;
         }
@@ -1305,6 +1319,52 @@
         }
         .vouchers-modal-list::-webkit-scrollbar-thumb:hover {
             background: rgba(194, 24, 91, 0.3);
+        }
+
+        .modal-blind-voucher-item {
+            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            position: relative;
+            flex-shrink: 0 !important; /* PREVENT FLEX SHRINK SQUISHING */
+            min-height: 85px !important; /* GUARANTEE SPACIOUS HEIGHT FOR TEXT */
+        }
+        .modal-blind-voucher-item.selected {
+            border-style: solid !important;
+            border-width: 2px !important;
+            border-color: #6a4f8c !important;
+            background: #f7f4fa !important;
+            box-shadow: 0 5px 15px rgba(106, 79, 140, 0.08) !important;
+        }
+        .modal-blind-voucher-item.selected::after {
+            content: '\f058'; /* FontAwesome circle-check */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            color: #6a4f8c;
+            font-size: 1.15rem;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .modal-blind-voucher-item.selected .btn-modal-apply-blind-voucher {
+            background: #6a4f8c !important;
+            color: #fff !important;
+            border-color: #6a4f8c !important;
+        }
+        #blind-vouchers-modal .vouchers-modal-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        #blind-vouchers-modal .vouchers-modal-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #blind-vouchers-modal .vouchers-modal-list::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.15);
+            border-radius: 3px;
+        }
+        #blind-vouchers-modal .vouchers-modal-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(106, 79, 140, 0.3);
         }
 
         /* Explore Layout Sidebar Transitions */
@@ -3289,7 +3349,7 @@
                 </div>
 
                 <!-- Right Column: Clues Box, Transaction Box, Vouchers & Shipping -->
-                <div class="blind-right-col" style="display: flex; flex-direction: column; gap: 25px;">
+                <div class="blind-right-col" style="display: flex; flex-direction: column; gap: 25px; min-width: 0;">
                     <!-- The Clues Box -->
                     <div class="clues-box" style="background: #F4F1F8; border: 1px solid #E6DFED; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); text-align: left;">
                         <h4 style="color: #6a4f8c; font-weight: 800; font-size: 1.25rem; margin-top: 0; margin-bottom: 20px; font-family: 'Playfair Display', serif; display: flex; align-items: center; gap: 8px;">
@@ -3407,7 +3467,7 @@
                     </div>
 
                     <!-- Vouchers Section (Blind Date specific, styled premium with purple theme) -->
-                    <div class="blind-vouchers-box" style="background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); border: 1px solid #f1edf5; text-align: left;">
+                    <div class="blind-vouchers-box" style="background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); border: 1px solid #f1edf5; text-align: left; min-width: 0; overflow: hidden;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
                                 <i class="fas fa-ticket-alt" style="color: #6a4f8c; font-size: 1rem;"></i> Available Vouchers
@@ -3416,9 +3476,9 @@
                         </div>
                         
                         <!-- Coupons Container (Horizontal Scrollable) -->
-                        <div class="blind-coupons-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                        <div class="blind-coupons-container" style="display: flex; gap: 12px; overflow-x: auto; padding-top: 12px; padding-bottom: 12px; padding-left: 8px; padding-right: 8px; scrollbar-width: thin; width: 100%; max-width: 100%; box-sizing: border-box;">
                             <!-- Card 1 -->
-                            <div class="blind-coupon-card" data-code="MYSTERY15" data-discount="15000" style="background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                            <div class="blind-coupon-card" data-code="MYSTERY15" data-discount="15000" style="flex: 0 0 170px; background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
                                 <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
                                 <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">MYSTERY15</div>
                                 <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 15k VND</div>
@@ -3426,7 +3486,7 @@
                             </div>
                             
                             <!-- Card 2 -->
-                            <div class="blind-coupon-card" data-code="BLOSSOM70" data-discount="70000" style="background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                            <div class="blind-coupon-card" data-code="BLOSSOM70" data-discount="70000" style="flex: 0 0 170px; background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
                                 <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
                                 <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">BLOSSOM70</div>
                                 <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 70k VND</div>
@@ -3434,11 +3494,35 @@
                             </div>
 
                             <!-- Card 3 -->
-                            <div class="blind-coupon-card" data-code="READMORE30" data-discount="30000" style="background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                            <div class="blind-coupon-card" data-code="READMORE30" data-discount="30000" style="flex: 0 0 170px; background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
                                 <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
                                 <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">READMORE30</div>
                                 <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 30k VND</div>
                                 <div style="font-size: 0.72rem; color: #888;">First purchase</div>
+                            </div>
+
+                            <!-- Card 4: SECRET50 -->
+                            <div class="blind-coupon-card" data-code="SECRET50" data-discount="50000" style="flex: 0 0 170px; background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                                <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">SECRET50</div>
+                                <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 50k VND</div>
+                                <div style="font-size: 0.72rem; color: #888;">Min order 350k</div>
+                            </div>
+
+                            <!-- Card 5: UNBOX20 -->
+                            <div class="blind-coupon-card" data-code="UNBOX20" data-discount="20000" style="flex: 0 0 170px; background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                                <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">UNBOX20</div>
+                                <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 20k VND</div>
+                                <div style="font-size: 0.72rem; color: #888;">Min order 200k</div>
+                            </div>
+
+                            <!-- Card 6: VIPMYSTERY -->
+                            <div class="blind-coupon-card" data-code="VIPMYSTERY" data-discount="100000" style="flex: 0 0 170px; background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                                <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">VIPMYSTERY</div>
+                                <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 100k VND</div>
+                                <div style="font-size: 0.72rem; color: #888;">Min order 800k</div>
                             </div>
                         </div>
                     </div>
@@ -6866,16 +6950,79 @@
                 showToast('Shipping destination selection is disabled in the online demo.');
             });
 
-            // Blind Book Voucher Card Click
-            $(document).on('click', '.blind-coupons-container .blind-coupon-card', function() {
-                const code = $(this).find('div').first().text().trim();
-                showToast(`Mystery Coupon "${code}" selected!`);
-            });
-
-            // Blind Book See All Vouchers Click
+            // See All Blind Vouchers button click
             $(document).on('click', '#btn-see-all-blind-vouchers', function(e) {
                 e.preventDefault();
-                showToast('All currently available mystery promotions are listed.');
+                
+                // Read what's currently selected on the main page
+                const selectedOnPage = new Set();
+                $('.blind-coupons-container .blind-coupon-card.selected').each(function() {
+                    selectedOnPage.add($(this).attr('data-code'));
+                });
+
+                // Set initial selections in the modal list
+                $('.modal-blind-voucher-item').each(function() {
+                    const code = $(this).attr('data-code');
+                    const isSelected = selectedOnPage.has(code);
+                    if (isSelected) {
+                        $(this).addClass('selected');
+                        $(this).find('.btn-modal-apply-blind-voucher').text('Applied');
+                    } else {
+                        $(this).removeClass('selected');
+                        $(this).find('.btn-modal-apply-blind-voucher').text('Apply');
+                    }
+                });
+
+                $('#blind-modal-selected-count').text(selectedOnPage.size);
+                $('#blind-vouchers-modal').fadeIn(250);
+            });
+
+            // Close Blind Voucher Modal
+            $(document).on('click', '#btn-close-blind-vouchers, #btn-confirm-blind-vouchers, #blind-vouchers-modal .modal-backdrop', function() {
+                $('#blind-vouchers-modal').fadeOut(250);
+                if ($(this).attr('id') === 'btn-confirm-blind-vouchers') {
+                    const selectedCount = $('.blind-coupons-container .blind-coupon-card.selected').length;
+                    if (selectedCount > 0) {
+                        showToast(`Successfully applied ${selectedCount} voucher(s) to order!`);
+                    }
+                }
+            });
+
+            // Click on a voucher item inside the See All Blind Modal
+            $(document).on('click', '.modal-blind-voucher-item', function(e) {
+                const code = $(this).attr('data-code');
+                const $mainPageCard = $(`.blind-coupons-container .blind-coupon-card[data-code="${code}"]`);
+                
+                $(this).toggleClass('selected');
+                const isSelected = $(this).hasClass('selected');
+                
+                if (isSelected) {
+                    $(this).find('.btn-modal-apply-blind-voucher').text('Applied');
+                    
+                    // Mark as selected on main page
+                    if ($mainPageCard.length && !$mainPageCard.hasClass('selected')) {
+                        $mainPageCard.trigger('click');
+                    }
+                    showToast(`Mystery Voucher "${code}" applied!`);
+                } else {
+                    $(this).find('.btn-modal-apply-blind-voucher').text('Apply');
+                    
+                    // Unmark on main page
+                    if ($mainPageCard.length && $mainPageCard.hasClass('selected')) {
+                        $mainPageCard.trigger('click');
+                    }
+                    showToast(`Mystery Voucher "${code}" removed.`);
+                }
+                
+                // Update selected count in modal footer
+                const selectedCount = $('.modal-blind-voucher-item.selected').length;
+                $('#blind-modal-selected-count').text(selectedCount);
+            });
+
+            // Prevent double-trigger when clicking the inner Apply button
+            $(document).on('click', '.btn-modal-apply-blind-voucher', function(e) {
+                e.stopPropagation(); // Stop bubble so we don't trigger click twice
+                $(this).closest('.modal-blind-voucher-item').trigger('click');
             });
 
             // Blind Book Address Change Click
@@ -7123,6 +7270,128 @@
             <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
                 <span style="font-size: 0.85rem; color: #666;"><strong id="modal-selected-count">0</strong> voucher(s) selected</span>
                 <button class="btn-modal-confirm" id="btn-confirm-vouchers" style="width: 140px; margin: 0; background: #C2185B; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">Apply Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BookBlossom Blind Vouchers Modal -->
+    <div class="custom-modal" id="blind-vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(106, 79, 140, 0.15); border: 1px solid rgba(106, 79, 140, 0.15);">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #6a4f8c; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🔮 Mystery Book Vouchers
+                </h3>
+                <button class="btn-close-blind-vouchers" id="btn-close-blind-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#6a4f8c'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content - Scrollable List -->
+            <div class="vouchers-modal-list" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <!-- Item 1: MYSTERY15 -->
+                <div class="modal-blind-voucher-item" data-code="MYSTERY15" data-discount="15000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">MYSTERY15</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 15,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 150k VNĐ. Applies to Mystery Books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 2: BLOSSOM70 -->
+                <div class="modal-blind-voucher-item" data-code="BLOSSOM70" data-discount="70000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to Mystery Books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 3: READMORE30 -->
+                <div class="modal-blind-voucher-item" data-code="READMORE30" data-discount="30000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">READMORE30</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first Blind Date purchase.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 4: SECRET50 -->
+                <div class="modal-blind-voucher-item" data-code="SECRET50" data-discount="50000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">SECRET50</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 50,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 350k VNĐ. Special mystery gift discount.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 5: UNBOX20 -->
+                <div class="modal-blind-voucher-item" data-code="UNBOX20" data-discount="20000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">UNBOX20</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 20,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 200k VNĐ. Applies to Mystery Books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 6: VIPMYSTERY -->
+                <div class="modal-blind-voucher-item" data-code="VIPMYSTERY" data-discount="100000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">VIPMYSTERY</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 100,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 800k VNĐ. Premium tier exclusive mystery discount.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;"><strong id="blind-modal-selected-count">0</strong> voucher(s) selected</span>
+                <button class="btn-modal-confirm" id="btn-confirm-blind-vouchers" style="width: 140px; margin: 0; background: #6a4f8c; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">Apply Selected</button>
             </div>
         </div>
     </div>
@@ -7695,40 +7964,62 @@
                 });
             });
 
-            // Selection logic for blind book vouchers
-            const blindCouponCards = document.querySelectorAll('.blind-coupons-container .blind-coupon-card');
-            blindCouponCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    const checkmark = this.querySelector('.checkmark-badge-blind');
-                    this.classList.toggle('selected');
-                    const isSelected = this.classList.contains('selected');
-                    
-                    if (isSelected) {
-                        checkmark.style.display = 'flex';
-                        this.style.border = '2px solid #6a4f8c';
-                        this.style.background = '#f7f4fa';
-                    } else {
-                        checkmark.style.display = 'none';
-                        this.style.border = '1.5px dashed #a291b5';
-                        this.style.background = '#faf8fc';
-                    }
+            // Reorder blind vouchers to put selected ones at the top/beginning of the list
+            function sortBlindVouchersOnPage() {
+                const container = document.querySelector('.blind-coupons-container');
+                if (!container) return;
+                
+                const cards = Array.from(container.children);
+                cards.sort((a, b) => {
+                    const aSel = a.classList.contains('selected') ? 1 : 0;
+                    const bSel = b.classList.contains('selected') ? 1 : 0;
+                    return bSel - aSel;
                 });
+                
+                cards.forEach(card => container.appendChild(card));
+            }
+
+            // Selection logic for blind book vouchers
+            $(document).on('click', '.blind-coupons-container .blind-coupon-card', function() {
+                const checkmark = this.querySelector('.checkmark-badge-blind');
+                this.classList.toggle('selected');
+                const isSelected = this.classList.contains('selected');
+                
+                if (isSelected) {
+                    checkmark.style.display = 'flex';
+                    this.style.border = '2px solid #6a4f8c';
+                    this.style.background = '#f7f4fa';
+                } else {
+                    checkmark.style.display = 'none';
+                    this.style.border = '1.5px dashed #a291b5';
+                    this.style.background = '#faf8fc';
+                }
+                
+                // Immediately sort cards so selected ones jump to the beginning of the list
+                sortBlindVouchersOnPage();
             });
 
             function getSelectedVouchers() {
                 const selected = [];
-                document.querySelectorAll('.coupon-slider .coupon-card.selected').forEach(card => {
-                    selected.push({
-                        code: card.dataset.code,
-                        discount: parseInt(card.dataset.discount)
+                const isBlind = window.checkoutState && window.checkoutState.isBlind;
+                
+                if (isBlind) {
+                    // Only apply vouchers from the Blind Date Details page
+                    document.querySelectorAll('.blind-coupons-container .blind-coupon-card.selected').forEach(card => {
+                        selected.push({
+                            code: card.dataset.code,
+                            discount: parseInt(card.dataset.discount) || 0
+                        });
                     });
-                });
-                document.querySelectorAll('.blind-coupons-container .blind-coupon-card.selected').forEach(card => {
-                    selected.push({
-                        code: card.dataset.code,
-                        discount: parseInt(card.dataset.discount)
+                } else {
+                    // Only apply vouchers from the Regular Book Details page
+                    document.querySelectorAll('.coupon-slider .coupon-card.selected').forEach(card => {
+                        selected.push({
+                            code: card.dataset.code,
+                            discount: parseInt(card.dataset.discount) || 0
+                        });
                     });
-                });
+                }
                 return selected;
             }
 
@@ -7850,6 +8141,8 @@
                     const priceText = document.getElementById('detail-price') ? document.getElementById('detail-price').innerText : "297.000";
                     const pricePerItem = parseInt(priceText.replace(/[^0-9]/g, '')) || 297000;
                     
+                    // Set checkout state type to regular book
+                    window.checkoutState.isBlind = false;
                     window.checkoutState.subtotal = pricePerItem * qty;
                     window.checkoutState.shippingFee = 30000; // default shipping
                     const formatted = new Intl.NumberFormat('vi-VN').format(window.checkoutState.subtotal) + ' VND';
@@ -7881,6 +8174,8 @@
                 document.getElementById('checkout-book-img').src = imgSrc;
                 document.getElementById('checkout-book-qty').innerText = qty;
                 
+                // Set checkout state type to blind book
+                window.checkoutState.isBlind = true;
                 window.checkoutState.subtotal = pricePerItem * qty;
                 window.checkoutState.shippingFee = 30000; // default shipping for blind books
                 const formattedSubtotal = new Intl.NumberFormat('vi-VN').format(window.checkoutState.subtotal) + ' VND';
