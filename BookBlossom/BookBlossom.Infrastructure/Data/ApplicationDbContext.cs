@@ -22,6 +22,8 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<RealBook> RealBooks {get; set; }
         public DbSet<Importing> Importings { get; set; }
         public DbSet<ImportingDetail> ImportingDetails { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<Wishlist> Wishlists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

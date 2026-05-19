@@ -53,6 +53,10 @@ builder.Services.AddScoped<ITindbookService, TindbookService>();
 // Đăng ký IRealBookService
 builder.Services.AddScoped<IRealBookService, RealBookService>();
 
+// Đăng ký ICartService & IWishlistService
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -86,9 +90,7 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         Description = "Nhập token theo định dạng: Bearer {your_token}",
         In = OpenApiModels.ParameterLocation.Header,
-        Type = OpenApiModels.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
+        Type = OpenApiModels.SecuritySchemeType.ApiKey,
         Reference = new OpenApiModels.OpenApiReference
         {
             Id = "Bearer",

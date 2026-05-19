@@ -12,10 +12,14 @@ namespace BookBlossom.Infrastructure.Services
     public class GuestService : IGuestService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICartService _cartService;
+        private readonly IWishlistService _wishlistService;
 
-        public GuestService(ApplicationDbContext context)
+        public GuestService(ApplicationDbContext context, ICartService cartService, IWishlistService wishlistService)
         {
             _context = context;
+            _cartService = cartService;
+            _wishlistService = wishlistService;
         }
 
         public async Task<GuestSessionResponseDTO> CreateGuestSessionAsync(string? ipAddress, string? deviceInfo)
@@ -68,13 +72,10 @@ namespace BookBlossom.Infrastructure.Services
             if (guest != null && guest.ConvertedUserID == null)
             {
                 guest.ConvertedUserID = newUserId;
-                
-                // TODO: Migrate Cart, Wishlist from GuestID to newUserId
-                // Example:
-                // var carts = await _context.Carts.Where(c => c.GuestID == guestId).ToListAsync();
-                // foreach(var cart in carts) { cart.UserID = newUserId; cart.GuestID = null; }
-                
                 await _context.SaveChangesAsync();
+                
+                await _cartService.MigrateGuestCartToUserAsync(guestId, newUserId);
+                await _wishlistService.MigrateGuestWishlistToUserAsync(guestId, newUserId);
             }
         }
 

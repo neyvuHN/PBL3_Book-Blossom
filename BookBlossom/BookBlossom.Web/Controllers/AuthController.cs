@@ -78,6 +78,25 @@ namespace BookBlossom.Web.Controllers
             try
             {
                 var result = await _authService.LoginAsync(request);
+
+                // Migrate Guest Cart and Wishlist if GuestID is present
+                if (Request.Headers.TryGetValue("X-Guest-ID", out var guestIdHeader) && Guid.TryParse(guestIdHeader.ToString(), out var guestId))
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+                    if (user != null)
+                    {
+                        await _guestService.MigrateGuestDataToUserAsync(guestId, user.UserID);
+                    }
+                }
+                else if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid guestIdFromItems)
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+                    if (user != null)
+                    {
+                        await _guestService.MigrateGuestDataToUserAsync(guestIdFromItems, user.UserID);
+                    }
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
