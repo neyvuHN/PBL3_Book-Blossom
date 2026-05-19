@@ -1363,6 +1363,39 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
+            // Dynamic Active Product Context Parser from URL query params (Index detail redirect support)
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramTitle = urlParams.get('title');
+            const paramPrice = urlParams.get('price');
+            const paramImg = urlParams.get('img');
+            const paramLink = urlParams.get('link');
+            
+            if (paramTitle && paramPrice && paramImg) {
+                // Update Context Bar UI dynamically
+                $('#context-book-img').attr('src', paramImg);
+                $('#context-book-title').html(paramTitle);
+                $('#context-book-price').text(paramPrice);
+                
+                // Show context bar in case it was hidden
+                $('#chat-product-bar').slideDown(150);
+            }
+
+            // Auto-attach tagged book preview chip if book link is provided in the URL
+            if (paramTitle && paramImg && paramLink) {
+                // Ensure no duplicate chip is attached
+                if ($(`#tagged-books-preview .tagged-book-preview-chip[data-link="${paramLink}"]`).length === 0) {
+                    const previewChip = `
+                        <div class="tagged-book-preview-chip" data-title="${paramTitle}" data-author="BookBlossom Curated" data-img="${paramImg}" data-link="${paramLink}" style="display: inline-flex; align-items: center; gap: 8px; background: #F4E1E2; border: 1.5px solid #EEC7C9; padding: 6px 12px; border-radius: 20px; font-size: 0.82rem; color: #C2185B; font-weight: 600; margin: 2px;">
+                            <img src="${paramImg}" style="width: 18px; height: 26px; object-fit: cover; border-radius: 3px;">
+                            <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${paramTitle}</span>
+                            <button class="btn-remove-tagged-book" style="background: none; border: none; color: #C2185B; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; outline: none;"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    `;
+                    $('#tagged-books-preview').append(previewChip).css('display', 'flex');
+                    scrollToBottom();
+                }
+            }
+
             // Dropdown Toggle
             const $userDropdown = $('.user-dropdown');
             $userDropdown.on('click', function(e) {

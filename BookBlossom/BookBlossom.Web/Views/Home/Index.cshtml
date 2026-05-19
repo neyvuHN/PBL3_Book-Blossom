@@ -5439,6 +5439,12 @@
                 $('.blind-thumb-wrapper').first().css('border-color', '#a291b5');
                 currentBlindImageIndex = 0;
 
+                // Update Chat with Book Blossom link dynamically with active book query params
+                const activeHash = `#blind-details-${encodeURIComponent(blindBookData.hashtags.replace(/\s/g, ''))}`;
+                const fullLink = window.location.origin + '/' + activeHash;
+                const chatHref = `/Messages?title=${encodeURIComponent('Blind Date: ' + blindBookData.desc.split('\n')[0])}&price=${encodeURIComponent(blindBookData.price)}&img=${encodeURIComponent(blindBookData.imgSrc)}&link=${encodeURIComponent(fullLink)}`;
+                $('.btn-chat-owner').attr('href', chatHref);
+
                 // Reset blind wishlist button state
                 $('#btn-toggle-blind-wishlist').find('i').attr('class', 'far fa-heart').css('color', '');
                 $('#btn-toggle-blind-wishlist').css('border-color', '#ddd').css('background', '#fff');
