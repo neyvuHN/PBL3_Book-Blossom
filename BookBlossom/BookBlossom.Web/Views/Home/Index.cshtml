@@ -3209,100 +3209,42 @@
                 </button>
             </div>
 
-            <!-- Figma Two/Three Column Layout -->
-            <div class="blind-detail-layout" style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 30px; align-items: start;">
+            <!-- Figma Two Column Layout -->
+            <div class="blind-detail-layout" style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start;">
                 
-                <!-- Left Column: Visual Gallery & Condition Gallery -->
-                <div class="blind-visual-col">
-                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Visual Gallery</h3>
-                    <div class="blind-main-image-card" style="background: #f7f3ed; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.1); position: relative; text-align: center; overflow: hidden;">
-                        <img id="blind-detail-main-img" src="/images/BlindDateBook/BlindBook1.jpg" alt="Mystery Gift Wrapped Book" style="width: 100%; border-radius: 12px; object-fit: cover; max-height: 450px;">
-                        
-                        <!-- Navigation Arrows inside Visual Gallery, hidden by default, shown on hover -->
-                        <button class="blind-gallery-prev" style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.2s ease; opacity: 0; pointer-events: none; z-index: 10;">
-                            <i class="fas fa-chevron-left" style="color: #6a4f8c; font-size: 1.1rem;"></i>
-                        </button>
-                        <button class="blind-gallery-next" style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.2s ease; opacity: 0; pointer-events: none; z-index: 10;">
-                            <i class="fas fa-chevron-right" style="color: #6a4f8c; font-size: 1.1rem;"></i>
-                        </button>
-                    </div>
-
-                    <!-- Condition Gallery Title & Thumbnails -->
-                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-top: 30px; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Condition Gallery</h3>
-                    <div class="blind-condition-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-                        <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid #a291b5; cursor: pointer; transition: all 0.2s ease;">
-                            <img src="/images/BlindDateBook/BlindBook1.jpg" style="width: 100%; height: 100px; object-fit: cover;">
-                        </div>
-                        <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease;">
-                            <img src="/images/BlindDateBook/BlindBook2.jpg" style="width: 100%; height: 100px; object-fit: cover;">
-                        </div>
-                        <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease;">
-                            <img src="/images/BlindDateBook/BlindBook3.jpg" style="width: 100%; height: 100px; object-fit: cover;">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Center Column: Investigation & Chat -->
-                <div class="blind-investigation-col">
-                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Investigation</h3>
-                    
-                    <!-- The Clues Box -->
-                    <div class="clues-box" style="background: #e8e3f0; border-radius: 16px; padding: 25px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.15); margin-bottom: 25px;">
-                        <h4 style="color: #6a4f8c; font-weight: 800; font-size: 1.1rem; margin-top: 0; margin-bottom: 15px;">The Clues</h4>
-                        
-                        <div class="clue-item" style="margin-bottom: 15px;">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Hook</span>
-                            <p id="blind-clue-hook" style="font-weight: 700; font-size: 1.1rem; color: #333; margin: 4px 0 0 0;">A cozy mystery in 1920s London...</p>
+                <!-- Left Column: Visual Gallery, Condition Gallery, Chat & Rules -->
+                <div class="blind-visual-col" style="display: flex; flex-direction: column; gap: 25px;">
+                    <!-- Visual Gallery -->
+                    <div>
+                        <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-top: 0; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Visual Gallery</h3>
+                        <div class="blind-main-image-card" style="background: #FAF8F5; border: 1px solid #EAE3D8; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.06); position: relative; text-align: center; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 460px;">
+                            <img id="blind-detail-main-img" src="/images/BlindDateBook/BlindBook1.jpg" alt="Mystery Gift Wrapped Book" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px; transition: transform 0.3s ease;">
+                            
+                            <!-- Navigation Arrows inside Visual Gallery, hidden by default, shown on hover -->
+                            <button class="blind-gallery-prev" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.2s ease; opacity: 0; pointer-events: none; z-index: 10;">
+                                <i class="fas fa-chevron-left" style="color: #6a4f8c; font-size: 1.1rem;"></i>
+                            </button>
+                            <button class="blind-gallery-next" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.2s ease; opacity: 0; pointer-events: none; z-index: 10;">
+                                <i class="fas fa-chevron-right" style="color: #6a4f8c; font-size: 1.1rem;"></i>
+                            </button>
                         </div>
 
-                        <div class="clue-item" style="margin-bottom: 15px;">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Category</span>
-                            <p id="blind-clue-category" style="font-weight: 700; font-size: 1.05rem; color: #6a4f8c; margin: 4px 0 0 0;">Romantic Fiction</p>
-                        </div>
-
-                        <div class="clue-item" style="margin-bottom: 15px;">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Keywords</span>
-                            <p id="blind-clue-keywords" style="font-size: 0.95rem; color: #444; margin: 4px 0 0 0; line-height: 1.4;">Baking, Paris, Slow-burn, Enemies to Lovers</p>
-                        </div>
-
-                        <div class="clue-item" style="margin-bottom: 20px;">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quotes</span>
-                            <blockquote style="border-left: none; padding: 0; margin: 8px 0 0 0; position: relative;">
-                                <span style="font-size: 3rem; color: #ee7c8b; font-family: Georgia, serif; line-height: 1; position: absolute; left: -10px; top: -15px; opacity: 0.3;">“</span>
-                                <p id="blind-clue-quote" style="font-style: italic; color: #444; font-size: 1.05rem; padding-left: 20px; line-height: 1.5; margin: 0;">"The clock struck thirteen, and I knew I was in trouble.."</p>
-                            </blockquote>
-                        </div>
-
-                        <div class="clue-item" style="margin-bottom: 15px;">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Hashtags</span>
-                            <div id="blind-clue-hashtags" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
-                                <!-- Dynamically populated badges -->
+                        <!-- Condition Gallery Title & Thumbnails -->
+                        <div class="blind-condition-gallery" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;">
+                            <div class="blind-thumb-wrapper active" style="border-radius: 12px; overflow: hidden; border: 2px solid #6a4f8c; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 4px 10px rgba(106, 79, 140, 0.08); height: 120px;">
+                                <img src="/images/BlindDateBook/BlindBook1.jpg" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
-                        </div>
-
-                        <div class="clue-item" style="margin-bottom: 15px;">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Goodreads Score</span>
-                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                                <div class="rating-stars" style="color: #ffb400; font-size: 1.2rem;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star-half-alt"></i>
-                                </div>
-                                <span id="blind-clue-goodreads" style="font-weight: 600; color: #555;">★ 4.2 / 5</span>
+                            <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.02); height: 120px;" onmouseover="this.style.borderColor='#a291b5'" onmouseout="if(!this.classList.contains('active')) this.style.borderColor='transparent'">
+                                <img src="/images/BlindDateBook/BlindBook2.jpg" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
-                            <span id="blind-clue-rating-range" style="font-size: 0.85rem; color: #777; display: block; margin-top: 2px;">Community Rating: ★ 4.0 - 4.2</span>
-                        </div>
-
-                        <div class="clue-item">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Publication Year</span>
-                            <p id="blind-clue-year" style="font-weight: 600; color: #333; margin: 4px 0 0 0; filter: blur(3px); user-select: none;" title="Revealed upon receipt">Publication Year: 1994</p>
+                            <div class="blind-thumb-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.02); height: 120px;" onmouseover="this.style.borderColor='#a291b5'" onmouseout="if(!this.classList.contains('active')) this.style.borderColor='transparent'">
+                                <img src="/images/BlindDateBook/BlindBook3.jpg" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
                         </div>
                     </div>
 
                     <!-- Chat with BookBlossom Box -->
-                    <div class="blind-chat-box" style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.08); border: 1px solid #f1edf5;">
+                    <div class="blind-chat-box" style="background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); border: 1px solid #f1edf5;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <img src="/images/Avatar/avatar1.jpg" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #a291b5; object-fit: cover;">
@@ -3313,89 +3255,215 @@
                             </div>
                         </div>
 
-                        <a href="#" class="btn-chat-owner" style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid #a291b5; border-radius: 30px; padding: 8px 20px; color: #6a4f8c; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: all 0.2s ease; margin-bottom: 15px; background: transparent;">
+                        <a href="#" class="btn-chat-owner" style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid #a291b5; border-radius: 30px; padding: 10px 20px; color: #6a4f8c; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: all 0.2s ease; margin-bottom: 15px; background: transparent;" onmouseover="this.style.background='#6a4f8c'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#6a4f8c';">
                             <i class="far fa-comment-dots"></i> Chat with Book Blossom
                         </a>
 
                         <!-- Small Chat Bubbles -->
-                        <div class="mock-chat-container" style="background: #faf8fc; border-radius: 12px; padding: 12px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px;">
-                            <div class="chat-bubble-buyer" style="align-self: flex-end; background: #6a4f8c; color: white; padding: 8px 12px; border-radius: 12px 12px 2px 12px; max-width: 85%; line-height: 1.4;">
+                        <div class="mock-chat-container" style="background: #faf8fc; border-radius: 12px; padding: 15px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px;">
+                            <div class="chat-bubble-buyer" style="align-self: flex-end; background: #6a4f8c; color: white; padding: 10px 14px; border-radius: 14px 14px 2px 14px; max-width: 85%; line-height: 1.4;">
                                 Hi! I'm interested in this Blind Date. Can you confirm if it is [Book Title]? I don't want a duplicate.
                             </div>
-                            <div class="chat-bubble-seller" style="align-self: flex-start; background: #e8e3f0; color: #333; padding: 8px 12px; border-radius: 12px 12px 12px 2px; max-width: 85%; line-height: 1.4;">
+                            <div class="chat-bubble-seller" style="align-self: flex-start; background: #e8e3f0; color: #333; padding: 10px 14px; border-radius: 14px 14px 14px 2px; max-width: 85%; line-height: 1.4;">
                                 Hi! Yes, I can confirm it's [Book Title] 😊 Don't worry, it won't be a duplicate.
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Right Column: Transaction Box, Condition Report & Rules -->
-                <div class="blind-transaction-col">
-                    <h3 style="font-size: 1.2rem; color: #333; font-weight: 700; margin-bottom: 15px; font-family: 'Playfair Display', serif;">Transaction Box</h3>
-                    
-                    <div class="transaction-box" style="background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.1); border: 1px solid #f1edf5; margin-bottom: 25px;">
-                        <!-- Price Block -->
-                        <div style="margin-bottom: 20px;">
-                            <span style="font-size: 0.85rem; color: #777;">Price Block</span>
-                            <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 4px;">
-                                <span id="blind-detail-price" style="font-size: 2.2rem; font-weight: 800; color: #a291b5; font-family: 'Playfair Display', serif;">120.000 VNĐ</span>
-                                <span style="font-size: 0.9rem; color: #888; text-decoration: line-through;">180.000 VNĐ</span>
-                            </div>
-                            <div style="font-size: 0.85rem; color: #555; margin-top: 4px; display: flex; gap: 10px;">
-                                <span>Shipping: <strong>30.000 VNĐ</strong></span>
-                                <span>&bull;</span>
-                                <span>Wrap: <strong>Premium Kraft</strong></span>
-                            </div>
-                        </div>
-
-                        <!-- Trust Notices -->
-
-                        <div class="trust-notice-dispute" style="background: #fff0dc; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: #7f551c; display: flex; gap: 10px; margin-bottom: 20px; line-height: 1.4;">
-                            <i class="fas fa-video" style="margin-top: 2px;"></i>
-                            <div>
-                                <strong>Dispute Policy:</strong> Unboxing video required for returns.
-                            </div>
-                        </div>
-
-                        <!-- Quantity Selector & Action Row: styled like regular book details -->
-                        <div class="detail-actions-row" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;">
-                            <!-- Quantity Selector -->
-                            <div class="quantity-selector" style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 30px; background: #fdfcf9; overflow: hidden; height: 48px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); max-width: 140px; margin-bottom: 5px;">
-                                <button id="btn-blind-qty-minus" style="border: none; background: none; width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #555; transition: background 0.2s;">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input id="input-blind-qty" type="number" value="1" min="1" max="99" style="border: none; background: none; width: 44px; text-align: center; font-weight: 700; font-size: 1rem; color: #111; outline: none; -moz-appearance: textfield;">
-                                <button id="btn-blind-qty-plus" style="border: none; background: none; width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #555; transition: background 0.2s;">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-
-                            <!-- Buy Mystery Book Button (styled like regular Buy Now) -->
-                            <button class="btn-buy-blind" style="background: #f07c7c; color: #fff; border: none; padding: 0 30px; height: 48px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 15px rgba(240, 124, 124, 0.3); flex-grow: 1; min-width: 150px; text-align: center; margin-bottom: 5px;">
-                                Buy Mystery Book
-                            </button>
-
-                            <!-- Add to Cart Button (styled like regular Add to Cart) -->
-                            <button class="btn-cart-blind" style="background: #fff; color: #111; border: 1.5px solid #111; padding: 0 30px; height: 48px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.2s; flex-grow: 1; min-width: 130px; text-align: center; margin-bottom: 5px;">
-                                Add to Cart
-                            </button>
-                        </div>
-                    </div>
 
                     <!-- How This Works Collapsible -->
-                    <div class="how-this-works-box" style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.05); border: 1px solid #f1edf5;">
+                    <div class="how-this-works-box" style="background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); border: 1px solid #f1edf5;">
                         <div class="collapsible-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                            <h4 style="margin: 0; font-size: 1rem; color: #333; font-weight: 700;">How this works</h4>
+                            <h4 style="margin: 0; font-size: 1.05rem; color: #333; font-weight: 700; display: flex; align-items: center; gap: 8px;"><i class="fas fa-question-circle" style="color: #6a4f8c;"></i> How this works</h4>
                             <i class="fas fa-chevron-up" style="color: #a291b5;"></i>
                         </div>
-                        <div class="collapsible-content" style="margin-top: 15px; font-size: 0.85rem; color: #555; line-height: 1.5;">
+                        <div class="collapsible-content" style="margin-top: 15px; font-size: 0.85rem; color: #555; line-height: 1.6;">
                             <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
                                 <li>You buy based on vibes.</li>
                                 <li>We hold the money.</li>
                                 <li>You film the unboxing.</li>
                                 <li>If the genre is wrong, you get a refund. If you just 'don't like it', sales are final.</li>
                             </ol>
-                            <a href="#" style="color: #ee7c8b; font-size: 0.8rem; display: block; margin-top: 15px; font-weight: 600;"><i class="far fa-flag"></i> Report this listing</a>
+                            <a href="#" style="color: #ee7c8b; font-size: 0.8rem; display: block; margin-top: 15px; font-weight: 600; text-decoration: none;"><i class="far fa-flag"></i> Report this listing</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Clues Box, Transaction Box, Vouchers & Shipping -->
+                <div class="blind-right-col" style="display: flex; flex-direction: column; gap: 25px;">
+                    <!-- The Clues Box -->
+                    <div class="clues-box" style="background: #F4F1F8; border: 1px solid #E6DFED; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); text-align: left;">
+                        <h4 style="color: #6a4f8c; font-weight: 800; font-size: 1.25rem; margin-top: 0; margin-bottom: 20px; font-family: 'Playfair Display', serif; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-search" style="font-size: 1.15rem;"></i> Book Investigation Clues
+                        </h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 30px;">
+                            <!-- Left Sub-column -->
+                            <div>
+                                <div class="clue-item" style="margin-bottom: 18px;">
+                                    <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Hook</span>
+                                    <p id="blind-clue-hook" style="font-weight: 700; font-size: 1.1rem; color: #333; margin: 4px 0 0 0; line-height: 1.3;">A cozy mystery in 1920s London...</p>
+                                </div>
+
+                                <div class="clue-item" style="margin-bottom: 18px;">
+                                    <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Category</span>
+                                    <p id="blind-clue-category" style="font-weight: 700; font-size: 1.05rem; color: #6a4f8c; margin: 4px 0 0 0;">Romantic Fiction</p>
+                                </div>
+
+                                <div class="clue-item" style="margin-bottom: 18px;">
+                                    <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Goodreads Score</span>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                        <div class="rating-stars" style="color: #ffb400; font-size: 1.1rem;">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star-half-alt"></i>
+                                        </div>
+                                        <span id="blind-clue-goodreads" style="font-weight: 600; color: #555;">★ 4.2 / 5</span>
+                                    </div>
+                                    <span id="blind-clue-rating-range" style="font-size: 0.8rem; color: #777; display: block; margin-top: 2px;">Community Rating: ★ 4.0 - 4.2</span>
+                                </div>
+
+                                <div class="clue-item">
+                                    <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Publication Year</span>
+                                    <p id="blind-clue-year" style="font-weight: 600; color: #333; margin: 4px 0 0 0; filter: blur(3px); user-select: none;" title="Revealed upon receipt">Publication Year: 1994</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Sub-column -->
+                            <div style="border-left: 1px solid #E6DFED; padding-left: 30px;">
+                                <div class="clue-item" style="margin-bottom: 18px;">
+                                    <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Keywords</span>
+                                    <p id="blind-clue-keywords" style="font-size: 0.95rem; color: #444; margin: 4px 0 0 0; line-height: 1.4;">Baking, Paris, Slow-burn, Enemies to Lovers</p>
+                                </div>
+
+                                <div class="clue-item" style="margin-bottom: 18px;">
+                                    <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quotes</span>
+                                    <blockquote style="border-left: none; padding: 0; margin: 6px 0 0 0; position: relative;">
+                                        <span style="font-size: 2.2rem; color: #ee7c8b; font-family: Georgia, serif; line-height: 1; position: absolute; left: -10px; top: -12px; opacity: 0.3;">“</span>
+                                        <p id="blind-clue-quote" style="font-style: italic; color: #444; font-size: 0.98rem; padding-left: 16px; line-height: 1.45; margin: 0;">"The clock struck thirteen, and I knew I was in trouble.."</p>
+                                    </blockquote>
+                                </div>
+
+                                <div class="clue-item">
+                                    <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Hashtags</span>
+                                    <div id="blind-clue-hashtags" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                                        <!-- Dynamically populated badges -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Box -->
+                    <div class="transaction-box" style="background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); border: 1px solid #f1edf5; text-align: left;">
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f9f7fc; padding-bottom: 20px;">
+                            <!-- Price Block -->
+                            <div>
+                                <span style="font-size: 0.85rem; color: #777; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Special Price</span>
+                                <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 6px;">
+                                    <span id="blind-detail-price" style="font-size: 2.2rem; font-weight: 800; color: #6a4f8c; font-family: 'Playfair Display', serif;">120.000 VNĐ</span>
+                                    <span style="font-size: 1rem; color: #aaa; text-decoration: line-through;">180.000 VNĐ</span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: #555; margin-top: 6px; display: flex; gap: 8px;">
+                                    <span>Shipping: <strong>30.000 VNĐ</strong></span>
+                                    <span>&bull;</span>
+                                    <span>Wrap: <strong>Premium Kraft</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Trust Notices -->
+                            <div class="trust-notice-dispute" style="background: #fff0dc; border-radius: 12px; padding: 12px 15px; font-size: 0.82rem; color: #7f551c; display: flex; gap: 10px; line-height: 1.4;">
+                                <i class="fas fa-video" style="margin-top: 2px; font-size: 1rem;"></i>
+                                <div>
+                                    <strong>Dispute Policy:</strong><br>Unboxing video required for returns/refunds.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantity Selector & Action Row: styled like regular book details -->
+                        <div class="detail-actions-row" style="display: grid; grid-template-columns: 130px 1.2fr 1fr; gap: 15px; width: 100%;">
+                            <!-- Quantity Selector -->
+                            <div class="quantity-selector" style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 30px; background: #fdfcf9; overflow: hidden; height: 48px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                                <button id="btn-blind-qty-minus" style="border: none; background: none; width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #555; transition: background 0.2s;">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input id="input-blind-qty" type="number" value="1" min="1" max="99" style="border: none; background: none; width: 50px; text-align: center; font-weight: 700; font-size: 1rem; color: #111; outline: none; -moz-appearance: textfield;">
+                                <button id="btn-blind-qty-plus" style="border: none; background: none; width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #555; transition: background 0.2s;">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <!-- Buy Mystery Book Button (styled like regular Buy Now) -->
+                            <button class="btn-buy-blind" style="background: #ee7c8b; color: #fff; border: none; height: 48px; border-radius: 30px; font-weight: 700; font-size: 1.02rem; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 15px rgba(238, 124, 139, 0.25); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <i class="fas fa-shopping-bag"></i> Buy Mystery Book
+                            </button>
+
+                            <!-- Add to Cart Button (styled like regular Add to Cart) -->
+                            <button class="btn-cart-blind" style="background: #fff; color: #111; border: 1.5px solid #111; height: 48px; border-radius: 30px; font-weight: 700; font-size: 1.02rem; cursor: pointer; transition: all 0.2s; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Vouchers Section (Blind Date specific, styled premium with purple theme) -->
+                    <div class="blind-vouchers-box" style="background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); border: 1px solid #f1edf5; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fas fa-ticket-alt" style="color: #6a4f8c; font-size: 1rem;"></i> Available Vouchers
+                            </h4>
+                            <a href="#" id="btn-see-all-blind-vouchers" style="color: #6a4f8c; font-weight: 700; text-decoration: none; font-size: 0.82rem; transition: color 0.2s;" onmouseover="this.style.color='#ee7c8b';" onmouseout="this.style.color='#6a4f8c';">See All</a>
+                        </div>
+                        
+                        <!-- Coupons Container (Horizontal Scrollable) -->
+                        <div class="blind-coupons-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                            <!-- Card 1 -->
+                            <div class="blind-coupon-card" data-code="MYSTERY15" data-discount="15000" style="background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                                <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">MYSTERY15</div>
+                                <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 15k VND</div>
+                                <div style="font-size: 0.72rem; color: #888;">Min order 150k</div>
+                            </div>
+                            
+                            <!-- Card 2 -->
+                            <div class="blind-coupon-card" data-code="BLOSSOM70" data-discount="70000" style="background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                                <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">BLOSSOM70</div>
+                                <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 70k VND</div>
+                                <div style="font-size: 0.72rem; color: #888;">Min order 500k</div>
+                            </div>
+
+                            <!-- Card 3 -->
+                            <div class="blind-coupon-card" data-code="READMORE30" data-discount="30000" style="background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                                <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">READMORE30</div>
+                                <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">Save 30k VND</div>
+                                <div style="font-size: 0.72rem; color: #888;">First purchase</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Information Section (Blind Date specific, styled premium with purple theme) -->
+                    <div class="blind-shipping-info-box" style="background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05); border: 1px solid #f1edf5; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fas fa-truck" style="color: #6a4f8c; font-size: 1rem;"></i> Shipping Information
+                        </h4>
+                        
+                        <!-- Delivery Address -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #faf8fc;">
+                            <div>
+                                <span style="color: #888;">Deliver to:</span> <strong id="blind-detail-shipping-addr-text" style="color: #333;">Phường Bến Nghé, Quận 1, Hồ Chí Minh</strong>
+                            </div>
+                            <a href="#" id="btn-change-blind-shipping" style="color: #6a4f8c; font-weight: 700; text-decoration: none; font-size: 0.82rem; transition: color 0.2s;" onmouseover="this.style.color='#ee7c8b';" onmouseout="this.style.color='#6a4f8c';">Change Info</a>
+                        </div>
+                        
+                        <!-- Delivery Time Estimation -->
+                        <div style="display: flex; align-items: flex-start; gap: 12px; font-size: 0.88rem; color: #555;">
+                            <span style="color: #2e7d32; font-size: 1.2rem; margin-top: -2px;"><i class="fas fa-check-circle"></i></span>
+                            <div>
+                                <span style="font-weight: 700; color: #111;">Standard Delivery Option</span>
+                                <div id="blind-shipping-est-date" style="font-size: 0.82rem; color: #666; margin-top: 4px;">Estimated delivery inside 2-3 business days</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6798,6 +6866,24 @@
                 showToast('Shipping destination selection is disabled in the online demo.');
             });
 
+            // Blind Book Voucher Card Click
+            $(document).on('click', '.blind-coupons-container .blind-coupon-card', function() {
+                const code = $(this).find('div').first().text().trim();
+                showToast(`Mystery Coupon "${code}" selected!`);
+            });
+
+            // Blind Book See All Vouchers Click
+            $(document).on('click', '#btn-see-all-blind-vouchers', function(e) {
+                e.preventDefault();
+                showToast('All currently available mystery promotions are listed.');
+            });
+
+            // Blind Book Address Change Click
+            $(document).on('click', '#btn-change-blind-shipping', function(e) {
+                e.preventDefault();
+                showToast('Shipping destination selection is disabled in the online demo.');
+            });
+
         });
     </script>
 
@@ -7609,9 +7695,35 @@
                 });
             });
 
+            // Selection logic for blind book vouchers
+            const blindCouponCards = document.querySelectorAll('.blind-coupons-container .blind-coupon-card');
+            blindCouponCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const checkmark = this.querySelector('.checkmark-badge-blind');
+                    this.classList.toggle('selected');
+                    const isSelected = this.classList.contains('selected');
+                    
+                    if (isSelected) {
+                        checkmark.style.display = 'flex';
+                        this.style.border = '2px solid #6a4f8c';
+                        this.style.background = '#f7f4fa';
+                    } else {
+                        checkmark.style.display = 'none';
+                        this.style.border = '1.5px dashed #a291b5';
+                        this.style.background = '#faf8fc';
+                    }
+                });
+            });
+
             function getSelectedVouchers() {
                 const selected = [];
                 document.querySelectorAll('.coupon-slider .coupon-card.selected').forEach(card => {
+                    selected.push({
+                        code: card.dataset.code,
+                        discount: parseInt(card.dataset.discount)
+                    });
+                });
+                document.querySelectorAll('.blind-coupons-container .blind-coupon-card.selected').forEach(card => {
                     selected.push({
                         code: card.dataset.code,
                         discount: parseInt(card.dataset.discount)
@@ -7632,7 +7744,11 @@
                     selected.forEach(v => {
                         totalDiscount += v.discount;
                         const badge = document.createElement('div');
-                        badge.style.cssText = 'background: #ffebee; border: 1px solid #f07c7c; color: #C2185B; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px;';
+                        const isMystery = v.code.startsWith('MYSTERY');
+                        const bg = isMystery ? '#faf8fc' : '#ffebee';
+                        const border = isMystery ? '1px solid #a291b5' : '1px solid #f07c7c';
+                        const textCol = isMystery ? '#6a4f8c' : '#C2185B';
+                        badge.style.cssText = `background: ${bg}; border: ${border}; color: ${textCol}; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px;`;
                         badge.innerHTML = `<i class="fas fa-ticket"></i> ${v.code} (-${new Intl.NumberFormat('vi-VN').format(v.discount)} VND)`;
                         list.appendChild(badge);
                     });
