@@ -1143,7 +1143,7 @@
                 </div>
                 
                 <div class="chat-header-actions">
-                    <button class="header-action-btn" title="Call center"><i class="fas fa-phone"></i></button>
+                    <button class="header-action-btn" id="btn-call-center" title="Call center"><i class="fas fa-phone"></i></button>
                     <button class="header-action-btn" id="btn-toggle-chat-search" title="Search messages"><i class="fas fa-search"></i></button>
                 </div>
             </div>
@@ -2185,6 +2185,139 @@
                 $('#tag-book-modal .book-select-item').removeClass('selected');
             });
 
+            // Call Center / Support Request Modal triggers
+            $('#btn-call-center').on('click', function(e) {
+                e.preventDefault();
+                $('#call-center-modal').fadeIn(200).addClass('active').css('display', 'flex');
+                
+                // Clear active/checked states
+                $('#call-center-form')[0].reset();
+                $('.support-checkbox-label').removeClass('checked').css({
+                    'borderColor': '#F4E1E2',
+                    'background': 'none',
+                    'color': '#555',
+                    'fontWeight': 'normal'
+                });
+            });
+
+            // Dismiss Support Request Modal
+            $('.btn-close-call-modal, #call-center-modal .modal-backdrop').on('click', function() {
+                $('#call-center-modal').fadeOut(200).removeClass('active');
+            });
+
+            // Checkbox styling highlight toggle
+            $('.support-checkbox-label input[type="checkbox"]').on('change', function() {
+                const $label = $(this).closest('.support-checkbox-label');
+                if ($(this).is(':checked')) {
+                    $label.addClass('checked').css({
+                        'borderColor': '#C2185B',
+                        'background': '#fdf5f6',
+                        'color': '#C2185B',
+                        'fontWeight': '700'
+                    });
+                } else {
+                    $label.removeClass('checked').css({
+                        'borderColor': '#F4E1E2',
+                        'background': 'none',
+                        'color': '#555',
+                        'fontWeight': 'normal'
+                    });
+                }
+            });
+
+            // Handle submission of Support Request Form
+            $('#call-center-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                const selectedTopics = [];
+                $('input[name="supportTopic"]:checked').each(function() {
+                    selectedTopics.push($(this).val());
+                });
+                
+                if (selectedTopics.length === 0) {
+                    alert('Vui lòng chọn ít nhất một chủ đề bạn cần hỗ trợ!');
+                    return;
+                }
+                
+                const phone = $('#support-phone').val().trim();
+                const notes = $('#support-notes').val().trim();
+                
+                // Close modal
+                $('#call-center-modal').fadeOut(200).removeClass('active');
+                
+                // Construct a beautiful customer message simulation representing the ticket request
+                const timestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                
+                const ticketHtml = `
+                    <div class="msg-bubble-group outgoing">
+                        <div class="msg-bubble-content">
+                            <div class="msg-text-bubble" style="background: #FFF5F6; border: 1.5px solid #EEC7C9; color: #333; padding: 15px; border-radius: 18px; box-shadow: 0 4px 15px rgba(194, 24, 91, 0.05); max-width: 320px;">
+                                <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; color: #C2185B; border-bottom: 1.5px dashed #EEC7C9; padding-bottom: 8px; margin-bottom: 8px; font-size: 0.9rem;">
+                                    <i class="fas fa-ticket-alt"></i> SUPPORT REQUEST TICKET
+                                </div>
+                                <div style="font-size: 0.8rem; line-height: 1.5; color: #444;">
+                                    <strong>Topics:</strong> ${selectedTopics.join(', ')}<br>
+                                    <strong>Phone:</strong> ${phone}<br>
+                                    ${notes ? `<strong>Notes:</strong> ${notes}<br>` : ''}
+                                    <span style="display: inline-block; margin-top: 8px; background: rgba(194, 24, 91, 0.1); color: #C2185B; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;"><i class="fas fa-spinner fa-spin" style="margin-right: 4px;"></i>Pending curation team</span>
+                                </div>
+                            </div>
+                            <div class="msg-meta">${timestamp} • Jane Doe</div>
+                        </div>
+                    </div>
+                `;
+                
+                $('#chat-stream').append(ticketHtml);
+                scrollToBottom();
+                
+                // Simulate Curators answering automatically in 2 seconds
+                setTimeout(function() {
+                    const replyHtml = `
+                        <div class="msg-bubble-group incoming">
+                            <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                            <div class="msg-bubble-content">
+                                <div class="msg-text-bubble">
+                                    Thank you Jane! 🌸 We have successfully received your support ticket regarding <strong>${selectedTopics[0]}</strong>. A BookBlossom support specialist will call you at <strong>${phone}</strong> shortly!
+                                </div>
+                                <div class="msg-meta">${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} • Shop Supporter</div>
+                            </div>
+                        </div>
+                    `;
+                    $('#chat-stream').append(replyHtml);
+                    scrollToBottom();
+                    
+                    // Trigger toast notification
+                    showConfettiOrToast("Support request sent! Our curator will reach out to you within minutes.");
+                }, 2000);
+            });
+
+            // Helper to display a beautiful toast notification
+            function showConfettiOrToast(message) {
+                const toastHtml = `
+                    <div class="support-success-toast" style="position: fixed; bottom: 25px; right: 25px; background: #C2185B; color: #fff; padding: 14px 28px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; z-index: 100000; box-shadow: 0 10px 30px rgba(194, 24, 91, 0.45); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateY(20px); transition: all 0.3s ease;">
+                        <i class="fas fa-check-circle" style="font-size: 1.1rem;"></i> ${message}
+                    </div>
+                `;
+                const $toast = $(toastHtml);
+                $('body').append($toast);
+                
+                // Trigger transition
+                setTimeout(function() {
+                    $toast.css({
+                        'opacity': '1',
+                        'transform': 'translateY(0)'
+                    });
+                }, 50);
+                
+                setTimeout(function() {
+                    $toast.css({
+                        'opacity': '0',
+                        'transform': 'translateY(20px)'
+                    });
+                    setTimeout(function() { $toast.remove(); }, 300);
+                }, 4000);
+            }
+
             // Dismiss Modal
             $('#btn-cancel-tag-book, #tag-book-modal .modal-backdrop').on('click', function() {
                 $('#tag-book-modal').fadeOut(200).removeClass('active');
@@ -2421,6 +2554,79 @@
         <button id="btn-lightbox-scroll-to-msg" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #C2185B; color: #fff; border: none; padding: 12px 28px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: none; align-items: center; gap: 8px; box-shadow: 0 6px 20px rgba(194, 24, 91, 0.4); transition: all 0.2s; outline: none; z-index: 10000;" onmouseover="this.style.background='#a0134a'; this.style.transform='translateX(-50%) scale(1.05)';" onmouseout="this.style.background='#C2185B'; this.style.transform='translateX(-50%)';">
             <i class="fas fa-eye"></i> View in Chat
         </button>
+    </div>
+
+    <!-- Support / Call Center Modal -->
+    <div class="custom-modal" id="call-center-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 4, 6, 0.85); backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 500px; background: #fff; border-radius: 20px; border: 1.5px solid #EEC7C9; box-shadow: 0 10px 40px rgba(194, 24, 91, 0.15); padding: 25px; box-sizing: border-box;">
+            
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #F4E1E2; padding-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #C2185B; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-headset"></i> Support Request
+                </h3>
+                <button type="button" class="btn-close-call-modal" style="background: none; border: none; font-size: 1.25rem; color: #888; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#888'"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- Content Form -->
+            <form id="call-center-form" style="display: flex; flex-direction: column; gap: 15px;">
+                
+                <!-- Subtitle -->
+                <div style="font-size: 0.9rem; font-weight: 600; color: #444; margin-bottom: 2px;">
+                    Request support from BookBlossom Shop
+                </div>
+                
+                <!-- Question / Category Select -->
+                <div>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #C2185B; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Bạn muốn được hỗ trợ về vấn đề gì?
+                    </label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; cursor: pointer; padding: 8px 12px; border: 1.5px solid #F4E1E2; border-radius: 10px; transition: all 0.2s;" class="support-checkbox-label" onmouseover="this.style.borderColor='#EEC7C9'" onmouseout="if(!$(this).find('input').is(':checked')) this.style.borderColor='#F4E1E2'">
+                            <input type="checkbox" name="supportTopic" value="Sản phẩm / sách" style="accent-color: #C2185B;"> Sản phẩm / sách
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; cursor: pointer; padding: 8px 12px; border: 1.5px solid #F4E1E2; border-radius: 10px; transition: all 0.2s;" class="support-checkbox-label" onmouseover="this.style.borderColor='#EEC7C9'" onmouseout="if(!$(this).find('input').is(':checked')) this.style.borderColor='#F4E1E2'">
+                            <input type="checkbox" name="supportTopic" value="Đơn hàng" style="accent-color: #C2185B;"> Đơn hàng
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; cursor: pointer; padding: 8px 12px; border: 1.5px solid #F4E1E2; border-radius: 10px; transition: all 0.2s;" class="support-checkbox-label" onmouseover="this.style.borderColor='#EEC7C9'" onmouseout="if(!$(this).find('input').is(':checked')) this.style.borderColor='#F4E1E2'">
+                            <input type="checkbox" name="supportTopic" value="Thanh toán" style="accent-color: #C2185B;"> Thanh toán
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; cursor: pointer; padding: 8px 12px; border: 1.5px solid #F4E1E2; border-radius: 10px; transition: all 0.2s;" class="support-checkbox-label" onmouseover="this.style.borderColor='#EEC7C9'" onmouseout="if(!$(this).find('input').is(':checked')) this.style.borderColor='#F4E1E2'">
+                            <input type="checkbox" name="supportTopic" value="Giao hàng" style="accent-color: #C2185B;"> Giao hàng
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; cursor: pointer; padding: 8px 12px; border: 1.5px solid #F4E1E2; border-radius: 10px; transition: all 0.2s;" class="support-checkbox-label" onmouseover="this.style.borderColor='#EEC7C9'" onmouseout="if(!$(this).find('input').is(':checked')) this.style.borderColor='#F4E1E2'">
+                            <input type="checkbox" name="supportTopic" value="Khiếu nại / hoàn tiền" style="accent-color: #C2185B;"> Khiếu nại / hoàn tiền
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; cursor: pointer; padding: 8px 12px; border: 1.5px solid #F4E1E2; border-radius: 10px; transition: all 0.2s;" class="support-checkbox-label" onmouseover="this.style.borderColor='#EEC7C9'" onmouseout="if(!$(this).find('input').is(':checked')) this.style.borderColor='#F4E1E2'">
+                            <input type="checkbox" name="supportTopic" value="Khác" style="accent-color: #C2185B;"> Khác
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Phone Input -->
+                <div>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #C2185B; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Số điện thoại nhận cuộc gọi
+                    </label>
+                    <input type="tel" id="support-phone" placeholder="09xxxxxxxx" required style="width: 100%; border: 1.5px solid #EEC7C9; border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#C2185B'" onblur="this.style.borderColor='#EEC7C9'">
+                </div>
+                
+                <!-- Additional Notes -->
+                <div>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #C2185B; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Ghi chú thêm
+                    </label>
+                    <textarea id="support-notes" placeholder="Tôi muốn hỏi thêm về blind date book này..." rows="3" style="width: 100%; border: 1.5px solid #EEC7C9; border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; resize: none;" onfocus="this.style.borderColor='#C2185B'" onblur="this.style.borderColor='#EEC7C9'"></textarea>
+                </div>
+                
+                <!-- Footer / Actions -->
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px; border-top: 2px solid #F4E1E2; padding-top: 15px;">
+                    <button type="button" class="btn-close-call-modal" style="border: none; background: #f5f5f5; color: #666; padding: 10px 20px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'">Hủy</button>
+                    <button type="submit" style="border: none; background: #C2185B; color: #fff; padding: 10px 24px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.25);" onmouseover="this.style.background='#a0134a'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#C2185B'; this.style.transform='none';">Gửi yêu cầu hỗ trợ</button>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 </html>
