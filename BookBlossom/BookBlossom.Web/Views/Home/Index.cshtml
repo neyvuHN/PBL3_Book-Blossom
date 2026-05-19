@@ -3225,10 +3225,6 @@
                         <button class="blind-gallery-next" style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.2s ease; opacity: 0; pointer-events: none; z-index: 10;">
                             <i class="fas fa-chevron-right" style="color: #6a4f8c; font-size: 1.1rem;"></i>
                         </button>
-
-                        <div style="position: absolute; bottom: 30px; right: 30px; background: rgba(255,255,255,0.8); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                            <i class="fas fa-sparkles" style="color: #a291b5;"></i>
-                        </div>
                     </div>
 
                     <!-- Condition Gallery Title & Thumbnails -->
@@ -3259,12 +3255,29 @@
                             <p id="blind-clue-hook" style="font-weight: 700; font-size: 1.1rem; color: #333; margin: 4px 0 0 0;">A cozy mystery in 1920s London...</p>
                         </div>
 
+                        <div class="clue-item" style="margin-bottom: 15px;">
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Category</span>
+                            <p id="blind-clue-category" style="font-weight: 700; font-size: 1.05rem; color: #6a4f8c; margin: 4px 0 0 0;">Romantic Fiction</p>
+                        </div>
+
+                        <div class="clue-item" style="margin-bottom: 15px;">
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Keywords</span>
+                            <p id="blind-clue-keywords" style="font-size: 0.95rem; color: #444; margin: 4px 0 0 0; line-height: 1.4;">Baking, Paris, Slow-burn, Enemies to Lovers</p>
+                        </div>
+
                         <div class="clue-item" style="margin-bottom: 20px;">
-                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">The First Line</span>
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quotes</span>
                             <blockquote style="border-left: none; padding: 0; margin: 8px 0 0 0; position: relative;">
                                 <span style="font-size: 3rem; color: #ee7c8b; font-family: Georgia, serif; line-height: 1; position: absolute; left: -10px; top: -15px; opacity: 0.3;">“</span>
                                 <p id="blind-clue-quote" style="font-style: italic; color: #444; font-size: 1.05rem; padding-left: 20px; line-height: 1.5; margin: 0;">"The clock struck thirteen, and I knew I was in trouble.."</p>
                             </blockquote>
+                        </div>
+
+                        <div class="clue-item" style="margin-bottom: 15px;">
+                            <span style="font-size: 0.8rem; color: #7f689c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Hashtags</span>
+                            <div id="blind-clue-hashtags" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                                <!-- Dynamically populated badges -->
+                            </div>
                         </div>
 
                         <div class="clue-item" style="margin-bottom: 15px;">
@@ -3344,31 +3357,29 @@
                             </div>
                         </div>
 
-                        <!-- Buttons -->
-                        <button class="btn-buy-blind" style="width: 100%; border: none; background: #ee7c8b; color: white; padding: 14px; border-radius: 30px; font-weight: 700; font-size: 1rem; margin-bottom: 12px; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 4px 12px rgba(238, 124, 139, 0.3);">
-                            Buy Mystery Book
-                        </button>
-                        <button class="btn-cart-blind" style="width: 100%; border: 1.5px solid #a291b5; background: white; color: #6a4f8c; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1rem; transition: all 0.2s ease; cursor: pointer; margin-bottom: 20px;">
-                            Add to Cart
-                        </button>
-
-                        <div style="border-top: 1px solid #f1edf5; padding-top: 15px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="/images/Avatar/avatar1.jpg" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-                                <div style="font-size: 0.85rem;">
-                                    <strong style="color: #333;">Book Blossom</strong>
-                                    <span style="color: #777; display: block; font-size: 0.75rem;">Mystery Specialist</span>
-                                </div>
+                        <!-- Quantity Selector & Action Row: styled like regular book details -->
+                        <div class="detail-actions-row" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;">
+                            <!-- Quantity Selector -->
+                            <div class="quantity-selector" style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 30px; background: #fdfcf9; overflow: hidden; height: 48px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); max-width: 140px; margin-bottom: 5px;">
+                                <button id="btn-blind-qty-minus" style="border: none; background: none; width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #555; transition: background 0.2s;">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input id="input-blind-qty" type="number" value="1" min="1" max="99" style="border: none; background: none; width: 44px; text-align: center; font-weight: 700; font-size: 1rem; color: #111; outline: none; -moz-appearance: textfield;">
+                                <button id="btn-blind-qty-plus" style="border: none; background: none; width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #555; transition: background 0.2s;">
+                                    <i class="fas fa-plus"></i>
+                                </button>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Condition Report -->
-                    <div class="condition-report-box" style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(162, 145, 181, 0.05); border: 1px solid #f1edf5; margin-bottom: 25px;">
-                        <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 1rem; color: #333; font-weight: 700;">Condition Report</h4>
-                        <p id="blind-condition-desc" style="font-size: 0.85rem; color: #666; line-height: 1.5; margin: 0;">
-                            Condition: 8/10. Cover is obscured, but the binding is tight. No highlighting. Small water stain on bottom right of pages 50-60.
-                        </p>
+                            <!-- Buy Mystery Book Button (styled like regular Buy Now) -->
+                            <button class="btn-buy-blind" style="background: #f07c7c; color: #fff; border: none; padding: 0 30px; height: 48px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 15px rgba(240, 124, 124, 0.3); flex-grow: 1; min-width: 150px; text-align: center; margin-bottom: 5px;">
+                                Buy Mystery Book
+                            </button>
+
+                            <!-- Add to Cart Button (styled like regular Add to Cart) -->
+                            <button class="btn-cart-blind" style="background: #fff; color: #111; border: 1.5px solid #111; padding: 0 30px; height: 48px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.2s; flex-grow: 1; min-width: 130px; text-align: center; margin-bottom: 5px;">
+                                Add to Cart
+                            </button>
+                        </div>
                     </div>
 
                     <!-- How This Works Collapsible -->
@@ -5178,8 +5189,35 @@
                 $('#blind-detail-price').text(blindBookData.price);
                 $('#blind-condition-desc').text('Condition: ' + blindBookData.condition);
                 $('#blind-clue-goodreads').text('★ ' + blindBookData.rating + ' / 5');
+                $('#input-blind-qty').val(1); // Reset purchase quantity to 1
                 $('#blind-clue-rating-range').text('Community Rating: ★ ' + blindBookData.ratingRange);
                 $('#blind-clue-year').text('Publication Year: ' + blindBookData.year);
+                $('#blind-clue-category').text(blindBookData.category);
+                $('#blind-clue-keywords').text(blindBookData.keywords);
+
+                // Populate hashtags dynamically as beautiful badges
+                const $hashtagContainer = $('#blind-clue-hashtags');
+                $hashtagContainer.empty();
+                if (blindBookData.hashtags) {
+                    const tags = blindBookData.hashtags.split(' ');
+                    tags.forEach(tag => {
+                        if (tag.trim()) {
+                            const badge = $('<span></span>')
+                                .text(tag.trim())
+                                .css({
+                                    'background': '#fff',
+                                    'color': '#6a4f8c',
+                                    'border': '1px solid #a291b5',
+                                    'padding': '4px 12px',
+                                    'border-radius': '20px',
+                                    'font-size': '0.8rem',
+                                    'font-weight': '600',
+                                    'display': 'inline-block'
+                                });
+                            $hashtagContainer.append(badge);
+                        }
+                    });
+                }
 
                 // Populate thumbnails dynamically using distinct images from wwwroot/images/BlindDateBook
                 const demoBlindImages = [
@@ -5299,22 +5337,30 @@
                 let rating = "4.2";
                 let ratingRange = "4.0 - 4.2";
                 let year = "1994";
+                let category = "Mystery & Thriller";
+                let keywords = "Intriguing, suspenseful, ancient puzzles, dark secrets";
 
                 if (hashtags.includes('Paris') || hashtags.includes('SlowBurn')) {
                     firstLine = "The dough was cold, but their glances were fiery.";
                     rating = "4.3";
                     ratingRange = "4.1 - 4.4";
                     year = "2018";
+                    category = "Romantic Fiction";
+                    keywords = "Sweet, slow-burn romance, culinary baking, enemies-to-lovers, Parisian vibe";
                 } else if (hashtags.includes('SpaceOpera') || hashtags.includes('AI')) {
                     firstLine = "The stars did not welcome us; they watched us in silence.";
                     rating = "4.6";
                     ratingRange = "4.4 - 4.7";
                     year = "2021";
+                    category = "Science Fiction";
+                    keywords = "Deep space expedition, alien technology, emotional AI companion, space opera epic";
                 } else if (hashtags.includes('FamilySaga') || hashtags.includes('Literary')) {
                     firstLine = "Grandmother's cedar chest smelled of lavender and unspoken truths.";
                     rating = "4.1";
                     ratingRange = "3.9 - 4.2";
                     year = "1998";
+                    category = "Literary Fiction & Drama";
+                    keywords = "Emotional drama, multi-generational secrets, female-led narrative, beautiful prose";
                 }
 
                 showBlindDateDetails({
@@ -5326,7 +5372,9 @@
                     firstLine: firstLine,
                     rating: rating,
                     ratingRange: ratingRange,
-                    year: year
+                    year: year,
+                    category: category,
+                    keywords: keywords
                 });
             });
 
@@ -6062,11 +6110,85 @@
                 }
             });
 
-            // Detail Page Action triggers
-            $('#btn-detail-buy').on('click', function() {
-                const title = $('#detail-title').text();
-                const qty = $('#input-qty').val();
-                showToast(`Redirecting to checkout for ${qty}x "${title}"!`);
+            // Blind Quantity buttons logic
+            $(document).on('click', '#btn-blind-qty-plus', function() {
+                const $input = $('#input-blind-qty');
+                let val = parseInt($input.val()) || 1;
+                if (val < 99) {
+                    $input.val(val + 1);
+                }
+            });
+
+            $(document).on('click', '#btn-blind-qty-minus', function() {
+                const $input = $('#input-blind-qty');
+                let val = parseInt($input.val()) || 1;
+                if (val > 1) {
+                    $input.val(val - 1);
+                }
+            });
+
+            $(document).on('input', '#input-blind-qty', function() {
+                let val = parseInt($(this).val());
+                if (isNaN(val) || val < 1) {
+                    $(this).val(1);
+                } else if (val > 99) {
+                    $(this).val(99);
+                }
+            });
+
+            $(document).on('click', '.btn-cart-blind', function() {
+                const title = "Mystery Book (" + $('#blind-clue-category').text() + ")";
+                const qty = parseInt($('#input-blind-qty').val()) || 1;
+                
+                const $addCartBtn = $(this);
+                const $cartIcon = $('#nav-cart-btn');
+
+                if ($addCartBtn.length && $cartIcon.length) {
+                    // Get viewport bounds of the source button and target cart icon
+                    const rectBtn = $addCartBtn[0].getBoundingClientRect();
+                    const rectCart = $cartIcon[0].getBoundingClientRect();
+
+                    // Calculate start and end coordinates in the viewport
+                    const startX = rectBtn.left + rectBtn.width / 2 - 13;
+                    const startY = rectBtn.top + rectBtn.height / 2 - 13;
+                    
+                    const endX = rectCart.left + rectCart.width / 2 - 13;
+                    const endY = rectCart.top + rectCart.height / 2 - 13;
+
+                    const deltaX = endX - startX;
+                    const deltaY = endY - startY;
+
+                    // Create flyer representing the added book count
+                    const $flyer = $('<div class="cart-flyer"></div>').text(qty);
+                    $flyer.css({
+                        top: startY,
+                        left: startX
+                    });
+
+                    $('body').append($flyer);
+
+                    // Force browser reflow to register initial styles
+                    void $flyer[0].offsetHeight;
+
+                    // Smooth flyer motion using hardware-accelerated CSS translate
+                    $flyer.css({
+                        transform: `translate(${deltaX}px, ${deltaY}px) scale(0.4)`,
+                        opacity: '0.2'
+                    });
+
+                    // Update states and cleanup flyer once transition finishes (1.5s / 1500ms)
+                    setTimeout(function() {
+                        $flyer.remove();
+                        globalCartCount += qty;
+                        updateCartBadge(globalCartCount);
+                    }, 1500);
+                } else {
+                    // Fallback if elements are missing
+                    globalCartCount += qty;
+                    updateCartBadge(globalCartCount);
+                }
+
+                showToast(`Added ${qty}x "${title}" to your cart!`);
             });
             // Global Cart Count State & Animation Logic
             let globalCartCount = 0;
@@ -7494,12 +7616,23 @@
             if(btnDetailBuy) {
                 btnDetailBuy.addEventListener('click', function(e) {
                     e.preventDefault();
-                    // sync quantity and price
+                    
+                    // Sync book info dynamically for regular book checkout
+                    const title = document.getElementById('detail-title') ? document.getElementById('detail-title').innerText : "Harry Potter and the Sorcerer's Stone";
+                    const author = document.getElementById('detail-author') ? document.getElementById('detail-author').innerText : "J.K. Rowling";
+                    const imgSrc = document.getElementById('detail-main-img') ? document.getElementById('detail-main-img').src : "/images/Book/book4.jpg";
                     const qty = document.getElementById('input-qty') ? parseInt(document.getElementById('input-qty').value) : 1;
+                    
+                    document.getElementById('checkout-book-title').innerText = title;
+                    document.getElementById('checkout-book-author').innerText = author;
+                    document.getElementById('checkout-book-img').src = imgSrc;
                     document.getElementById('checkout-book-qty').innerText = qty;
-                    const pricePerItem = 297000;
+                    
+                    const priceText = document.getElementById('detail-price') ? document.getElementById('detail-price').innerText : "297.000";
+                    const pricePerItem = parseInt(priceText.replace(/[^0-9]/g, '')) || 297000;
                     
                     window.checkoutState.subtotal = pricePerItem * qty;
+                    window.checkoutState.shippingFee = 30000; // default shipping
                     const formatted = new Intl.NumberFormat('vi-VN').format(window.checkoutState.subtotal) + ' VND';
                     document.getElementById('checkout-book-price').innerText = formatted;
                     
@@ -7508,6 +7641,36 @@
                     openCheckout();
                 });
             }
+
+            // Implement Buy Mystery Book trigger to launch the checkout modal
+            $(document).on('click', '.btn-buy-blind', function(e) {
+                e.preventDefault();
+                
+                const category = document.getElementById('blind-clue-category') ? document.getElementById('blind-clue-category').innerText : "Mystery & Thriller";
+                const title = "Mystery Book (" + category + ")";
+                const author = "Book Blossom (Mystery Specialist)";
+                const imgSrc = document.getElementById('blind-detail-main-img') ? document.getElementById('blind-detail-main-img').getAttribute('src') : "/images/BlindDateBook/BlindBook1.jpg";
+                const qty = document.getElementById('input-blind-qty') ? parseInt(document.getElementById('input-blind-qty').value) : 1;
+                
+                // Parse dynamic price of the blind book
+                const rawPrice = document.getElementById('blind-detail-price') ? document.getElementById('blind-detail-price').innerText : "120.000 VNĐ";
+                const pricePerItem = parseInt(rawPrice.replace(/[^0-9]/g, '')) || 120000;
+                
+                // Sync fields to checkout modal dynamically!
+                document.getElementById('checkout-book-title').innerText = title;
+                document.getElementById('checkout-book-author').innerText = author;
+                document.getElementById('checkout-book-img').src = imgSrc;
+                document.getElementById('checkout-book-qty').innerText = qty;
+                
+                window.checkoutState.subtotal = pricePerItem * qty;
+                window.checkoutState.shippingFee = 30000; // default shipping for blind books
+                const formattedSubtotal = new Intl.NumberFormat('vi-VN').format(window.checkoutState.subtotal) + ' VND';
+                document.getElementById('checkout-book-price').innerText = formattedSubtotal;
+                
+                populateAppliedVouchers();
+                updateCheckoutTotals();
+                openCheckout();
+            });
 
             if(btnCloseCheckout) btnCloseCheckout.addEventListener('click', closeCheckout);
             
