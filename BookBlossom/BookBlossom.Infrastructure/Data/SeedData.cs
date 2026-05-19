@@ -62,13 +62,18 @@ namespace BookBlossom.Infrastructure.Data
 
                     context.Users.Add(user);
                     await context.SaveChangesAsync(); // Lưu để có UserID
+                    existingUser = user;
+                }
 
-                    // Phân loại tạo chi tiết thông tin cho từng vai trò
-                    if (acc.Role == UserRole.Customer)
+                // Phân loại tạo chi tiết thông tin cho từng vai trò nếu chưa có
+                if (acc.Role == UserRole.Customer)
+                {
+                    var exists = await context.CustomerDetails.AnyAsync(c => c.CustomerID == existingUser.UserID);
+                    if (!exists)
                     {
                         var customerDetail = new CustomerDetail
                         {
-                            CustomerID = user.UserID,
+                            CustomerID = existingUser.UserID,
                             IsOnboardingCompleted = true,
                             TotalSpending = 0,
                             DailyUndoCount = 0,
@@ -77,12 +82,16 @@ namespace BookBlossom.Infrastructure.Data
                         };
                         context.CustomerDetails.Add(customerDetail);
                     }
-                    else
+                }
+                else
+                {
+                    // Vai trò Staff/Admin/Manager
+                    var exists = await context.StaffDetails.AnyAsync(s => s.StaffID == existingUser.UserID);
+                    if (!exists)
                     {
-                        // Vai trò Staff/Admin/Manager
                         var staffDetail = new StaffDetail
                         {
-                            StaffID = user.UserID,
+                            StaffID = existingUser.UserID,
                             Address = "Khu Công Nghệ Phần Mềm, Thủ Đức, TP.HCM",
                             IsOnboardingCompleted = true,
                             Department = acc.Role == UserRole.SystemAdmin ? Department.SystemAdmin :

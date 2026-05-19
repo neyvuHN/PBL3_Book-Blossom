@@ -160,7 +160,7 @@ namespace BookBlossom.Infrastructure.Services
 
         private JwtSecurityToken CreateJwtToken(List<Claim> claims)
         {
-            var keyStr = _configuration["Jwt:Key"] ?? "ChuoiBiMatMacDinhSieuDaiCuaBan123!";
+            var keyStr = _configuration["Jwt:Key"] ?? "Nuocmatemroitrochoiketthuc_BookBlossom_Security_Key_2026";
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyStr));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using BookBlossom.Core.DTOs.Importing;
 using BookBlossom.Core.Entities;
+using BookBlossom.Core.Enums;
 using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Infrastructure.Data;
 
@@ -21,13 +22,41 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<ImportingDTO> CreateImportingAsync(long staffId, CreateImportingRequestDTO request)
         {
-            // 1. Verify staff detail exists
+            // 1. Verify staff detail exists (self-healing: create on-the-fly if missing)
             var staff = await _context.StaffDetails
                 .Include(s => s.User)
                 .FirstOrDefaultAsync(s => s.StaffID == staffId);
             if (staff == null)
             {
-                throw new InvalidOperationException($"Nhân viên với ID {staffId} không tồn tại trong hệ thống.");
+                var user = await _context.Users.FindAsync(staffId);
+                if (user != null)
+                {
+                    staff = new StaffDetail
+                    {
+                        StaffID = staffId,
+                        Address = "Khu Công Nghệ Phần Mềm, Thủ Đức, TP.HCM",
+                        IsOnboardingCompleted = true,
+                        Department = user.RoleID == UserRole.SystemAdmin ? Department.SystemAdmin :
+                                     user.RoleID == UserRole.StoreManager ? Department.StoreManager :
+                                     user.RoleID == UserRole.Moderator ? Department.Moderator :
+                                     Department.MarketingManager,
+                        Position = StaffPosition.Leader,
+                        HireDate = DateTime.Today,
+                        ContractType = ContractType.FullTime,
+                        Salary = 15000000
+                    };
+                    await _context.StaffDetails.AddAsync(staff);
+                    await _context.SaveChangesAsync();
+
+                    // Re-fetch to load relations
+                    staff = await _context.StaffDetails
+                        .Include(s => s.User)
+                        .FirstOrDefaultAsync(s => s.StaffID == staffId);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Nhân viên với ID {staffId} không tồn tại trong hệ thống.");
+                }
             }
 
             // 2. Create the importing header
@@ -141,7 +170,7 @@ namespace BookBlossom.Infrastructure.Services
                 var book = await _context.RealBooks.FindAsync(detail.BookID);
                 if (book != null)
                 {
-                    book.UnitsInStock -= detail.Quantity;
+                    book.UnitsInStock -= detail.Quantity ?? 0;
                     if (book.UnitsInStock < 0) book.UnitsInStock = 0; // Prevent negative stock
                     _context.RealBooks.Update(book);
                 }
@@ -172,7 +201,7 @@ namespace BookBlossom.Infrastructure.Services
             if (detail != null)
             {
                 // Book already in this import, let's increment the quantity and update unit price
-                detail.Quantity += request.Quantity;
+                detail.Quantity = (detail.Quantity ?? 0) + request.Quantity;
                 detail.UnitPrice = request.UnitPrice;
                 detail.LineTotal = detail.UnitPrice * detail.Quantity;
                 _context.ImportingDetails.Update(detail);
@@ -205,9 +234,9 @@ namespace BookBlossom.Infrastructure.Services
                 ImportingID = detail.ImportingID,
                 BookID = detail.BookID,
                 BookTitle = book.Title,
-                UnitPrice = detail.UnitPrice,
-                Quantity = detail.Quantity,
-                LineTotal = detail.UnitPrice * detail.Quantity
+                UnitPrice = detail.UnitPrice ?? 0,
+                Quantity = detail.Quantity ?? 0,
+                LineTotal = detail.LineTotal ?? (detail.UnitPrice ?? 0) * (detail.Quantity ?? 0)
             };
         }
 
@@ -228,7 +257,7 @@ namespace BookBlossom.Infrastructure.Services
             }
 
             // Adjust book stock based on quantity difference
-            var qtyDiff = request.Quantity - detail.Quantity;
+            var qtyDiff = request.Quantity - (detail.Quantity ?? 0);
             book.UnitsInStock += qtyDiff;
             if (book.UnitsInStock < 0) book.UnitsInStock = 0; // Prevent negative stock
             _context.RealBooks.Update(book);
@@ -249,9 +278,9 @@ namespace BookBlossom.Infrastructure.Services
                 ImportingID = detail.ImportingID,
                 BookID = detail.BookID,
                 BookTitle = book.Title,
-                UnitPrice = detail.UnitPrice,
-                Quantity = detail.Quantity,
-                LineTotal = detail.LineTotal
+                UnitPrice = detail.UnitPrice ?? 0,
+                Quantity = detail.Quantity ?? 0,
+                LineTotal = detail.LineTotal ?? 0
             };
         }
 
@@ -266,7 +295,7 @@ namespace BookBlossom.Infrastructure.Services
             if (book != null)
             {
                 // Revert book stock
-                book.UnitsInStock -= detail.Quantity;
+                book.UnitsInStock -= detail.Quantity ?? 0;
                 if (book.UnitsInStock < 0) book.UnitsInStock = 0; // Prevent negative stock
                 _context.RealBooks.Update(book);
             }
@@ -289,7 +318,7 @@ namespace BookBlossom.Infrastructure.Services
             {
                 var sum = await _context.ImportingDetails
                     .Where(d => d.ImportingID == importingId)
-                    .SumAsync(d => d.UnitPrice * d.Quantity);
+                    .SumAsync(d => (d.UnitPrice ?? 0) * (d.Quantity ?? 0));
 
                 importing.TotalCost = sum;
                 _context.Importings.Update(importing);
@@ -326,8 +355,8 @@ namespace BookBlossom.Infrastructure.Services
                 StaffID = importing.StaffID,
                 StaffName = staffName,
                 SupplierName = importing.SupplierName,
-                ImportDate = importing.ImportDate,
-                TotalCost = importing.TotalCost,
+                ImportDate = importing.ImportDate ?? DateTime.Now,
+                TotalCost = importing.TotalCost ?? 0,
                 RequiredDate = importing.RequiredDate,
                 ShipDate = importing.ShipDate,
                 ShipAddress = importing.ShipAddress,
@@ -336,9 +365,9 @@ namespace BookBlossom.Infrastructure.Services
                     ImportingID = d.ImportingID,
                     BookID = d.BookID,
                     BookTitle = d.Book?.Title ?? "Không rõ",
-                    UnitPrice = d.UnitPrice,
-                    Quantity = d.Quantity,
-                    LineTotal = d.UnitPrice * d.Quantity
+                    UnitPrice = d.UnitPrice ?? 0,
+                    Quantity = d.Quantity ?? 0,
+                    LineTotal = d.LineTotal ?? (d.UnitPrice ?? 0) * (d.Quantity ?? 0)
                 }).ToList()
             };
         }

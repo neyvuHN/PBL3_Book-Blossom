@@ -18,8 +18,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                 .HasMaxLength(255);
 
             builder.Property(i => i.TotalCost)
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
+                .HasColumnType("decimal(18,2)");
 
             builder.Property(i => i.ShipAddress)
                 .HasMaxLength(500);

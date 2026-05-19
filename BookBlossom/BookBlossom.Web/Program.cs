@@ -65,7 +65,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "ChuoiBiMatMacDinhSieuDaiCuaBan123!")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "Nuocmatemroitrochoiketthuc_BookBlossom_Security_Key_2026")),
 
             RoleClaimType = ClaimTypes.Role
         };
@@ -158,9 +158,9 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireStoreManager", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, 
-            ((int)UserRole.SystemAdmin).ToString(),
-            ((int)UserRole.StoreManager).ToString());
-        policy.RequireClaim("AccountStatus", activeStatus);
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
             
     // 6. Policy cho Khách hàng đã định danh

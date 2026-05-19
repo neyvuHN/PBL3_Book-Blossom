@@ -14,11 +14,9 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.HasKey(d => new { d.ImportingID, d.BookID });
 
             builder.Property(d => d.UnitPrice)
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
+                .HasColumnType("decimal(18,2)");
 
-            builder.Property(d => d.Quantity)
-                .IsRequired();
+            builder.Property(d => d.Quantity);
 
             // Computed column LineTotal = UnitPrice * Quantity
             builder.Property(d => d.LineTotal)

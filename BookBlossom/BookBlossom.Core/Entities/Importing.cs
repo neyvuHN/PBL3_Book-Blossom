@@ -8,8 +8,8 @@ namespace BookBlossom.Core.Entities
         public long ImportingID { get; set; }
         public long StaffID { get; set; }
         public string SupplierName { get; set; } = string.Empty;
-        public DateTime ImportDate { get; set; }
-        public decimal TotalCost { get; set; }
+        public DateTime? ImportDate { get; set; }
+        public decimal? TotalCost { get; set; }
         public DateTime? RequiredDate { get; set; }
         public DateTime? ShipDate { get; set; }
         public string? ShipAddress { get; set; }
