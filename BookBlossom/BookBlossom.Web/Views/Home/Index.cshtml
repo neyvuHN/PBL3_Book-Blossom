@@ -1521,7 +1521,7 @@
     <!-- Main Content Wrapper (Homepage) -->
     <div id="main-content">
         <!-- Hero Section with Slider -->
-        <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel">
+        <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel" data-bs-interval="3500" data-bs-pause="false">
             <div class="carousel-indicators">
                 <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
                 <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
@@ -3480,6 +3480,28 @@
             const $mainNavbar = $('#main-navbar');
             const $navLinks = $('.nav-links a');
 
+            // Auto-play the main hero carousel on homepage load (interval of 3.5 seconds)
+            try {
+                var heroCarouselEl = document.getElementById('heroCarousel');
+                if (heroCarouselEl) {
+                    var carouselInstance = new bootstrap.Carousel(heroCarouselEl, {
+                        interval:3500,
+                        ride: 'carousel',
+                        pause: false // Prevent pausing when mouse hovers over full-screen banner
+                    });
+                    carouselInstance.cycle();
+                }
+            } catch (e) {
+                console.error("Vanilla Bootstrap Carousel init failed: ", e);
+                // Fallback to jQuery
+                $('#heroCarousel').carousel({
+                    interval: 3500,
+                    ride: 'carousel',
+                    pause: false
+                });
+                $('#heroCarousel').carousel('cycle');
+            }
+
             // Dropdown Toggle
             const $userDropdown = $('.user-dropdown');
             
@@ -3514,6 +3536,16 @@
                 window.scrollTo(0, 0);
                 if (push) {
                     history.pushState({ view: 'home' }, '', '#home');
+                }
+                // Resume carousel autoplay when navigating back to the Home view
+                try {
+                    var heroCarouselEl = document.getElementById('heroCarousel');
+                    if (heroCarouselEl) {
+                        var carouselInstance = bootstrap.Carousel.getOrCreateInstance(heroCarouselEl);
+                        carouselInstance.cycle();
+                    }
+                } catch (e) {
+                    $('#heroCarousel').carousel('cycle');
                 }
             }
 
