@@ -2910,7 +2910,7 @@
                         <!-- Delivery Address -->
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f9f6f0;">
                             <div>
-                                <span style="color: #888;">Deliver to:</span> <strong style="color: #333;">Phường Bến Nghé, Quận 1, Hồ Chí Minh</strong>
+                                <span style="color: #888;">Deliver to:</span> <strong id="detail-shipping-addr-text" style="color: #333;">Phường Bến Nghé, Quận 1, Hồ Chí Minh</strong>
                             </div>
                             <a href="#" id="btn-change-shipping-addr" style="color: #C2185B; font-weight: 700; text-decoration: none; font-size: 0.82rem;">Change</a>
                         </div>
@@ -7317,6 +7317,43 @@
         </div>
     </div>
 
+    <!-- Shipping Address Editor Modal -->
+    <div id="address-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div id="address-modal-content" style="background: #fff; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
+            <!-- Header -->
+            <div style="padding: 20px 25px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 700; color: #111;">Change Shipping Address</h3>
+                <button id="btn-close-address" style="background: none; border: none; font-size: 1.3rem; color: #888; cursor: pointer; transition: color 0.2s;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- Body -->
+            <div style="padding: 25px; display: flex; flex-direction: column; gap: 20px;">
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
+                    <textarea id="address-input-text" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full shipping address...">Phường Bến Nghé, Quận 1, Hồ Chí Minh</textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Receiver Name</label>
+                    <input type="text" id="address-input-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="John Doe">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number</label>
+                    <input type="tel" id="address-input-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="0987654321">
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding: 20px 25px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 12px; border-radius: 0 0 20px 20px; background: #fafafa;">
+                <button id="btn-cancel-address" style="background: transparent; color: #555; border: 1.5px solid #ddd; padding: 10px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    Cancel
+                </button>
+                <button id="btn-save-address" style="background: linear-gradient(135deg, #C2185B 0%, #f07c7c 100%); color: #fff; border: none; padding: 10px 25px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Checkout Modal Flow -->
     <!-- 1. Checkout Form Modal -->
     <div id="checkout-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
@@ -7606,12 +7643,78 @@
                 }
             }
 
-            if(btnChangeAddr) btnChangeAddr.addEventListener('click', function(e) {
-                e.preventDefault();
-                populateAppliedVouchers();
-                updateCheckoutTotals();
-                openCheckout();
-            });
+            const addressModal = document.getElementById('address-modal-overlay');
+            const addressContent = document.getElementById('address-modal-content');
+            const btnCloseAddress = document.getElementById('btn-close-address');
+            const btnCancelAddress = document.getElementById('btn-cancel-address');
+            const btnSaveAddress = document.getElementById('btn-save-address');
+
+            function openAddressModal() {
+                const currentAddrText = document.getElementById('detail-shipping-addr-text').innerText;
+                document.getElementById('address-input-text').value = currentAddrText;
+                
+                const currentName = document.getElementById('checkout-name') ? document.getElementById('checkout-name').value : "John Doe";
+                const currentPhone = document.getElementById('checkout-phone') ? document.getElementById('checkout-phone').value : "0987654321";
+                document.getElementById('address-input-name').value = currentName;
+                document.getElementById('address-input-phone').value = currentPhone;
+
+                addressModal.style.display = 'flex';
+                void addressModal.offsetWidth;
+                addressContent.style.opacity = '1';
+                addressContent.style.transform = 'scale(1)';
+            }
+
+            function closeAddressModal() {
+                addressContent.style.opacity = '0';
+                addressContent.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    addressModal.style.display = 'none';
+                }, 300);
+            }
+
+            if(btnChangeAddr) {
+                btnChangeAddr.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openAddressModal();
+                });
+            }
+
+            if(btnCloseAddress) btnCloseAddress.addEventListener('click', closeAddressModal);
+            if(btnCancelAddress) btnCancelAddress.addEventListener('click', closeAddressModal);
+            
+            if (addressModal) {
+                addressModal.addEventListener('click', function(e) {
+                    if (e.target === addressModal) closeAddressModal();
+                });
+            }
+
+            if(btnSaveAddress) {
+                btnSaveAddress.addEventListener('click', function() {
+                    const newAddr = document.getElementById('address-input-text').value.trim();
+                    const newName = document.getElementById('address-input-name').value.trim();
+                    const newPhone = document.getElementById('address-input-phone').value.trim();
+
+                    if (!newAddr) {
+                        showToast("Please enter a valid shipping address!");
+                        return;
+                    }
+
+                    document.getElementById('detail-shipping-addr-text').innerText = newAddr;
+
+                    if (document.getElementById('checkout-address')) {
+                        document.getElementById('checkout-address').value = newAddr;
+                    }
+                    if (document.getElementById('checkout-name')) {
+                        document.getElementById('checkout-name').value = newName;
+                    }
+                    if (document.getElementById('checkout-phone')) {
+                        document.getElementById('checkout-phone').value = newPhone;
+                    }
+
+                    closeAddressModal();
+                    showToast("Shipping address updated successfully!");
+                });
+            }
 
             if(btnDetailBuy) {
                 btnDetailBuy.addEventListener('click', function(e) {
