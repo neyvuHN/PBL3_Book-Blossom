@@ -53,6 +53,9 @@ builder.Services.AddScoped<ITindbookService, TindbookService>();
 // Đăng ký IRealBookService
 builder.Services.AddScoped<IRealBookService, RealBookService>();
 
+// Đăng ký IBlindBookService
+builder.Services.AddScoped<IBlindBookService, BlindBookService>();
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
