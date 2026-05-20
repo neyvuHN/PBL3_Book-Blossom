@@ -3007,6 +3007,11 @@
                         <button id="btn-detail-add-cart" style="background: #fff; color: #111; border: 1.5px solid #111; padding: 0 35px; height: 48px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.2s; flex-grow: 1; max-width: 200px;">
                             Add to Cart
                         </button>
+
+                        <!-- Chat with Book Blossom Button -->
+                        <a id="btn-detail-chat" href="/Messages" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid #C2185B; border-radius: 30px; padding: 0 25px; height: 48px; color: #C2185B; font-weight: 700; font-size: 1.05rem; text-decoration: none; cursor: pointer; transition: all 0.2s; flex-grow: 1; max-width: 220px; background: transparent;" onmouseover="this.style.background='#C2185B'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#C2185B';">
+                            <i class="far fa-comment-alt"></i> Chat to shop
+                        </a>
                     </div>
 
                     <!-- Divider -->
@@ -5323,6 +5328,12 @@
                 // Reset wishlist button state
                 $('#btn-toggle-wishlist').find('i').attr('class', 'far fa-heart').css('color', '');
                 $('#btn-toggle-wishlist').css('border-color', '#ddd').css('background', '#fff');
+
+                // Update Chat with Book Blossom link dynamically with active book query params
+                const activeBookHash = `#book-details-${encodeURIComponent(bookData.title)}`;
+                const fullBookLink = window.location.origin + '/' + activeBookHash;
+                const bookChatHref = `/Messages?title=${encodeURIComponent(bookData.title)}&price=${encodeURIComponent(discountedPrice.toLocaleString() + ' VND')}&img=${encodeURIComponent(bookData.imgSrc)}&link=${encodeURIComponent(fullBookLink)}`;
+                $('#btn-detail-chat').attr('href', bookChatHref);
 
                 // Display details
                 $('#product-details-section').show();
