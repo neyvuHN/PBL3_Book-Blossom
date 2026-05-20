@@ -24,12 +24,16 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<ImportingDetail> ImportingDetails { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
+        public DbSet<BlindBook> BlindBooks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // 1. VẪN MỞ DÒNG QUÉT TỰ ĐỘNG NÀY ĐỂ GIỮ CHO USER, CUSTOMERDETAIL... KHÔNG BỊ LỖI
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            // (Removed Ignore lines for Importing and ImportingDetail to solve EF Core schema sync issue)
         }
     }
 }

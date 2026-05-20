@@ -22,4 +22,5 @@ public class RealBook
 
    [ForeignKey("CategoryID")]
     public virtual Category Category { get; set; } 
+    public virtual BlindBook? BlindBook {get; set; }
 }

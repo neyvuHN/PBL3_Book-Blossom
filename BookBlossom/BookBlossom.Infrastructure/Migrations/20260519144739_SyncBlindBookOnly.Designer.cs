@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519144739_SyncBlindBookOnly")]
+    partial class SyncBlindBookOnly
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -250,72 +253,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasIndex("ConvertedUserID");
 
                     b.ToTable("GuestDetail", "UserSystem");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
-                {
-                    b.Property<long>("ImportingID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("ImportingID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ImportingID"));
-
-                    b.Property<DateTime?>("ImportDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("RequiredDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ShipAddress")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("ShipDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("StaffID")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("SupplierName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<decimal?>("TotalCost")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("ImportingID");
-
-                    b.HasIndex("StaffID");
-
-                    b.ToTable("Importing", "Import");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ImportingDetail", b =>
-                {
-                    b.Property<long>("ImportingID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("BookID")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal?>("LineTotal")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(18,2)")
-                        .HasComputedColumnSql("[UnitPrice] * [Quantity]", true);
-
-                    b.Property<int?>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("ImportingID", "BookID");
-
-                    b.HasIndex("BookID");
-
-                    b.ToTable("ImportingDetail", "Import");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.OTPLog", b =>
@@ -774,36 +711,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("ConvertedUser");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.StaffDetail", "Staff")
-                        .WithMany()
-                        .HasForeignKey("StaffID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Staff");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ImportingDetail", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.RealBook", "Book")
-                        .WithMany()
-                        .HasForeignKey("BookID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.Importing", "Importing")
-                        .WithMany("ImportingDetails")
-                        .HasForeignKey("ImportingID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Book");
-
-                    b.Navigation("Importing");
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.RealBook", b =>
                 {
                     b.HasOne("BookBlossom.Core.Entities.Category", "Category")
@@ -858,11 +765,6 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>
                 {
                     b.Navigation("CustomerPreferences");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
-                {
-                    b.Navigation("ImportingDetails");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.RealBook", b =>
