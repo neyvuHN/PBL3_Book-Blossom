@@ -16,6 +16,6 @@ namespace BookBlossom.Core.Entities
         // Navigation properties
         public virtual User? User { get; set; }
         public virtual RealBook? Book { get; set; }
-        // public virtual BlindBook? BlindBook { get; set; } // Assuming BlindBook exists, we will map it if it does
+        public virtual BlindBook? BlindBook { get; set; }
     }
 }

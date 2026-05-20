@@ -16,6 +16,10 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.HasIndex(w => new { w.UserID, w.BookID }).IsUnique().HasFilter("[UserID] IS NOT NULL AND [BookID] IS NOT NULL");
             builder.HasIndex(w => new { w.GuestID, w.BookID }).IsUnique().HasFilter("[GuestID] IS NOT NULL AND [BookID] IS NOT NULL");
 
+            // Index trên (UserID + BlindBookID) và (GuestID + BlindBookID)
+            builder.HasIndex(w => new { w.UserID, w.BlindBookID }).IsUnique().HasFilter("[UserID] IS NOT NULL AND [BlindBookID] IS NOT NULL");
+            builder.HasIndex(w => new { w.GuestID, w.BlindBookID }).IsUnique().HasFilter("[GuestID] IS NOT NULL AND [BlindBookID] IS NOT NULL");
+
             // Relationships
             builder.HasOne(w => w.User)
                 .WithMany()
@@ -25,6 +29,11 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.HasOne(w => w.Book)
                 .WithMany()
                 .HasForeignKey(w => w.BookID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(w => w.BlindBook)
+                .WithMany()
+                .HasForeignKey(w => w.BlindBookID)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

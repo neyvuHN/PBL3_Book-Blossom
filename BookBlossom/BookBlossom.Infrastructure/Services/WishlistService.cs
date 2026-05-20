@@ -21,7 +21,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<WishlistItemDTO>> GetWishlistItemsAsync(long? userId, Guid? guestId)
         {
-            var query = _context.Wishlists.Include(w => w.Book).AsQueryable();
+            var query = _context.Wishlists.Include(w => w.Book).Include(w => w.BlindBook).AsQueryable();
 
             if (userId.HasValue)
             {
@@ -43,8 +43,12 @@ namespace BookBlossom.Infrastructure.Services
                 WishlistID = w.WishlistID,
                 BookID = w.BookID,
                 BlindBookID = w.BlindBookID,
-                Title = w.Book?.Title ?? "Unknown Book",
-                Price = w.Book?.Price ?? 0,
+                Title = w.BookID.HasValue 
+                    ? (w.Book?.Title ?? "Unknown Book") 
+                    : (w.BlindBook != null ? $"Blind Book ({w.BlindBook.Category})" : "Unknown Blind Book"),
+                Price = w.BookID.HasValue 
+                    ? (w.Book?.Price ?? 0) 
+                    : (w.BlindBook?.Price ?? 0),
                 AddedAt = w.AddedAt
             });
         }
@@ -56,6 +60,22 @@ namespace BookBlossom.Infrastructure.Services
 
             if (request.BookID == null && request.BlindBookID == null)
                 throw new InvalidOperationException("Phải cung cấp BookID hoặc BlindBookID.");
+
+            // Kiểm tra tồn tại cho RealBook nếu được truyền
+            if (request.BookID.HasValue)
+            {
+                var book = await _context.RealBooks.FindAsync(request.BookID.Value);
+                if (book == null)
+                    throw new InvalidOperationException("Không tìm thấy sách.");
+            }
+
+            // Kiểm tra tồn tại cho BlindBook nếu được truyền
+            if (request.BlindBookID.HasValue)
+            {
+                var blindBook = await _context.BlindBooks.FindAsync(request.BlindBookID.Value);
+                if (blindBook == null)
+                    throw new InvalidOperationException("Không tìm thấy sách ẩn danh.");
+            }
 
             // Kiểm tra xem đã có trong wishlist chưa
             var existingItem = await _context.Wishlists
@@ -79,14 +99,19 @@ namespace BookBlossom.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             var addedBook = request.BookID.HasValue ? await _context.RealBooks.FindAsync(request.BookID.Value) : null;
+            var addedBlindBook = request.BlindBookID.HasValue ? await _context.BlindBooks.FindAsync(request.BlindBookID.Value) : null;
 
             return new WishlistItemDTO
             {
                 WishlistID = wishlistItem.WishlistID,
                 BookID = wishlistItem.BookID,
                 BlindBookID = wishlistItem.BlindBookID,
-                Title = addedBook?.Title ?? "Unknown Book",
-                Price = addedBook?.Price ?? 0,
+                Title = request.BookID.HasValue 
+                    ? (addedBook?.Title ?? "Unknown Book") 
+                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.Category})" : "Unknown Blind Book"),
+                Price = request.BookID.HasValue 
+                    ? (addedBook?.Price ?? 0) 
+                    : (addedBlindBook?.Price ?? 0),
                 AddedAt = wishlistItem.AddedAt
             };
         }

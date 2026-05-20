@@ -21,7 +21,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<CartItemDTO>> GetCartItemsAsync(long? userId, Guid? guestId)
         {
-            var query = _context.Carts.Include(c => c.Book).AsQueryable();
+            var query = _context.Carts.Include(c => c.Book).Include(c => c.BlindBook).AsQueryable();
 
             if (userId.HasValue)
             {
@@ -43,8 +43,12 @@ namespace BookBlossom.Infrastructure.Services
                 CartID = c.CartID,
                 BookID = c.BookID,
                 BlindBookID = c.BlindBookID,
-                Title = c.Book?.Title ?? "Unknown Book",
-                Price = c.Book?.Price ?? 0,
+                Title = c.BookID.HasValue 
+                    ? (c.Book?.Title ?? "Unknown Book") 
+                    : (c.BlindBook != null ? $"Blind Book ({c.BlindBook.Category})" : "Unknown Blind Book"),
+                Price = c.BookID.HasValue 
+                    ? (c.Book?.Price ?? 0) 
+                    : (c.BlindBook?.Price ?? 0),
                 Quantity = c.Quantity,
                 AddedAt = c.CreatedAt
             });
@@ -72,6 +76,20 @@ namespace BookBlossom.Infrastructure.Services
                     throw new InvalidOperationException("Sách không đủ số lượng trong kho.");
             }
 
+            // Kiểm tra tồn kho cho BlindBook
+            if (request.BlindBookID.HasValue)
+            {
+                var blindBook = await _context.BlindBooks.FindAsync(request.BlindBookID.Value);
+                if (blindBook == null)
+                    throw new InvalidOperationException("Không tìm thấy sách ẩn danh.");
+
+                if (blindBook.StockQuantity <= 0)
+                    throw new InvalidOperationException("Sách ẩn danh đã hết hàng.");
+
+                if (blindBook.StockQuantity < request.Quantity)
+                    throw new InvalidOperationException("Sách ẩn danh không đủ số lượng trong kho.");
+            }
+
             // Kiểm tra xem đã có trong giỏ chưa
             var existingCartItem = await _context.Carts
                 .FirstOrDefaultAsync(c =>
@@ -88,6 +106,13 @@ namespace BookBlossom.Infrastructure.Services
                     var book = await _context.RealBooks.FindAsync(request.BookID.Value);
                     if (book != null && book.UnitsInStock < existingCartItem.Quantity)
                         throw new InvalidOperationException("Sách không đủ số lượng trong kho khi cộng dồn.");
+                }
+
+                if (request.BlindBookID.HasValue)
+                {
+                    var blindBook = await _context.BlindBooks.FindAsync(request.BlindBookID.Value);
+                    if (blindBook != null && blindBook.StockQuantity < existingCartItem.Quantity)
+                        throw new InvalidOperationException("Sách ẩn danh không đủ số lượng trong kho khi cộng dồn.");
                 }
             }
             else
@@ -108,14 +133,19 @@ namespace BookBlossom.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             var addedBook = request.BookID.HasValue ? await _context.RealBooks.FindAsync(request.BookID.Value) : null;
+            var addedBlindBook = request.BlindBookID.HasValue ? await _context.BlindBooks.FindAsync(request.BlindBookID.Value) : null;
 
             return new CartItemDTO
             {
                 CartID = existingCartItem.CartID,
                 BookID = existingCartItem.BookID,
                 BlindBookID = existingCartItem.BlindBookID,
-                Title = addedBook?.Title ?? "Unknown Book",
-                Price = addedBook?.Price ?? 0,
+                Title = request.BookID.HasValue 
+                    ? (addedBook?.Title ?? "Unknown Book") 
+                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.Category})" : "Unknown Blind Book"),
+                Price = request.BookID.HasValue 
+                    ? (addedBook?.Price ?? 0) 
+                    : (addedBlindBook?.Price ?? 0),
                 Quantity = existingCartItem.Quantity,
                 AddedAt = existingCartItem.CreatedAt
             };
@@ -126,7 +156,7 @@ namespace BookBlossom.Infrastructure.Services
             if (quantity <= 0)
                 throw new InvalidOperationException("Số lượng phải lớn hơn 0.");
 
-            var cartItem = await _context.Carts.Include(c => c.Book).FirstOrDefaultAsync(c => c.CartID == cartId);
+            var cartItem = await _context.Carts.Include(c => c.Book).Include(c => c.BlindBook).FirstOrDefaultAsync(c => c.CartID == cartId);
             if (cartItem == null)
                 throw new KeyNotFoundException("Không tìm thấy mục trong giỏ hàng.");
 
@@ -140,6 +170,11 @@ namespace BookBlossom.Infrastructure.Services
                 if (cartItem.Book != null && cartItem.Book.UnitsInStock < quantity)
                     throw new InvalidOperationException("Sách không đủ số lượng trong kho.");
             }
+            else if (cartItem.BlindBookID.HasValue)
+            {
+                if (cartItem.BlindBook != null && cartItem.BlindBook.StockQuantity < quantity)
+                    throw new InvalidOperationException("Sách ẩn danh không đủ số lượng trong kho.");
+            }
 
             cartItem.Quantity = quantity;
             cartItem.UpdatedAt = DateTime.UtcNow;
@@ -150,8 +185,12 @@ namespace BookBlossom.Infrastructure.Services
                 CartID = cartItem.CartID,
                 BookID = cartItem.BookID,
                 BlindBookID = cartItem.BlindBookID,
-                Title = cartItem.Book?.Title ?? "Unknown Book",
-                Price = cartItem.Book?.Price ?? 0,
+                Title = cartItem.BookID.HasValue 
+                    ? (cartItem.Book?.Title ?? "Unknown Book") 
+                    : (cartItem.BlindBook != null ? $"Blind Book ({cartItem.BlindBook.Category})" : "Unknown Blind Book"),
+                Price = cartItem.BookID.HasValue 
+                    ? (cartItem.Book?.Price ?? 0) 
+                    : (cartItem.BlindBook?.Price ?? 0),
                 Quantity = cartItem.Quantity,
                 AddedAt = cartItem.CreatedAt
             };
