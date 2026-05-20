@@ -7036,11 +7036,7 @@
                 showToast('All currently available promotions are listed.');
             });
 
-            // Address Change Click
-            $(document).on('click', '#btn-change-shipping-addr', function(e) {
-                e.preventDefault();
-                showToast('Shipping destination selection is disabled in the online demo.');
-            });
+
 
             // See All Blind Vouchers button click
             $(document).on('click', '#btn-see-all-blind-vouchers', function(e) {
@@ -7117,11 +7113,7 @@
                 $(this).closest('.modal-blind-voucher-item').trigger('click');
             });
 
-            // Blind Book Address Change Click
-            $(document).on('click', '#btn-change-blind-shipping', function(e) {
-                e.preventDefault();
-                showToast('Shipping destination selection is disabled in the online demo.');
-            });
+
 
         });
     </script>
@@ -8147,9 +8139,13 @@
             const btnCloseAddress = document.getElementById('btn-close-address');
             const btnCancelAddress = document.getElementById('btn-cancel-address');
             const btnSaveAddress = document.getElementById('btn-save-address');
+            const btnChangeBlindAddr = document.getElementById('btn-change-blind-shipping');
 
-            function openAddressModal() {
-                const currentAddrText = document.getElementById('detail-shipping-addr-text').innerText;
+            let activeAddressTargetId = 'detail-shipping-addr-text';
+
+            function openAddressModal(targetId = 'detail-shipping-addr-text') {
+                activeAddressTargetId = targetId;
+                const currentAddrText = document.getElementById(targetId).innerText;
                 document.getElementById('address-input-text').value = currentAddrText;
                 
                 const currentName = document.getElementById('checkout-name') ? document.getElementById('checkout-name').value : "John Doe";
@@ -8174,7 +8170,14 @@
             if(btnChangeAddr) {
                 btnChangeAddr.addEventListener('click', function(e) {
                     e.preventDefault();
-                    openAddressModal();
+                    openAddressModal('detail-shipping-addr-text');
+                });
+            }
+
+            if(btnChangeBlindAddr) {
+                btnChangeBlindAddr.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openAddressModal('blind-detail-shipping-addr-text');
                 });
             }
 
@@ -8198,7 +8201,7 @@
                         return;
                     }
 
-                    document.getElementById('detail-shipping-addr-text').innerText = newAddr;
+                    document.getElementById(activeAddressTargetId).innerText = newAddr;
 
                     if (document.getElementById('checkout-address')) {
                         document.getElementById('checkout-address').value = newAddr;
