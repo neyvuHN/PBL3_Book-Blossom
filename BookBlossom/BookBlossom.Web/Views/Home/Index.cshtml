@@ -3627,6 +3627,124 @@
         </div>
     </section>
 
+    <!-- Shopping Cart Section -->
+    <section id="cart-section" class="explore-section" style="display: none; padding: 120px 0 80px 0; background: #faf9f6; min-height: 100vh;">
+        <div class="container animate__animated animate__fadeIn">
+            <!-- Header Banner -->
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                <h1 class="cart-title" style="font-family: 'Lora', serif; font-size: 2.5rem; font-weight: 700; color: #111;">Shopping Cart</h1>
+                <div class="secure-checkout-badge" style="background: #eef7fc; color: #2b6cb0; padding: 8px 16px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; border: 1px solid #bee3f8;">
+                    <i class="fas fa-shield-alt"></i> Secure Checkout
+                </div>
+            </div>
+
+            <div class="row" id="cart-layout-container">
+                <!-- Left: Cart Items -->
+                <div class="col-lg-8" id="cart-items-wrapper">
+                    <!-- Grouped shop containers will be rendered dynamically -->
+                </div>
+
+                <!-- Right: Order Summary -->
+                <div class="col-lg-4">
+                    <div class="order-summary-card" style="background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; padding: 24px; position: sticky; top: 100px; transition: all 0.3s ease;">
+                        <h3 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.4rem; color: #111; margin-bottom: 20px; border-bottom: 1px solid #f5f5f5; padding-bottom: 12px;">Order Summary</h3>
+                        
+                        <!-- Subtotal -->
+                        <div class="d-flex justify-content-between mb-3" style="font-size: 1rem; color: #555;">
+                            <span>Subtotal</span>
+                            <span id="cart-subtotal" style="font-weight: 600; color: #111;">$0.00</span>
+                        </div>
+
+                        <!-- Voucher Section -->
+                        <div class="voucher-box mb-4">
+                            <label style="font-size: 0.85rem; color: #777; font-weight: 600; margin-bottom: 8px; display: block;">Have a voucher?</label>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="cart-voucher-input" placeholder="Voucher Code" class="form-control" style="border-radius: 20px; padding: 8px 16px; font-size: 0.9rem; border: 1.5px solid #e2dcd0; outline: none; box-shadow: none;" onfocus="this.style.borderColor='#C2185B'" onblur="this.style.borderColor='#e2dcd0'">
+                                <button id="btn-apply-voucher" class="btn" style="background: #111; color: #fff; font-weight: 600; border-radius: 20px; padding: 8px 20px; font-size: 0.9rem; transition: all 0.2s; border: none;">Apply</button>
+                            </div>
+                            <div id="voucher-message" style="font-size: 0.8rem; margin-top: 5px; display: none;"></div>
+                        </div>
+
+                        <!-- Available Vouchers List -->
+                        <div class="available-vouchers-section mb-4" style="border-top: 1px solid #f5f5f5; padding-top: 15px;">
+                            <h4 style="font-size: 0.85rem; font-weight: 700; color: #333; margin-bottom: 10px;">Select Available Voucher:</h4>
+                            <div class="available-vouchers-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Separator -->
+                        <hr style="border-top: 1.5px dashed #ddd; margin: 20px 0;">
+
+                        <!-- Total -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span style="font-weight: 700; font-size: 1.2rem; color: #111;">Total</span>
+                            <div class="text-end">
+                                <span id="cart-total" style="font-weight: 800; font-size: 1.6rem; color: #C2185B;">$0.00</span>
+                                <div id="cart-discount-badge" style="font-size: 0.8rem; color: #2e7d32; font-weight: 600; display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex flex-column gap-3">
+                            <button id="btn-cart-checkout" class="btn btn-block" style="background: #C2185B; color: #fff; font-weight: 700; font-size: 1.1rem; padding: 12px; border-radius: 30px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 15px rgba(194, 24, 91, 0.25); border: none;">
+                                Checkout
+                            </button>
+                            
+                            <div class="escrow-badge text-center" style="background: #fcfcfc; border: 1px solid #e0e0e0; color: #444; padding: 10px; border-radius: 12px; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500;">
+                                <i class="fas fa-shield-alt" style="color: #2e7d32; font-size: 1rem;"></i> Escrow Protected (100% Refund)
+                            </div>
+                        </div>
+
+                        <p class="text-center text-muted mt-3" style="font-size: 0.8rem; font-style: italic;">*Shipping calculated at checkout.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-cart-state" class="text-center py-5" style="display: none; background: #fff; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: 0 4px 15px rgba(0,0,0,0.02); padding: 50px 20px;">
+                <div style="font-size: 4.5rem; color: #eed5d7; margin-bottom: 20px;"><i class="fas fa-shopping-basket"></i></div>
+                <h3 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.6rem; color: #333; margin-bottom: 10px;">Your Shopping Cart is Empty</h3>
+                <p class="text-muted mb-4" style="font-size: 1rem; max-width: 450px; margin: 0 auto 25px auto;">Looks like you haven't added any books to your cart yet. Let's find your next favorite read!</p>
+                <button id="btn-cart-shop-now" class="btn" style="background: #C2185B; color: #fff; font-weight: 700; font-size: 1rem; padding: 10px 30px; border-radius: 30px; transition: all 0.2s; border: none;">Shop Now</button>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .shop-group-card {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .shop-group-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05) !important;
+        }
+        .cart-item-row:last-child {
+            border-bottom: none !important;
+        }
+        .cart-item-row:hover {
+            background-color: #fdfdfd !important;
+        }
+        .quantity-selector button {
+            transition: background 0.2s ease;
+        }
+        .quantity-selector button:hover {
+            background-color: #e2dcd0 !important;
+        }
+        .btn-qty-minus, .btn-qty-plus {
+            border-radius: 50%;
+        }
+        .order-summary-card {
+            transition: all 0.3s ease;
+        }
+        .mini-voucher-item {
+            transition: all 0.2s ease;
+        }
+        .mini-voucher-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+    </style>
+
     <!-- Footer -->
     <footer class="premium-footer">
         <div class="container">
@@ -3706,6 +3824,7 @@
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
                 $('#blind-date-details-section').hide(); // Hide blind date details
+                $('#cart-section').hide(); // Hide cart section
                 $mainNavbar.removeClass('navbar-light');
                 setActiveTab($navHome);
                 window.scrollTo(0, 0);
@@ -3733,6 +3852,7 @@
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
                 $('#blind-date-details-section').hide(); // Hide blind date details
+                $('#cart-section').hide(); // Hide cart section
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navExplore);
                 window.scrollTo(0, 0);
@@ -3750,6 +3870,7 @@
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
                 $('#blind-date-details-section').hide(); // Hide blind date details
+                $('#cart-section').hide(); // Hide cart section
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navCommunity);
                 window.scrollTo(0, 0);
@@ -3767,6 +3888,7 @@
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
                 $('#blind-date-details-section').hide(); // Hide blind date details
+                $('#cart-section').hide(); // Hide cart section
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navTindbook);
                 updateCards(); // Ensure cards are positioned correctly
@@ -3785,6 +3907,7 @@
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
                 $('#blind-date-details-section').hide(); // Hide blind date details
+                $('#cart-section').hide(); // Hide cart section
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navBlindDate);
                 window.scrollTo(0, 0);
@@ -3802,6 +3925,7 @@
                 $('#reviews-section').show();
                 $('#product-details-section').hide(); // Hide book details if open
                 $('#blind-date-details-section').hide(); // Hide blind date details
+                $('#cart-section').hide(); // Hide cart section
                 $mainNavbar.addClass('navbar-light');
                 setActiveTab($navReviews);
                 window.scrollTo(0, 0);
@@ -3867,6 +3991,8 @@
                         showBlindDate(false);
                     } else if (view === 'reviews') {
                         showReviews(false);
+                    } else if (view === 'cart') {
+                        showCart(false);
                     } else if (view === 'product-details') {
                         if (state.previousActiveSection) {
                             previousActiveSection = state.previousActiveSection;
@@ -3900,6 +4026,9 @@
             } else if (initialHash === '#reviews') {
                 showReviews(false);
                 history.replaceState({ view: 'reviews' }, '', '#reviews');
+            } else if (initialHash === '#cart') {
+                showCart(false);
+                history.replaceState({ view: 'cart' }, '', '#cart');
             } else if (initialHash.startsWith('#book-details-')) {
                 const bookTitleDecoded = decodeURIComponent(initialHash.substring('#book-details-'.length));
                 showHome(false);
@@ -5184,6 +5313,8 @@
                     previousActiveSection = '#blind-date-section';
                 } else if ($('#reviews-section').is(':visible')) {
                     previousActiveSection = '#reviews-section';
+                } else if ($('#cart-section').is(':visible')) {
+                    previousActiveSection = '#cart-section';
                 }
 
                 // Hide other sections
@@ -5193,6 +5324,7 @@
                 $tindbookFeature.hide();
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
+                $('#cart-section').hide();
                 
                 // Populate data
                 $('#detail-title').text(bookData.title);
@@ -5361,6 +5493,8 @@
                     previousActiveSection = '#blind-date-section';
                 } else if ($('#reviews-section').is(':visible')) {
                     previousActiveSection = '#reviews-section';
+                } else if ($('#cart-section').is(':visible')) {
+                    previousActiveSection = '#cart-section';
                 }
 
                 // Hide other sections
@@ -5371,6 +5505,7 @@
                 $('#blind-date-section').hide();
                 $('#reviews-section').hide();
                 $('#product-details-section').hide();
+                $('#cart-section').hide();
 
                 // Populate Blind Date detail elements
                 $('#blind-detail-main-img').attr('src', blindBookData.imgSrc);
@@ -5530,6 +5665,10 @@
                     } else if (previousActiveSection === '#reviews-section') {
                         $mainNavbar.addClass('navbar-light');
                         setActiveTab($navReviews);
+                    } else if (previousActiveSection === '#cart-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        $navLinks.removeClass('active');
+                        $('#nav-cart-btn').addClass('active');
                     }
                     
                     window.scrollTo(0, 0);
@@ -5779,6 +5918,10 @@
                     } else if (previousActiveSection === '#reviews-section') {
                         $mainNavbar.addClass('navbar-light');
                         setActiveTab($navReviews);
+                    } else if (previousActiveSection === '#cart-section') {
+                        $mainNavbar.addClass('navbar-light');
+                        $navLinks.removeClass('active');
+                        $('#nav-cart-btn').addClass('active');
                     }
                     
                     window.scrollTo(0, 0);
@@ -6380,62 +6523,57 @@
                 }
             });
 
-            $(document).on('click', '.btn-cart-blind', function() {
-                const title = "Mystery Book (" + $('#blind-clue-category').text() + ")";
-                const qty = parseInt($('#input-blind-qty').val()) || 1;
-                
-                const $addCartBtn = $(this);
-                const $cartIcon = $('#nav-cart-btn');
-
-                if ($addCartBtn.length && $cartIcon.length) {
-                    // Get viewport bounds of the source button and target cart icon
-                    const rectBtn = $addCartBtn[0].getBoundingClientRect();
-                    const rectCart = $cartIcon[0].getBoundingClientRect();
-
-                    // Calculate start and end coordinates in the viewport
-                    const startX = rectBtn.left + rectBtn.width / 2 - 13;
-                    const startY = rectBtn.top + rectBtn.height / 2 - 13;
-                    
-                    const endX = rectCart.left + rectCart.width / 2 - 13;
-                    const endY = rectCart.top + rectCart.height / 2 - 13;
-
-                    const deltaX = endX - startX;
-                    const deltaY = endY - startY;
-
-                    // Create flyer representing the added book count
-                    const $flyer = $('<div class="cart-flyer"></div>').text(qty);
-                    $flyer.css({
-                        top: startY,
-                        left: startX
-                    });
-
-                    $('body').append($flyer);
-
-                    // Force browser reflow to register initial styles
-                    void $flyer[0].offsetHeight;
-
-                    // Smooth flyer motion using hardware-accelerated CSS translate
-                    $flyer.css({
-                        transform: `translate(${deltaX}px, ${deltaY}px) scale(0.4)`,
-                        opacity: '0.2'
-                    });
-
-                    // Update states and cleanup flyer once transition finishes (1.5s / 1500ms)
-                    setTimeout(function() {
-                        $flyer.remove();
-                        globalCartCount += qty;
-                        updateCartBadge(globalCartCount);
-                    }, 1500);
-                } else {
-                    // Fallback if elements are missing
-                    globalCartCount += qty;
-                    updateCartBadge(globalCartCount);
+            // Global Shopping Cart State System & Interactions
+            let cartItems = [
+                {
+                    id: 'cart-1',
+                    title: 'The Secret Life of Sunflowers',
+                    shop: 'ProBooks_US',
+                    price: 8.50,
+                    qty: 1,
+                    condition: 'Good 80%',
+                    img: '/images/Book/book1.jpg',
+                    selected: true,
+                    isBlind: false
+                },
+                {
+                    id: 'cart-2',
+                    title: 'Blind Date Mystery - Vibe: Cozy',
+                    shop: 'ProBooks_US',
+                    price: 12.00,
+                    qty: 1,
+                    condition: 'New Curated',
+                    img: '/images/BlindDateBook/BlindBook.jpg',
+                    selected: true,
+                    isBlind: true,
+                    hashtags: ['Romance', 'Dark']
+                },
+                {
+                    id: 'cart-3',
+                    title: 'The Silent Patient',
+                    shop: 'ProBooks_US',
+                    price: 14.00,
+                    qty: 1,
+                    condition: 'Like New',
+                    img: '/images/Book/book1.jpg',
+                    selected: true,
+                    isBlind: false
+                },
+                {
+                    id: 'cart-4',
+                    title: "Harry Potter and the Sorcerer's Stone",
+                    shop: 'SarahReads',
+                    price: 6.00,
+                    qty: 1,
+                    condition: 'Good 85%',
+                    img: '/images/Book/book1.jpg',
+                    selected: true,
+                    isBlind: false,
+                    limit: 1
                 }
+            ];
 
-                showToast(`Added ${qty}x "${title}" to your cart!`);
-            });
-            // Global Cart Count State & Animation Logic
-            let globalCartCount = 0;
+            let globalCartCount = 4; // matching initial cartItems count
 
             function updateCartBadge(count) {
                 const $badge = $('#cart-badge');
@@ -6450,12 +6588,50 @@
                 }
             }
 
-            $('#btn-detail-add-cart').on('click', function() {
-                const title = $('#detail-title').text();
-                const qty = parseInt($('#input-qty').val()) || 1;
+            function syncCartBadge() {
+                let totalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
+                globalCartCount = totalQty;
+                updateCartBadge(totalQty);
+            }
+
+            $(document).on('click', '.btn-cart-blind', function() {
+                const title = "Mystery Book (" + ($('#blind-clue-category').text() || 'Cozy') + ")";
+                const qty = parseInt($('#input-blind-qty').val()) || 1;
                 
                 const $addCartBtn = $(this);
                 const $cartIcon = $('#nav-cart-btn');
+
+                // Add to cartItems array
+                const existingItem = cartItems.find(item => item.title === title);
+                if (existingItem) {
+                    existingItem.qty += qty;
+                } else {
+                    const priceText = $('#blind-detail-price').text() || "$12.00";
+                    const price = parseFloat(priceText.replace('$', '')) || 12.00;
+                    const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook.jpg';
+                    
+                    // Parse hashtags
+                    const hashtags = [];
+                    $('.blind-detail-tags .badge').each(function() {
+                        hashtags.push($(this).text().replace('#', '').trim());
+                    });
+                    if (hashtags.length === 0) {
+                        hashtags.push('Romance', 'Dark');
+                    }
+
+                    cartItems.push({
+                        id: 'cart-' + Date.now(),
+                        title: title,
+                        shop: 'ProBooks_US',
+                        price: price,
+                        qty: qty,
+                        condition: 'New Curated',
+                        img: img,
+                        selected: true,
+                        isBlind: true,
+                        hashtags: hashtags
+                    });
+                }
 
                 if ($addCartBtn.length && $cartIcon.length) {
                     // Get viewport bounds of the source button and target cart icon
@@ -6493,13 +6669,85 @@
                     // Update states and cleanup flyer once transition finishes (1.5s / 1500ms)
                     setTimeout(function() {
                         $flyer.remove();
-                        globalCartCount += qty;
-                        updateCartBadge(globalCartCount);
+                        syncCartBadge();
                     }, 1500);
                 } else {
                     // Fallback if elements are missing
-                    globalCartCount += qty;
-                    updateCartBadge(globalCartCount);
+                    syncCartBadge();
+                }
+
+                showToast(`Added ${qty}x "${title}" to your cart!`);
+            });
+
+            $('#btn-detail-add-cart').on('click', function() {
+                const title = $('#detail-title').text();
+                const qty = parseInt($('#input-qty').val()) || 1;
+                
+                const $addCartBtn = $(this);
+                const $cartIcon = $('#nav-cart-btn');
+
+                // Add to cartItems array
+                const existingItem = cartItems.find(item => item.title === title);
+                if (existingItem) {
+                    existingItem.qty += qty;
+                } else {
+                    const priceText = $('#detail-price').text() || "$10.00";
+                    const price = parseFloat(priceText.replace('$', '')) || 10.00;
+                    const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+                    cartItems.push({
+                        id: 'cart-' + Date.now(),
+                        title: title,
+                        shop: 'ProBooks_US', // default shop
+                        price: price,
+                        qty: qty,
+                        condition: 'Like New',
+                        img: img,
+                        selected: true,
+                        isBlind: false
+                    });
+                }
+
+                if ($addCartBtn.length && $cartIcon.length) {
+                    // Get viewport bounds of the source button and target cart icon
+                    const rectBtn = $addCartBtn[0].getBoundingClientRect();
+                    const rectCart = $cartIcon[0].getBoundingClientRect();
+
+                    // Calculate start and end coordinates in the viewport
+                    const startX = rectBtn.left + rectBtn.width / 2 - 13;
+                    const startY = rectBtn.top + rectBtn.height / 2 - 13;
+                    
+                    const endX = rectCart.left + rectCart.width / 2 - 13;
+                    const endY = rectCart.top + rectCart.height / 2 - 13;
+
+                    const deltaX = endX - startX;
+                    const deltaY = endY - startY;
+
+                    // Create flyer representing the added book count
+                    const $flyer = $('<div class="cart-flyer"></div>').text(qty);
+                    $flyer.css({
+                        top: startY,
+                        left: startX
+                    });
+
+                    $('body').append($flyer);
+
+                    // Force browser reflow to register initial styles
+                    void $flyer[0].offsetHeight;
+
+                    // Smooth flyer motion using hardware-accelerated CSS translate
+                    $flyer.css({
+                        transform: `translate(${deltaX}px, ${deltaY}px) scale(0.4)`,
+                        opacity: '0.2'
+                    });
+
+                    // Update states and cleanup flyer once transition finishes (1.5s / 1500ms)
+                    setTimeout(function() {
+                        $flyer.remove();
+                        syncCartBadge();
+                    }, 1500);
+                } else {
+                    // Fallback if elements are missing
+                    syncCartBadge();
                 }
 
                 showToast(`Added ${qty}x "${title}" to your cart!`);
@@ -8348,6 +8596,380 @@
 
             // Check URL on load in case we landed on the return page
             handleVNPayReturn();
+
+            // --- SHOPPING CART INTERFACE SPA LOGIC ---
+            let appliedVoucher = null;
+
+            function showCart(push = true) {
+                $mainContent.hide();
+                $exploreSection.hide();
+                $dedicatedCommunity.hide();
+                $tindbookFeature.hide();
+                $('#blind-date-section').hide();
+                $('#reviews-section').hide();
+                $('#product-details-section').hide();
+                $('#blind-date-details-section').hide();
+                
+                $('#cart-section').show();
+                $mainNavbar.addClass('navbar-light');
+                
+                // Clear active states in navigation menu
+                $navLinks.removeClass('active');
+                $('#nav-cart-btn').addClass('active');
+                
+                renderCart();
+                
+                window.scrollTo(0, 0);
+                if (push) {
+                    history.pushState({ view: 'cart' }, '', '#cart');
+                }
+            }
+
+            // Click listener for nav cart button
+            $('#nav-cart-btn').on('click', function(e) {
+                e.preventDefault();
+                showCart();
+            });
+
+            // Dynamically view details from cart items
+            window.viewBookDetails = function(title) {
+                const item = cartItems.find(i => i.title === title);
+                if (!item) return;
+                
+                if (item.isBlind) {
+                    showBlindDateDetails({
+                        imgSrc: item.img,
+                        desc: "A handpicked mystery treasure featuring clues: " + (item.hashtags ? item.hashtags.join(', ') : '') + ". Fully wrapped with dynamic vibes and custom visual decorations. 🌸",
+                        firstLine: "What is written in the stars shall blossom in your hands.",
+                        price: "$" + item.price.toFixed(2),
+                        hashtags: item.hashtags ? item.hashtags.join(', ') : 'Cozy, Romance'
+                    });
+                } else {
+                    showProductDetails({
+                        title: item.title,
+                        author: item.shop === 'ProBooks_US' ? 'Unknown Author' : 'SarahReads Curated',
+                        imgSrc: item.img
+                    });
+                }
+            };
+
+            function renderCart() {
+                const $itemsWrapper = $('#cart-items-wrapper');
+                const $emptyState = $('#empty-cart-state');
+                const $layoutContainer = $('#cart-layout-container');
+
+                if (cartItems.length === 0) {
+                    $layoutContainer.hide();
+                    $emptyState.show();
+                    syncCartBadge();
+                    return;
+                }
+
+                $layoutContainer.show();
+                $emptyState.hide();
+                $itemsWrapper.empty();
+
+                // Group items by shop
+                const shops = {};
+                cartItems.forEach(item => {
+                    if (!shops[item.shop]) {
+                        shops[item.shop] = [];
+                    }
+                    shops[item.shop].push(item);
+                });
+
+                // Render each shop group
+                Object.keys(shops).forEach(shopName => {
+                    const items = shops[shopName];
+                    const allSelected = items.every(i => i.selected);
+
+                    let shopHtml = `
+                        <div class="shop-group-card mb-4" style="background: #fff; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: 0 4px 15px rgba(0,0,0,0.02); overflow: hidden;">
+                            <!-- Shop Header -->
+                            <div class="shop-header d-flex align-items-center justify-content-between px-4 py-3" style="background: #fafaf9; border-bottom: 1px solid #f2ede4;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <input type="checkbox" class="shop-checkbox" data-shop="${shopName}" ${allSelected ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #C2185B; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-store" style="color: #666; font-size: 1.1rem;"></i>
+                                        <a href="#" class="shop-name-link" style="font-weight: 700; color: #111; text-decoration: none; font-size: 1rem; border-bottom: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderBottomColor='#111'" onmouseout="this.style.borderBottomColor='transparent'">${shopName}</a>
+                                    </div>
+                                </div>
+                                <a href="/Messages?shop=${encodeURIComponent(shopName)}" class="shop-chat-btn" title="Chat with seller" style="color: #666; font-size: 1.2rem; transition: all 0.2s; padding: 5px;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#666'">
+                                    <i class="far fa-comment-dots"></i>
+                                </a>
+                            </div>
+                            <div class="shop-items-list">
+                    `;
+
+                    items.forEach(item => {
+                        shopHtml += `
+                            <div class="cart-item-row d-flex align-items-center justify-content-between p-4" data-id="${item.id}" style="border-bottom: 1px solid #f9f9f8; transition: all 0.3s ease;">
+                                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                    <!-- Checkbox -->
+                                    <input type="checkbox" class="item-checkbox" data-id="${item.id}" ${item.selected ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #C2185B; cursor: pointer;">
+                                    
+                                    <!-- Cover -->
+                                    <div class="book-cover-wrapper" style="width: 70px; height: 100px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.06); border: 1px solid #eee; flex-shrink: 0; cursor: pointer;" onclick="viewBookDetails('${item.title}')">
+                                        <img src="${item.img}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                    </div>
+                                    
+                                    <!-- Info -->
+                                    <div class="book-info d-flex flex-column gap-2" style="max-width: 320px; text-align: left;">
+                                        ${item.isBlind ? `
+                                            <div class="d-flex flex-wrap gap-1 mb-1">
+                                                ${item.hashtags.map(h => `<span class="badge" style="background: #111; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">#${h}</span>`).join('')}
+                                            </div>
+                                        ` : ''}
+                                        <h4 class="book-title mb-0" style="font-size: 1rem; font-weight: 700; color: #111; line-height: 1.4; cursor: pointer;" onclick="viewBookDetails('${item.title}')">${item.title}</h4>
+                                        <span class="condition-badge" style="width: fit-content; background: ${item.condition.includes('Like New') || item.condition.includes('New') ? '#e6fffa' : '#f5f4f0'}; color: ${item.condition.includes('Like New') || item.condition.includes('New') ? '#319795' : '#555'}; font-size: 0.8rem; font-weight: 600; padding: 2px 10px; border-radius: 12px;">${item.condition}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quantity & Price -->
+                                <div class="d-flex align-items-center gap-4 flex-shrink-0">
+                                    <div class="quantity-selector-container text-center">
+                                        <div class="quantity-selector d-flex align-items-center" style="background: #f5f4f0; border-radius: 20px; padding: 4px 8px; border: 1px solid #e2dcd0;">
+                                            <button class="btn-qty-minus" data-id="${item.id}" style="background: none; border: none; font-size: 0.9rem; color: #666; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fas fa-minus"></i></button>
+                                            <span class="qty-val" style="width: 30px; font-weight: 700; font-size: 0.95rem; color: #111;">${item.qty}</span>
+                                            <button class="btn-qty-plus" data-id="${item.id}" style="background: none; border: none; font-size: 0.9rem; color: #666; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                        ${item.limit ? `<span style="font-size: 0.72rem; color: #888; display: block; margin-top: 4px;">Limit ${item.limit}</span>` : ''}
+                                    </div>
+                                    
+                                    <div class="price-action-box d-flex flex-column align-items-end gap-2" style="min-width: 90px;">
+                                        <span style="font-size: 1.15rem; font-weight: 800; color: #111;">$${(item.price * item.qty).toFixed(2)}</span>
+                                        <button class="btn-delete-item" data-id="${item.id}" title="Remove item" style="background: none; border: none; color: #bbb; transition: all 0.2s; cursor: pointer; padding: 3px;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='#bbb'">
+                                            <i class="far fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    shopHtml += `
+                            </div>
+                        </div>
+                    `;
+
+                    $itemsWrapper.append(shopHtml);
+                });
+
+                renderAvailableVouchers();
+                calculateTotals();
+                syncCartBadge();
+            }
+
+            function calculateTotals() {
+                let subtotal = 0;
+                cartItems.forEach(item => {
+                    if (item.selected) {
+                        subtotal += item.price * item.qty;
+                    }
+                });
+
+                $('#cart-subtotal').text('$' + subtotal.toFixed(2));
+
+                let discount = 0;
+                let discountText = "";
+                
+                if (appliedVoucher) {
+                    if (appliedVoucher.code === 'BLOSSOM70') {
+                        if (subtotal >= 25.00) {
+                            discount = 3.50; // equivalent to 70k VND (~ $3.50)
+                            discountText = "Voucher BLOSSOM70 applied (-$3.50)";
+                        } else {
+                            appliedVoucher = null;
+                            $('#cart-voucher-input').val('');
+                            showToast("Min order for BLOSSOM70 is $25.00!");
+                        }
+                    } else if (appliedVoucher.code === 'READMORE30') {
+                        discount = 1.50;
+                        discountText = "Voucher READMORE30 applied (-$1.50)";
+                    } else if (appliedVoucher.code === 'ZALOPAY50') {
+                        discount = 2.50;
+                        discountText = "Voucher ZALOPAY50 applied (-$2.50)";
+                    } else if (appliedVoucher.code === 'MOMO12') {
+                        discount = 0.60;
+                        discountText = "Voucher MOMO12 applied (-$0.60)";
+                    } else if (appliedVoucher.code === 'SUMMER20') {
+                        discount = Math.min(subtotal * 0.20, 2.50);
+                        discountText = `Voucher SUMMER20 applied (-$${discount.toFixed(2)})`;
+                    } else if (appliedVoucher.code === 'FREESHIP') {
+                        discountText = "Free Shipping Voucher applied!";
+                    }
+                }
+
+                let total = Math.max(0, subtotal - discount);
+                $('#cart-total').text('$' + total.toFixed(2));
+
+                if (discount > 0 || (appliedVoucher && appliedVoucher.code === 'FREESHIP')) {
+                    $('#cart-discount-badge').text(discountText).show();
+                    $('#voucher-message').text(discountText).css('color', '#2e7d32').show();
+                } else {
+                    $('#cart-discount-badge').hide();
+                    $('#voucher-message').hide();
+                }
+            }
+
+            function renderAvailableVouchers() {
+                const $vList = $('.available-vouchers-list');
+                if (!$vList.length) return;
+
+                $vList.empty();
+
+                VOUCHERS_DATA.forEach(v => {
+                    const isSelected = appliedVoucher && appliedVoucher.code === v.code;
+                    const cardHtml = `
+                        <div class="mini-voucher-item p-2" data-code="${v.code}" style="background: ${isSelected ? '#e8f5e9' : v.bg}; border: 1px ${isSelected ? 'solid' : 'dashed'} ${isSelected ? '#2e7d32' : v.borderColor}; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.transform='translateX(3px)';" onmouseout="this.style.transform='none';">
+                            <div style="text-align: left;">
+                                <span style="font-size: 0.7rem; font-weight: 700; color: ${v.textColor}; background: ${v.tagBg}; padding: 1px 5px; border-radius: 4px;">${v.code}</span>
+                                <div style="font-size: 0.78rem; font-weight: 700; color: #333; margin-top: 3px;">${v.title}</div>
+                            </div>
+                            <span style="font-size: 0.72rem; font-weight: 600; color: ${isSelected ? '#2e7d32' : '#C2185B'};">${isSelected ? 'Applied' : 'Apply'}</span>
+                        </div>
+                    `;
+                    $vList.append(cardHtml);
+                });
+            }
+
+            // Event listener for mini voucher item click
+            $(document).on('click', '.mini-voucher-item', function() {
+                const code = $(this).attr('data-code');
+                const voucher = VOUCHERS_DATA.find(v => v.code === code);
+                
+                if (appliedVoucher && appliedVoucher.code === code) {
+                    appliedVoucher = null;
+                    $('#cart-voucher-input').val('');
+                    showToast("Voucher removed!");
+                } else {
+                    appliedVoucher = voucher;
+                    $('#cart-voucher-input').val(code);
+                    showToast(`Applied voucher ${code}!`);
+                }
+                
+                renderAvailableVouchers();
+                calculateTotals();
+            });
+
+            // Toggle shop items selection
+            $(document).on('change', '.shop-checkbox', function() {
+                const shopName = $(this).attr('data-shop');
+                const isChecked = $(this).is(':checked');
+                
+                cartItems.forEach(item => {
+                    if (item.shop === shopName) {
+                        item.selected = isChecked;
+                    }
+                });
+                
+                renderCart();
+            });
+
+            // Toggle individual item selection
+            $(document).on('change', '.item-checkbox', function() {
+                const itemId = $(this).attr('data-id');
+                const isChecked = $(this).is(':checked');
+                
+                const item = cartItems.find(i => i.id === itemId);
+                if (item) {
+                    item.selected = isChecked;
+                }
+                
+                renderCart();
+            });
+
+            // Quantity Minus Click
+            $(document).on('click', '.btn-qty-minus', function() {
+                const itemId = $(this).attr('data-id');
+                const item = cartItems.find(i => i.id === itemId);
+                
+                if (item) {
+                    if (item.qty > 1) {
+                        item.qty--;
+                        renderCart();
+                    } else {
+                        if (confirm(`Remove "${item.title}" from your cart?`)) {
+                            cartItems = cartItems.filter(i => i.id !== itemId);
+                            renderCart();
+                            showToast("Item removed from cart");
+                        }
+                    }
+                }
+            });
+
+            // Quantity Plus Click
+            $(document).on('click', '.btn-qty-plus', function() {
+                const itemId = $(this).attr('data-id');
+                const item = cartItems.find(i => i.id === itemId);
+                
+                if (item) {
+                    if (item.limit && item.qty >= item.limit) {
+                        showToast(`Limit ${item.limit} copy for this item.`);
+                        return;
+                    }
+                    item.qty++;
+                    renderCart();
+                }
+            });
+
+            // Delete Cart Item Click
+            $(document).on('click', '.btn-delete-item', function() {
+                const itemId = $(this).attr('data-id');
+                const item = cartItems.find(i => i.id === itemId);
+                
+                if (item && confirm(`Remove "${item.title}" from your cart?`)) {
+                    cartItems = cartItems.filter(i => i.id !== itemId);
+                    renderCart();
+                    showToast("Item removed from cart");
+                }
+            });
+
+            // Apply Voucher Manual Button Click
+            $(document).on('click', '#btn-apply-voucher', function() {
+                const code = $('#cart-voucher-input').val().trim().toUpperCase();
+                if (!code) {
+                    showToast("Please enter a voucher code");
+                    return;
+                }
+                
+                const voucher = VOUCHERS_DATA.find(v => v.code === code);
+                if (voucher) {
+                    appliedVoucher = voucher;
+                    showToast(`Applied voucher ${code}!`);
+                    renderAvailableVouchers();
+                    calculateTotals();
+                } else {
+                    showToast("Invalid voucher code");
+                }
+            });
+
+            // Shop Now click handler
+            $(document).on('click', '#btn-cart-shop-now', function() {
+                showExplore();
+            });
+
+            // Checkout click handler
+            $(document).on('click', '#btn-cart-checkout', function() {
+                const selectedItems = cartItems.filter(i => i.selected);
+                if (selectedItems.length === 0) {
+                    showToast("Please select at least one item to checkout!");
+                    return;
+                }
+                
+                showToast("Proceeding to secure checkout... Redirecting!");
+                
+                setTimeout(function() {
+                    alert("Thank you for shopping at BookBlossom! Your order has been placed successfully via secure escrow payment.");
+                    cartItems = cartItems.filter(i => !i.selected);
+                    appliedVoucher = null;
+                    $('#cart-voucher-input').val('');
+                    renderCart();
+                }, 1000);
+            });
+
+            // Trigger initial state sync on load
+            syncCartBadge();
 
             // Success/Fail actions
             document.querySelector('.btn-continue-shopping').addEventListener('click', () => {
