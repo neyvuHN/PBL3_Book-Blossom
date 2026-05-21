@@ -91,9 +91,11 @@ builder.Services.AddSwaggerGen(c =>
     var securityScheme = new OpenApiModels.OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Description = "Nhập token theo định dạng: Bearer {your_token}",
+        Description = "Nhập token JWT của bạn",
         In = OpenApiModels.ParameterLocation.Header,
-        Type = OpenApiModels.SecuritySchemeType.ApiKey,
+        Type = OpenApiModels.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
         Reference = new OpenApiModels.OpenApiReference
         {
             Id = "Bearer",

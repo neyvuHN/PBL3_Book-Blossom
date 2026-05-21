@@ -34,8 +34,8 @@ namespace BookBlossom.Web.Controllers
             }
             else
             {
-                // Try to get GuestID from Header or Cookie
-                if (Request.Headers.TryGetValue("X-Guest-ID", out var guestIdHeader) && Guid.TryParse(guestIdHeader.ToString(), out var parsedGuestId))
+                // Try to get the validated GuestID from HttpContext.Items (populated by GuestSessionMiddleware)
+                if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid parsedGuestId)
                 {
                     guestId = parsedGuestId;
                 }
@@ -84,7 +84,8 @@ namespace BookBlossom.Web.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", details = ex.Message });
+                var details = ex.InnerException != null ? $"{ex.Message} Inner: {ex.InnerException.Message}" : ex.Message;
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", details = details });
             }
         }
 

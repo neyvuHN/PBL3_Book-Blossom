@@ -33,7 +33,9 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName || u.PhoneNumber == request.UserName);
+            var user = await _context.Users
+                .Include(u => u.CustomerDetail)
+                .FirstOrDefaultAsync(u => u.UserName == request.UserName || u.PhoneNumber == request.UserName);
             
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
                 throw new UnauthorizedActionException("Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác.");
@@ -59,7 +61,22 @@ namespace BookBlossom.Infrastructure.Services
             bool isOnboarding = true; 
             if (user.RoleID == UserRole.Customer)
             {
-                isOnboarding = user.CustomerDetail?.IsOnboardingCompleted ?? false;
+                if (user.CustomerDetail == null)
+                {
+                    var customerDetail = new CustomerDetail
+                    {
+                        CustomerID = user.UserID,
+                        IsOnboardingCompleted = false,
+                        TotalSpending = 0,
+                        DailyUndoCount = 0,
+                        CurrentMonthThreadCount = 0,
+                        CurrentOrderStreak = 0
+                    };
+                    _context.CustomerDetails.Add(customerDetail);
+                    await _context.SaveChangesAsync();
+                    user.CustomerDetail = customerDetail;
+                }
+                isOnboarding = user.CustomerDetail.IsOnboardingCompleted;
             }
 
             return new AuthResponseDTO 

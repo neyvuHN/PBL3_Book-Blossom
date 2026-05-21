@@ -7,6 +7,7 @@ using BookBlossom.Core.DTOs.Cart;
 using BookBlossom.Core.Entities;
 using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Infrastructure.Data;
+using BookBlossom.Core.Enums;
 
 namespace BookBlossom.Infrastructure.Services
 {
@@ -58,6 +59,11 @@ namespace BookBlossom.Infrastructure.Services
         {
             if (!userId.HasValue && !guestId.HasValue)
                 throw new InvalidOperationException("Phải cung cấp UserID hoặc GuestID.");
+
+            if (userId.HasValue)
+            {
+                await EnsureCustomerDetailExistsAsync(userId.Value);
+            }
 
             if (request.BookID == null && request.BlindBookID == null)
                 throw new InvalidOperationException("Phải cung cấp BookID hoặc BlindBookID.");
@@ -213,6 +219,8 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task MigrateGuestCartToUserAsync(Guid guestId, long userId)
         {
+            await EnsureCustomerDetailExistsAsync(userId);
+
             var guestCarts = await _context.Carts.Where(c => c.GuestID == guestId).ToListAsync();
             if (!guestCarts.Any()) return;
 
@@ -235,6 +243,29 @@ namespace BookBlossom.Infrastructure.Services
                 }
             }
             await _context.SaveChangesAsync();
+        }
+
+        private async Task EnsureCustomerDetailExistsAsync(long userId)
+        {
+            var exists = await _context.CustomerDetails.AnyAsync(cd => cd.CustomerID == userId);
+            if (!exists)
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user != null)
+                {
+                    var customerDetail = new CustomerDetail
+                    {
+                        CustomerID = userId,
+                        IsOnboardingCompleted = false,
+                        TotalSpending = 0,
+                        DailyUndoCount = 0,
+                        CurrentMonthThreadCount = 0,
+                        CurrentOrderStreak = 0
+                    };
+                    await _context.CustomerDetails.AddAsync(customerDetail);
+                    await _context.SaveChangesAsync();
+                }
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Role> builder)
         {
-            builder.ToTable("Roles");
+            builder.ToTable("Role", "UserSystem");
 
             builder.HasKey(r => r.RoleID);
             
