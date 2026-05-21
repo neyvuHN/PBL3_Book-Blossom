@@ -1,0 +1,1091 @@
+<!-- Share Confirmation Modal -->
+    <div class="custom-modal" id="share-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <h3>Share Post</h3>
+            <p>Are you sure you want to share this post to your profile?</p>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-share">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-confirm-share">Share</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Post Modal -->
+    <div class="custom-modal" id="report-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <h3>Report Post</h3>
+            <p>Why are you reporting this post?</p>
+            <div class="report-options" style="text-align: left; margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="spam"> Spam</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="harassment"> Harassment</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="inappropriate"> Inappropriate Content</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-reason" value="other"> Other</label>
+                <div class="other-reason-container" style="display: none; margin-top: 10px;">
+                    <textarea id="other-reason-text" placeholder="Please specify your reason..." style="width: 100%; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 0.9rem; resize: vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-report">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-submit-report">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Review Modal -->
+    <div class="custom-modal" id="report-review-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <h3>Report Review</h3>
+            <p>Why are you reporting this review?</p>
+            <div class="report-review-options" style="text-align: left; margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-review-reason" value="spam"> Spam</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-review-reason" value="harassment"> Harassment</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-review-reason" value="inappropriate"> Inappropriate Content</label>
+                <label style="display: block; margin-bottom: 10px; cursor: pointer;"><input type="radio" name="report-review-reason" value="other"> Other</label>
+                <div class="other-review-reason-container" style="display: none; margin-top: 10px;">
+                    <textarea id="other-review-reason-text" placeholder="Please specify your reason..." style="width: 100%; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 0.9rem; resize: vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-review-report">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-submit-review-report">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Book Modal -->
+    <div class="custom-modal" id="tag-book-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box" style="max-width: 500px;">
+            <h3>Tag a Book</h3>
+            
+            <div class="modal-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-modal-tab active" data-target="tab-link">By Link</button>
+                <button class="btn-modal-tab" data-target="tab-recent">Recent</button>
+                <button class="btn-modal-tab" data-target="tab-wishlist">Wishlist</button>
+            </div>
+            
+            <!-- Tab Link -->
+            <div id="tab-link" class="modal-tab-content">
+                <p>Enter the link to the book page on BookBlossom:</p>
+                <input type="text" id="tag-book-link" class="form-control mb-3" placeholder="https://bookblossom.com/book/123">
+                <div id="link-error" style="color: #ff4444; font-size: 0.85rem; display: none;">Link must be from BookBlossom domain (contains 'bookblossom.com' or starts with '/').</div>
+            </div>
+            
+            <!-- Tab Recent -->
+            <div id="tab-recent" class="modal-tab-content" style="display: none;">
+                <p>Select a recently viewed book:</p>
+                <div class="book-select-list" style="max-height: 200px; overflow-y: auto;">
+                    <div class="book-select-item" data-title="The Secret Garden" data-author="Frances Hodgson Burnett" data-img="/images/Book/book1.jpg">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>The Secret Garden</h4>
+                            <p>Frances Hodgson Burnett</p>
+                        </div>
+                    </div>
+                    <div class="book-select-item" data-title="Think and Grow Rich" data-author="Napoleon Hill" data-img="/images/Book/book1.jpg">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Think and Grow Rich</h4>
+                            <p>Napoleon Hill</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Wishlist -->
+            <div id="tab-wishlist" class="modal-tab-content" style="display: none;">
+                <p>Select a book from your wishlist:</p>
+                <div class="book-select-list" style="max-height: 200px; overflow-y: auto;">
+                    <div class="book-select-item" data-title="Atomic Habits" data-author="James Clear" data-img="/images/Book/book1.jpg">
+                        <img src="/images/Book/book1.jpg" alt="Book">
+                        <div>
+                            <h4>Atomic Habits</h4>
+                            <p>James Clear</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-btns mt-3">
+                <button class="btn-modal-cancel" id="btn-cancel-tag-book">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-confirm-tag-book">Tag Book</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BookBlossom Vouchers Modal -->
+    <div class="custom-modal" id="vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(194, 24, 91, 0.1);">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #333; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🌸 BookBlossom Vouchers
+                </h3>
+                <button class="btn-close-vouchers" id="btn-close-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content - Scrollable List -->
+            <div class="vouchers-modal-list" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <!-- Item 1: BLOSSOM70 -->
+                <div class="modal-voucher-item" data-code="BLOSSOM70" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                        <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to all books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 2: READMORE30 -->
+                <div class="modal-voucher-item" data-code="READMORE30" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">READMORE30</span>
+                        <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first BookBlossom purchase.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 3: ZALOPAY50 -->
+                <div class="modal-voucher-item" data-code="ZALOPAY50" style="display: flex; border: 1.5px dashed #2b6cb0; border-radius: 12px; overflow: hidden; background: #fdfcff; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #eef7fc; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #2b6cb0; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #2b6cb0; letter-spacing: 0.5px;">ZALOPAY50</span>
+                        <span style="font-size: 0.65rem; color: #2b6cb0; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">ZaloPay Extra 50k</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 50k off when paying through ZaloPay app.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 4: MOMO12 -->
+                <div class="modal-voucher-item" data-code="MOMO12" style="display: flex; border: 1.5px dashed #d53f8c; border-radius: 12px; overflow: hidden; background: #fffafc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #fdf2f8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #d53f8c; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #d53f8c; letter-spacing: 0.5px;">MOMO12</span>
+                        <span style="font-size: 0.65rem; color: #d53f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Momo: Get 12k Cashback</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Cashback directly to Momo wallet after order.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 5: SUMMER20 -->
+                <div class="modal-voucher-item" data-code="SUMMER20" style="display: flex; border: 1.5px dashed #dd6b20; border-radius: 12px; overflow: hidden; background: #fffaf0; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #feebc8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #dd6b20; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #dd6b20; letter-spacing: 0.5px;">SUMMER20</span>
+                        <span style="font-size: 0.65rem; color: #dd6b20; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">20% OFF Summer Special</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 20% off all Classic Literature. Max discount 50k VNĐ.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Aug 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 6: FREESHIP -->
+                <div class="modal-voucher-item" data-code="FREESHIP" style="display: flex; border: 1.5px dashed #319795; border-radius: 12px; overflow: hidden; background: #f0fdf4; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e6fffa; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #319795; text-align: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #319795; letter-spacing: 0.5px;">FREESHIP</span>
+                        <span style="font-size: 0.65rem; color: #319795; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Free Standard Shipping</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Free standard shipping nationwide. Min order 150k VNĐ.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;"><strong id="modal-selected-count">0</strong> voucher(s) selected</span>
+                <button class="btn-modal-confirm" id="btn-confirm-vouchers" style="width: 140px; margin: 0; background: #C2185B; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">Apply Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BookBlossom Blind Vouchers Modal -->
+    <div class="custom-modal" id="blind-vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(106, 79, 140, 0.15); border: 1px solid rgba(106, 79, 140, 0.15);">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #6a4f8c; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🔮 Mystery Book Vouchers
+                </h3>
+                <button class="btn-close-blind-vouchers" id="btn-close-blind-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#6a4f8c'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content - Scrollable List -->
+            <div class="vouchers-modal-list" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <!-- Item 1: MYSTERY15 -->
+                <div class="modal-blind-voucher-item" data-code="MYSTERY15" data-discount="15000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">MYSTERY15</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 15,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 150k VNĐ. Applies to Mystery Books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 2: BLOSSOM70 -->
+                <div class="modal-blind-voucher-item" data-code="BLOSSOM70" data-discount="70000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to Mystery Books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 3: READMORE30 -->
+                <div class="modal-blind-voucher-item" data-code="READMORE30" data-discount="30000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">READMORE30</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first Blind Date purchase.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 4: SECRET50 -->
+                <div class="modal-blind-voucher-item" data-code="SECRET50" data-discount="50000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">SECRET50</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 50,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 350k VNĐ. Special mystery gift discount.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 5: UNBOX20 -->
+                <div class="modal-blind-voucher-item" data-code="UNBOX20" data-discount="20000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">UNBOX20</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 20,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 200k VNĐ. Applies to Mystery Books.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Item 6: VIPMYSTERY -->
+                <div class="modal-blind-voucher-item" data-code="VIPMYSTERY" data-discount="100000" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                    <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">VIPMYSTERY</span>
+                        <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                    </div>
+                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 100,000 VND</h4>
+                        <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 800k VNĐ. Premium tier exclusive mystery discount.</p>
+                        <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                    </div>
+                    <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                        <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;"><strong id="blind-modal-selected-count">0</strong> voucher(s) selected</span>
+                <button class="btn-modal-confirm" id="btn-confirm-blind-vouchers" style="width: 140px; margin: 0; background: #6a4f8c; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">Apply Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [NEW] Unified Cart Vouchers Modal -->
+    <div class="custom-modal" id="cart-vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(194, 24, 91, 0.1);">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #333; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🎟️ Select Cart Voucher
+                </h3>
+                <button class="btn-close-cart-vouchers" id="btn-close-cart-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Premium Tab Headers -->
+            <div class="d-flex mb-3" style="border-bottom: 2px solid #f0f0f0; gap: 15px;">
+                <button id="tab-blossom-vouchers" class="btn active" style="flex: 1; padding: 10px; font-weight: 700; font-size: 0.95rem; border: none; border-bottom: 3px solid #C2185B; background: transparent; color: #C2185B; border-radius: 0; transition: all 0.2s; box-shadow: none; outline: none;">
+                    🌸 BookBlossom Vouchers
+                </button>
+                <button id="tab-mystery-vouchers" class="btn" style="flex: 1; padding: 10px; font-weight: 700; font-size: 0.95rem; border: none; border-bottom: 3px solid transparent; background: transparent; color: #666; border-radius: 0; transition: all 0.2s; box-shadow: none; outline: none;">
+                    🔮 Mystery Book Vouchers
+                </button>
+            </div>
+
+            <!-- Modal Content - Scrollable Lists -->
+            <div class="cart-vouchers-modal-list-wrapper" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; margin-bottom: 20px; display: flex; flex-direction: column;">
+                
+                <!-- Tab Content 1: BookBlossom Vouchers -->
+                <div id="blossom-vouchers-list" class="vouchers-modal-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Item 1: BLOSSOM70 -->
+                    <div class="modal-voucher-item" data-code="BLOSSOM70" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                            <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to all books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: READMORE30 -->
+                    <div class="modal-voucher-item" data-code="READMORE30" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">READMORE30</span>
+                            <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first BookBlossom purchase.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: ZALOPAY50 -->
+                    <div class="modal-voucher-item" data-code="ZALOPAY50" style="display: flex; border: 1.5px dashed #2b6cb0; border-radius: 12px; overflow: hidden; background: #fdfcff; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #eef7fc; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #2b6cb0; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #2b6cb0; letter-spacing: 0.5px;">ZALOPAY50</span>
+                            <span style="font-size: 0.65rem; color: #2b6cb0; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">ZaloPay Extra 50k</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 50k off when paying through ZaloPay app.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 4: MOMO12 -->
+                    <div class="modal-voucher-item" data-code="MOMO12" style="display: flex; border: 1.5px dashed #d53f8c; border-radius: 12px; overflow: hidden; background: #fffafc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #fdf2f8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #d53f8c; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #d53f8c; letter-spacing: 0.5px;">MOMO12</span>
+                            <span style="font-size: 0.65rem; color: #d53f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Momo: Get 12k Cashback</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Cashback directly to Momo wallet after order.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 5: SUMMER20 -->
+                    <div class="modal-voucher-item" data-code="SUMMER20" style="display: flex; border: 1.5px dashed #dd6b20; border-radius: 12px; overflow: hidden; background: #fffaf0; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #feebc8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #dd6b20; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #dd6b20; letter-spacing: 0.5px;">SUMMER20</span>
+                            <span style="font-size: 0.65rem; color: #dd6b20; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">20% OFF Summer Special</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 20% off all Classic Literature. Max discount 50k VNĐ.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Aug 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 6: FREESHIP -->
+                    <div class="modal-voucher-item" data-code="FREESHIP" style="display: flex; border: 1.5px dashed #319795; border-radius: 12px; overflow: hidden; background: #f0fdf4; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e6fffa; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #319795; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #319795; letter-spacing: 0.5px;">FREESHIP</span>
+                            <span style="font-size: 0.65rem; color: #319795; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Free Standard Shipping</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Free standard shipping nationwide. Min order 150k VNĐ.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content 2: Mystery Book Vouchers -->
+                <div id="mystery-vouchers-list" class="vouchers-modal-list" style="display: none; flex-direction: column; gap: 15px;">
+                    <!-- Item 1: MYSTERY15 -->
+                    <div class="modal-blind-voucher-item" data-code="MYSTERY15" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">MYSTERY15</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 15,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 150k VNĐ. Applies to Mystery Books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: BLOSSOM70 -->
+                    <div class="modal-blind-voucher-item" data-code="BLOSSOM70" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to Mystery Books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: READMORE30 -->
+                    <div class="modal-blind-voucher-item" data-code="READMORE30" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">READMORE30</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first Blind Date purchase.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 4: SECRET50 -->
+                    <div class="modal-blind-voucher-item" data-code="SECRET50" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">SECRET50</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 50,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 350k VNĐ. Special mystery gift discount.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 5: UNBOX20 -->
+                    <div class="modal-blind-voucher-item" data-code="UNBOX20" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">UNBOX20</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 20,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 200k VNĐ. Applies to Mystery Books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 6: VIPMYSTERY -->
+                    <div class="modal-blind-voucher-item" data-code="VIPMYSTERY" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">VIPMYSTERY</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 100,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 800k VNĐ. Premium tier exclusive mystery discount.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;">Selected: <strong id="cart-modal-selected-code" style="color: #C2185B;">None</strong></span>
+                <div class="d-flex gap-2">
+                    <button class="btn" id="btn-remove-cart-voucher" style="background: #f5f4f0; color: #666; border: 1px solid #ddd; border-radius: 20px; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">Remove</button>
+                    <button class="btn-modal-confirm" id="btn-confirm-cart-vouchers" style="margin: 0; background: #C2185B; color: #fff; border: none; border-radius: 20px; padding: 8px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; min-width: 120px;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Post Confirmation Modal -->
+    <div class="custom-modal" id="delete-post-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <div style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"><i class="fas fa-exclamation-circle"></i></div>
+            <h3>Delete Post</h3>
+            <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-delete-post">Cancel</button>
+                <button class="btn-modal-confirm btn-modal-danger" id="btn-confirm-delete-post">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Review Confirmation Modal -->
+    <div class="custom-modal" id="delete-review-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box">
+            <div style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"><i class="fas fa-exclamation-circle"></i></div>
+            <h3>Delete Review</h3>
+            <p>Are you sure you want to delete your review? This action cannot be undone.</p>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancel-delete-review">Cancel</button>
+                <button class="btn-modal-confirm btn-modal-danger" id="btn-confirm-delete-review">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- How it works Modal -->
+    <div class="custom-modal" id="how-it-works-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-box" style="max-width: 550px; text-align: left; padding: 35px; border-radius: 20px; max-height: 90vh; overflow-y: auto;">
+            <h3 style="font-family: 'Lora', serif; font-size: 1.6rem; color: #333; margin-bottom: 20px; text-align: center; font-weight: 700;">
+                🌸 How Blind Date Books Work
+            </h3>
+            
+            <!-- The Concept -->
+            <div style="background: #FDF2F4; border-radius: 12px; padding: 15px; margin-bottom: 20px; border-left: 4px solid #EEC7C9;">
+                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #6D4C41; font-weight: 500;">
+                    <i class="fas fa-heart" style="color: #E91E63; margin-right: 8px;"></i>
+                    <strong>Concept:</strong> Fall in love with a book based on its <strong>"Keywords" & "Vibe"</strong> instead of its cover! The exact title and author remain a beautiful mystery until delivery.
+                </p>
+            </div>
+
+            <!-- Step-by-Step Guide -->
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: #333; margin-bottom: 15px;">Buyer Journey & Guidelines</h4>
+            
+            <div class="how-it-works-steps" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Step 1 -->
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #FFF0F2; color: #C2185B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 0.9rem; border: 1px solid #FADBD8;">
+                        1
+                    </div>
+                    <div>
+                        <h5 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: #444;">Hidden Descriptions</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.4;">Browse mystery listings and view only keywords, vibes, condition, and prices. The identity of the book is hidden.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #FFF0F2; color: #C2185B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 0.9rem; border: 1px solid #FADBD8;">
+                        2
+                    </div>
+                    <div>
+                        <h5 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: #444;">Receive & Reveal</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.4;">Once your order is delivered, click <strong>"Order Received"</strong> on the website. The system will instantly reveal the real book details for your cross-check.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #FFF0F2; color: #C2185B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 0.9rem; border: 1px solid #FADBD8;">
+                        3
+                    </div>
+                    <div>
+                        <h5 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: #444;">Unboxing Protection & Reports</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.4;">If the book does not match the description, upload your <strong>unboxing video</strong> and report it. The Store Manager will handle your return/refund query.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strict Warning Alert -->
+            <div style="background: #FFF9E6; border: 1px solid #FFE0B2; border-radius: 12px; padding: 15px; margin-top: 20px; display: flex; gap: 12px; align-items: flex-start;">
+                <i class="fas fa-video" style="color: #FF9800; font-size: 1.2rem; margin-top: 2px;"></i>
+                <div style="font-size: 0.85rem; line-height: 1.4; color: #5D4037;">
+                    <strong style="color: #E65100;">CRITICAL UNBOXING POLICY:</strong><br>
+                    For buyer safety, you <strong>MUST record a continuous video while opening the package</strong>. Complaints and reports will <strong>ONLY</strong> be accepted with a valid unboxing video.
+                    <span style="display: block; margin-top: 4px; font-style: italic; color: #8D6E63;">(A reminder is also shown on your Order Tracking page)</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; margin-top: 25px;">
+                <button class="btn-modal-confirm" id="btn-close-how-it-works" style="width: 120px;">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Image Fullscreen Lightbox Modal -->
+    <div class="custom-modal lightbox-modal" id="book-lightbox-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"></div>
+        
+        <!-- Top Toolbar for Close and Indicator -->
+        <div class="lightbox-toolbar" style="position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 10001; pointer-events: none;">
+            <div class="lightbox-indicator" style="color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; font-weight: 500; background: rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(5px); pointer-events: auto; font-family: 'Outfit', sans-serif;">
+                Image <span id="lightbox-current-idx">1</span> of <span id="lightbox-total-idx">4</span>
+            </div>
+            <button class="lightbox-close-btn" style="background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; pointer-events: auto; backdrop-filter: blur(5px);" aria-label="Close fullscreen view">
+                <i class="fas fa-times" style="font-size: 1.25rem;"></i>
+            </button>
+        </div>
+
+        <!-- Lightbox Content Wrap -->
+        <div class="lightbox-wrapper" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 10000; overflow: hidden; user-select: none;">
+            <!-- Left Arrow -->
+            <button class="lightbox-arrow lightbox-prev" style="position: absolute; left: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Previous image">
+                <i class="fas fa-chevron-left" style="font-size: 1.25rem;"></i>
+            </button>
+
+            <!-- Main Large Image -->
+            <div class="lightbox-img-container" style="max-width: 85%; max-height: 80%; display: flex; align-items: center; justify-content: center; position: relative;">
+                <img id="lightbox-main-img" src="" alt="Book Fullscreen View" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;" draggable="false">
+            </div>
+
+            <!-- Right Arrow -->
+            <button class="lightbox-arrow lightbox-next" style="position: absolute; right: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Next image">
+                <i class="fas fa-chevron-right" style="font-size: 1.25rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Blind Date Image Fullscreen Lightbox Modal -->
+    <div class="custom-modal lightbox-modal" id="blind-lightbox-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"></div>
+        
+        <!-- Top Toolbar for Close and Indicator -->
+        <div class="lightbox-toolbar" style="position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 10001; pointer-events: none;">
+            <div class="lightbox-indicator" style="color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; font-weight: 500; background: rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(5px); pointer-events: auto; font-family: 'Outfit', sans-serif;">
+                Image <span id="blind-lightbox-current-idx">1</span> of <span id="blind-lightbox-total-idx">3</span>
+            </div>
+            <button class="lightbox-close-btn blind-lightbox-close" style="background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; pointer-events: auto; backdrop-filter: blur(5px);" aria-label="Close fullscreen view">
+                <i class="fas fa-times" style="font-size: 1.25rem;"></i>
+            </button>
+        </div>
+
+        <!-- Lightbox Content Wrap -->
+        <div class="lightbox-wrapper" id="blind-lightbox-wrapper" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 10000; overflow: hidden; user-select: none;">
+            <!-- Left Arrow -->
+            <button class="lightbox-arrow blind-lightbox-prev" style="position: absolute; left: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Previous image">
+                <i class="fas fa-chevron-left" style="font-size: 1.25rem;"></i>
+            </button>
+
+            <!-- Main Large Image -->
+            <div class="lightbox-img-container" style="max-width: 85%; max-height: 80%; display: flex; align-items: center; justify-content: center; position: relative;">
+                <img id="blind-lightbox-main-img" src="" alt="Blind Date Fullscreen View" style="width: 800px; max-width: 90%; height: auto; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;" draggable="false">
+            </div>
+
+            <!-- Right Arrow -->
+            <button class="lightbox-arrow blind-lightbox-next" style="position: absolute; right: 30px; background: rgba(255, 255, 255, 0.08); color: #fff; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10002;" aria-label="Next image">
+                <i class="fas fa-chevron-right" style="font-size: 1.25rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Book Read Preview Flipbook Modal (Secure) -->
+    <div class="preview-modal-container" id="preview-modal-container" style="display: none;">
+        <div class="preview-modal-backdrop"></div>
+        <div class="preview-modal-content">
+            <button class="preview-modal-close" id="btn-close-preview" title="Close Preview">
+                <i class="fas fa-times" style="font-size: 1.25rem;"></i>
+            </button>
+            
+            <!-- Scroll Area Wrapper -->
+            <div class="flipbook-scroll-area">
+                <div id="flipbook-zoom-wrapper">
+                    <!-- 3D Flipbook -->
+                    <div class="flipbook-container" id="flipbook-container">
+                <!-- Sheet 1 (Cover [Page 1] / Inside [Page 2]) -->
+                <div class="flipbook-sheet" id="p-sheet-1" style="z-index: 3;">
+                    <div class="flipbook-side flipbook-front">
+                        <div class="canvas-wrapper">
+                            <div class="watermark-overlay"></div>
+                            <div class="page-loader" id="loader-1">
+                                <div class="spinner"></div>
+                                <span style="font-size: 0.82rem; font-weight: 500;">Loading cover...</span>
+                            </div>
+                            <canvas id="canvas-page-1"></canvas>
+                        </div>
+                    </div>
+                    <div class="flipbook-side flipbook-back">
+                        <div class="canvas-wrapper">
+                            <div class="watermark-overlay"></div>
+                            <div class="page-loader" id="loader-2">
+                                <div class="spinner"></div>
+                                <span style="font-size: 0.82rem; font-weight: 500;">Loading page 2...</span>
+                            </div>
+                            <canvas id="canvas-page-2"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sheet 2 (Page 3 / Page 4) -->
+                <div class="flipbook-sheet" id="p-sheet-2" style="z-index: 2;">
+                    <div class="flipbook-side flipbook-front">
+                        <div class="canvas-wrapper">
+                            <div class="watermark-overlay"></div>
+                            <div class="page-loader" id="loader-3">
+                                <div class="spinner"></div>
+                                <span style="font-size: 0.82rem; font-weight: 500;">Loading page 3...</span>
+                            </div>
+                            <canvas id="canvas-page-3"></canvas>
+                        </div>
+                    </div>
+                    <div class="flipbook-side flipbook-back">
+                        <div class="canvas-wrapper">
+                            <div class="watermark-overlay"></div>
+                            <div class="page-loader" id="loader-4">
+                                <div class="spinner"></div>
+                                <span style="font-size: 0.82rem; font-weight: 500;">Loading page 4...</span>
+                            </div>
+                            <canvas id="canvas-page-4"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sheet 3 (Page 5 / End CTA) -->
+                <div class="flipbook-sheet" id="p-sheet-3" style="z-index: 1;">
+                    <div class="flipbook-side flipbook-front">
+                        <div class="canvas-wrapper">
+                            <div class="watermark-overlay"></div>
+                            <div class="page-loader" id="loader-5">
+                                <div class="spinner"></div>
+                                <span style="font-size: 0.82rem; font-weight: 500;">Loading page 5...</span>
+                            </div>
+                            <canvas id="canvas-page-5"></canvas>
+                        </div>
+                    </div>
+                    <div class="flipbook-side flipbook-back">
+                        <div class="end-preview-page">
+                            <div class="end-preview-icon"><i class="fas fa-lock"></i></div>
+                            <h3>End of Preview</h3>
+                            <p>You have read all 5 pages of the digital preview for this book.</p>
+                            <button class="btn-buy-preview" id="btn-buy-from-preview">Buy Full Book Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+            
+            <!-- Controls Overlay -->
+            <div class="preview-controls">
+                <!-- Navigation -->
+                <button class="preview-btn" id="btn-prev-page" disabled title="Previous Page">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="preview-indicator" id="preview-page-indicator">Cover</span>
+                <button class="preview-btn" id="btn-next-page" title="Next Page">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                
+                <!-- Spacer/Divider -->
+                <div style="width: 1px; height: 20px; background: rgba(255, 255, 255, 0.2); margin: 0 5px;"></div>
+                
+                <!-- Zoom Controls -->
+                <button class="preview-btn" id="btn-zoom-out" title="Zoom Out">
+                    <i class="fas fa-search-minus"></i>
+                </button>
+                <span class="preview-indicator" id="zoom-indicator" style="min-width: 50px; font-size: 0.85rem; font-weight: 500;">100%</span>
+                <button class="preview-btn" id="btn-zoom-in" title="Zoom In">
+                    <i class="fas fa-search-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Address Editor Modal -->
+    <div id="address-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div id="address-modal-content" style="background: #fff; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
+            <!-- Header -->
+            <div style="padding: 20px 25px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 700; color: #111;">Change Shipping Address</h3>
+                <button id="btn-close-address" style="background: none; border: none; font-size: 1.3rem; color: #888; cursor: pointer; transition: color 0.2s;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- Body -->
+            <div style="padding: 25px; display: flex; flex-direction: column; gap: 20px;">
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
+                    <textarea id="address-input-text" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full shipping address...">Phường Bến Nghé, Quận 1, Hồ Chí Minh</textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Receiver Name</label>
+                    <input type="text" id="address-input-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="John Doe">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number</label>
+                    <input type="tel" id="address-input-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="0987654321">
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding: 20px 25px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 12px; border-radius: 0 0 20px 20px; background: #fafafa;">
+                <button id="btn-cancel-address" style="background: transparent; color: #555; border: 1.5px solid #ddd; padding: 10px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    Cancel
+                </button>
+                <button id="btn-save-address" style="background: linear-gradient(135deg, #C2185B 0%, #f07c7c 100%); color: #fff; border: none; padding: 10px 25px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal Flow -->
+    <!-- 1. Checkout Form Modal -->
+    <div id="checkout-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div id="checkout-modal-content" style="background: #fff; border-radius: 20px; width: 95%; max-width: 850px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
+            <!-- Header -->
+            <div style="padding: 20px 30px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10;">
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.5rem; font-weight: 700; color: #111;">Secure Checkout</h3>
+                <button id="btn-close-checkout" style="background: none; border: none; font-size: 1.5rem; color: #888; cursor: pointer; transition: color 0.2s;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- Body -->
+            <div style="padding: 30px; display: flex; flex-direction: column; gap: 30px;">
+                <!-- Book Info -->
+                <div id="checkout-book-info-container" style="display: flex; gap: 20px; align-items: center; background: #faf8f5; padding: 20px; border-radius: 12px; border: 1px solid #f2ede4;">
+                    <img id="checkout-book-img" src="/images/Book/book4.jpg" style="width: 80px; height: 120px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" alt="Book Cover">
+                    <div style="flex-grow: 1;">
+                        <h4 id="checkout-book-title" style="margin: 0 0 5px; font-size: 1.2rem; font-weight: 700; color: #333;">Harry Potter and the Sorcerer's Stone</h4>
+                        <p id="checkout-book-author" style="margin: 0 0 10px; font-size: 0.9rem; color: #666;">J.K. Rowling</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.95rem; color: #555;">Quantity: <strong id="checkout-book-qty">1</strong></span>
+                            <span id="checkout-book-price" style="font-size: 1.25rem; font-weight: 700; color: #C2185B;">297,000 VND</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Details -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
+                        <textarea id="checkout-address" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full address...">Phường Bến Nghé, Quận 1, Hồ Chí Minh</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Receiver Name</label>
+                        <input type="text" id="checkout-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number <span style="color: #999; font-size: 0.75rem; text-transform: none;">(Editable for shipper)</span></label>
+                        <input type="tel" id="checkout-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="0987654321">
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Payment Method</label>
+                    <div style="display: flex; gap: 15px;">
+                        <!-- VNPay -->
+                        <div class="payment-method-card active" data-method="vnpay" style="flex: 1; border: 2px solid #C2185B; border-radius: 12px; padding: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; background: #fffafb; transition: all 0.2s;">
+                            <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png" style="height: 30px; object-fit: contain;" alt="VNPay">
+                            <span style="font-weight: 700; color: #333; font-size: 0.95rem;">VNPay</span>
+                        </div>
+                        <!-- COD -->
+                        <div class="payment-method-card" id="pm-cod" data-method="cod" style="flex: 1; border: 1px solid #ddd; border-radius: 12px; padding: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; background: #fff; transition: all 0.2s; position: relative; overflow: hidden;">
+                            <i class="fas fa-truck-fast" style="font-size: 1.8rem; color: #555;"></i>
+                            <span style="font-weight: 700; color: #333; font-size: 0.95rem;">Cash on Delivery</span>
+                            <!-- Reputation overlay if score < 60 -->
+                            <div id="cod-disabled-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+                                <i class="fas fa-lock" style="color: #e74c3c; margin-bottom: 5px;"></i>
+                                <span style="font-size: 0.75rem; color: #e74c3c; font-weight: 700; text-align: center; padding: 0 10px;">Reputation &lt; 60<br>COD Disabled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Order Summary</label>
+                    <div style="background: #faf8f5; border: 1px solid #f2ede4; border-radius: 12px; padding: 20px;">
+                        <!-- Applied Vouchers List -->
+                        <div id="checkout-applied-vouchers-container" style="margin-bottom: 20px; display: none;">
+                            <div style="font-size: 0.85rem; font-weight: 700; color: #555; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Applied Vouchers</div>
+                            <div id="checkout-vouchers-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <!-- Badges dynamically added here -->
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; color: #555;">
+                            <span>Subtotal</span>
+                            <span id="checkout-subtotal">297,000 VND</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; color: #555;">
+                            <span>Shipping Fee</span>
+                            <span id="checkout-shipping-fee">30,000 VND</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.95rem; color: #C2185B;">
+                            <span>Voucher Discount</span>
+                            <span id="checkout-voucher-discount">-0 VND</span>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #ddd; padding-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; color: #111; font-size: 1.05rem;">Total</span>
+                            <span id="checkout-summary-total" style="font-weight: 700; color: #C2185B; font-size: 1.3rem;">327,000 VND</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding: 20px 30px; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; position: sticky; bottom: 0; background: #fff; z-index: 10; border-radius: 0 0 20px 20px;">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 0.85rem; color: #666;">Total Payment</span>
+                    <span id="checkout-total-price" style="font-size: 1.4rem; font-weight: 700; color: #C2185B;">297,000 VND</span>
+                </div>
+                <button id="btn-confirm-checkout" style="background: linear-gradient(135deg, #C2185B 0%, #f07c7c 100%); color: #fff; border: none; padding: 12px 30px; border-radius: 30px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 6px 20px rgba(194, 24, 91, 0.3);">
+                    Confirm & Pay
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Loading Screen (VNPay Redirect) -->
+    <div id="vnpay-loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000; align-items: center; justify-content: center; flex-direction: column; text-align: center;">
+        <div style="width: 80px; height: 80px; border: 4px solid #f3f3f3; border-top: 4px solid #C2185B; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 30px;"></div>
+        <h2 style="font-family: 'Lora', serif; color: #111; margin-bottom: 10px;">Redirecting to VNPay payment gateway...</h2>
+        <p style="color: #666; font-size: 1.1rem;">Please do not close your browser.</p>
+        <style>@@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+    </div>
+
+    <!-- 3. VNPay Return / Status Verification Screen -->
+    <div id="vnpay-return-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000; align-items: center; justify-content: center; flex-direction: column; text-align: center;">
+        <div class="pulse-ring" style="width: 100px; height: 100px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 30px; animation: pulse 2s infinite;">
+            <i class="fas fa-shield-halved" style="font-size: 2.5rem; color: #1976d2;"></i>
+        </div>
+        <h2 style="font-family: 'Lora', serif; color: #111; margin-bottom: 10px;">Verifying payment...</h2>
+        <p style="color: #666; font-size: 1.1rem;">Please wait a moment.</p>
+        <style>@@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(33, 150, 243, 0); } 100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); } }</style>
+    </div>
+
+    <!-- 4. Payment Success Screen -->
+    <div id="payment-success-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+        <div style="background: #fff; border-radius: 20px; width: 90%; max-width: 500px; padding: 40px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.25); animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div style="width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px;">
+                <i class="fas fa-check" style="font-size: 2.5rem; color: #166534;"></i>
+            </div>
+            <h2 style="font-family: 'Lora', serif; color: #111; margin-bottom: 20px;">Payment successful!</h2>
+            
+            <div style="background: #f8fafc; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #64748b;">Order ID:</span>
+                    <strong style="color: #0f172a;">#BB12345</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #64748b;">Amount:</span>
+                    <strong id="payment-success-amount" style="color: #C2185B;">250,000 VND</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b;">Status:</span>
+                    <strong style="color: #166534;">Paid, waiting for confirmation</strong>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; flex-direction: column;">
+                <button class="btn-view-order" style="background: #111; color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.2s;">View Order</button>
+                <button class="btn-continue-shopping" style="background: #fff; color: #111; border: 1.5px solid #111; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.2s;">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Payment Failed Screen -->
+    <div id="payment-failed-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+        <div style="background: #fff; border-radius: 20px; width: 90%; max-width: 500px; padding: 40px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.25); animation: shake 0.5s ease-in-out;">
+            <div style="width: 80px; height: 80px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px;">
+                <i class="fas fa-times" style="font-size: 2.5rem; color: #991b1b;"></i>
+            </div>
+            <h2 style="font-family: 'Lora', serif; color: #111; margin-bottom: 15px;">Payment failed</h2>
+            <p style="color: #64748b; margin-bottom: 30px; line-height: 1.6;">Your order has not been recorded as paid. Please try again or choose another payment method.</p>
+            
+            <div style="display: flex; gap: 10px; flex-direction: column;">
+                <button class="btn-retry-payment" style="background: #C2185B; color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.2s;">Retry Payment</button>
+                <button class="btn-change-method" style="background: #f1f5f9; color: #334155; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.2s;">Change Payment Method</button>
+                <button class="btn-cancel-order" style="background: transparent; color: #94a3b8; border: none; padding: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer;">Cancel Order</button>
+            </div>
+        </div>
+        <style>
+            @@keyframes bounce-in { 0% { transform: scale(0.8); opacity: 0; } 80% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+            @@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+        </style>
+    </div>

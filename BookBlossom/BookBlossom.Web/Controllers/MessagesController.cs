@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookBlossom.Web.Controllers
 {
-    public class ReviewController : Controller
+    public class MessagesController : Controller
     {
-        [HttpGet("/Reviews")]
+        [HttpGet("/Messages")]
         public IActionResult Index()
         {
             return View();

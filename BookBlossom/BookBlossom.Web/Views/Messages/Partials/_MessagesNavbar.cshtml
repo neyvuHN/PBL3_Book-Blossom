@@ -1,0 +1,37 @@
+<!-- Premium Navbar (Consistent with Index.cshtml vibe) -->
+    <nav class="premium-navbar navbar-light" id="main-navbar" style="position: fixed; background: rgba(255, 255, 255, 0.9); border-bottom: 1px solid #f0e2e5;">
+        <a class="nav-logo" href="/" id="nav-logo" style="color: #333;">
+            <span class="flower">🌸</span> BookBlossom
+        </a>
+        <ul class="nav-links">
+            <li><a href="/" style="color: #333;">Home</a></li>
+            <li><a href="/#explore" style="color: #333;">Explore</a></li>
+            <li><a href="/#tindbook" style="color: #333;">Tindbook</a></li>
+            <li><a href="/#community" style="color: #333;">Thread</a></li>
+            <li><a href="/#blind-date" style="color: #333;">Blind Date Books</a></li>
+            <li><a href="/#reviews" style="color: #333;">Reviews</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="/#cart" class="nav-icon-btn nav-cart-btn" id="nav-cart-btn" style="color: #333;">
+                <i class="fas fa-shopping-cart"></i> Cart <span class="cart-badge" id="cart-badge" style="display: inline-block;">1</span>
+            </a>
+            <a href="#" class="nav-icon-btn notification-btn" style="color: #333;">
+                <i class="fas fa-bell"></i>
+                <span class="notification-dot"></span>
+            </a>
+            <div class="user-dropdown">
+                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar" style="border-color: #C2185B;">
+                <span class="username" style="color: #333;">@(User.Identity?.Name ?? "Jane Doe")</span>
+                <i class="fas fa-chevron-down" style="color: #333;"></i>
+                <div class="dropdown-menu">
+                    <a href="/Profile" class="dropdown-item"><i class="far fa-user-circle"></i> My Account</a>
+                    <a href="/Orders" class="dropdown-item"><i class="fas fa-shopping-bag"></i> My Orders</a>
+                    <a href="/Wishlist" class="dropdown-item"><i class="far fa-heart"></i> My Wishlist</a>
+                    <a href="/Messages" class="dropdown-item pink-bg"><i class="far fa-comment"></i> Messages</a>
+                    <a href="/Settings" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="/Help" class="dropdown-item"><i class="far fa-question-circle"></i> User Manual</a>
+                    <a href="/Auth/Logout" class="dropdown-item btn-logout grey-bg"><i class="fas fa-sign-out-alt"></i> Log Out</a>
+                </div>
+            </div>
+        </div>
+    </nav>

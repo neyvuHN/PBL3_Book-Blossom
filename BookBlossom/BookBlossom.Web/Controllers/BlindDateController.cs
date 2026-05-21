@@ -2,15 +2,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookBlossom.Web.Controllers
 {
-    public class BookController : Controller
+    public class BlindDateController : Controller
     {
-        [HttpGet("/Explore")]
-        public IActionResult Explore()
+        [HttpGet("/BlindDate")]
+        public IActionResult Index()
         {
             return View();
         }
 
-        [HttpGet("/Book/Details")]
+        [HttpGet("/BlindDate/Details")]
         public IActionResult Details()
         {
             return View();
