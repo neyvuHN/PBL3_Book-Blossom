@@ -7924,6 +7924,13 @@
                 showExplore();
             });
 
+            // [UPDATED] Global callback for cart checkout success to clear items and vouchers from the cart
+            window.onCartCheckoutSuccess = function() {
+                cartItems = cartItems.filter(i => !i.selected);
+                appliedVouchers = [];
+                renderCart();
+            };
+
             // Checkout click handler
             $(document).on('click', '#btn-cart-checkout', function() {
                 const selectedItems = cartItems.filter(i => i.selected);
@@ -7932,14 +7939,104 @@
                     return;
                 }
 
-                showToast("Proceeding to secure checkout... Redirecting!");
+                let subtotalUsd = 0;
+                let hasBlind = false;
+                selectedItems.forEach(item => {
+                    subtotalUsd += item.price * item.qty;
+                    if (item.isBlind) hasBlind = true;
+                });
 
-                setTimeout(function() {
-                    alert("Thank you for shopping at BookBlossom! Your order has been placed successfully via secure escrow payment.");
-                    cartItems = cartItems.filter(i => !i.selected);
-                    appliedVouchers = [];
-                    renderCart();
-                }, 1000);
+                let discountUsd = 0;
+                let hasFreeShip = false;
+                if (appliedVouchers && appliedVouchers.length > 0) {
+                    appliedVouchers.forEach(v => {
+                        const code = v.code;
+                        const isMystery = v.isMystery;
+                        if (isMystery) {
+                            if (code === 'MYSTERY15') discountUsd += 0.75;
+                            else if (code === 'BLOSSOM70') discountUsd += 3.50;
+                            else if (code === 'READMORE30') discountUsd += 1.50;
+                            else if (code === 'SECRET50') discountUsd += 2.50;
+                            else if (code === 'UNBOX20') discountUsd += 1.00;
+                            else if (code === 'VIPMYSTERY') discountUsd += 5.00;
+                        } else {
+                            if (code === 'BLOSSOM70') discountUsd += 3.50;
+                            else if (code === 'READMORE30') discountUsd += 1.50;
+                            else if (code === 'ZALOPAY50') discountUsd += 2.50;
+                            else if (code === 'MOMO12') discountUsd += 0.60;
+                            else if (code === 'SUMMER20') discountUsd += Math.min(subtotalUsd * 0.20, 2.50);
+                            else if (code === 'FREESHIP') hasFreeShip = true;
+                        }
+                    });
+                }
+
+                let shippingFeeUsd = subtotalUsd > 0 ? 3.00 : 0.00;
+                if (hasFreeShip && subtotalUsd >= 7.50) {
+                    shippingFeeUsd = 0.00;
+                }
+
+                const subtotalVnd = Math.round(subtotalUsd * 20000);
+                const shippingFeeVnd = Math.round(shippingFeeUsd * 20000);
+                const discountVnd = Math.round(discountUsd * 20000);
+
+                window.checkoutState = {
+                    isCart: true,
+                    isBlind: hasBlind,
+                    subtotal: subtotalVnd,
+                    shippingFee: shippingFeeVnd,
+                    discount: discountVnd
+                };
+
+                const container = document.getElementById('checkout-applied-vouchers-container');
+                const list = document.getElementById('checkout-vouchers-list');
+                list.innerHTML = '';
+                if (appliedVouchers && appliedVouchers.length > 0) {
+                    container.style.display = 'block';
+                    appliedVouchers.forEach(v => {
+                        const badge = document.createElement('div');
+                        const isMystery = v.isMystery;
+                        const bg = isMystery ? '#faf8fc' : '#ffebee';
+                        const border = isMystery ? '1px solid #a291b5' : '1px solid #f07c7c';
+                        const textCol = isMystery ? '#6a4f8c' : '#C2185B';
+
+                        let valVnd = 0;
+                        if (isMystery) {
+                            if (v.code === 'MYSTERY15') valVnd = 15000;
+                            else if (v.code === 'BLOSSOM70') valVnd = 70000;
+                            else if (v.code === 'READMORE30') valVnd = 30000;
+                            else if (v.code === 'SECRET50') valVnd = 50000;
+                            else if (v.code === 'UNBOX20') valVnd = 20000;
+                            else if (v.code === 'VIPMYSTERY') valVnd = 100000;
+                        } else {
+                            if (v.code === 'BLOSSOM70') valVnd = 70000;
+                            else if (v.code === 'READMORE30') valVnd = 30000;
+                            else if (v.code === 'ZALOPAY50') valVnd = 50000;
+                            else if (v.code === 'MOMO12') valVnd = 12000;
+                            else if (v.code === 'SUMMER20') valVnd = Math.round(Math.min(subtotalUsd * 0.20, 2.50) * 20000);
+                            else if (v.code === 'FREESHIP') valVnd = 0;
+                        }
+
+                        badge.style.cssText = `background: ${bg}; border: ${border}; color: ${textCol}; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px;`;
+                        if (v.code === 'FREESHIP') {
+                            badge.innerHTML = `<i class="fas fa-ticket"></i> FREESHIP (Free Shipping)`;
+                        } else {
+                            badge.innerHTML = `<i class="fas fa-ticket"></i> ${v.code} (-${new Intl.NumberFormat('vi-VN').format(valVnd)} VND)`;
+                        }
+                        list.appendChild(badge);
+                    });
+                } else {
+                    container.style.display = 'none';
+                }
+
+                if (typeof window.populateCheckoutBookInfo === 'function') {
+                    window.populateCheckoutBookInfo(selectedItems);
+                }
+                if (typeof window.updateCheckoutTotals === 'function') {
+                    window.updateCheckoutTotals();
+                }
+                if (typeof window.openCheckout === 'function') {
+                    window.openCheckout();
+                }
             });
             // =========================================================
             // [END UPDATED] SHOPPING CART INTERFACE SPA LOGIC
@@ -8875,7 +8972,7 @@
             <!-- Body -->
             <div style="padding: 30px; display: flex; flex-direction: column; gap: 30px;">
                 <!-- Book Info -->
-                <div style="display: flex; gap: 20px; align-items: center; background: #faf8f5; padding: 20px; border-radius: 12px; border: 1px solid #f2ede4;">
+                <div id="checkout-book-info-container" style="display: flex; gap: 20px; align-items: center; background: #faf8f5; padding: 20px; border-radius: 12px; border: 1px solid #f2ede4;">
                     <img id="checkout-book-img" src="/images/Book/book4.jpg" style="width: 80px; height: 120px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" alt="Book Cover">
                     <div style="flex-grow: 1;">
                         <h4 id="checkout-book-title" style="margin: 0 0 5px; font-size: 1.2rem; font-weight: 700; color: #333;">Harry Potter and the Sorcerer's Stone</h4>
@@ -9004,7 +9101,7 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span style="color: #64748b;">Amount:</span>
-                    <strong style="color: #C2185B;">250,000 VND</strong>
+                    <strong id="payment-success-amount" style="color: #C2185B;">250,000 VND</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <span style="color: #64748b;">Status:</span>
@@ -9094,6 +9191,82 @@
                     document.getElementById('checkout-total-price').innerText = fmt(total);
                 }
             }
+
+            window.openCheckout = openCheckout;
+            window.closeCheckout = closeCheckout;
+            window.updateCheckoutTotals = updateCheckoutTotals;
+
+            // [UPDATED] Populator to dynamically render book information (single item details, or multiple items from cart)
+            window.populateCheckoutBookInfo = function(items) {
+                const $container = $('#checkout-book-info-container');
+                $container.empty();
+
+                if (items.length === 1) {
+                    const item = items[0];
+                    const itemPriceVnd = item.priceVnd ? item.priceVnd : (item.price * 20000);
+                    $container.css({
+                        'display': 'flex',
+                        'gap': '20px',
+                        'align-items': 'center',
+                        'flex-direction': 'row',
+                        'background': '#faf8f5',
+                        'padding': '20px',
+                        'border-radius': '12px',
+                        'border': '1px solid #f2ede4'
+                    });
+                    $container.append(`
+                        <img id="checkout-book-img" src="${item.img || '/images/Book/book4.jpg'}" style="width: 80px; height: 120px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" alt="Book Cover">
+                        <div style="flex-grow: 1;">
+                            <h4 id="checkout-book-title" style="margin: 0 0 5px; font-size: 1.2rem; font-weight: 700; color: #333;">${item.title}</h4>
+                            <p id="checkout-book-author" style="margin: 0 0 10px; font-size: 0.9rem; color: #666;">${item.author || 'BookBlossom Edition'}</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.95rem; color: #555;">Quantity: <strong id="checkout-book-qty">${item.qty}</strong></span>
+                                <span id="checkout-book-price" style="font-size: 1.25rem; font-weight: 700; color: #C2185B;">${new Intl.NumberFormat('vi-VN').format(itemPriceVnd * item.qty)} VND</span>
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    $container.css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'gap': '15px',
+                        'align-items': 'stretch',
+                        'background': '#faf8f5',
+                        'padding': '20px',
+                        'border-radius': '12px',
+                        'border': '1px solid #f2ede4'
+                    });
+
+                    let itemsHtml = '';
+                    items.forEach(item => {
+                        const itemPriceVnd = item.priceVnd ? item.priceVnd : (item.price * 20000);
+                        itemsHtml += `
+                            <div style="display: flex; gap: 15px; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 3px;">
+                                <img src="${item.img || '/images/Book/book4.jpg'}" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);" alt="Book Cover">
+                                <div style="flex-grow: 1;">
+                                    <h5 style="margin: 0 0 3px; font-size: 0.95rem; font-weight: 700; color: #333; line-height: 1.3;">${item.title}</h5>
+                                    <p style="margin: 0 0 5px; font-size: 0.8rem; color: #666;">${item.author || 'BookBlossom Edition'}</p>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-size: 0.82rem; color: #555;">Qty: <strong>${item.qty}</strong></span>
+                                        <span style="font-size: 0.95rem; font-weight: 700; color: #C2185B;">${new Intl.NumberFormat('vi-VN').format(itemPriceVnd * item.qty)} VND</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    $container.html(`
+                        <div style="max-height: 220px; overflow-y: auto; padding-right: 5px;">
+                            ${itemsHtml}
+                        </div>
+                    `);
+                    $container.find('> div > div:last-child').css({
+                        'border-bottom': 'none',
+                        'padding-bottom': '0',
+                        'margin-bottom': '0'
+                    });
+                }
+            };
 
             // Selection logic for product detail vouchers
             const couponCards = document.querySelectorAll('.coupon-slider .coupon-card');
@@ -9297,20 +9470,22 @@
                     const imgSrc = document.getElementById('detail-main-img') ? document.getElementById('detail-main-img').src : "/images/Book/book4.jpg";
                     const qty = document.getElementById('input-qty') ? parseInt(document.getElementById('input-qty').value) : 1;
                     
-                    document.getElementById('checkout-book-title').innerText = title;
-                    document.getElementById('checkout-book-author').innerText = author;
-                    document.getElementById('checkout-book-img').src = imgSrc;
-                    document.getElementById('checkout-book-qty').innerText = qty;
-                    
                     const priceText = document.getElementById('detail-price') ? document.getElementById('detail-price').innerText : "297.000";
                     const pricePerItem = parseInt(priceText.replace(/[^0-9]/g, '')) || 297000;
                     
-                    // Set checkout state type to regular book
+                    // [UPDATED] Set checkout state type to regular book
+                    window.checkoutState.isCart = false;
                     window.checkoutState.isBlind = false;
                     window.checkoutState.subtotal = pricePerItem * qty;
                     window.checkoutState.shippingFee = 30000; // default shipping
-                    const formatted = new Intl.NumberFormat('vi-VN').format(window.checkoutState.subtotal) + ' VND';
-                    document.getElementById('checkout-book-price').innerText = formatted;
+                    
+                    window.populateCheckoutBookInfo([{
+                        title: title,
+                        author: author,
+                        img: imgSrc,
+                        qty: qty,
+                        priceVnd: pricePerItem
+                    }]);
                     
                     populateAppliedVouchers();
                     updateCheckoutTotals();
@@ -9332,18 +9507,19 @@
                 const rawPrice = document.getElementById('blind-detail-price') ? document.getElementById('blind-detail-price').innerText : "120.000 VNĐ";
                 const pricePerItem = parseInt(rawPrice.replace(/[^0-9]/g, '')) || 120000;
                 
-                // Sync fields to checkout modal dynamically!
-                document.getElementById('checkout-book-title').innerText = title;
-                document.getElementById('checkout-book-author').innerText = author;
-                document.getElementById('checkout-book-img').src = imgSrc;
-                document.getElementById('checkout-book-qty').innerText = qty;
-                
-                // Set checkout state type to blind book
+                // [UPDATED] Set checkout state type to blind book
+                window.checkoutState.isCart = false;
                 window.checkoutState.isBlind = true;
                 window.checkoutState.subtotal = pricePerItem * qty;
                 window.checkoutState.shippingFee = 30000; // default shipping for blind books
-                const formattedSubtotal = new Intl.NumberFormat('vi-VN').format(window.checkoutState.subtotal) + ' VND';
-                document.getElementById('checkout-book-price').innerText = formattedSubtotal;
+                
+                window.populateCheckoutBookInfo([{
+                    title: title,
+                    author: author,
+                    img: imgSrc,
+                    qty: qty,
+                    priceVnd: pricePerItem
+                }]);
                 
                 populateAppliedVouchers();
                 updateCheckoutTotals();
@@ -9391,6 +9567,14 @@
                 } else {
                     // COD Success Flow
                     closeCheckout();
+                    
+                    // [UPDATED] Sync success paid amount and execute cart clear callback if applicable
+                    const finalTotal = Math.max(0, window.checkoutState.subtotal + window.checkoutState.shippingFee - window.checkoutState.discount);
+                    document.getElementById('payment-success-amount').innerText = new Intl.NumberFormat('vi-VN').format(finalTotal) + ' VND';
+                    if (window.checkoutState.isCart && typeof window.onCartCheckoutSuccess === 'function') {
+                        window.onCartCheckoutSuccess();
+                    }
+                    
                     document.getElementById('payment-success-overlay').style.display = 'flex';
                 }
             });
@@ -9407,6 +9591,13 @@
                         verifyOverlay.style.display = 'none';
                         const responseCode = urlParams.get('vnp_ResponseCode');
                         if (responseCode === '00') { // Success
+                            // [UPDATED] Sync success paid amount and execute cart clear callback if applicable
+                            const finalTotal = Math.max(0, window.checkoutState.subtotal + window.checkoutState.shippingFee - window.checkoutState.discount);
+                            document.getElementById('payment-success-amount').innerText = new Intl.NumberFormat('vi-VN').format(finalTotal) + ' VND';
+                            if (window.checkoutState.isCart && typeof window.onCartCheckoutSuccess === 'function') {
+                                window.onCartCheckoutSuccess();
+                            }
+                            
                             document.getElementById('payment-success-overlay').style.display = 'flex';
                         } else { // Failed / Cancelled
                             document.getElementById('payment-failed-overlay').style.display = 'flex';
