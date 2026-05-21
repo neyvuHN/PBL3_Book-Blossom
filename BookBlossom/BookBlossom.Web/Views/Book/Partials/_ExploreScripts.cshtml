@@ -250,60 +250,9 @@
                         showBlindDateDetails(state.blindBookData, false);
                     }
                 } else {
-                    showHome(false);
+                    showExplore(false);
                 }
             });
-
-            // Initial Router parsing on Page Load
-            const initialHash = window.location.hash;
-            if (initialHash === '#explore') {
-                showExplore(false);
-                history.replaceState({ view: 'explore' }, '', '#explore');
-            } else if (initialHash === '#community') {
-                showDedicatedCommunity(false);
-                history.replaceState({ view: 'community' }, '', '#community');
-            } else if (initialHash === '#tindbook') {
-                showTindbook(false);
-                history.replaceState({ view: 'tindbook' }, '', '#tindbook');
-            } else if (initialHash === '#blind-date') {
-                showBlindDate(false);
-                history.replaceState({ view: 'blind-date' }, '', '#blind-date');
-            } else if (initialHash === '#reviews') {
-                showReviews(false);
-                history.replaceState({ view: 'reviews' }, '', '#reviews');
-            } else if (initialHash === '#cart') {
-                showCart(false);
-                history.replaceState({ view: 'cart' }, '', '#cart');
-            } else if (initialHash.startsWith('#book-details-')) {
-                const bookTitleDecoded = decodeURIComponent(initialHash.substring('#book-details-'.length));
-                showHome(false);
-                setTimeout(function() {
-                    const mockBook = {
-                        title: bookTitleDecoded,
-                        author: bookTitleDecoded === "The Secret Garden" ? "Frances Hodgson Burnett" : (bookTitleDecoded === "Think and Grow Rich" ? "Napoleon Hill" : (bookTitleDecoded === "Atomic Habits" ? "James Clear" : "BookBlossom Curator")),
-                        imgSrc: "/images/Book/book1.jpg"
-                    };
-                    showProductDetails(mockBook, false);
-                    history.replaceState({ view: 'product-details', bookData: mockBook }, '', initialHash);
-                }, 300);
-            } else if (initialHash.startsWith('#blind-details-')) {
-                const tagsDecoded = decodeURIComponent(initialHash.substring('#blind-details-'.length));
-                showBlindDate(false);
-                setTimeout(function() {
-                    const mockBlindBook = {
-                        imgSrc: "/images/Book/book1.jpg",
-                        desc: "A handpicked mystery treasure featuring clues: " + tagsDecoded + ". Fully wrapped with dynamic vibes and custom visual decorations. 🌸",
-                        firstLine: "What is written in the stars shall blossom in your hands.",
-                        price: "120.000 VND",
-                        hashtags: tagsDecoded
-                    };
-                    showBlindDateDetails(mockBlindBook, false);
-                    history.replaceState({ view: 'blind-date-details', blindBookData: mockBlindBook }, '', initialHash);
-                }, 300);
-            } else {
-                showHome(false);
-                history.replaceState({ view: 'home' }, '', '#home');
-            }
 
             // Explore Filter Sidebar Toggle
             $('#btn-toggle-filter').on('click', function(e) {
@@ -760,7 +709,7 @@
 
             $('#see-more-books').on('click', function(e) {
                 e.preventDefault();
-                window.location.href = '/Explore';
+                window.location.href = '/Explore'; 
             });
 
             // Re-initialize carousel after a while if desired
@@ -1545,22 +1494,24 @@
             let currentDetailImageIndex = 0;
 
             function showProductDetails(bookData, push = true) {
+                previousActiveSection = '#explore-section';
+                
                 // Determine current visible section to save as return point
-                if ($mainContent.is(':visible')) {
-                    previousActiveSection = '#main-content';
-                } else if ($exploreSection.is(':visible')) {
-                    previousActiveSection = '#explore-section';
-                } else if ($dedicatedCommunity.is(':visible')) {
-                    previousActiveSection = '#dedicated-community';
-                } else if ($tindbookFeature.is(':visible')) {
-                    previousActiveSection = '#tindbook-feature';
-                } else if ($('#blind-date-section').is(':visible')) {
-                    previousActiveSection = '#blind-date-section';
-                } else if ($('#reviews-section').is(':visible')) {
-                    previousActiveSection = '#reviews-section';
-                } else if ($('#cart-section').is(':visible')) {
-                    previousActiveSection = '#cart-section';
-                }
+                // if ($mainContent.is(':visible')) {
+                //     previousActiveSection = '#main-content';
+                // } else if ($exploreSection.is(':visible')) {
+                //     previousActiveSection = '#explore-section';
+                // } else if ($dedicatedCommunity.is(':visible')) {
+                //     previousActiveSection = '#dedicated-community';
+                // } else if ($tindbookFeature.is(':visible')) {
+                //     previousActiveSection = '#tindbook-feature';
+                // } else if ($('#blind-date-section').is(':visible')) {
+                //     previousActiveSection = '#blind-date-section';
+                // } else if ($('#reviews-section').is(':visible')) {
+                //     previousActiveSection = '#reviews-section';
+                // } else if ($('#cart-section').is(':visible')) {
+                //     previousActiveSection = '#cart-section';
+                // }
 
                 // Hide other sections
                 $mainContent.hide();
@@ -1720,7 +1671,11 @@
                 window.scrollTo(0, 0);
 
                 if (push) {
-                    history.pushState({ view: 'product-details', bookData: bookData, previousActiveSection: previousActiveSection }, '', `#book-details-${encodeURIComponent(bookData.title)}`);
+                    history.pushState(
+                        { view: 'product-details', bookData: bookData, previousActiveSection: '#explore-section' },
+                        '',
+                        `/Explore#book-details-${encodeURIComponent(bookData.title)}`
+                    );
                 }
             }
 
@@ -1854,11 +1809,17 @@
             // Click listener for Home/Explore book cards
             $(document).on('click', '.featured-books .book-card, #explore-section .book-grid .book-card', function(e) {
                 e.preventDefault();
-
+                
                 const $card = $(this);
                 const title = $card.find('h3').text().trim();
-
-                window.location.href = `/Explore#book-details-${encodeURIComponent(title)}`;
+                const author = $card.find('p').text().trim() || "Unknown Author";
+                const imgSrc = $card.find('img').attr('src');
+                
+                showProductDetails({
+                    title: title,
+                    author: author,
+                    imgSrc: imgSrc
+                });
             });
 
             // Click listener for tagged community books
@@ -1880,38 +1841,15 @@
             // Back button logic
             $('#btn-back-to-list').on('click', function(e) {
                 e.preventDefault();
-                if (history.state && history.state.view === 'product-details') {
-                    history.back();
-                } else {
-                    $('#product-details-section').hide();
-                    $(previousActiveSection).show();
-                    
-                    if (previousActiveSection === '#main-content') {
-                        $mainNavbar.removeClass('navbar-light');
-                        setActiveTab($navHome);
-                    } else if (previousActiveSection === '#explore-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navExplore);
-                    } else if (previousActiveSection === '#dedicated-community') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navCommunity);
-                    } else if (previousActiveSection === '#tindbook-feature') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navTindbook);
-                    } else if (previousActiveSection === '#blind-date-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navBlindDate);
-                    } else if (previousActiveSection === '#reviews-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navReviews);
-                    } else if (previousActiveSection === '#cart-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        $navLinks.removeClass('active');
-                        $('#nav-cart-btn').addClass('active');
-                    }
-                    
-                    window.scrollTo(0, 0);
-                }
+
+                $('#product-details-section').hide();
+                $('#explore-section').show();
+
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navExplore);
+
+                history.replaceState({ view: 'explore' }, '', '/Explore');
+                window.scrollTo(0, 0);
             });
 
             // Blind Date Card Click Listener
@@ -4282,5 +4220,209 @@
             // [END UPDATED] SHOPPING CART INTERFACE SPA LOGIC
             // =========================================================
 
+        function calculateBuyNowVoucherDiscount(subtotalVnd) {
+            let discountVnd = 0;
+            let shippingFeeVnd = subtotalVnd > 0 ? 60000 : 0;
+            const appliedVoucherLines = [];
+
+            if (typeof selectedVouchers === 'undefined' || selectedVouchers.size === 0) {
+                return {
+                    discountVnd: 0,
+                    shippingFeeVnd: shippingFeeVnd,
+                    appliedVoucherLines: []
+                };
+            }
+
+            selectedVouchers.forEach(function(code) {
+                if (code === 'BLOSSOM70') {
+                    if (subtotalVnd >= 500000) {
+                        discountVnd += 70000;
+                        appliedVoucherLines.push({
+                            code: 'BLOSSOM70',
+                            text: 'BLOSSOM70 (-70,000 VND)'
+                        });
+                    } else {
+                        showToast('BLOSSOM70 requires minimum order 500,000 VND.');
+                    }
+                } else if (code === 'READMORE30') {
+                    discountVnd += 30000;
+                    appliedVoucherLines.push({
+                        code: 'READMORE30',
+                        text: 'READMORE30 (-30,000 VND)'
+                    });
+                } else if (code === 'ZALOPAY50') {
+                    discountVnd += 50000;
+                    appliedVoucherLines.push({
+                        code: 'ZALOPAY50',
+                        text: 'ZALOPAY50 (-50,000 VND)'
+                    });
+                } else if (code === 'MOMO12') {
+                    discountVnd += 12000;
+                    appliedVoucherLines.push({
+                        code: 'MOMO12',
+                        text: 'MOMO12 (-12,000 VND)'
+                    });
+                } else if (code === 'SUMMER20') {
+                    const summerDiscount = Math.min(Math.round(subtotalVnd * 0.20), 50000);
+                    discountVnd += summerDiscount;
+                    appliedVoucherLines.push({
+                        code: 'SUMMER20',
+                        text: 'SUMMER20 (-' + new Intl.NumberFormat('vi-VN').format(summerDiscount) + ' VND)'
+                    });
+                } else if (code === 'FREESHIP') {
+                    if (subtotalVnd >= 150000) {
+                        shippingFeeVnd = 0;
+                        appliedVoucherLines.push({
+                            code: 'FREESHIP',
+                            text: 'FREESHIP (Free Shipping)'
+                        });
+                    } else {
+                        showToast('FREESHIP requires minimum order 150,000 VND.');
+                    }
+                }
+            });
+
+            discountVnd = Math.min(discountVnd, subtotalVnd);
+
+            return {
+                discountVnd: discountVnd,
+                shippingFeeVnd: shippingFeeVnd,
+                appliedVoucherLines: appliedVoucherLines
+            };
+        }
+
+        $(document).on('click', '#btn-detail-buy', function(e) {
+            e.preventDefault();
+
+            const title = $('#detail-title').text().trim() || 'Selected Book';
+            const author = $('#detail-author').text().trim() || 'Unknown Author';
+            const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+            const qty = parseInt($('#input-qty').val()) || 1;
+
+            const priceText = $('#detail-price').text() || '0 VND';
+            const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
+
+            if (unitPriceVnd <= 0) {
+                showToast('Cannot checkout this book because price is invalid.');
+                return;
+            }
+
+            const subtotalVnd = unitPriceVnd * qty;
+
+            const voucherResult = calculateBuyNowVoucherDiscount(subtotalVnd);
+
+            const checkoutItem = {
+                id: 'buy-now-' + Date.now(),
+                title: title,
+                shop: 'Normal Books',
+                price: unitPriceVnd / 20000,
+                qty: qty,
+                condition: 'Like New',
+                img: img,
+                selected: true,
+                isBlind: false,
+                author: author
+            };
+
+            window.checkoutState = {
+                isCart: false,
+                isBuyNow: true,
+                isBlind: false,
+                subtotal: subtotalVnd,
+                shippingFee: voucherResult.shippingFeeVnd,
+                discount: voucherResult.discountVnd
+            };
+
+            // Hiển thị voucher đã áp dụng trong popup checkout
+            const voucherContainer = document.getElementById('checkout-applied-vouchers-container');
+            const voucherList = document.getElementById('checkout-vouchers-list');
+
+            if (voucherList) {
+                voucherList.innerHTML = '';
+            }
+
+            if (voucherContainer && voucherList && voucherResult.appliedVoucherLines.length > 0) {
+                voucherContainer.style.display = 'block';
+
+                voucherResult.appliedVoucherLines.forEach(function(voucher) {
+                    const badge = document.createElement('div');
+
+                    badge.style.cssText = `
+                        background: #ffebee;
+                        border: 1px solid #f07c7c;
+                        color: #C2185B;
+                        font-weight: 700;
+                        font-size: 0.8rem;
+                        padding: 4px 10px;
+                        border-radius: 6px;
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                    `;
+
+                    badge.innerHTML = `<i class="fas fa-ticket"></i> ${voucher.text}`;
+                    voucherList.appendChild(badge);
+                });
+            } else if (voucherContainer) {
+                voucherContainer.style.display = 'none';
+            }
+
+            if (typeof window.populateCheckoutBookInfo === 'function') {
+                window.populateCheckoutBookInfo([checkoutItem]);
+            }
+
+            if (typeof window.updateCheckoutTotals === 'function') {
+                window.updateCheckoutTotals();
+            }
+
+            if (typeof window.openCheckout === 'function') {
+                window.openCheckout();
+            } else {
+                showToast('Checkout interface is not ready.');
+            }
+        });
+
+        // Standalone Explore page initialization
+        (function initExploreStandalonePage() {
+            $mainNavbar.addClass('navbar-light');
+            setActiveTab($navExplore);
+
+            const initialHash = window.location.hash;
+
+            if (initialHash.startsWith('#book-details-')) {
+                const bookTitleDecoded = decodeURIComponent(initialHash.substring('#book-details-'.length));
+
+                const mockBook = {
+                    title: bookTitleDecoded,
+                    author:
+                        bookTitleDecoded === "The Secret Garden"
+                            ? "Frances Hodgson Burnett"
+                            : bookTitleDecoded === "Think and Grow Rich"
+                                ? "Napoleon Hill"
+                                : bookTitleDecoded === "Atomic Habits"
+                                    ? "James Clear"
+                                    : "BookBlossom Curator",
+                    imgSrc: "/images/Book/book1.jpg"
+                };
+
+                showProductDetails(mockBook, false);
+
+                history.replaceState(
+                    {
+                        view: 'product-details',
+                        bookData: mockBook,
+                        previousActiveSection: '#explore-section'
+                    },
+                    '',
+                    `/Explore#book-details-${encodeURIComponent(bookTitleDecoded)}`
+                );
+            } else {
+                $('#explore-section').show();
+                $('#product-details-section').hide();
+
+                history.replaceState({ view: 'explore' }, '', '/Explore');
+                window.scrollTo(0, 0);
+            }
+        })();
         });
     </script>
