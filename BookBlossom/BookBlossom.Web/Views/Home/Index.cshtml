@@ -3655,22 +3655,23 @@
                             <span id="cart-subtotal" style="font-weight: 600; color: #111;">$0.00</span>
                         </div>
 
-                        <!-- Voucher Section -->
-                        <div class="voucher-box mb-4">
-                            <label style="font-size: 0.85rem; color: #777; font-weight: 600; margin-bottom: 8px; display: block;">Have a voucher?</label>
-                            <div class="d-flex gap-2">
-                                <input type="text" id="cart-voucher-input" placeholder="Voucher Code" class="form-control" style="border-radius: 20px; padding: 8px 16px; font-size: 0.9rem; border: 1.5px solid #e2dcd0; outline: none; box-shadow: none;" onfocus="this.style.borderColor='#C2185B'" onblur="this.style.borderColor='#e2dcd0'">
-                                <button id="btn-apply-voucher" class="btn" style="background: #111; color: #fff; font-weight: 600; border-radius: 20px; padding: 8px 20px; font-size: 0.9rem; transition: all 0.2s; border: none;">Apply</button>
-                            </div>
-                            <div id="voucher-message" style="font-size: 0.8rem; margin-top: 5px; display: none;"></div>
+                        <!-- [UPDATED] Shipping Fee -->
+                        <div class="d-flex justify-content-between mb-3" style="font-size: 1rem; color: #555;">
+                            <span>Shipping Fee</span>
+                            <span id="cart-shipping" style="font-weight: 600; color: #111;">$3.00</span>
                         </div>
 
-                        <!-- Available Vouchers List -->
-                        <div class="available-vouchers-section mb-4" style="border-top: 1px solid #f5f5f5; padding-top: 15px;">
-                            <h4 style="font-size: 0.85rem; font-weight: 700; color: #333; margin-bottom: 10px;">Select Available Voucher:</h4>
-                            <div class="available-vouchers-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                                <!-- Rendered dynamically -->
-                            </div>
+                        <!-- [UPDATED] Premium Voucher Selection Button (Replacing manual textbox input and apply button) -->
+                        <div class="voucher-box mb-4">
+                            <label style="font-size: 0.85rem; color: #777; font-weight: 600; margin-bottom: 8px; display: block;">Select Voucher Discount</label>
+                            <button id="btn-select-cart-voucher" class="btn w-100 d-flex align-items-center justify-content-between" style="border: 1.5px dashed #C2185B; background: #fffdfb; color: #C2185B; font-weight: 600; border-radius: 20px; padding: 10px 16px; font-size: 0.9rem; transition: all 0.2s; cursor: pointer; text-align: left;">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <span id="selected-voucher-label">Apply BookBlossom or Mystery Voucher</span>
+                                </span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #C2185B;"></i>
+                            </button>
+                            <div id="voucher-message" style="font-size: 0.8rem; margin-top: 8px; display: none;"></div>
                         </div>
 
                         <!-- Separator -->
@@ -3690,10 +3691,6 @@
                             <button id="btn-cart-checkout" class="btn btn-block" style="background: #C2185B; color: #fff; font-weight: 700; font-size: 1.1rem; padding: 12px; border-radius: 30px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 15px rgba(194, 24, 91, 0.25); border: none;">
                                 Checkout
                             </button>
-                            
-                            <div class="escrow-badge text-center" style="background: #fcfcfc; border: 1px solid #e0e0e0; color: #444; padding: 10px; border-radius: 12px; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500;">
-                                <i class="fas fa-shield-alt" style="color: #2e7d32; font-size: 1rem;"></i> Escrow Protected (100% Refund)
-                            </div>
                         </div>
 
                         <p class="text-center text-muted mt-3" style="font-size: 0.8rem; font-style: italic;">*Shipping calculated at checkout.</p>
@@ -6523,12 +6520,12 @@
                 }
             });
 
-            // Global Shopping Cart State System & Interactions
+            // [UPDATED] Replaced store-specific names ('ProBooks_US' & 'SarahReads') with custom Book Types ('Normal Books' & 'Blind Date Books') as this web belongs exclusively to Book Blossom bookstore
             let cartItems = [
                 {
                     id: 'cart-1',
                     title: 'The Secret Life of Sunflowers',
-                    shop: 'ProBooks_US',
+                    shop: 'Normal Books',
                     price: 8.50,
                     qty: 1,
                     condition: 'Good 80%',
@@ -6539,7 +6536,7 @@
                 {
                     id: 'cart-2',
                     title: 'Blind Date Mystery - Vibe: Cozy',
-                    shop: 'ProBooks_US',
+                    shop: 'Blind Date Books',
                     price: 12.00,
                     qty: 1,
                     condition: 'New Curated',
@@ -6551,7 +6548,7 @@
                 {
                     id: 'cart-3',
                     title: 'The Silent Patient',
-                    shop: 'ProBooks_US',
+                    shop: 'Normal Books',
                     price: 14.00,
                     qty: 1,
                     condition: 'Like New',
@@ -6562,7 +6559,7 @@
                 {
                     id: 'cart-4',
                     title: "Harry Potter and the Sorcerer's Stone",
-                    shop: 'SarahReads',
+                    shop: 'Normal Books',
                     price: 6.00,
                     qty: 1,
                     condition: 'Good 85%',
@@ -6619,10 +6616,11 @@
                         hashtags.push('Romance', 'Dark');
                     }
 
+                    // [UPDATED] Replaced 'ProBooks_US' with 'Blind Date Books' to categorize blind date mystery books
                     cartItems.push({
                         id: 'cart-' + Date.now(),
                         title: title,
-                        shop: 'ProBooks_US',
+                        shop: 'Blind Date Books',
                         price: price,
                         qty: qty,
                         condition: 'New Curated',
@@ -6694,10 +6692,11 @@
                     const priceText = $('#detail-price').text() || "$10.00";
                     const price = parseFloat(priceText.replace('$', '')) || 10.00;
                     const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+                    // [UPDATED] Replaced 'ProBooks_US' with 'Normal Books' to categorize standard books
                     cartItems.push({
                         id: 'cart-' + Date.now(),
                         title: title,
-                        shop: 'ProBooks_US', // default shop
+                        shop: 'Normal Books',
                         price: price,
                         qty: qty,
                         condition: 'Like New',
@@ -7296,8 +7295,8 @@
                     selectedOnPage.add($(this).attr('data-code'));
                 });
 
-                // Set initial selections in the modal list
-                $('.modal-blind-voucher-item').each(function() {
+                // [UPDATED] Set initial selections in the modal list (scoped to #blind-vouchers-modal)
+                $('#blind-vouchers-modal .modal-blind-voucher-item').each(function() {
                     const code = $(this).attr('data-code');
                     const isSelected = selectedOnPage.has(code);
                     if (isSelected) {
@@ -7324,8 +7323,8 @@
                 }
             });
 
-            // Click on a voucher item inside the See All Blind Modal
-            $(document).on('click', '.modal-blind-voucher-item', function(e) {
+            // [UPDATED] Click on a voucher item inside the See All Blind Modal (scoped to #blind-vouchers-modal to prevent clashing)
+            $(document).on('click', '#blind-vouchers-modal .modal-blind-voucher-item', function(e) {
                 const code = $(this).attr('data-code');
                 const $mainPageCard = $(`.blind-coupons-container .blind-coupon-card[data-code="${code}"]`);
                 
@@ -7350,13 +7349,13 @@
                     showToast(`Mystery Voucher "${code}" removed.`);
                 }
                 
-                // Update selected count in modal footer
-                const selectedCount = $('.modal-blind-voucher-item.selected').length;
+                // [UPDATED] Update selected count in modal footer (scoped to #blind-vouchers-modal)
+                const selectedCount = $('#blind-vouchers-modal .modal-blind-voucher-item.selected').length;
                 $('#blind-modal-selected-count').text(selectedCount);
             });
 
-            // Prevent double-trigger when clicking the inner Apply button
-            $(document).on('click', '.btn-modal-apply-blind-voucher', function(e) {
+            // [UPDATED] Prevent double-trigger when clicking the inner Apply button (scoped to #blind-vouchers-modal to prevent clashing)
+            $(document).on('click', '#blind-vouchers-modal .btn-modal-apply-blind-voucher', function(e) {
                 e.stopPropagation(); // Stop bubble so we don't trigger click twice
                 $(this).closest('.modal-blind-voucher-item').trigger('click');
             });
@@ -7368,7 +7367,8 @@
             // section variables ($mainContent, $exploreSection, etc.)
             // that are scoped to this $(document).ready() block.
             // =========================================================
-            let appliedVoucher = null;
+            // [UPDATED] Support multiple applied vouchers
+            let appliedVouchers = [];
 
             function showCart(push = true) {
                 // [UPDATED] Hide all SPA sections before showing cart
@@ -7418,7 +7418,8 @@
                 } else {
                     showProductDetails({
                         title: item.title,
-                        author: item.shop === 'ProBooks_US' ? 'Unknown Author' : 'SarahReads Curated',
+                        // [UPDATED] Removed store-specific name check and set simple default author logic
+                        author: 'Unknown Author',
                         imgSrc: item.img
                     });
                 }
@@ -7440,40 +7441,46 @@
                 $emptyState.hide();
                 $itemsWrapper.empty();
 
-                // Group items by shop
-                const shops = {};
+                // [UPDATED] Group items by custom Book Types instead of generic individual shops
+                const groups = {};
                 cartItems.forEach(item => {
-                    if (!shops[item.shop]) {
-                        shops[item.shop] = [];
+                    // Fallback to ensure correct categorization
+                    let typeName = item.shop;
+                    if (typeName !== 'Normal Books' && typeName !== 'Blind Date Books') {
+                        typeName = item.isBlind ? 'Blind Date Books' : 'Normal Books';
+                        item.shop = typeName;
                     }
-                    shops[item.shop].push(item);
+                    if (!groups[typeName]) {
+                        groups[typeName] = [];
+                    }
+                    groups[typeName].push(item);
                 });
 
-                // Render each shop group
-                Object.keys(shops).forEach(shopName => {
-                    const items = shops[shopName];
+                // [UPDATED] Render each book type group (Normal Books & Blind Date Books)
+                Object.keys(groups).forEach(groupName => {
+                    const items = groups[groupName];
                     const allSelected = items.every(i => i.selected);
 
-                    let shopHtml = `
+                    // Choose an appropriate icon for each type (book icon for normal, gift/mystery icon for blind date)
+                    const groupIcon = groupName === 'Blind Date Books' ? 'fas fa-gift' : 'fas fa-book';
+
+                    let groupHtml = `
                         <div class="shop-group-card mb-4" style="background: #fff; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: 0 4px 15px rgba(0,0,0,0.02); overflow: hidden;">
-                            <!-- Shop Header -->
+                            <!-- [UPDATED] Type Header (replacing generic store header and chat feature) -->
                             <div class="shop-header d-flex align-items-center justify-content-between px-4 py-3" style="background: #fafaf9; border-bottom: 1px solid #f2ede4;">
                                 <div class="d-flex align-items-center gap-3">
-                                    <input type="checkbox" class="shop-checkbox" data-shop="${shopName}" ${allSelected ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #C2185B; cursor: pointer;">
+                                    <input type="checkbox" class="shop-checkbox" data-shop="${groupName}" ${allSelected ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #C2185B; cursor: pointer;">
                                     <div class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-store" style="color: #666; font-size: 1.1rem;"></i>
-                                        <a href="#" class="shop-name-link" style="font-weight: 700; color: #111; text-decoration: none; font-size: 1rem; border-bottom: 1px solid transparent; transition: all 0.2s;" onmouseover="this.style.borderBottomColor='#111'" onmouseout="this.style.borderBottomColor='transparent'">${shopName}</a>
+                                        <i class="${groupIcon}" style="color: #C2185B; font-size: 1.1rem;"></i>
+                                        <span style="font-weight: 700; color: #111; font-size: 1rem;">${groupName}</span>
                                     </div>
                                 </div>
-                                <a href="/Messages?shop=${encodeURIComponent(shopName)}" class="shop-chat-btn" title="Chat with seller" style="color: #666; font-size: 1.2rem; transition: all 0.2s; padding: 5px;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#666'">
-                                    <i class="far fa-comment-dots"></i>
-                                </a>
                             </div>
                             <div class="shop-items-list">
                     `;
 
                     items.forEach(item => {
-                        shopHtml += `
+                        groupHtml += `
                             <div class="cart-item-row d-flex align-items-center justify-content-between p-4" data-id="${item.id}" style="border-bottom: 1px solid #f9f9f8; transition: all 0.3s ease;">
                                 <div class="d-flex align-items-center gap-3 flex-grow-1">
                                     <!-- Checkbox -->
@@ -7518,108 +7525,324 @@
                         `;
                     });
 
-                    shopHtml += `
+                    groupHtml += `
                             </div>
                         </div>
                     `;
 
-                    $itemsWrapper.append(shopHtml);
+                    $itemsWrapper.append(groupHtml);
                 });
 
-                renderAvailableVouchers();
                 calculateTotals();
                 syncCartBadge();
             }
 
+            // [UPDATED] Calculate totals dynamically based on selected cart items and standard or mystery vouchers
             function calculateTotals() {
                 let subtotal = 0;
+                let blindSubtotal = 0;
+                let hasBlindBooks = false;
+
                 cartItems.forEach(item => {
                     if (item.selected) {
                         subtotal += item.price * item.qty;
+                        if (item.isBlind) {
+                            blindSubtotal += item.price * item.qty;
+                            hasBlindBooks = true;
+                        }
                     }
                 });
 
                 $('#cart-subtotal').text('$' + subtotal.toFixed(2));
 
                 let discount = 0;
-                let discountText = "";
+                let discountLines = [];
+                let hasFreeShipVoucher = false;
+                let validVouchers = [];
 
-                if (appliedVoucher) {
-                    if (appliedVoucher.code === 'BLOSSOM70') {
-                        if (subtotal >= 25.00) {
-                            discount = 3.50;
-                            discountText = "Voucher BLOSSOM70 applied (-$3.50)";
+                if (appliedVouchers && appliedVouchers.length > 0) {
+                    appliedVouchers.forEach(v => {
+                        const code = v.code;
+                        const isMystery = v.isMystery;
+                        let isVoucherValid = true;
+
+                        if (isMystery) {
+                            // Enforce that mystery vouchers require Blind Date Books
+                            if (!hasBlindBooks) {
+                                isVoucherValid = false;
+                                showToast(`Mystery Voucher "${code}" requires Blind Date Books in cart!`);
+                            } else {
+                                if (code === 'MYSTERY15') {
+                                    if (blindSubtotal >= 7.50) { // 150,000 VND
+                                        discount += 0.75;
+                                        discountLines.push("MYSTERY15 (-$0.75)");
+                                    } else {
+                                        isVoucherValid = false;
+                                        showToast("Min purchase of Blind Date Books for MYSTERY15 is $7.50!");
+                                    }
+                                } else if (code === 'BLOSSOM70') {
+                                    if (blindSubtotal >= 25.00) { // 500,000 VND
+                                        discount += 3.50;
+                                        discountLines.push("BLOSSOM70 (Mystery) (-$3.50)");
+                                    } else {
+                                        isVoucherValid = false;
+                                        showToast("Min purchase of Blind Date Books for BLOSSOM70 is $25.00!");
+                                    }
+                                } else if (code === 'READMORE30') {
+                                    discount += 1.50; // 30,000 VND
+                                    discountLines.push("READMORE30 (Mystery) (-$1.50)");
+                                } else if (code === 'SECRET50') {
+                                    if (blindSubtotal >= 17.50) { // 350,000 VND
+                                        discount += 2.50;
+                                        discountLines.push("SECRET50 (-$2.50)");
+                                    } else {
+                                        isVoucherValid = false;
+                                        showToast("Min purchase of Blind Date Books for SECRET50 is $17.50!");
+                                    }
+                                } else if (code === 'UNBOX20') {
+                                    if (blindSubtotal >= 10.00) { // 200,000 VND
+                                        discount += 1.00;
+                                        discountLines.push("UNBOX20 (-$1.00)");
+                                    } else {
+                                        isVoucherValid = false;
+                                        showToast("Min purchase of Blind Date Books for UNBOX20 is $10.00!");
+                                    }
+                                } else if (code === 'VIPMYSTERY') {
+                                    if (blindSubtotal >= 40.00) { // 800,000 VND
+                                        discount += 5.00;
+                                        discountLines.push("VIPMYSTERY (-$5.00)");
+                                    } else {
+                                        isVoucherValid = false;
+                                        showToast("Min purchase of Blind Date Books for VIPMYSTERY is $40.00!");
+                                    }
+                                }
+                            }
                         } else {
-                            appliedVoucher = null;
-                            $('#cart-voucher-input').val('');
-                            showToast("Min order for BLOSSOM70 is $25.00!");
+                            // Standard BookBlossom Vouchers
+                            if (code === 'BLOSSOM70') {
+                                if (subtotal >= 25.00) {
+                                    discount += 3.50;
+                                    discountLines.push("BLOSSOM70 (-$3.50)");
+                                } else {
+                                    isVoucherValid = false;
+                                    showToast("Min order for BLOSSOM70 is $25.00!");
+                                }
+                            } else if (code === 'READMORE30') {
+                                discount += 1.50;
+                                discountLines.push("READMORE30 (-$1.50)");
+                            } else if (code === 'ZALOPAY50') {
+                                discount += 2.50;
+                                discountLines.push("ZALOPAY50 (-$2.50)");
+                            } else if (code === 'MOMO12') {
+                                discount += 0.60;
+                                discountLines.push("MOMO12 (-$0.60)");
+                            } else if (code === 'SUMMER20') {
+                                const summerDiscount = Math.min(subtotal * 0.20, 2.50);
+                                discount += summerDiscount;
+                                discountLines.push(`SUMMER20 (-$${summerDiscount.toFixed(2)})`);
+                            } else if (code === 'FREESHIP') {
+                                if (subtotal >= 7.50) {
+                                    hasFreeShipVoucher = true;
+                                    discountLines.push("FREESHIP (Free Shipping)");
+                                } else {
+                                    isVoucherValid = false;
+                                    showToast("Min order for FREESHIP is $7.50!");
+                                }
+                            }
                         }
-                    } else if (appliedVoucher.code === 'READMORE30') {
-                        discount = 1.50;
-                        discountText = "Voucher READMORE30 applied (-$1.50)";
-                    } else if (appliedVoucher.code === 'ZALOPAY50') {
-                        discount = 2.50;
-                        discountText = "Voucher ZALOPAY50 applied (-$2.50)";
-                    } else if (appliedVoucher.code === 'MOMO12') {
-                        discount = 0.60;
-                        discountText = "Voucher MOMO12 applied (-$0.60)";
-                    } else if (appliedVoucher.code === 'SUMMER20') {
-                        discount = Math.min(subtotal * 0.20, 2.50);
-                        discountText = `Voucher SUMMER20 applied (-$${discount.toFixed(2)})`;
-                    } else if (appliedVoucher.code === 'FREESHIP') {
-                        discountText = "Free Shipping Voucher applied!";
+
+                        if (isVoucherValid) {
+                            validVouchers.push(v);
+                        }
+                    });
+                }
+
+                // Keep only valid vouchers
+                appliedVouchers = validVouchers;
+
+                // [UPDATED] Shipping fee calculation & display
+                let shippingFee = subtotal > 0 ? 3.00 : 0.00;
+                if (hasFreeShipVoucher && subtotal >= 7.50) {
+                    shippingFee = 0.00;
+                    $('#cart-shipping').html('<span style="text-decoration: line-through; color: #888; margin-right: 8px;">$3.00</span><span style="color: #2e7d32; font-weight: 700;">Free</span>');
+                } else {
+                    if (subtotal > 0) {
+                        $('#cart-shipping').text('$3.00');
+                    } else {
+                        $('#cart-shipping').text('$0.00');
                     }
                 }
 
-                let total = Math.max(0, subtotal - discount);
+                let total = Math.max(0, subtotal + shippingFee - discount);
                 $('#cart-total').text('$' + total.toFixed(2));
 
-                if (discount > 0 || (appliedVoucher && appliedVoucher.code === 'FREESHIP')) {
-                    $('#cart-discount-badge').text(discountText).show();
-                    $('#voucher-message').text(discountText).css('color', '#2e7d32').show();
+                if (discount > 0 || hasFreeShipVoucher) {
+                    const discountText = "Applied: " + discountLines.join(", ");
+                    $('#cart-discount-badge').html('<i class="fas fa-check-circle"></i> ' + discountText).show();
+                    $('#voucher-message').html('<i class="fas fa-tags"></i> ' + discountText).css('color', '#2e7d32').show();
                 } else {
                     $('#cart-discount-badge').hide();
                     $('#voucher-message').hide();
                 }
-            }
 
-            function renderAvailableVouchers() {
-                const $vList = $('.available-vouchers-list');
-                if (!$vList.length) return;
-
-                $vList.empty();
-
-                VOUCHERS_DATA.forEach(v => {
-                    const isSelected = appliedVoucher && appliedVoucher.code === v.code;
-                    const cardHtml = `
-                        <div class="mini-voucher-item p-2" data-code="${v.code}" style="background: ${isSelected ? '#e8f5e9' : v.bg}; border: 1px ${isSelected ? 'solid' : 'dashed'} ${isSelected ? '#2e7d32' : v.borderColor}; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.transform='translateX(3px)';" onmouseout="this.style.transform='none';">
-                            <div style="text-align: left;">
-                                <span style="font-size: 0.7rem; font-weight: 700; color: ${v.textColor}; background: ${v.tagBg}; padding: 1px 5px; border-radius: 4px;">${v.code}</span>
-                                <div style="font-size: 0.78rem; font-weight: 700; color: #333; margin-top: 3px;">${v.title}</div>
-                            </div>
-                            <span style="font-size: 0.72rem; font-weight: 600; color: ${isSelected ? '#2e7d32' : '#C2185B'};">``${isSelected ? 'Applied' : 'Apply'}``</span>
-                        </div>
-                    `;
-                    $vList.append(cardHtml);
-                });
-            }
-
-            // Event listener for mini voucher item click
-            $(document).on('click', '.mini-voucher-item', function() {
-                const code = $(this).attr('data-code');
-                const voucher = VOUCHERS_DATA.find(v => v.code === code);
-
-                if (appliedVoucher && appliedVoucher.code === code) {
-                    appliedVoucher = null;
-                    $('#cart-voucher-input').val('');
-                    showToast("Voucher removed!");
+                // Update selected voucher label on the selector button dynamically with premium themes
+                if (appliedVouchers && appliedVouchers.length > 0) {
+                    const codes = appliedVouchers.map(v => v.code).join(', ');
+                    $('#selected-voucher-label').text(`Vouchers: ${codes} applied`);
+                    $('#btn-select-cart-voucher').css({
+                        'background': '#e8f5e9',
+                        'color': '#2e7d32',
+                        'borderColor': '#2e7d32'
+                    });
+                    $('#btn-select-cart-voucher i').css('color', '#2e7d32');
                 } else {
-                    appliedVoucher = voucher;
-                    $('#cart-voucher-input').val(code);
-                    showToast(`Applied voucher ${code}!`);
+                    $('#selected-voucher-label').text('Apply BookBlossom or Mystery Voucher');
+                    $('#btn-select-cart-voucher').css({
+                        'background': '#fffdfb',
+                        'color': '#C2185B',
+                        'borderColor': '#C2185B'
+                    });
+                    $('#btn-select-cart-voucher i').css('color', '#C2185B');
+                }
+            }
+
+            // Helper to update unified voucher modal footer selection list
+            function updateModalFooterSelection() {
+                const selectedCodes = [];
+                $('#cart-vouchers-modal .modal-voucher-item.selected, #cart-vouchers-modal .modal-blind-voucher-item.selected').each(function() {
+                    const code = $(this).attr('data-code');
+                    const isMystery = $(this).hasClass('modal-blind-voucher-item');
+                    selectedCodes.push(code + (isMystery ? ' (Mystery)' : ''));
+                });
+                if (selectedCodes.length > 0) {
+                    $('#cart-modal-selected-code').text(selectedCodes.join(', '));
+                } else {
+                    $('#cart-modal-selected-code').text('None');
+                }
+            }
+
+            // [UPDATED] Open Unified Cart Vouchers full-screen modal
+            $(document).on('click', '#btn-select-cart-voucher', function() {
+                // Reset selection styles
+                $('#cart-vouchers-modal .modal-voucher-item, #cart-vouchers-modal .modal-blind-voucher-item').removeClass('selected');
+                $('#cart-vouchers-modal .btn-modal-apply-voucher, #cart-vouchers-modal .btn-modal-apply-blind-voucher').text('Apply');
+
+                if (appliedVouchers && appliedVouchers.length > 0) {
+                    appliedVouchers.forEach(v => {
+                        if (v.isMystery) {
+                            const $item = $(`#mystery-vouchers-list .modal-blind-voucher-item[data-code="${v.code}"]`);
+                            $item.addClass('selected');
+                            $item.find('.btn-modal-apply-blind-voucher').text('Applied');
+                        } else {
+                            const $item = $(`#blossom-vouchers-list .modal-voucher-item[data-code="${v.code}"]`);
+                            $item.addClass('selected');
+                            $item.find('.btn-modal-apply-voucher').text('Applied');
+                        }
+                    });
                 }
 
-                renderAvailableVouchers();
+                updateModalFooterSelection();
+                $('#tab-blossom-vouchers').trigger('click');
+                $('#cart-vouchers-modal').fadeIn(250);
+            });
+
+            // Close Unified Cart Vouchers modal
+            $(document).on('click', '#btn-close-cart-vouchers, #cart-vouchers-modal .modal-backdrop', function() {
+                $('#cart-vouchers-modal').fadeOut(250);
+            });
+
+            // Blossom Tab selection
+            $(document).on('click', '#tab-blossom-vouchers', function() {
+                $('#tab-blossom-vouchers').addClass('active').css({
+                    'border-bottom-color': '#C2185B',
+                    'color': '#C2185B'
+                });
+                $('#tab-mystery-vouchers').removeClass('active').css({
+                    'border-bottom-color': 'transparent',
+                    'color': '#666'
+                });
+                $('#mystery-vouchers-list').hide();
+                $('#blossom-vouchers-list').show();
+            });
+
+            // Mystery Tab selection
+            $(document).on('click', '#tab-mystery-vouchers', function() {
+                $('#tab-mystery-vouchers').addClass('active').css({
+                    'border-bottom-color': '#6a4f8c',
+                    'color': '#6a4f8c'
+                });
+                $('#tab-blossom-vouchers').removeClass('active').css({
+                    'border-bottom-color': 'transparent',
+                    'color': '#666'
+                });
+                $('#blossom-vouchers-list').hide();
+                $('#mystery-vouchers-list').show();
+            });
+
+            // [UPDATED] Click Blossom voucher inside modal list (supporting multi-selection)
+            $(document).on('click', '#blossom-vouchers-list .modal-voucher-item', function() {
+                $(this).toggleClass('selected');
+                if ($(this).hasClass('selected')) {
+                    $(this).find('.btn-modal-apply-voucher').text('Applied');
+                } else {
+                    $(this).find('.btn-modal-apply-voucher').text('Apply');
+                }
+                updateModalFooterSelection();
+            });
+
+            $(document).on('click', '#blossom-vouchers-list .btn-modal-apply-voucher', function(e) {
+                e.stopPropagation();
+                $(this).closest('.modal-voucher-item').trigger('click');
+            });
+
+            // [UPDATED] Click Mystery voucher inside modal list (supporting multi-selection)
+            $(document).on('click', '#mystery-vouchers-list .modal-blind-voucher-item', function() {
+                $(this).toggleClass('selected');
+                if ($(this).hasClass('selected')) {
+                    $(this).find('.btn-modal-apply-blind-voucher').text('Applied');
+                } else {
+                    $(this).find('.btn-modal-apply-blind-voucher').text('Apply');
+                }
+                updateModalFooterSelection();
+            });
+
+            $(document).on('click', '#mystery-vouchers-list .btn-modal-apply-blind-voucher', function(e) {
+                e.stopPropagation();
+                $(this).closest('.modal-blind-voucher-item').trigger('click');
+            });
+
+            // [UPDATED] Confirm selected vouchers in modal (supporting multiple vouchers)
+            $(document).on('click', '#btn-confirm-cart-vouchers', function() {
+                appliedVouchers = [];
+                const activeItems = $('#cart-vouchers-modal .modal-voucher-item.selected, #cart-vouchers-modal .modal-blind-voucher-item.selected');
+                activeItems.each(function() {
+                    const code = $(this).attr('data-code');
+                    const isMystery = $(this).hasClass('modal-blind-voucher-item');
+                    appliedVouchers.push({
+                        code: code,
+                        isMystery: isMystery
+                    });
+                });
+
+                if (appliedVouchers.length > 0) {
+                    const codes = appliedVouchers.map(v => v.code).join(', ');
+                    showToast(`Applied vouchers: ${codes}!`);
+                } else {
+                    showToast("No vouchers applied.");
+                }
+
+                $('#cart-vouchers-modal').fadeOut(250);
+                calculateTotals();
+            });
+
+            // [UPDATED] Remove all applied vouchers from cart modal
+            $(document).on('click', '#btn-remove-cart-voucher', function() {
+                appliedVouchers = [];
+                $('#cart-vouchers-modal .modal-voucher-item, #cart-vouchers-modal .modal-blind-voucher-item').removeClass('selected');
+                $('#cart-vouchers-modal .btn-modal-apply-voucher, #cart-vouchers-modal .btn-modal-apply-blind-voucher').text('Apply');
+                $('#cart-modal-selected-code').text('None');
+                $('#cart-vouchers-modal').fadeOut(250);
+                showToast("All vouchers removed!");
                 calculateTotals();
             });
 
@@ -7696,25 +7919,6 @@
                 }
             });
 
-            // Apply Voucher Manual Button Click
-            $(document).on('click', '#btn-apply-voucher', function() {
-                const code = $('#cart-voucher-input').val().trim().toUpperCase();
-                if (!code) {
-                    showToast("Please enter a voucher code");
-                    return;
-                }
-
-                const voucher = VOUCHERS_DATA.find(v => v.code === code);
-                if (voucher) {
-                    appliedVoucher = voucher;
-                    showToast(`Applied voucher ${code}!`);
-                    renderAvailableVouchers();
-                    calculateTotals();
-                } else {
-                    showToast("Invalid voucher code");
-                }
-            });
-
             // Shop Now click handler
             $(document).on('click', '#btn-cart-shop-now', function() {
                 showExplore();
@@ -7733,8 +7937,7 @@
                 setTimeout(function() {
                     alert("Thank you for shopping at BookBlossom! Your order has been placed successfully via secure escrow payment.");
                     cartItems = cartItems.filter(i => !i.selected);
-                    appliedVoucher = null;
-                    $('#cart-voucher-input').val('');
+                    appliedVouchers = [];
                     renderCart();
                 }, 1000);
             });
@@ -8103,6 +8306,245 @@
             <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
                 <span style="font-size: 0.85rem; color: #666;"><strong id="blind-modal-selected-count">0</strong> voucher(s) selected</span>
                 <button class="btn-modal-confirm" id="btn-confirm-blind-vouchers" style="width: 140px; margin: 0; background: #6a4f8c; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">Apply Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [NEW] Unified Cart Vouchers Modal -->
+    <div class="custom-modal" id="cart-vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(194, 24, 91, 0.1);">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #333; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🎟️ Select Cart Voucher
+                </h3>
+                <button class="btn-close-cart-vouchers" id="btn-close-cart-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Premium Tab Headers -->
+            <div class="d-flex mb-3" style="border-bottom: 2px solid #f0f0f0; gap: 15px;">
+                <button id="tab-blossom-vouchers" class="btn active" style="flex: 1; padding: 10px; font-weight: 700; font-size: 0.95rem; border: none; border-bottom: 3px solid #C2185B; background: transparent; color: #C2185B; border-radius: 0; transition: all 0.2s; box-shadow: none; outline: none;">
+                    🌸 BookBlossom Vouchers
+                </button>
+                <button id="tab-mystery-vouchers" class="btn" style="flex: 1; padding: 10px; font-weight: 700; font-size: 0.95rem; border: none; border-bottom: 3px solid transparent; background: transparent; color: #666; border-radius: 0; transition: all 0.2s; box-shadow: none; outline: none;">
+                    🔮 Mystery Book Vouchers
+                </button>
+            </div>
+
+            <!-- Modal Content - Scrollable Lists -->
+            <div class="cart-vouchers-modal-list-wrapper" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; margin-bottom: 20px; display: flex; flex-direction: column;">
+                
+                <!-- Tab Content 1: BookBlossom Vouchers -->
+                <div id="blossom-vouchers-list" class="vouchers-modal-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Item 1: BLOSSOM70 -->
+                    <div class="modal-voucher-item" data-code="BLOSSOM70" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                            <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to all books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: READMORE30 -->
+                    <div class="modal-voucher-item" data-code="READMORE30" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">READMORE30</span>
+                            <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first BookBlossom purchase.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: ZALOPAY50 -->
+                    <div class="modal-voucher-item" data-code="ZALOPAY50" style="display: flex; border: 1.5px dashed #2b6cb0; border-radius: 12px; overflow: hidden; background: #fdfcff; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #eef7fc; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #2b6cb0; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #2b6cb0; letter-spacing: 0.5px;">ZALOPAY50</span>
+                            <span style="font-size: 0.65rem; color: #2b6cb0; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">ZaloPay Extra 50k</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 50k off when paying through ZaloPay app.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 4: MOMO12 -->
+                    <div class="modal-voucher-item" data-code="MOMO12" style="display: flex; border: 1.5px dashed #d53f8c; border-radius: 12px; overflow: hidden; background: #fffafc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #fdf2f8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #d53f8c; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #d53f8c; letter-spacing: 0.5px;">MOMO12</span>
+                            <span style="font-size: 0.65rem; color: #d53f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Momo: Get 12k Cashback</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Cashback directly to Momo wallet after order.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 5: SUMMER20 -->
+                    <div class="modal-voucher-item" data-code="SUMMER20" style="display: flex; border: 1.5px dashed #dd6b20; border-radius: 12px; overflow: hidden; background: #fffaf0; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #feebc8; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #dd6b20; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #dd6b20; letter-spacing: 0.5px;">SUMMER20</span>
+                            <span style="font-size: 0.65rem; color: #dd6b20; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">20% OFF Summer Special</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Get 20% off all Classic Literature. Max discount 50k VNĐ.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Aug 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 6: FREESHIP -->
+                    <div class="modal-voucher-item" data-code="FREESHIP" style="display: flex; border: 1.5px dashed #319795; border-radius: 12px; overflow: hidden; background: #f0fdf4; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e6fffa; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #319795; text-align: center;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #319795; letter-spacing: 0.5px;">FREESHIP</span>
+                            <span style="font-size: 0.65rem; color: #319795; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Free Standard Shipping</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Free standard shipping nationwide. Min order 150k VNĐ.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content 2: Mystery Book Vouchers -->
+                <div id="mystery-vouchers-list" class="vouchers-modal-list" style="display: none; flex-direction: column; gap: 15px;">
+                    <!-- Item 1: MYSTERY15 -->
+                    <div class="modal-blind-voucher-item" data-code="MYSTERY15" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">MYSTERY15</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 15,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 150k VNĐ. Applies to Mystery Books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: BLOSSOM70 -->
+                    <div class="modal-blind-voucher-item" data-code="BLOSSOM70" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">BLOSSOM70</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 70,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 500k VNĐ. Applies to Mystery Books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: READMORE30 -->
+                    <div class="modal-blind-voucher-item" data-code="READMORE30" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">READMORE30</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 30,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Valid on your first Blind Date purchase.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 4: SECRET50 -->
+                    <div class="modal-blind-voucher-item" data-code="SECRET50" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">SECRET50</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 50,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 350k VNĐ. Special mystery gift discount.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 5: UNBOX20 -->
+                    <div class="modal-blind-voucher-item" data-code="UNBOX20" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">UNBOX20</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 20,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 200k VNĐ. Applies to Mystery Books.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 6: VIPMYSTERY -->
+                    <div class="modal-blind-voucher-item" data-code="VIPMYSTERY" style="display: flex; border: 1.5px dashed #a291b5; border-radius: 12px; overflow: hidden; background: #faf8fc; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #e8e3f0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #a291b5; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #6a4f8c; letter-spacing: 0.5px;">VIPMYSTERY</span>
+                            <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">Save 100,000 VND</h4>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min purchase 800k VNĐ. Premium tier exclusive mystery discount.</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: 31 Dec 2026</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-blind-voucher" style="background: #fff; color: #6a4f8c; border: 1.5px solid #6a4f8c; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;">Selected: <strong id="cart-modal-selected-code" style="color: #C2185B;">None</strong></span>
+                <div class="d-flex gap-2">
+                    <button class="btn" id="btn-remove-cart-voucher" style="background: #f5f4f0; color: #666; border: 1px solid #ddd; border-radius: 20px; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">Remove</button>
+                    <button class="btn-modal-confirm" id="btn-confirm-cart-vouchers" style="margin: 0; background: #C2185B; color: #fff; border: none; border-radius: 20px; padding: 8px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; min-width: 120px;">Confirm</button>
+                </div>
             </div>
         </div>
     </div>
