@@ -1,0 +1,402 @@
+<script>
+    $(document).ready(function () {
+        // Navbar dropdown
+        const $userDropdown = $('.user-dropdown');
+
+        $userDropdown.on('click', function (e) {
+            e.stopPropagation();
+            $(this).toggleClass('active');
+        });
+
+        $(document).on('click', function (e) {
+            if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
+                $userDropdown.removeClass('active');
+            }
+        });
+
+        // Active navbar state
+        $('.nav-links a').removeClass('active');
+        $('#nav-reviews').addClass('active');
+        $('#main-navbar').addClass('navbar-light');
+
+        function showToast(message, onUndo, undoText = 'Undo') {
+            const $toast = $(`
+                <div class="toast-notification">
+                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                    <span>${message}</span>
+                    <button class="btn-undo-share" style="${onUndo ? '' : 'display: none;'} background: none; border: none; color: #C2185B; font-weight: bold; cursor: pointer; text-decoration: underline; margin-left: 10px; font-size: 0.85rem; padding: 0;">${undoText}</button>
+                    <div class="toast-progress"></div>
+                </div>
+            `);
+
+            $('body').append($toast);
+            $toast.fadeIn(300);
+
+            const timeoutId = setTimeout(function () {
+                $toast.fadeOut(300, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+
+            $toast.find('.btn-undo-share').on('click', function () {
+                clearTimeout(timeoutId);
+                $toast.fadeOut(200, function () {
+                    $(this).remove();
+
+                    if (typeof onUndo === 'function') {
+                        onUndo();
+                    }
+                });
+            });
+        }
+
+        function showErrorToast(message) {
+            const $toast = $(`
+                <div class="toast-notification" style="border-left-color: #ff4444;">
+                    <i class="fas fa-exclamation-circle" style="color: #ff4444;"></i>
+                    <span>${message}</span>
+                    <div class="toast-progress" style="background-color: #ff4444;"></div>
+                </div>
+            `);
+
+            $('body').append($toast);
+            $toast.fadeIn(300);
+
+            setTimeout(function () {
+                $toast.fadeOut(300, function () {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+
+        function bindStarRatingEvents() {
+            $('.star-rating i')
+                .off('mouseover mouseout click')
+                .on('mouseover', function () {
+                    $(this).addClass('hover').prevAll().addClass('hover');
+                })
+                .on('mouseout', function () {
+                    $(this).removeClass('hover').prevAll().removeClass('hover');
+                })
+                .on('click', function () {
+                    const rating = $(this).data('rating');
+
+                    $(this).siblings().removeClass('active');
+                    $(this).addClass('active').prevAll().addClass('active');
+
+                    $('.rating-value').text(rating + '/5');
+                });
+        }
+
+        bindStarRatingEvents();
+
+        // Filter reviews
+        $('.filter-rating, #filter-time').on('change', function () {
+            const selectedRatings = $('.filter-rating:checked').map(function () {
+                return $(this).val();
+            }).get();
+
+            const sortOrder = $('#filter-time').val();
+            const $reviewsList = $('.reviews-list');
+            const $reviews = $('.review-item').get();
+
+            $('.review-item').each(function () {
+                const rating = $(this).data('rating').toString();
+
+                if (selectedRatings.length === 0 || selectedRatings.includes(rating)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            if (sortOrder === 'oldest') {
+                $reviewsList.append($reviews.reverse());
+            } else {
+                $reviewsList.append($reviews);
+            }
+        });
+
+        let hasSubmittedReview = false;
+        let reviewToDelete = null;
+
+        // Submit review
+        $(document).on('click', '.btn-submit-review', function () {
+            const isAuthenticated = true;
+            const isBuyer = true;
+
+            if (!isAuthenticated) {
+                showErrorToast('Please log in to submit a review.');
+                return;
+            }
+
+            if (!isBuyer) {
+                showErrorToast('Only buyers can submit a review.');
+                return;
+            }
+
+            if (hasSubmittedReview) {
+                showErrorToast('You have already submitted a review.');
+                return;
+            }
+
+            const $card = $(this).closest('.create-post-card');
+            const rating = $card.find('.star-rating i.active').length;
+            const text = $card.find('textarea').val().trim();
+
+            if (rating === 0) {
+                showErrorToast('Please select a star rating.');
+                return;
+            }
+
+            if (text === '') {
+                showErrorToast('Please enter your review content.');
+                return;
+            }
+
+            const newReview = `
+                <div class="thread-card review-item mb-3 user-own-review" style="flex: 1 1 100%;" data-rating="${rating}">
+                    <div class="thread-header">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
+                        <div class="user-info">
+                            <h4>You</h4>
+                            <span>Just now</span>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-warning">${'⭐'.repeat(rating)}</span>
+                        </div>
+                    </div>
+
+                    <p class="review-text">"${text}"</p>
+
+                    <div class="thread-footer">
+                        <div class="thread-actions">
+                            <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <i class="far fa-heart"></i> <span class="like-count">0</span>
+                            </button>
+
+                            <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <i class="far fa-comment"></i> <span class="comment-count">0</span>
+                            </button>
+
+                            <button class="post-action btn-report-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <i class="far fa-flag"></i> Report
+                            </button>
+                        </div>
+
+                        <div class="ms-auto">
+                            <button class="btn-edit-review" style="background: none; border: none; color: #666; margin-right: 10px;">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+
+                            <button class="btn-delete-review" style="background: none; border: none; color: #ff4444;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
+                        <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
+
+                        <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                            <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
+                            <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;">
+                                <i class="far fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            showToast('Review submitted successfully!');
+
+            $('.reviews-list').prepend(newReview);
+
+            $('#create-review-card textarea').val('');
+            $('#create-review-card .star-rating i').removeClass('active');
+            $('#create-review-card .rating-value').text('0/5');
+
+            hasSubmittedReview = true;
+
+            $('#create-review-card').html(`
+                <h3>Your Review</h3>
+                <p>You have already submitted a review. You can edit or delete it below.</p>
+            `);
+        });
+
+        // Like review
+        $(document).on('click', '.btn-like-review', function () {
+            const $icon = $(this).find('i');
+            const $count = $(this).find('.like-count');
+            let count = parseInt($count.text()) || 0;
+
+            if ($icon.hasClass('far')) {
+                $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
+                $count.text(count + 1);
+            } else {
+                $icon.removeClass('fas').addClass('far').css('color', '');
+                $count.text(count - 1);
+            }
+        });
+
+        // Toggle review comment
+        $(document).on('click', '.btn-comment-review', function () {
+            const $review = $(this).closest('.review-item');
+            $review.find('.comment-section').slideToggle(300);
+        });
+
+        // Send review comment
+        $(document).on('click', '.btn-send-comment-review', function () {
+            const $input = $(this).siblings('input');
+            const text = $input.val().trim();
+
+            if (text !== '') {
+                const $list = $(this).closest('.comment-section').find('.comment-list');
+
+                const newComment = `
+                    <div class="comment-item" style="display: flex; gap: 10px; align-items: flex-start;">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+
+                        <div class="comment-content" style="background: #f5f5f5; padding: 8px 12px; border-radius: 12px; flex: 1;">
+                            <span class="comment-user" style="font-weight: 700; font-size: 0.85rem; color: #333;">You</span>
+                            <p style="font-size: 0.85rem; color: #666; margin: 2px 0;">${text}</p>
+                            <span class="comment-time" style="font-size: 0.75rem; color: #999;">Just now</span>
+                        </div>
+                    </div>
+                `;
+
+                $list.append(newComment);
+                $input.val('');
+
+                const $review = $(this).closest('.review-item');
+                const $count = $review.find('.comment-count');
+                $count.text((parseInt($count.text()) || 0) + 1);
+            }
+        });
+
+        // Edit review
+        $(document).on('click', '.btn-edit-review', function () {
+            const $review = $(this).closest('.review-item');
+            const text = $review.find('.review-text').text().replace(/^"|"$/g, '');
+
+            $('#create-review-card').html(`
+                <h3>Edit Your Review</h3>
+
+                <div class="rating-input mb-3">
+                    <span class="star-rating">
+                        <i class="far fa-star" data-rating="1"></i>
+                        <i class="far fa-star" data-rating="2"></i>
+                        <i class="far fa-star" data-rating="3"></i>
+                        <i class="far fa-star" data-rating="4"></i>
+                        <i class="far fa-star" data-rating="5"></i>
+                    </span>
+                    <span class="rating-value ms-2">0/5</span>
+                </div>
+
+                <textarea class="form-control mb-3" rows="3">${text}</textarea>
+                <button class="btn-cta btn-submit-review">Update Review</button>
+            `);
+
+            $review.remove();
+            hasSubmittedReview = false;
+
+            bindStarRatingEvents();
+
+            document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Delete review
+        $(document).on('click', '.btn-delete-review', function () {
+            reviewToDelete = $(this).closest('.review-item');
+            $('#delete-review-modal').fadeIn(200);
+        });
+
+        $('#btn-cancel-delete-review, #delete-review-modal .modal-backdrop').on('click', function () {
+            $('#delete-review-modal').fadeOut(200);
+            reviewToDelete = null;
+        });
+
+        $('#btn-confirm-delete-review').on('click', function () {
+            if (reviewToDelete) {
+                reviewToDelete.fadeOut(300, function () {
+                    $(this).remove();
+                });
+
+                hasSubmittedReview = false;
+
+                $('#create-review-card').html(`
+                    <h3>Leave a Review</h3>
+
+                    <div class="rating-input mb-3">
+                        <span class="star-rating">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </span>
+                        <span class="rating-value ms-2">0/5</span>
+                    </div>
+
+                    <textarea placeholder="Share your thoughts about BookBlossom..." class="form-control mb-3" rows="3"></textarea>
+                    <button class="btn-cta btn-submit-review">Submit Review</button>
+                `);
+
+                bindStarRatingEvents();
+
+                $('#delete-review-modal').fadeOut(200);
+                showToast('Review deleted successfully!');
+                reviewToDelete = null;
+            }
+        });
+
+        // Report review
+        $(document).on('click', '.btn-report-review', function (e) {
+            e.preventDefault();
+            $('#report-review-modal').fadeIn(200);
+        });
+
+        $('#btn-cancel-review-report, #report-review-modal .modal-backdrop').on('click', function () {
+            $('#report-review-modal').fadeOut(200);
+        });
+
+        $(document).on('change', 'input[name="report-review-reason"]', function () {
+            if ($(this).val() === 'other') {
+                $('.other-review-reason-container').slideDown(200);
+            } else {
+                $('.other-review-reason-container').slideUp(200);
+            }
+        });
+
+        $('#btn-submit-review-report').on('click', function () {
+            const reason = $('input[name="report-review-reason"]:checked').val();
+
+            if (!reason) {
+                alert('Please select a reason for reporting.');
+                return;
+            }
+
+            if (reason === 'other') {
+                const otherText = $('#other-review-reason-text').val().trim();
+
+                if (otherText === '') {
+                    alert('Please enter your reason.');
+                    return;
+                }
+            }
+
+            $('#report-review-modal').fadeOut(200);
+
+            showToast('Thank you for reporting. We will review this review.', function () {
+                showToast('Report cancelled successfully.');
+            }, 'Undo report');
+
+            setTimeout(function () {
+                $('input[name="report-review-reason"]').prop('checked', false);
+                $('#other-review-reason-text').val('');
+                $('.other-review-reason-container').hide();
+            }, 200);
+        });
+    });
+</script>
