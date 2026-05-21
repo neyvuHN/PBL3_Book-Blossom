@@ -1,0 +1,274 @@
+<script>
+    $(document).ready(function () {
+        // Navbar dropdown
+        const $userDropdown = $('.user-dropdown');
+
+        $userDropdown.on('click', function (e) {
+            e.stopPropagation();
+            $(this).toggleClass('active');
+        });
+
+        $(document).on('click', function (e) {
+            if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
+                $userDropdown.removeClass('active');
+            }
+        });
+
+        // Set active nav item
+        $('.nav-links a').removeClass('active');
+        $('#nav-tindbook').addClass('active');
+
+        // Make navbar light on standalone page
+        $('#main-navbar').addClass('navbar-light');
+
+        // Tindbook Logic
+        let currentCardIndex = 0;
+        const $cards = $('.tindbook-card');
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let currentX = 0;
+        let currentY = 0;
+
+        function updateCards() {
+            $cards.each(function (index) {
+                const $card = $(this);
+
+                if (index < currentCardIndex) {
+                    $card.css({
+                        opacity: '0',
+                        pointerEvents: 'none'
+                    });
+                } else if (index === currentCardIndex) {
+                    $card.css({
+                        transform: 'translateX(0) translateY(0) rotate(0)',
+                        opacity: '1',
+                        zIndex: '3',
+                        pointerEvents: 'auto'
+                    });
+                } else if (index === currentCardIndex + 1) {
+                    $card.css({
+                        transform: 'translateX(0) translateY(15px) scale(0.95)',
+                        opacity: '0.8',
+                        zIndex: '2',
+                        pointerEvents: 'none'
+                    });
+                } else if (index === currentCardIndex + 2) {
+                    $card.css({
+                        transform: 'translateX(0) translateY(30px) scale(0.9)',
+                        opacity: '0.5',
+                        zIndex: '1',
+                        pointerEvents: 'none'
+                    });
+                } else {
+                    $card.css({
+                        transform: 'translateX(0) translateY(45px) scale(0.85)',
+                        opacity: '0',
+                        zIndex: '0',
+                        pointerEvents: 'none'
+                    });
+                }
+            });
+        }
+
+        function swipe(direction) {
+            if (currentCardIndex >= $cards.length) return;
+
+            const $card = $cards.eq(currentCardIndex);
+            $card.css('transition', 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s');
+
+            switch (direction) {
+                case 'right':
+                    $card.css('transform', 'translateX(200%) rotate(30deg)');
+                    console.log("Liked -> Saved to Wishlist");
+                    break;
+                case 'left':
+                    $card.css('transform', 'translateX(-200%) rotate(-30deg)');
+                    console.log("Disliked -> Hidden");
+                    break;
+                case 'up':
+                    $card.css('transform', 'translateY(-200%) scale(1.1)');
+                    console.log("Super Liked -> Added to Cart");
+                    break;
+                case 'down':
+                    $card.css('transform', 'translateY(200%)');
+                    console.log("Skipped");
+                    break;
+            }
+
+            $card.css('opacity', '0');
+            currentCardIndex++;
+            setTimeout(updateCards, 300);
+        }
+
+        $('#btn-nope').on('click', function () {
+            swipe('left');
+        });
+
+        $('#btn-like').on('click', function () {
+            swipe('right');
+        });
+
+        $('#btn-super').on('click', function () {
+            swipe('up');
+        });
+
+        $('#btn-skip').on('click', function () {
+            swipe('down');
+        });
+
+        $('#btn-undo').on('click', function () {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                const $card = $cards.eq(currentCardIndex);
+                $card.css('transition', 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s');
+                updateCards();
+            }
+        });
+
+        const $hoverOverlay = $('.tindbook-hover-overlay');
+
+        $hoverOverlay.on('click', function () {
+            $('#tindbook-feature').addClass('fullscreen-focus');
+            $hoverOverlay.hide();
+        });
+
+        $(document).on('click', function (e) {
+            if ($('#tindbook-feature').hasClass('fullscreen-focus')) {
+                if (
+                    !$(e.target).closest('.tindbook-app-container').length &&
+                    !$(e.target).closest('.tindbook-controls').length &&
+                    !$(e.target).closest('.tindbook-hover-overlay').length
+                ) {
+                    $('#tindbook-feature').removeClass('fullscreen-focus');
+                    $hoverOverlay.show();
+                }
+            }
+        });
+
+        $cards.on('mousedown touchstart', function (e) {
+            const cardIndex = $cards.index(this);
+            if (cardIndex !== currentCardIndex) return;
+
+            isDragging = true;
+
+            const event = e.originalEvent && e.originalEvent.touches
+                ? e.originalEvent.touches[0]
+                : e;
+
+            startX = event.clientX || event.pageX;
+            startY = event.clientY || event.pageY;
+            currentX = startX;
+            currentY = startY;
+
+            $(this).css('transition', 'none');
+        });
+
+        $(document).on('mousemove touchmove', function (e) {
+            if (!isDragging) return;
+
+            const event = e.originalEvent && e.originalEvent.touches
+                ? e.originalEvent.touches[0]
+                : e;
+
+            currentX = event.clientX || event.pageX;
+            currentY = event.clientY || event.pageY;
+
+            const deltaX = currentX - startX;
+            const deltaY = currentY - startY;
+            const rotate = deltaX * 0.1;
+
+            const $card = $cards.eq(currentCardIndex);
+            $card.css('transform', `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`);
+
+            const threshold = 50;
+            $('.control-btn').removeClass('active');
+            $('.tindbook-action-label').text('').css('opacity', '0');
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > threshold) {
+                    $('#btn-like').addClass('active');
+                    $('.tindbook-action-label')
+                        .text('Save to Wishlist')
+                        .css('opacity', '1')
+                        .css('color', '#4caf50');
+                } else if (deltaX < -threshold) {
+                    $('#btn-nope').addClass('active');
+                    $('.tindbook-action-label')
+                        .text('Hide book')
+                        .css('opacity', '1')
+                        .css('color', '#f44336');
+                }
+            } else {
+                if (deltaY > threshold) {
+                    $('#btn-skip').addClass('active');
+                    $('.tindbook-action-label')
+                        .text('Skip')
+                        .css('opacity', '1')
+                        .css('color', '#9e9e9e');
+                } else if (deltaY < -threshold) {
+                    $('#btn-super').addClass('active');
+                    $('.tindbook-action-label')
+                        .text('Add to Cart')
+                        .css('opacity', '1')
+                        .css('color', '#2196f3');
+                }
+            }
+        });
+
+        $(document).on('mouseup touchend', function () {
+            if (!isDragging) return;
+
+            isDragging = false;
+
+            const deltaX = currentX - startX;
+            const deltaY = currentY - startY;
+            const threshold = 100;
+
+            const $card = $cards.eq(currentCardIndex);
+            $card.css('transition', 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s');
+
+            $('.control-btn').removeClass('active');
+            $('.tindbook-action-label').css('opacity', '0');
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > threshold) {
+                    swipe('right');
+                } else if (deltaX < -threshold) {
+                    swipe('left');
+                } else {
+                    updateCards();
+                }
+            } else {
+                if (deltaY > threshold) {
+                    swipe('down');
+                } else if (deltaY < -threshold) {
+                    swipe('up');
+                } else {
+                    updateCards();
+                }
+            }
+        });
+
+        $(document).on('keydown', function (e) {
+            if (!$('#tindbook-feature').hasClass('fullscreen-focus')) return;
+
+            switch (e.key) {
+                case 'ArrowRight':
+                    swipe('right');
+                    break;
+                case 'ArrowLeft':
+                    swipe('left');
+                    break;
+                case 'ArrowUp':
+                    swipe('up');
+                    break;
+                case 'ArrowDown':
+                    swipe('down');
+                    break;
+            }
+        });
+
+        updateCards();
+    });
+</script>

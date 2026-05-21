@@ -175,44 +175,48 @@
                 }
             }
 
-            $navExplore.on('click', function(e) {
+            function allowRouteOrRun(e, $link, fallbackAction) {
+                const href = $link.attr('href');
+
+                if (href && href !== '#') {
+                    return;
+                }
+
                 e.preventDefault();
-                showExplore();
+                fallbackAction();
+            }
+
+            $navExplore.on('click', function(e) {
+                allowRouteOrRun(e, $(this), showExplore);
             });
 
             $navHome.on('click', function(e) {
-                e.preventDefault();
-                showHome();
+                allowRouteOrRun(e, $(this), showHome);
             });
 
             $navLogo.on('click', function(e) {
-                e.preventDefault();
-                showHome();
+                allowRouteOrRun(e, $(this), showHome);
             });
 
             $navTindbook.on('click', function(e) {
-                e.preventDefault();
-                showTindbook();
+                allowRouteOrRun(e, $(this), showTindbook);
             });
 
             $navCommunity.on('click', function(e) {
-                e.preventDefault();
-                showDedicatedCommunity();
+                allowRouteOrRun(e, $(this), showDedicatedCommunity);
             });
 
             $navBlindDate.on('click', function(e) {
-                e.preventDefault();
-                showBlindDate();
+                allowRouteOrRun(e, $(this), showBlindDate);
             });
 
             $navReviews.on('click', function(e) {
-                e.preventDefault();
-                showReviews();
+                allowRouteOrRun(e, $(this), showReviews);
             });
 
             $('#btn-try-tindbook').on('click', function(e) {
                 e.preventDefault();
-                showTindbook();
+                window.location.href = '/Tindbook';
             });
 
             // SPA History & Routing Logic
