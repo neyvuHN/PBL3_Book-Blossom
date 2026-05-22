@@ -60,6 +60,11 @@ builder.Services.AddScoped<IWishlistService, WishlistService>();
 // Đăng ký IBlindBookService
 builder.Services.AddScoped<IBlindBookService, BlindBookService>();
 
+// Đăng ký IOrderService
+builder.Services.AddScoped<IOrderService, OrderService>(); 
+
+
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
