@@ -222,88 +222,40 @@
             // SPA History & Routing Logic
             window.addEventListener('popstate', function(event) {
                 const state = event.state;
+
                 if (state && state.view) {
                     const view = state.view;
-                    if (view === 'home') {
-                        showHome(false);
-                    } else if (view === 'explore') {
-                        showExplore(false);
-                    } else if (view === 'community') {
-                        showDedicatedCommunity(false);
-                    } else if (view === 'tindbook') {
-                        showTindbook(false);
-                    } else if (view === 'blind-date') {
-                        showBlindDate(false);
-                    } else if (view === 'reviews') {
-                        showReviews(false);
+
+                    if (view === 'blind-date') {
+                        $('#blind-date-details-section').hide();
+                        $('#cart-section').hide();
+                        $('#blind-date-section').show();
+
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navBlindDate);
+
+                        window.scrollTo(0, 0);
+                    } else if (view === 'blind-date-details') {
+                        showBlindDateDetails(state.blindBookData, false);
                     } else if (view === 'cart') {
                         showCart(false);
-                    } else if (view === 'product-details') {
-                        if (state.previousActiveSection) {
-                            previousActiveSection = state.previousActiveSection;
-                        }
-                        showProductDetails(state.bookData, false);
-                    } else if (view === 'blind-date-details') {
-                        if (state.previousActiveSection) {
-                            previousActiveSection = state.previousActiveSection;
-                        }
-                        showBlindDateDetails(state.blindBookData, false);
+                    } else {
+                        $('#blind-date-details-section').hide();
+                        $('#cart-section').hide();
+                        $('#blind-date-section').show();
+
+                        $mainNavbar.addClass('navbar-light');
+                        setActiveTab($navBlindDate);
                     }
                 } else {
-                    showHome(false);
+                    $('#blind-date-details-section').hide();
+                    $('#cart-section').hide();
+                    $('#blind-date-section').show();
+
+                    $mainNavbar.addClass('navbar-light');
+                    setActiveTab($navBlindDate);
                 }
             });
-
-            // Initial Router parsing on Page Load
-            const initialHash = window.location.hash;
-            if (initialHash === '#explore') {
-                showExplore(false);
-                history.replaceState({ view: 'explore' }, '', '#explore');
-            } else if (initialHash === '#community') {
-                showDedicatedCommunity(false);
-                history.replaceState({ view: 'community' }, '', '#community');
-            } else if (initialHash === '#tindbook') {
-                showTindbook(false);
-                history.replaceState({ view: 'tindbook' }, '', '#tindbook');
-            } else if (initialHash === '#blind-date') {
-                showBlindDate(false);
-                history.replaceState({ view: 'blind-date' }, '', '#blind-date');
-            } else if (initialHash === '#reviews') {
-                showReviews(false);
-                history.replaceState({ view: 'reviews' }, '', '#reviews');
-            } else if (initialHash === '#cart') {
-                showCart(false);
-                history.replaceState({ view: 'cart' }, '', '#cart');
-            } else if (initialHash.startsWith('#book-details-')) {
-                const bookTitleDecoded = decodeURIComponent(initialHash.substring('#book-details-'.length));
-                showHome(false);
-                setTimeout(function() {
-                    const mockBook = {
-                        title: bookTitleDecoded,
-                        author: bookTitleDecoded === "The Secret Garden" ? "Frances Hodgson Burnett" : (bookTitleDecoded === "Think and Grow Rich" ? "Napoleon Hill" : (bookTitleDecoded === "Atomic Habits" ? "James Clear" : "BookBlossom Curator")),
-                        imgSrc: "/images/Book/book1.jpg"
-                    };
-                    showProductDetails(mockBook, false);
-                    history.replaceState({ view: 'product-details', bookData: mockBook }, '', initialHash);
-                }, 300);
-            } else if (initialHash.startsWith('#blind-details-')) {
-                const tagsDecoded = decodeURIComponent(initialHash.substring('#blind-details-'.length));
-                showBlindDate(false);
-                setTimeout(function() {
-                    const mockBlindBook = {
-                        imgSrc: "/images/Book/book1.jpg",
-                        desc: "A handpicked mystery treasure featuring clues: " + tagsDecoded + ". Fully wrapped with dynamic vibes and custom visual decorations. 🌸",
-                        firstLine: "What is written in the stars shall blossom in your hands.",
-                        price: "120.000 VND",
-                        hashtags: tagsDecoded
-                    };
-                    showBlindDateDetails(mockBlindBook, false);
-                    history.replaceState({ view: 'blind-date-details', blindBookData: mockBlindBook }, '', initialHash);
-                }, 300);
-            } else {
-                showHome(false);
-                history.replaceState({ view: 'home' }, '', '#home');
-            }
 
             // Explore Filter Sidebar Toggle
             $('#btn-toggle-filter').on('click', function(e) {
@@ -727,7 +679,7 @@
 
             $('#btn-try-blind-date').on('click', function(e) {
                 e.preventDefault();
-                window.location.href = '/BlindDate';
+                showBlindDate();
             });
 
             $('#cta-thread').on('click', function(e) {
@@ -1725,6 +1677,8 @@
             }
 
             function showBlindDateDetails(blindBookData, push = true) {
+                previousActiveSection = '#blind-date-section';
+
                 // Determine current visible section to save as return point
                 if ($mainContent.is(':visible')) {
                     previousActiveSection = '#main-content';
@@ -1783,7 +1737,10 @@
                 const $hashtagContainer = $('#blind-clue-hashtags');
                 $hashtagContainer.empty();
                 if (blindBookData.hashtags) {
-                    const tags = blindBookData.hashtags.split(' ');
+                    const tags = blindBookData.hashtags
+                                .replace(/#/g, ' #')
+                                .trim()
+                                .split(/\s+/);
                     tags.forEach(tag => {
                         if (tag.trim()) {
                             const badge = $('<span></span>')
@@ -1796,7 +1753,12 @@
                                     'border-radius': '20px',
                                     'font-size': '0.8rem',
                                     'font-weight': '600',
-                                    'display': 'inline-block'
+                                    'display': 'inline-block',
+                                    'max-width': '100%',
+                                    'white-space': 'normal',
+                                    'overflow-wrap': 'anywhere',
+                                    'word-break': 'break-word',
+                                    'line-height': '1.4'
                                 });
                             $hashtagContainer.append(badge);
                         }
@@ -1847,7 +1809,15 @@
                 window.scrollTo(0, 0);
 
                 if (push) {
-                    history.pushState({ view: 'blind-date-details', blindBookData: blindBookData, previousActiveSection: previousActiveSection }, '', `#blind-details-${encodeURIComponent(blindBookData.hashtags.replace(/\s/g, ''))}`);
+                    history.pushState(
+                        {
+                            view: 'blind-date-details',
+                            blindBookData: blindBookData,
+                            previousActiveSection: '#blind-date-section'
+                        },
+                        '',
+                        `/BlindDate#blind-details-${encodeURIComponent(blindBookData.hashtags.replace(/\s/g, ''))}`
+                    );
                 }
             }
 
@@ -1955,8 +1925,19 @@
                     keywords = "Emotional drama, multi-generational secrets, female-led narrative, beautiful prose";
                 }
 
-                const hashValue = hashtags.replace(/\s/g, '');
-                window.location.href = `/BlindDate#blind-details-${encodeURIComponent(hashValue)}`;
+                showBlindDateDetails({
+                    imgSrc: imgSrc,
+                    hashtags: hashtags,
+                    desc: desc,
+                    price: price,
+                    condition: condition,
+                    firstLine: firstLine,
+                    rating: rating,
+                    ratingRange: ratingRange,
+                    year: year,
+                    category: category,
+                    keywords: keywords
+                });
             });
 
             // Global tracker for current active Blind Date detail image index
@@ -2122,38 +2103,16 @@
             // Back from Blind Date button logic
             $('#btn-back-to-blind').on('click', function(e) {
                 e.preventDefault();
-                if (history.state && history.state.view === 'blind-date-details') {
-                    history.back();
-                } else {
-                    $('#blind-date-details-section').hide();
-                    $(previousActiveSection).show();
-                    
-                    if (previousActiveSection === '#main-content') {
-                        $mainNavbar.removeClass('navbar-light');
-                        setActiveTab($navHome);
-                    } else if (previousActiveSection === '#explore-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navExplore);
-                    } else if (previousActiveSection === '#dedicated-community') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navCommunity);
-                    } else if (previousActiveSection === '#tindbook-feature') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navTindbook);
-                    } else if (previousActiveSection === '#blind-date-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navBlindDate);
-                    } else if (previousActiveSection === '#reviews-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        setActiveTab($navReviews);
-                    } else if (previousActiveSection === '#cart-section') {
-                        $mainNavbar.addClass('navbar-light');
-                        $navLinks.removeClass('active');
-                        $('#nav-cart-btn').addClass('active');
-                    }
-                    
-                    window.scrollTo(0, 0);
-                }
+
+                $('#blind-date-details-section').hide();
+                $('#cart-section').hide();
+                $('#blind-date-section').show();
+
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navBlindDate);
+
+                history.replaceState({ view: 'blind-date' }, '', '/BlindDate');
+                window.scrollTo(0, 0);
             });
 
             // How this works Collapsible Toggle
@@ -4271,5 +4230,200 @@
             // [END UPDATED] SHOPPING CART INTERFACE SPA LOGIC
             // =========================================================
 
+            function calculateBlindBuyNowVoucherDiscount(subtotalVnd) {
+                let discountVnd = 0;
+                let shippingFeeVnd = subtotalVnd > 0 ? 60000 : 0;
+                const appliedVoucherLines = [];
+
+                // Đọc voucher mystery/blind đang chọn trên detail page
+                $('.blind-coupon-card.selected, .modal-blind-voucher-item.selected').each(function() {
+                    const code = $(this).attr('data-code');
+
+                    if (!code) return;
+
+                    if (code === 'MYSTERY15') {
+                        if (subtotalVnd >= 150000) {
+                            discountVnd += 15000;
+                            appliedVoucherLines.push({ code: code, text: 'MYSTERY15 (-15,000 VND)' });
+                        } else {
+                            showToast('MYSTERY15 requires minimum Blind Date order 150,000 VND.');
+                        }
+                    } else if (code === 'SECRET50') {
+                        if (subtotalVnd >= 350000) {
+                            discountVnd += 50000;
+                            appliedVoucherLines.push({ code: code, text: 'SECRET50 (-50,000 VND)' });
+                        } else {
+                            showToast('SECRET50 requires minimum Blind Date order 350,000 VND.');
+                        }
+                    } else if (code === 'UNBOX20') {
+                        if (subtotalVnd >= 200000) {
+                            discountVnd += 20000;
+                            appliedVoucherLines.push({ code: code, text: 'UNBOX20 (-20,000 VND)' });
+                        } else {
+                            showToast('UNBOX20 requires minimum Blind Date order 200,000 VND.');
+                        }
+                    } else if (code === 'VIPMYSTERY') {
+                        if (subtotalVnd >= 800000) {
+                            discountVnd += 100000;
+                            appliedVoucherLines.push({ code: code, text: 'VIPMYSTERY (-100,000 VND)' });
+                        } else {
+                            showToast('VIPMYSTERY requires minimum Blind Date order 800,000 VND.');
+                        }
+                    } else if (code === 'READMORE30') {
+                        discountVnd += 30000;
+                        appliedVoucherLines.push({ code: code, text: 'READMORE30 (-30,000 VND)' });
+                    } else if (code === 'BLOSSOM70') {
+                        if (subtotalVnd >= 500000) {
+                            discountVnd += 70000;
+                            appliedVoucherLines.push({ code: code, text: 'BLOSSOM70 (-70,000 VND)' });
+                        } else {
+                            showToast('BLOSSOM70 requires minimum order 500,000 VND.');
+                        }
+                    }
+                });
+
+                discountVnd = Math.min(discountVnd, subtotalVnd);
+
+                return {
+                    discountVnd: discountVnd,
+                    shippingFeeVnd: shippingFeeVnd,
+                    appliedVoucherLines: appliedVoucherLines
+                };
+            }
+
+            $(document).on('click', '.btn-buy-blind, #btn-blind-buy-now, #btn-detail-blind-buy', function(e) {
+                e.preventDefault();
+
+                const desc = $('#blind-clue-hook').text().trim() || 'Blind Date Mystery Book';
+                const title = 'Blind Date: ' + desc.substring(0, 40);
+                const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook1.jpg';
+                const qty = parseInt($('#input-blind-qty').val()) || 1;
+
+                const priceText = $('#blind-detail-price').text() || '0 VNĐ';
+                const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
+
+                if (unitPriceVnd <= 0) {
+                    showToast('Cannot checkout this mystery book because price is invalid.');
+                    return;
+                }
+
+                const subtotalVnd = unitPriceVnd * qty;
+                const voucherResult = calculateBlindBuyNowVoucherDiscount(subtotalVnd);
+
+                const checkoutItem = {
+                    id: 'blind-buy-now-' + Date.now(),
+                    title: title,
+                    shop: 'Blind Date Books',
+                    price: unitPriceVnd / 20000,
+                    priceVnd: unitPriceVnd,
+                    qty: qty,
+                    condition: 'New Curated',
+                    img: img,
+                    selected: true,
+                    isBlind: true,
+                    author: 'BookBlossom Mystery Curator'
+                };
+
+                window.checkoutState = {
+                    isCart: false,
+                    isBuyNow: true,
+                    isBlind: true,
+                    subtotal: subtotalVnd,
+                    shippingFee: voucherResult.shippingFeeVnd,
+                    discount: voucherResult.discountVnd
+                };
+
+                const voucherContainer = document.getElementById('checkout-applied-vouchers-container');
+                const voucherList = document.getElementById('checkout-vouchers-list');
+
+                if (voucherList) {
+                    voucherList.innerHTML = '';
+                }
+
+                if (voucherContainer && voucherList && voucherResult.appliedVoucherLines.length > 0) {
+                    voucherContainer.style.display = 'block';
+
+                    voucherResult.appliedVoucherLines.forEach(function(voucher) {
+                        const badge = document.createElement('div');
+
+                        badge.style.cssText = `
+                            background: #faf8fc;
+                            border: 1px solid #a291b5;
+                            color: #6a4f8c;
+                            font-weight: 700;
+                            font-size: 0.8rem;
+                            padding: 4px 10px;
+                            border-radius: 6px;
+                            display: flex;
+                            align-items: center;
+                            gap: 5px;
+                        `;
+
+                        badge.innerHTML = `<i class="fas fa-ticket"></i> ${voucher.text}`;
+                        voucherList.appendChild(badge);
+                    });
+                } else if (voucherContainer) {
+                    voucherContainer.style.display = 'none';
+                }
+
+                if (typeof window.populateCheckoutBookInfo === 'function') {
+                    window.populateCheckoutBookInfo([checkoutItem]);
+                }
+
+                if (typeof window.updateCheckoutTotals === 'function') {
+                    window.updateCheckoutTotals();
+                }
+
+                if (typeof window.openCheckout === 'function') {
+                    window.openCheckout();
+                } else {
+                    showToast('Checkout interface is not ready.');
+                }
+            });
+
+            // Standalone Blind Date page initialization
+            (function initBlindDateStandalonePage() {
+                $mainNavbar.addClass('navbar-light');
+                setActiveTab($navBlindDate);
+
+                const initialHash = window.location.hash;
+
+                if (initialHash.startsWith('#blind-details-')) {
+                    const tagsDecoded = decodeURIComponent(initialHash.substring('#blind-details-'.length));
+
+                    const mockBlindBook = {
+                        imgSrc: "/images/BlindDateBook/BlindBook1.jpg",
+                        desc: "A handpicked mystery treasure featuring clues: " + tagsDecoded + ". Fully wrapped with dynamic vibes and custom visual decorations. 🌸",
+                        firstLine: "What is written in the stars shall blossom in your hands.",
+                        price: "120.000 VNĐ",
+                        hashtags: tagsDecoded,
+                        condition: "Well Loved",
+                        rating: "4.2",
+                        ratingRange: "4.0 - 4.2",
+                        year: "2021",
+                        category: "Mystery & Romance",
+                        keywords: "Cozy, emotional, slow-burn, surprise"
+                    };
+
+                    showBlindDateDetails(mockBlindBook, false);
+
+                    history.replaceState(
+                        {
+                            view: 'blind-date-details',
+                            blindBookData: mockBlindBook,
+                            previousActiveSection: '#blind-date-section'
+                        },
+                        '',
+                        `/BlindDate#blind-details-${encodeURIComponent(tagsDecoded.replace(/\s/g, ''))}`
+                    );
+                } else {
+                    $('#blind-date-section').show();
+                    $('#blind-date-details-section').hide();
+                    $('#cart-section').hide();
+
+                    history.replaceState({ view: 'blind-date' }, '', '/BlindDate');
+                    window.scrollTo(0, 0);
+                }
+            })();
         });
     </script>
