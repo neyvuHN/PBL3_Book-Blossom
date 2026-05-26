@@ -50,6 +50,9 @@ namespace BookBlossom.Infrastructure.Data.Configurations
 
             builder.HasIndex(o => o.CustomerID)
                    .HasDatabaseName("IX_Orders_CustomerID");
+
+            builder.HasIndex(o => o.OrderDate)
+                   .HasDatabaseName("IX_Orders_OrderDate");
         }
     }
 }

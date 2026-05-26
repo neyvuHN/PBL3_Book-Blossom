@@ -38,6 +38,9 @@ builder.Services.AddScoped<IGuestService, GuestService>();
 builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
 builder.Services.AddHostedService<SubscriptionExpiryJob>();
 
+// Đăng ký Background Job tự động hủy đơn sau 48h chưa xác nhận
+builder.Services.AddHostedService<OrderAutoCancelService>();
+
 // Đăng ký IOnboardingService
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 
