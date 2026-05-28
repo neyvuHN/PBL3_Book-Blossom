@@ -1,21 +1,12 @@
 @{
-    Layout = null;
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Cart - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    ViewData["IncludeCheckout"] = true;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cart - BookBlossom</title>
-
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexStyles.cshtml")
-
+@section Head {
     <style>
         body.homepage-container {
             background: #faf9f6 !important;
@@ -55,27 +46,12 @@
             color: #C2185B !important;
         }
     </style>
-</head>
+}
 
-<body class="homepage-container">
+<main>
+    @await Html.PartialAsync("Partials/_CartSection")
+</main>
 
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_MainNavbar.cshtml")
-
-    <main>
-        @await Html.PartialAsync("Partials/_CartSection")
-    </main>
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexModals.cshtml")
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_Footer.cshtml")
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
-
+@section Scripts {
     @await Html.PartialAsync("Partials/_CartScripts")
-    @await Html.PartialAsync("~/Views/Shared/Partials/_CheckoutModal.cshtml")
-    <script src="~/js/shared/checkout.js" asp-append-version="true"></script>
-</body>
-</html>
+}

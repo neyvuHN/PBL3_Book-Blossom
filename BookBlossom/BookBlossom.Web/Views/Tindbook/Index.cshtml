@@ -1,34 +1,13 @@
 @{
-    Layout = null;
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Tindbook - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = false;
+    ViewData["IncludeCheckout"] = false;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tindbook - BookBlossom</title>
+@await Html.PartialAsync("~/Views/Tindbook/Partials/_TindbookSection.cshtml")
 
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexStyles.cshtml")
-</head>
-
-<body class="homepage-container">
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_MainNavbar.cshtml")
-
-    @await Html.PartialAsync("~/Views/Tindbook/Partials/_TindbookSection.cshtml")
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_Footer.cshtml")
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-
+@section Scripts {
     @await Html.PartialAsync("Partials/_TindbookScripts")
-</body>
-</html>
+}

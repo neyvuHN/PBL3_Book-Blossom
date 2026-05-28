@@ -1,21 +1,12 @@
 @{
-    Layout = null;
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Blind Date Books - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    ViewData["IncludeCheckout"] = true;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Blind Date Books - BookBlossom</title>
-
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexStyles.cshtml")
-
+@section Head {
     <style>
         body.homepage-container {
             background: #fffdfb !important;
@@ -41,20 +32,13 @@
             margin-top: 0 !important;
         }
 
-        /* Fix overflow in Book Investigation Clues card */
         #blind-date-details-section .clues-box {
             max-width: 100%;
             overflow: hidden;
         }
 
-        #blind-date-details-section .clues-box > div {
-            min-width: 0;
-        }
-
-        #blind-date-details-section .clue-item {
-            min-width: 0;
-        }
-
+        #blind-date-details-section .clues-box > div,
+        #blind-date-details-section .clue-item,
         #blind-date-details-section #blind-clue-hook,
         #blind-date-details-section #blind-clue-keywords,
         #blind-date-details-section #blind-clue-quote,
@@ -73,31 +57,13 @@
             line-height: 1.4;
         }
     </style>
-</head>
+}
 
-<body class="homepage-container">
+<main>
+    @await Html.PartialAsync("Partials/_BlindDateBooksSection")
+    @await Html.PartialAsync("Partials/_BlindDateDetailsSection")
+</main>
 
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_MainNavbar.cshtml")
-
-    <main>
-        @await Html.PartialAsync("Partials/_BlindDateBooksSection")
-
-        @await Html.PartialAsync("Partials/_BlindDateDetailsSection")
-
-    </main>
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexModals.cshtml")
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_Footer.cshtml")
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
-
+@section Scripts {
     @await Html.PartialAsync("Partials/_BlindDateScripts")
-
-    @await Html.PartialAsync("~/Views/Shared/Partials/_CheckoutModal.cshtml")
-    <script src="~/js/shared/checkout.js" asp-append-version="true"></script>
-</body>
-</html>
+}

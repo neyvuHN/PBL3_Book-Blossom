@@ -1,0 +1,56 @@
+@{
+    var title = ViewData["Title"] as string ?? "BookBlossom";
+    var bodyClass = ViewData["BodyClass"] as string ?? "homepage-container";
+    var includeCommonModals = ViewData["IncludeCommonModals"] as bool? ?? false;
+    var includeCheckout = ViewData["IncludeCheckout"] as bool? ?? false;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@title</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexStyles.cshtml")
+
+    @RenderSection("Head", required: false)
+</head>
+
+<body class="@bodyClass">
+
+    @await Html.PartialAsync("~/Views/Home/Partials/Index/_MainNavbar.cshtml")
+
+    @RenderBody()
+
+    @await Html.PartialAsync("~/Views/Home/Partials/Index/_Footer.cshtml")
+
+    @if (includeCommonModals)
+    {
+        @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexModals.cshtml")
+    }
+
+    @if (includeCheckout)
+    {
+        @await Html.PartialAsync("~/Views/Shared/Partials/_CheckoutModal.cshtml")
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
+
+    @RenderSection("Scripts", required: false)
+
+    @if (includeCheckout)
+    {
+        <script src="~/js/shared/checkout.js" asp-append-version="true"></script>
+    }
+</body>
+</html>

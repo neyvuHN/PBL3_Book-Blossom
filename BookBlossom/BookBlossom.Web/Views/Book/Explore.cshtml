@@ -1,51 +1,21 @@
 @{
-    Layout = null;
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Explore Books - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    ViewData["IncludeCheckout"] = true;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Explore Books - BookBlossom</title>
-
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-
+@section Head {
     <!-- PDF.js for secure digital preview rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+}
 
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexStyles.cshtml")
+<main>
+    @await Html.PartialAsync("Partials/_ExploreSection")
+    @await Html.PartialAsync("Partials/_ProductDetailsSection")
+</main>
 
- 
-</head>
-
-<body class="homepage-container">
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_MainNavbar.cshtml")
-
-    <main>
-        @await Html.PartialAsync("Partials/_ExploreSection")
-
-        @await Html.PartialAsync("Partials/_ProductDetailsSection")
-
-    </main>
-
-    @* Tạm dùng lại modal tổng để tránh thiếu modal voucher/preview/lightbox/report *@
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexModals.cshtml")
-
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_Footer.cshtml")
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
-
+@section Scripts {
     @await Html.PartialAsync("Partials/_ExploreScripts")
-
-    @await Html.PartialAsync("~/Views/Shared/Partials/_CheckoutModal.cshtml")
-    <script src="~/js/shared/checkout.js" asp-append-version="true"></script>
-</body>
-</html>
+}
