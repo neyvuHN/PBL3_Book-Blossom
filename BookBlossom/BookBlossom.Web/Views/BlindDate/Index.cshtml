@@ -7,56 +7,8 @@
 }
 
 @section Head {
-    <style>
-        body.homepage-container {
-            background: #fffdfb !important;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        #blind-date-section.blind-date-page-section {
-            min-height: calc(100vh - 90px);
-            padding-top: 90px !important;
-            background: #fffdfb !important;
-            position: relative !important;
-            z-index: 1 !important;
-        }
-
-        #blind-date-details-section {
-            min-height: 100vh;
-        }
-
-        .premium-footer {
-            position: relative !important;
-            z-index: 0 !important;
-            margin-top: 0 !important;
-        }
-
-        #blind-date-details-section .clues-box {
-            max-width: 100%;
-            overflow: hidden;
-        }
-
-        #blind-date-details-section .clues-box > div,
-        #blind-date-details-section .clue-item,
-        #blind-date-details-section #blind-clue-hook,
-        #blind-date-details-section #blind-clue-keywords,
-        #blind-date-details-section #blind-clue-quote,
-        #blind-date-details-section #blind-clue-hashtags {
-            max-width: 100%;
-            min-width: 0;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-
-        #blind-date-details-section #blind-clue-hashtags span {
-            max-width: 100%;
-            white-space: normal !important;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-            line-height: 1.4;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/blind-date/blind-date.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/blind-date/blind-date-details.css" asp-append-version="true" />
 }
 
 <main>
