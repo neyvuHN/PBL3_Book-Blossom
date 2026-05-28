@@ -18,6 +18,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<ServiceHistory> ServiceHistories { get; set; }
         public DbSet<Role> Roles {get; set; }
         public DbSet<CustomerPreference> CustomerPreferences {get; set; }
+        public DbSet<GuestPreference> GuestPreferences {get; set; }
         public DbSet<Category> Categories {get; set; }
         public DbSet<RealBook> RealBooks {get; set; }
         public DbSet<Importing> Importings { get; set; }
@@ -29,6 +30,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<MembershipRank> MembershipRanks { get; set; }
         public DbSet<CustomerReputation> CustomerReputations { get; set; }
+        public DbSet<SwipeLog> SwipeLogs { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

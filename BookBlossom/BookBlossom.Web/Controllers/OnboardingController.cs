@@ -79,5 +79,27 @@ namespace BookBlossom.Web.Controllers
             }
             return userId;
         }
+
+        /// <summary>
+        /// API 4 (Guest): Lưu sở thích ban đầu cho Guest trong luồng onboarding thử
+        /// POST: /api/onboarding/guest/preferences
+        /// Header yêu cầu: X-Guest-Id, X-Guest-Token
+        /// </summary>
+        [HttpPost("guest/preferences")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SaveGuestPreferences([FromBody] SavePreferencesRequestDTO request)
+        {
+            // Lấy GuestID từ HttpContext (do GuestSessionMiddleware xử lý và xác minh)
+            if (!HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) || guestIdObj is not Guid guestId)
+                return Unauthorized("Phiên Guest không hợp lệ. Vui lòng tạo phiên Guest trước.");
+
+            try
+            {
+                await _onboardingService.SaveGuestPreferencesAsync(guestId, request);
+                return Ok(new { message = "Đã lưu sở thích! Bạn có thể bắt đầu khám phá Tindbook." });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+            catch (Exception) { return StatusCode(500, "Lỗi hệ thống khi lưu sở thích Guest."); }
+        }
     }
-}
+}

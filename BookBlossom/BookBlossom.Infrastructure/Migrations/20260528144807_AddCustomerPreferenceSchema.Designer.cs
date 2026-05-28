@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528144807_AddCustomerPreferenceSchema")]
+    partial class AddCustomerPreferenceSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -362,24 +365,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasIndex("ConvertedUserID");
 
                     b.ToTable("GuestDetail", "UserSystem");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.GuestPreference", b =>
-                {
-                    b.Property<Guid>("GuestID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long>("CategoryID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("GuestID", "CategoryID");
-
-                    b.HasIndex("CategoryID");
-
-                    b.ToTable("GuestPreference", "Preference");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
@@ -929,11 +914,8 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<long?>("CustomerID")
+                    b.Property<long>("CustomerID")
                         .HasColumnType("bigint");
-
-                    b.Property<Guid?>("GuestID")
-                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("SwipeLogID");
 
@@ -1160,25 +1142,6 @@ namespace BookBlossom.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ConvertedUser");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.GuestPreference", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.GuestDetail", "GuestDetail")
-                        .WithMany()
-                        .HasForeignKey("GuestID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("GuestDetail");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>

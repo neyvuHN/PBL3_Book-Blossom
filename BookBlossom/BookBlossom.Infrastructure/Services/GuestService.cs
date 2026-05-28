@@ -74,8 +74,48 @@ namespace BookBlossom.Infrastructure.Services
                 guest.ConvertedUserID = newUserId;
                 await _context.SaveChangesAsync();
                 
+                // 1. Đồng bộ Giỏ hàng và Yêu thích (đã có sẵn)
                 await _cartService.MigrateGuestCartToUserAsync(guestId, newUserId);
                 await _wishlistService.MigrateGuestWishlistToUserAsync(guestId, newUserId);
+
+                // 2. Đồng bộ Sở thích: GuestPreference -> CustomerPreference
+                var guestPrefs = await _context.GuestPreferences
+                    .Where(gp => gp.GuestID == guestId).ToListAsync();
+
+                if (guestPrefs.Any())
+                {
+                    // Lấy danh sách CategoryID đã có trong CustomerPreference để tránh trùng
+                    var existingCategoryIds = await _context.CustomerPreferences
+                        .Where(cp => cp.CustomerID == newUserId)
+                        .Select(cp => cp.CategoryID).ToListAsync();
+
+                    var newCustomerPrefs = guestPrefs
+                        .Where(gp => !existingCategoryIds.Contains(gp.CategoryID))
+                        .Select(gp => new CustomerPreference
+                        {
+                            CustomerID = newUserId,
+                            CategoryID = gp.CategoryID,
+                            CreatedAt = gp.CreatedAt
+                        }).ToList();
+
+                    if (newCustomerPrefs.Any())
+                        await _context.CustomerPreferences.AddRangeAsync(newCustomerPrefs);
+
+                    // Xóa GuestPreference sau khi đã chuyển
+                    _context.GuestPreferences.RemoveRange(guestPrefs);
+                }
+
+                // 3. Đồng bộ Lịch sử quẹt: SwipeLog(GuestID) -> SwipeLog(CustomerID)
+                var guestSwipeLogs = await _context.SwipeLogs
+                    .Where(l => l.GuestID == guestId).ToListAsync();
+
+                foreach (var log in guestSwipeLogs)
+                {
+                    log.CustomerID = newUserId;
+                    log.GuestID = null;
+                }
+
+                await _context.SaveChangesAsync();
             }
         }
 

@@ -79,5 +79,34 @@ namespace BookBlossom.Infrastructure.Services
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
+        // API 4: Lưu sở thích ban đầu cho Guest (dùng thử Tindbook)
+        public async Task<bool> SaveGuestPreferencesAsync(Guid guestId, SavePreferencesRequestDTO request)
+        {
+            // Xác minh Guest còn hợp lệ
+            var guest = await _context.GuestDetails.FindAsync(guestId);
+            if (guest == null || guest.ConvertedUserID != null)
+                throw new KeyNotFoundException("Phiên Guest không hợp lệ hoặc đã được chuyển đổi thành tài khoản.");
+
+            if (!request.IsSkipped && request.SelectedTagIds.Any())
+            {
+                // Xóa sở thích cũ nếu có
+                var existingPrefs = _context.GuestPreferences.Where(gp => gp.GuestID == guestId);
+                _context.GuestPreferences.RemoveRange(existingPrefs);
+
+                // Thêm danh sách sở thích mới
+                var newPrefs = request.SelectedTagIds.Select(tagId => new Core.Entities.GuestPreference
+                {
+                    GuestID = guestId,
+                    CategoryID = tagId,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList();
+
+                await _context.GuestPreferences.AddRangeAsync(newPrefs);
+                await _context.SaveChangesAsync();
+            }
+
+            return true;
+        }
     }
-}
+}

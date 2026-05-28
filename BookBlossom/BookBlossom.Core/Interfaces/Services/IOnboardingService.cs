@@ -7,10 +7,13 @@ namespace BookBlossom.Core.Interfaces
         // Lấy danh sách sở thích để hiển thị khi onboarding (trạng thái Active)
         Task<IEnumerable<CategoryResponseDTO>> GetOnboardingTagsAsync();
 
-        // Lưu sở thích + hoàn thành tour/skip
+        // Lưu sở thích + hoàn thành tour/skip cho Customer
         Task<bool> SaveCustomerPreferencesAsync(long userId, SavePreferencesRequestDTO request);
 
-        // Set flag đã hoàn thành tour
+        // Set flag đã hoàn thành tour cho Customer
         Task<bool> CompleteOnboardingTourAsync(long userId);
+
+        // Lưu sở thích ban đầu cho Guest (lưu tạm vào GuestPreference)
+        Task<bool> SaveGuestPreferencesAsync(Guid guestId, SavePreferencesRequestDTO request);
     }
-}
+}
