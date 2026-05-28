@@ -1,0 +1,63 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart - BookBlossom</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexStyles.cshtml")
+
+    <style>
+        body.homepage-container {
+            background: #faf9f6 !important;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #cart-section.cart-page-section {
+            display: block;
+            visibility: visible;
+            opacity: 1;
+            min-height: calc(100vh - 90px);
+            background: #faf9f6 !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .premium-footer {
+            position: relative !important;
+            z-index: 0 !important;
+            margin-top: 0 !important;
+        }
+    </style>
+</head>
+
+<body class="homepage-container">
+
+    @await Html.PartialAsync("~/Views/Home/Partials/Index/_MainNavbar.cshtml")
+
+    <main>
+        @await Html.PartialAsync("Partials/_CartSection")
+    </main>
+
+    @await Html.PartialAsync("~/Views/Home/Partials/Index/_HomeIndexModals.cshtml")
+
+    @await Html.PartialAsync("~/Views/Home/Partials/Index/_Footer.cshtml")
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await Html.PartialAsync("Partials/_CartScripts")
+    @await Html.PartialAsync("Partials/_CheckoutScripts")
+</body>
+</html>

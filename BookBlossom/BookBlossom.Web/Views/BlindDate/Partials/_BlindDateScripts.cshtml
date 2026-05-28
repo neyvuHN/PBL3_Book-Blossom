@@ -3589,7 +3589,7 @@
             // [UPDATED] Click listener for nav cart button — now in correct scope
             $('#nav-cart-btn').on('click', function(e) {
                 e.preventDefault();
-                showCart();
+                window.location.href = '/Cart';
             });
 
             // Dynamically view details from cart items
