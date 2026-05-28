@@ -2776,9 +2776,7 @@
             }
 
             function syncCartBadge() {
-                let totalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
-                globalCartCount = totalQty;
-                updateCartBadge(totalQty);
+                BookBlossomCart.updateBadge();
             }
 
             $(document).on('click', '.btn-cart-blind', function() {
@@ -2789,37 +2787,32 @@
                 const $cartIcon = $('#nav-cart-btn');
 
                 // Add to cartItems array
-                const existingItem = cartItems.find(item => item.title === title);
-                if (existingItem) {
-                    existingItem.qty += qty;
-                } else {
-                    const priceText = $('#blind-detail-price').text() || "$12.00";
-                    const price = parseFloat(priceText.replace('$', '')) || 12.00;
-                    const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook.jpg';
-                    
-                    // Parse hashtags
-                    const hashtags = [];
-                    $('.blind-detail-tags .badge').each(function() {
-                        hashtags.push($(this).text().replace('#', '').trim());
-                    });
-                    if (hashtags.length === 0) {
-                        hashtags.push('Romance', 'Dark');
-                    }
+                const priceText = $('#blind-detail-price').text() || '0 VNĐ';
+                const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
+                const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook.jpg';
 
-                    // [UPDATED] Replaced 'ProBooks_US' with 'Blind Date Books' to categorize blind date mystery books
-                    cartItems.push({
-                        id: 'cart-' + Date.now(),
-                        title: title,
-                        shop: 'Blind Date Books',
-                        price: price,
-                        qty: qty,
-                        condition: 'New Curated',
-                        img: img,
-                        selected: true,
-                        isBlind: true,
-                        hashtags: hashtags
-                    });
+                const hashtags = [];
+                $('.blind-detail-tags .badge, #blind-clue-hashtags span').each(function() {
+                    hashtags.push($(this).text().replace('#', '').trim());
+                });
+
+                if (hashtags.length === 0) {
+                    hashtags.push('Romance', 'Dark');
                 }
+
+                BookBlossomCart.addToCart({
+                    id: 'cart-' + Date.now(),
+                    title: title,
+                    shop: 'Blind Date Books',
+                    price: unitPriceVnd / 20000,
+                    priceVnd: unitPriceVnd,
+                    qty: qty,
+                    condition: 'New Curated',
+                    img: img,
+                    selected: true,
+                    isBlind: true,
+                    hashtags: hashtags
+                });
 
                 if ($addCartBtn.length && $cartIcon.length) {
                     // Get viewport bounds of the source button and target cart icon

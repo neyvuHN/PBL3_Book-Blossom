@@ -2766,96 +2766,94 @@
             }
 
             function syncCartBadge() {
-                let totalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
-                globalCartCount = totalQty;
-                updateCartBadge(totalQty);
+                BookBlossomCart.updateBadge();
             }
 
-            $(document).on('click', '.btn-cart-blind', function() {
-                const title = "Mystery Book (" + ($('#blind-clue-category').text() || 'Cozy') + ")";
-                const qty = parseInt($('#input-blind-qty').val()) || 1;
+            // $(document).on('click', '.btn-cart-blind', function() {
+            //     const title = "Mystery Book (" + ($('#blind-clue-category').text() || 'Cozy') + ")";
+            //     const qty = parseInt($('#input-blind-qty').val()) || 1;
                 
-                const $addCartBtn = $(this);
-                const $cartIcon = $('#nav-cart-btn');
+            //     const $addCartBtn = $(this);
+            //     const $cartIcon = $('#nav-cart-btn');
 
-                // Add to cartItems array
-                const existingItem = cartItems.find(item => item.title === title);
-                if (existingItem) {
-                    existingItem.qty += qty;
-                } else {
-                    const priceText = $('#blind-detail-price').text() || "$12.00";
-                    const price = parseFloat(priceText.replace('$', '')) || 12.00;
-                    const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook.jpg';
+            //     // Add to cartItems array
+            //     const existingItem = cartItems.find(item => item.title === title);
+            //     if (existingItem) {
+            //         existingItem.qty += qty;
+            //     } else {
+            //         const priceText = $('#blind-detail-price').text() || "$12.00";
+            //         const price = parseFloat(priceText.replace('$', '')) || 12.00;
+            //         const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook.jpg';
                     
-                    // Parse hashtags
-                    const hashtags = [];
-                    $('.blind-detail-tags .badge').each(function() {
-                        hashtags.push($(this).text().replace('#', '').trim());
-                    });
-                    if (hashtags.length === 0) {
-                        hashtags.push('Romance', 'Dark');
-                    }
+            //         // Parse hashtags
+            //         const hashtags = [];
+            //         $('.blind-detail-tags .badge').each(function() {
+            //             hashtags.push($(this).text().replace('#', '').trim());
+            //         });
+            //         if (hashtags.length === 0) {
+            //             hashtags.push('Romance', 'Dark');
+            //         }
 
-                    // [UPDATED] Replaced 'ProBooks_US' with 'Blind Date Books' to categorize blind date mystery books
-                    cartItems.push({
-                        id: 'cart-' + Date.now(),
-                        title: title,
-                        shop: 'Blind Date Books',
-                        price: price,
-                        qty: qty,
-                        condition: 'New Curated',
-                        img: img,
-                        selected: true,
-                        isBlind: true,
-                        hashtags: hashtags
-                    });
-                }
+            //         // [UPDATED] Replaced 'ProBooks_US' with 'Blind Date Books' to categorize blind date mystery books
+            //         cartItems.push({
+            //             id: 'cart-' + Date.now(),
+            //             title: title,
+            //             shop: 'Blind Date Books',
+            //             price: price,
+            //             qty: qty,
+            //             condition: 'New Curated',
+            //             img: img,
+            //             selected: true,
+            //             isBlind: true,
+            //             hashtags: hashtags
+            //         });
+            //     }
 
-                if ($addCartBtn.length && $cartIcon.length) {
-                    // Get viewport bounds of the source button and target cart icon
-                    const rectBtn = $addCartBtn[0].getBoundingClientRect();
-                    const rectCart = $cartIcon[0].getBoundingClientRect();
+            //     if ($addCartBtn.length && $cartIcon.length) {
+            //         // Get viewport bounds of the source button and target cart icon
+            //         const rectBtn = $addCartBtn[0].getBoundingClientRect();
+            //         const rectCart = $cartIcon[0].getBoundingClientRect();
 
-                    // Calculate start and end coordinates in the viewport
-                    const startX = rectBtn.left + rectBtn.width / 2 - 13;
-                    const startY = rectBtn.top + rectBtn.height / 2 - 13;
+            //         // Calculate start and end coordinates in the viewport
+            //         const startX = rectBtn.left + rectBtn.width / 2 - 13;
+            //         const startY = rectBtn.top + rectBtn.height / 2 - 13;
                     
-                    const endX = rectCart.left + rectCart.width / 2 - 13;
-                    const endY = rectCart.top + rectCart.height / 2 - 13;
+            //         const endX = rectCart.left + rectCart.width / 2 - 13;
+            //         const endY = rectCart.top + rectCart.height / 2 - 13;
 
-                    const deltaX = endX - startX;
-                    const deltaY = endY - startY;
+            //         const deltaX = endX - startX;
+            //         const deltaY = endY - startY;
 
-                    // Create flyer representing the added book count
-                    const $flyer = $('<div class="cart-flyer"></div>').text(qty);
-                    $flyer.css({
-                        top: startY,
-                        left: startX
-                    });
+            //         // Create flyer representing the added book count
+            //         const $flyer = $('<div class="cart-flyer"></div>').text(qty);
+            //         $flyer.css({
+            //             top: startY,
+            //             left: startX
+            //         });
 
-                    $('body').append($flyer);
+            //         $('body').append($flyer);
 
-                    // Force browser reflow to register initial styles
-                    void $flyer[0].offsetHeight;
+            //         // Force browser reflow to register initial styles
+            //         void $flyer[0].offsetHeight;
 
-                    // Smooth flyer motion using hardware-accelerated CSS translate
-                    $flyer.css({
-                        transform: `translate(${deltaX}px, ${deltaY}px) scale(0.4)`,
-                        opacity: '0.2'
-                    });
+            //         // Smooth flyer motion using hardware-accelerated CSS translate
+            //         $flyer.css({
+            //             transform: `translate(${deltaX}px, ${deltaY}px) scale(0.4)`,
+            //             opacity: '0.2'
+            //         });
 
-                    // Update states and cleanup flyer once transition finishes (1.5s / 1500ms)
-                    setTimeout(function() {
-                        $flyer.remove();
-                        syncCartBadge();
-                    }, 1500);
-                } else {
-                    // Fallback if elements are missing
-                    syncCartBadge();
-                }
+            //         // Update states and cleanup flyer once transition finishes (1.5s / 1500ms)
+            //         setTimeout(function() {
+            //             $flyer.remove();
+            //             syncCartBadge();
+            //         }, 1500);
+            //     } else {
+            //         // Fallback if elements are missing
+            //         syncCartBadge();
+            //     }
 
-                showToast(`Added ${qty}x "${title}" to your cart!`);
-            });
+            //     showToast(`Added ${qty}x "${title}" to your cart!`);
+            // });
 
             $('#btn-detail-add-cart').on('click', function() {
                 const title = $('#detail-title').text();
@@ -2865,26 +2863,22 @@
                 const $cartIcon = $('#nav-cart-btn');
 
                 // Add to cartItems array
-                const existingItem = cartItems.find(item => item.title === title);
-                if (existingItem) {
-                    existingItem.qty += qty;
-                } else {
-                    const priceText = $('#detail-price').text() || "$10.00";
-                    const price = parseFloat(priceText.replace('$', '')) || 10.00;
-                    const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
-                    // [UPDATED] Replaced 'ProBooks_US' with 'Normal Books' to categorize standard books
-                    cartItems.push({
-                        id: 'cart-' + Date.now(),
-                        title: title,
-                        shop: 'Normal Books',
-                        price: price,
-                        qty: qty,
-                        condition: 'Like New',
-                        img: img,
-                        selected: true,
-                        isBlind: false
-                    });
-                }
+                const priceText = $('#detail-price').text() || '0 VND';
+                const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
+                const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+
+                BookBlossomCart.addToCart({
+                    id: 'cart-' + Date.now(),
+                    title: title,
+                    shop: 'Normal Books',
+                    price: unitPriceVnd / 20000,
+                    priceVnd: unitPriceVnd,
+                    qty: qty,
+                    condition: 'Like New',
+                    img: img,
+                    selected: true,
+                    isBlind: false
+                });
 
                 if ($addCartBtn.length && $cartIcon.length) {
                     // Get viewport bounds of the source button and target cart icon

@@ -62,58 +62,11 @@
             // that are scoped to this $(document).ready() block.
             // =========================================================
             // [UPDATED] Support multiple applied vouchers
-            let cartItems = [
-            {
-                id: 'cart-1',
-                title: 'The Secret Life of Sunflowers',
-                shop: 'Normal Books',
-                price: 8.50,
-                qty: 1,
-                condition: 'Good 80%',
-                img: '/images/Book/book1.jpg',
-                selected: true,
-                isBlind: false
-            },
-            {
-                id: 'cart-2',
-                title: 'Blind Date Mystery - Vibe: Cozy',
-                shop: 'Blind Date Books',
-                price: 12.00,
-                qty: 1,
-                condition: 'New Curated',
-                img: '/images/BlindDateBook/BlindBook.jpg',
-                selected: true,
-                isBlind: true,
-                hashtags: ['Romance', 'Dark']
-            },
-            {
-                id: 'cart-3',
-                title: 'The Silent Patient',
-                shop: 'Normal Books',
-                price: 14.00,
-                qty: 1,
-                condition: 'Like New',
-                img: '/images/Book/book1.jpg',
-                selected: true,
-                isBlind: false
-            },
-            {
-                id: 'cart-4',
-                title: "Harry Potter and the Sorcerer's Stone",
-                shop: 'Normal Books',
-                price: 6.00,
-                qty: 1,
-                condition: 'Good 85%',
-                img: '/images/Book/book1.jpg',
-                selected: true,
-                isBlind: false,
-                limit: 1
-            }
-        ];
-
-        let globalCartCount = 4;
-            
+            let cartItems = BookBlossomCart.getCartItems();
             let appliedVouchers = [];
+
+            let globalCartCount = 4;
+            
 
             function showCart(push = true) {
                 $('#cart-section').show();
@@ -154,6 +107,7 @@
             };
 
             function renderCart() {
+                cartItems = BookBlossomCart.getCartItems();
                 const $itemsWrapper = $('#cart-items-wrapper');
                 const $emptyState = $('#empty-cart-state');
                 const $layoutContainer = $('#cart-layout-container');
@@ -586,7 +540,7 @@
                         item.selected = isChecked;
                     }
                 });
-
+                BookBlossomCart.saveCartItems(cartItems);
                 renderCart();
             });
 
@@ -599,7 +553,7 @@
                 if (item) {
                     item.selected = isChecked;
                 }
-
+                BookBlossomCart.saveCartItems(cartItems);
                 renderCart();
             });
 
@@ -611,10 +565,12 @@
                 if (item) {
                     if (item.qty > 1) {
                         item.qty--;
+                        BookBlossomCart.saveCartItems(cartItems);
                         renderCart();
                     } else {
                         if (confirm(`Remove "${item.title}" from your cart?`)) {
                             cartItems = cartItems.filter(i => i.id !== itemId);
+                            BookBlossomCart.saveCartItems(cartItems);
                             renderCart();
                             showToast("Item removed from cart");
                         }
@@ -633,6 +589,7 @@
                         return;
                     }
                     item.qty++;
+                    BookBlossomCart.saveCartItems(cartItems);
                     renderCart();
                 }
             });
@@ -644,6 +601,7 @@
 
                 if (item && confirm(`Remove "${item.title}" from your cart?`)) {
                     cartItems = cartItems.filter(i => i.id !== itemId);
+                    BookBlossomCart.saveCartItems(cartItems);
                     renderCart();
                     showToast("Item removed from cart");
                 }
@@ -658,6 +616,7 @@
             window.onCartCheckoutSuccess = function() {
                 cartItems = cartItems.filter(i => !i.selected);
                 appliedVouchers = [];
+                BookBlossomCart.saveCartItems(cartItems);
                 renderCart();
             };
 

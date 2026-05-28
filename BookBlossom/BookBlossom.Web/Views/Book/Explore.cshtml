@@ -31,8 +31,6 @@
 
         @await Html.PartialAsync("Partials/_ProductDetailsSection")
 
-        @* Tạm render cart/checkout DOM để Buy Now và checkout không lỗi *@
-        @await Html.PartialAsync("~/Views/Home/Partials/Index/_CartSection.cshtml")
     </main>
 
     @* Tạm dùng lại modal tổng để tránh thiếu modal voucher/preview/lightbox/report *@
@@ -43,6 +41,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
 
     @await Html.PartialAsync("Partials/_ExploreScripts")
 

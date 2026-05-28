@@ -2814,9 +2814,7 @@
             }
 
             function syncCartBadge() {
-                let totalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
-                globalCartCount = totalQty;
-                updateCartBadge(totalQty);
+                BookBlossomCart.updateBadge();
             }
 
             $(document).on('click', '.btn-cart-blind', function() {

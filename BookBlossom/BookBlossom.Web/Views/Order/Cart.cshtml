@@ -38,6 +38,22 @@
             z-index: 0 !important;
             margin-top: 0 !important;
         }
+
+        #main-navbar {
+            background: rgba(255, 255, 255, 0.96) !important;
+            color: #222 !important;
+        }
+
+        #main-navbar a,
+        #main-navbar span,
+        #main-navbar i {
+            color: #222 !important;
+        }
+
+        #main-navbar .active,
+        #main-navbar #nav-cart-btn.active {
+            color: #C2185B !important;
+        }
     </style>
 </head>
 
@@ -56,6 +72,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
 
     @await Html.PartialAsync("Partials/_CartScripts")
     @await Html.PartialAsync("Partials/_CheckoutScripts")
