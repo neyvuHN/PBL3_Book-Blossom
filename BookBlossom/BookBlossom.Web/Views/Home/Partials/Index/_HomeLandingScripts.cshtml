@@ -1,32 +1,5 @@
 <script>
     $(document).ready(function () {
-        const $mainNavbar = $('#main-navbar');
-        const $navLinks = $('.nav-links a');
-        const $navHome = $('#nav-home');
-        const $userDropdown = $('.user-dropdown');
-
-        // Home navbar state
-        $mainNavbar.removeClass('navbar-light');
-        $navLinks.removeClass('active');
-        $navHome.addClass('active');
-
-        // Cart badge on Home
-        if (window.BookBlossomCart) {
-            BookBlossomCart.updateBadge();
-        }
-
-        // User dropdown
-        $userDropdown.on('click', function (e) {
-            e.stopPropagation();
-            $(this).toggleClass('active');
-        });
-
-        $(document).on('click', function (e) {
-            if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
-                $userDropdown.removeClass('active');
-            }
-        });
-
         // Hero carousel autoplay
         try {
             const heroCarouselEl = document.getElementById('heroCarousel');

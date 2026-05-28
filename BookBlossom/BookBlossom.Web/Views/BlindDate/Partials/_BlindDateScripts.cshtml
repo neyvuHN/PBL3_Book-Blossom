@@ -36,21 +36,6 @@
                 $('#heroCarousel').carousel('cycle');
             }
 
-            // Dropdown Toggle
-            const $userDropdown = $('.user-dropdown');
-            
-            $userDropdown.on('click', function(e) {
-                e.stopPropagation(); // Prevent event from bubbling up to document
-                $(this).toggleClass('active');
-            });
-            
-            // Close dropdown when clicking outside
-            $(document).on('click', function(e) {
-                if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
-                    $userDropdown.removeClass('active');
-                }
-            });
-
             function setActiveTab($element) {
                 $navLinks.removeClass('active');
                 $element.addClass('active');

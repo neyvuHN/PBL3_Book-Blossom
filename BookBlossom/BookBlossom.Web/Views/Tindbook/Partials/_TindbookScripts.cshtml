@@ -1,26 +1,5 @@
 <script>
     $(document).ready(function () {
-        // Navbar dropdown
-        const $userDropdown = $('.user-dropdown');
-
-        $userDropdown.on('click', function (e) {
-            e.stopPropagation();
-            $(this).toggleClass('active');
-        });
-
-        $(document).on('click', function (e) {
-            if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
-                $userDropdown.removeClass('active');
-            }
-        });
-
-        // Set active nav item
-        $('.nav-links a').removeClass('active');
-        $('#nav-tindbook').addClass('active');
-
-        // Make navbar light on standalone page
-        $('#main-navbar').addClass('navbar-light');
-
         // Tindbook Logic
         let currentCardIndex = 0;
         const $cards = $('.tindbook-card');

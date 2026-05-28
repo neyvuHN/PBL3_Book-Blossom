@@ -1,24 +1,5 @@
 <script>
     $(document).ready(function () {
-        // Navbar dropdown
-        const $userDropdown = $('.user-dropdown');
-
-        $userDropdown.on('click', function (e) {
-            e.stopPropagation();
-            $(this).toggleClass('active');
-        });
-
-        $(document).on('click', function (e) {
-            if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
-                $userDropdown.removeClass('active');
-            }
-        });
-
-        // Active navbar state
-        $('.nav-links a').removeClass('active');
-        $('#nav-community').addClass('active');
-        $('#main-navbar').addClass('navbar-light');
-
         function showToast(message, onUndo, undoText = 'Undo') {
             const $toast = $(`
                 <div class="toast-notification">

@@ -32,27 +32,6 @@
             });
         }
 
-        const $mainNavbar = $('#main-navbar');
-        const $navLinks = $('.nav-links a');
-        const $navCartBtn = $('#nav-cart-btn');
-
-        const $mainContent = $('#main-content');
-        const $exploreSection = $('#explore-section');
-        const $dedicatedCommunity = $('#dedicated-community');
-        const $tindbookFeature = $('#tindbook-feature');
-
-        const $userDropdown = $('.user-dropdown');
-
-        $userDropdown.on('click', function(e) {
-            e.stopPropagation();
-            $(this).toggleClass('active');
-        });
-
-        $(document).on('click', function(e) {
-            if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
-                $userDropdown.removeClass('active');
-            }
-        });
         
         // =========================================================
             // [UPDATED] SHOPPING CART INTERFACE SPA LOGIC
@@ -66,29 +45,6 @@
             let appliedVouchers = [];
 
             let globalCartCount = 4;
-            
-
-            function showCart(push = true) {
-                $('#cart-section').show();
-
-                $mainNavbar.addClass('navbar-light');
-                $navLinks.removeClass('active');
-                $('#nav-cart-btn').addClass('active');
-
-                renderCart();
-
-                window.scrollTo(0, 0);
-
-                if (push) {
-                    history.pushState({ view: 'cart' }, '', '/Cart');
-                }
-            }
-
-            // [UPDATED] Click listener for nav cart button — now in correct scope
-            $('#nav-cart-btn').on('click', function(e) {
-                e.preventDefault();
-                window.location.href = '/Cart';
-            });
 
             // Dynamically view details from cart items
             window.viewBookDetails = function(title) {
