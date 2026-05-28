@@ -27,10 +27,11 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    @await Html.PartialAsync("Partials/Index/_HomeIndexScripts")
+    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
 
     @await Html.PartialAsync("Partials/Index/_HomeIndexModals")
+
+    @await Html.PartialAsync("Partials/Index/_HomeLandingScripts")
 
 </body>
 </html>

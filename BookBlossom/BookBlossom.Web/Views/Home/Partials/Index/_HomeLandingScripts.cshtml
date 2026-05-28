@@ -1,0 +1,170 @@
+<script>
+    $(document).ready(function () {
+        const $mainNavbar = $('#main-navbar');
+        const $navLinks = $('.nav-links a');
+        const $navHome = $('#nav-home');
+        const $userDropdown = $('.user-dropdown');
+
+        // Home navbar state
+        $mainNavbar.removeClass('navbar-light');
+        $navLinks.removeClass('active');
+        $navHome.addClass('active');
+
+        // Cart badge on Home
+        if (window.BookBlossomCart) {
+            BookBlossomCart.updateBadge();
+        }
+
+        // User dropdown
+        $userDropdown.on('click', function (e) {
+            e.stopPropagation();
+            $(this).toggleClass('active');
+        });
+
+        $(document).on('click', function (e) {
+            if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
+                $userDropdown.removeClass('active');
+            }
+        });
+
+        // Hero carousel autoplay
+        try {
+            const heroCarouselEl = document.getElementById('heroCarousel');
+
+            if (heroCarouselEl) {
+                const carouselInstance = bootstrap.Carousel.getOrCreateInstance(heroCarouselEl, {
+                    interval: 3500,
+                    ride: 'carousel',
+                    pause: false
+                });
+
+                carouselInstance.cycle();
+            }
+        } catch (err) {
+            console.error('Hero carousel init failed:', err);
+        }
+
+        // Smooth scroll helper
+        function scrollToSection(sectionId) {
+            const target = document.getElementById(sectionId);
+
+            if (!target) return;
+
+            const offset = 80;
+            const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+            window.scrollTo({
+                top: top,
+                behavior: 'smooth'
+            });
+        }
+
+        // Hero CTA: scroll inside Home
+        $(document).on('click', 'a[href^="#"]', function (e) {
+            const href = $(this).attr('href');
+
+            if (!href || href === '#') return;
+
+            const sectionId = href.substring(1);
+            const target = document.getElementById(sectionId);
+
+            if (!target) return;
+
+            e.preventDefault();
+
+            try {
+                const heroCarouselEl = document.getElementById('heroCarousel');
+                if (heroCarouselEl) {
+                    const carouselInstance = bootstrap.Carousel.getOrCreateInstance(heroCarouselEl);
+                    carouselInstance.pause();
+                }
+            } catch (err) {
+                console.warn('Could not pause carousel:', err);
+            }
+
+            scrollToSection(sectionId);
+        });
+
+        // Fallback for old Blind Date CTA if href is still "#"
+        $('#cta-blind-date').on('click', function (e) {
+            const href = $(this).attr('href');
+
+            if (href === '#') {
+                e.preventDefault();
+                scrollToSection('blind-date-promo');
+            }
+        });
+
+        // Horizontal sliders
+        function setupSlider(sliderId) {
+            const $track = $(`#${sliderId} .slider-track`);
+            const $prev = $(`#${sliderId} .slider-btn.prev`);
+            const $next = $(`#${sliderId} .slider-btn.next`);
+
+            if (!$track.length) return;
+
+            $next.on('click', function () {
+                $track.animate({
+                    scrollLeft: $track.scrollLeft() + $track.width() * 0.8
+                }, 500);
+            });
+
+            $prev.on('click', function () {
+                $track.animate({
+                    scrollLeft: $track.scrollLeft() - $track.width() * 0.8
+                }, 500);
+            });
+        }
+
+        setupSlider('featured-slider');
+        setupSlider('thread-slider');
+        setupSlider('community-slider');
+
+        // Buttons that go to real feature pages
+        $('#see-more-books').on('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/Explore';
+        });
+
+        $('#btn-try-tindbook').on('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/Tindbook';
+        });
+
+        $('#see-more-thread').on('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/Community';
+        });
+
+        $('#btn-try-blind-date').on('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/BlindDate';
+        });
+
+        $('#see-more-community').on('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/Reviews';
+        });
+
+        // Featured book card on Home -> product detail on Explore page
+        $(document).on('click', '#featured .book-card', function () {
+            const title = $(this).find('h3').text().trim();
+
+            if (title) {
+                window.location.href = `/Explore#book-details-${encodeURIComponent(title)}`;
+            } else {
+                window.location.href = '/Explore';
+            }
+        });
+
+        // Thread preview card -> Community page
+        $(document).on('click', '#thread-preview .thread-card', function () {
+            window.location.href = '/Community';
+        });
+
+        // Testimonial card -> Reviews page
+        $(document).on('click', '#community .testimonial-card', function () {
+            window.location.href = '/Reviews';
+        });
+    });
+</script>
