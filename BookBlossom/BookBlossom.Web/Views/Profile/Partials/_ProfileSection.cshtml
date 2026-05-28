@@ -1,0 +1,447 @@
+@model BookBlossom.Web.ViewModels.Profile.ProfileViewModel
+
+<!-- My Account Profile Section -->
+<section class="profile-page-section">
+    <div class="container profile-container animate__animated animate__fadeIn">
+        
+        <!-- Header Top Greeting Banner -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom">
+                    <div>
+                        <h1 style="font-family: 'Lora', serif; font-size: 2.2rem; font-weight: 700; color: #111; margin-bottom: 5px;">My Account</h1>
+                        <p class="text-muted mb-0" style="font-size: 0.95rem;">Manage your public identity, track your privileges, and monitor your membership status.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button id="btn-edit-profile-toggle" class="btn btn-profile-outline">
+                            <i class="fas fa-user-edit me-1"></i> Edit Profile
+                        </button>
+                        <button id="btn-upgrade-pkg" class="btn btn-profile-theme">
+                            <i class="fas fa-rocket me-1"></i> Upgrade Package
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <!-- LEFT COLUMN: Profile Header & Details -->
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-4">
+                    
+                    <!-- Card 1: Avatar & Bio (Public Identity) -->
+                    <div class="profile-card profile-header-card">
+                        <div class="profile-header-banner"></div>
+                        @{
+                            var hasMysticAura = Model.Badges.Contains("Trùm Blind Date - Cấp 3");
+                            var mysticClass = hasMysticAura ? "mystic-aura" : "";
+                        }
+                        <div class="profile-avatar-wrapper @mysticClass">
+                            <img src="@Model.Avatar" alt="Avatar" class="profile-avatar" id="display-avatar-img">
+                            <div class="avatar-edit-badge" title="Change Avatar" id="btn-change-avatar">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                        </div>
+                        
+                        <h3 id="display-fullname" style="font-family: 'Lora', serif; font-weight: 700; color: #111; margin-bottom: 2px;">@Model.FullName</h3>
+                        <span id="display-username" style="color: #C2185B; font-weight: 600; font-size: 0.92rem; display: block; margin-bottom: 12px;">@@@Model.Username</span>
+                        
+                        <div class="badge-row mb-3">
+                            <span class="sub-tier-@Model.SubscriptionPackage" id="display-sub-badge">@Model.SubscriptionPackage Package</span>
+                        </div>
+
+                        <p id="display-bio" class="text-muted px-2" style="font-size: 0.9rem; line-height: 1.6; font-style: italic; margin-bottom: 20px;">
+                            "@Model.Bio"
+                        </p>
+                        
+                        <div class="text-muted pt-3" style="font-size: 0.82rem; border-top: 1px solid #f6f5f2; font-weight: 500;">
+                            <i class="far fa-calendar-alt me-1"></i> Member since @Model.MemberSince.ToString("MMMM dd, yyyy")
+                        </div>
+
+                        <!-- Embedded Edit Profile Inline Form (Toggles dynamically) -->
+                        <form id="edit-profile-form">
+                            <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.1rem; color: #111; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">Edit Profile</h4>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-fullname">Full Name</label>
+                                <input type="text" id="input-fullname" class="form-input-custom" value="@Model.FullName">
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-username">Username</label>
+                                <input type="text" id="input-username" class="form-input-custom" value="@Model.Username">
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-bio">Biography (Bio)</label>
+                                <textarea id="input-bio" class="form-input-custom" rows="3" style="resize: none;">@Model.Bio</textarea>
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-phone">Phone Number</label>
+                                <input type="text" id="input-phone" class="form-input-custom" value="@Model.PhoneNumber">
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-email">Email Address</label>
+                                <input type="email" id="input-email" class="form-input-custom" value="@Model.Email">
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="input-gender">Gender</label>
+                                <select id="input-gender" class="form-input-custom">
+                                    <option value="Female" selected="@(Model.Gender == "Female")">Female</option>
+                                    <option value="Male" selected="@(Model.Gender == "Male")">Male</option>
+                                    <option value="Other" selected="@(Model.Gender == "Other")">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-birthdate">Birthdate</label>
+                                <input type="date" id="input-birthdate" class="form-input-custom" value="@Model.Birthdate.ToString("yyyy-MM-dd")">
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3 justify-content-end">
+                                <button type="button" id="btn-edit-profile-cancel" class="btn btn-profile-secondary btn-sm">Cancel</button>
+                                <button type="submit" id="btn-edit-profile-save" class="btn btn-profile-theme btn-sm">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Card 2: Contact & Personal Info -->
+                    <div class="profile-card">
+                        <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 20px; border-bottom: 1px solid #f6f5f2; padding-bottom: 12px;">Contact & Personal Info</h4>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Phone Number</span>
+                            <span class="profile-info-value" id="display-phone">@Model.PhoneNumber</span>
+                        </div>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Email Address</span>
+                            <span class="profile-info-value" id="display-email">@Model.Email</span>
+                        </div>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Gender</span>
+                            <span class="profile-info-value" id="display-gender">@Model.Gender</span>
+                        </div>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Birthdate</span>
+                            <span class="profile-info-value" id="display-birthdate">@Model.Birthdate.ToString("MMMM dd, yyyy")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Account Status & Progression metrics -->
+            <div class="col-lg-8">
+                <div class="d-flex flex-column gap-4">
+                    
+                    <!-- Row 1: Membership Tier & Reputation Metrics -->
+                    <div class="row g-4">
+                        
+                        <!-- Col 1.1: Membership Level Card -->
+                        <div class="col-md-6">
+                            <div class="profile-card d-flex flex-column justify-content-between">
+                                <div>
+                                    <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 10px;">Membership Tier</h4>
+                                    
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <span class="tier-badge tier-@Model.MembershipTier" id="display-tier-badge">
+                                            <i class="fas fa-crown"></i> <span id="display-tier-text">@Model.MembershipTier</span> Tier
+                                        </span>
+                                    </div>
+                                    
+                                    <p class="text-muted" style="font-size: 0.88rem; line-height: 1.5;">
+                                        Maintain Diamond status to receive priority customer care, early access to Blind Date Books events, and free monthly delivery!
+                                    </p>
+                                </div>
+                                
+                                <div class="premium-progress-container pt-3" style="border-top: 1px solid #f6f5f2;">
+                                    <div class="progress-label-row">
+                                        <span>Spending Progress</span>
+                                        <span id="display-spending-text">@Model.TotalSpending.ToString("N0") / @Model.NextTierThreshold.ToString("N0") VND</span>
+                                    </div>
+                                    <div class="premium-progress-bg">
+                                        @{
+                                            var spendingPercent = (Model.TotalSpending / Model.NextTierThreshold) * 100;
+                                        }
+                                        <div class="premium-progress-fill" id="display-spending-progress" style="width: @spendingPercent.ToString("0")%;"></div>
+                                    </div>
+                                    <span class="text-muted" style="font-size: 0.78rem; display: block; font-style: italic;" id="display-spending-hint">
+                                        Spend <strong>@((Model.NextTierThreshold - Model.TotalSpending).ToString("N0")) VND</strong> more to reach Diamond Tier!
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 1.2: Reputation System Card -->
+                        <div class="col-md-6">
+                            <div class="profile-card text-center">
+                                <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 15px; text-align: left;">Reputation Score</h4>
+                                
+                                <div class="reputation-circle-container">
+                                    <!-- Embedded dynamic custom indicator element -->
+                                    <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                              fill="none" stroke="#f0ebe1" stroke-width="2.5" />
+                                        @{
+                                            var repPercent = ((double)Model.ReputationScore / Model.MaxReputationScore) * 100;
+                                        }
+                                        <path id="reputation-svg-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                              fill="none" stroke="#C2185B" stroke-width="2.5" stroke-dasharray="@repPercent.ToString("0"), 100" />
+                                    </svg>
+                                    <div class="reputation-value-box">
+                                        <span class="reputation-score-big" id="display-rep-score">@Model.ReputationScore</span>
+                                        <span class="reputation-score-max">/ @Model.MaxReputationScore pts</span>
+                                    </div>
+                                </div>
+
+                                <!-- Privilege warnings -->
+                                @{
+                                    var warningClass = "warning-safe";
+                                    var warningIcon = "fa-check-circle";
+                                    var warningMessage = "Your reputation score is stellar! You have full commenting, posting privileges and COD checkout active.";
+                                    
+                                    if (Model.ReputationScore < 60)
+                                    {
+                                        warningClass = "warning-danger";
+                                        warningIcon = "fa-exclamation-triangle";
+                                        warningMessage = "Warning: Reputation score too low (< 60). Commenting & Thread posting is BANNED, and Cash on Delivery (COD) method is DISABLED.";
+                                    }
+                                    else if (Model.ReputationScore < 80)
+                                    {
+                                        warningClass = "warning-warning";
+                                        warningIcon = "fa-exclamation-circle";
+                                        warningMessage = "Warning: Reputation score low (< 80). Thread posting & Commenting are BANNED. Keep score above 80 to restore community privileges.";
+                                    }
+                                }
+                                <div class="reputation-warning-card @warningClass" id="reputation-warning-box">
+                                    <i class="fas @warningIcon" style="margin-top: 3px; font-size: 1.1rem;"></i>
+                                    <span id="reputation-warning-message">@warningMessage</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Row 2: Order Streak & Limits Progression -->
+                    <div class="row g-4">
+                        
+                        <!-- Col 2.1: Order Streak Progress -->
+                        <div class="col-md-5">
+                            <div class="profile-card d-flex flex-column justify-content-between">
+                                <div>
+                                    <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 8px;">Order Streak</h4>
+                                    <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+                                        Deliver 3 successful consecutive orders to secure a <strong>+10 Reputation points bonus!</strong>
+                                    </p>
+                                </div>
+                                
+                                <div class="streak-box py-3">
+                                    <div class="streak-steps-container">
+                                        <div class="streak-line-bg"></div>
+                                        @{
+                                            var streakFillPercent = Model.CurrentOrderStreak * 50;
+                                        }
+                                        <div class="streak-line-fill" id="display-streak-line" style="width: @streakFillPercent.ToString()%;"></div>
+                                        
+                                        <div class="streak-step @(Model.CurrentOrderStreak >= 1 ? "completed" : "active")" id="streak-step-1">
+                                            @if (Model.CurrentOrderStreak >= 1)
+                                            {
+                                                <i class="fas fa-check"></i>
+                                            }
+                                            else
+                                            {
+                                                <span>1</span>
+                                            }
+                                        </div>
+                                        <div class="streak-step @(Model.CurrentOrderStreak >= 2 ? "completed" : (Model.CurrentOrderStreak == 1 ? "active" : ""))" id="streak-step-2">
+                                            @if (Model.CurrentOrderStreak >= 2)
+                                            {
+                                                <i class="fas fa-check"></i>
+                                            }
+                                            else
+                                            {
+                                                <span>2</span>
+                                            }
+                                        </div>
+                                        <div class="streak-step @(Model.CurrentOrderStreak >= 3 ? "completed" : (Model.CurrentOrderStreak == 2 ? "active" : ""))" id="streak-step-3">
+                                            @if (Model.CurrentOrderStreak >= 3)
+                                            {
+                                                <i class="fas fa-trophy"></i>
+                                            }
+                                            else
+                                            {
+                                                <span>3</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mt-3">
+                                        <span class="text-muted" style="font-size: 0.8rem; font-weight: 600;" id="display-streak-status">
+                                            @if (Model.CurrentOrderStreak >= 3)
+                                            {
+                                                <span>🎉 Streak Goal Achieved! Bonus claimed.</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Current Streak: <strong>@Model.CurrentOrderStreak/3 successful orders</strong></span>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 2.2: Limits Display Card (Threads & Undos) -->
+                        <div class="col-md-7">
+                            <div class="profile-card">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 0;">Subscription Limits</h4>
+                                    <span style="font-size: 0.78rem; background: #eef7fc; color: #2b6cb0; border-radius: 12px; padding: 3px 10px; font-weight: 600; border: 1px solid #bee3f8;">
+                                        <i class="fas fa-info-circle me-1"></i> Based on @Model.SubscriptionPackage
+                                    </span>
+                                </div>
+
+                                <!-- Thread Posting Limit -->
+                                <div class="limit-item-box">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="limit-icon-header">
+                                            <i class="fas fa-comments"></i> Monthly Thread Limit
+                                        </span>
+                                        <span id="display-thread-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@Model.CurrentMonthThreadCount / @Model.MaxMonthlyThreadLimit posts</span>
+                                    </div>
+                                    <div class="premium-progress-bg" style="height: 6px;">
+                                        @{
+                                            var threadPercent = ((double)Model.CurrentMonthThreadCount / Model.MaxMonthlyThreadLimit) * 100;
+                                        }
+                                        <div class="premium-progress-fill" id="display-thread-progress" style="width: @threadPercent.ToString("0")%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between" style="font-size: 0.72rem; color: #888;">
+                                        <span>Usage: @threadPercent.ToString("0")%</span>
+                                        <span id="display-thread-reset">Resets: @Model.LastThreadResetDate.AddMonths(1).ToString("MM/dd/yyyy")</span>
+                                    </div>
+                                </div>
+
+                                <!-- Daily Undo Tindbook Limit -->
+                                <div class="limit-item-box mb-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="limit-icon-header">
+                                            <i class="fas fa-undo"></i> Daily Tindbook Undo Limit
+                                        </span>
+                                        <span id="display-undo-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@Model.DailyUndoCount / @Model.MaxDailyUndoLimit undos</span>
+                                    </div>
+                                    <div class="premium-progress-bg" style="height: 6px;">
+                                        @{
+                                            var undoPercent = ((double)Model.DailyUndoCount / Model.MaxDailyUndoLimit) * 100;
+                                        }
+                                        <div class="premium-progress-fill" id="display-undo-progress" style="width: @undoPercent.ToString("0")%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between" style="font-size: 0.72rem; color: #888;">
+                                        <span>Usage: @undoPercent.ToString("0")%</span>
+                                        <span id="display-undo-reset">Resets: Tonight at 12:00 AM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Row 3: Badges Showcase Cabinet -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="profile-card">
+                                <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 8px;">Badge Cabinet Collection</h4>
+                                <p class="text-muted" style="font-size: 0.88rem; margin-bottom: 15px;">
+                                    Stand out in the community! Collect badges by contributing quality reviews, shopping blind dates, or keeping high streaks.
+                                </p>
+                                
+                                <div class="badges-grid" id="display-badges-cabinet">
+                                    @{
+                                        var displayCount = 0;
+                                        var maxDisplay = 4;
+                                        foreach (var badge in Model.Badges)
+                                        {
+                                            if (displayCount >= maxDisplay) break;
+                                            
+                                            // Assign beautiful styles for specific badges
+                                            var badgeClass = "badge-default";
+                                            var badgeIcon = "fa-medal";
+                                            
+                                            if (badge.Contains("Chiến thần Review")) { badgeClass = "badge-review-champ"; badgeIcon = "fa-star"; }
+                                            else if (badge == "Sứ giả Tri thức") { badgeClass = "badge-knowledge-envoy"; badgeIcon = "fa-share-nodes"; }
+                                            else if (badge.Contains("Trùm Blind Date")) { badgeClass = "badge-blind-date-boss"; badgeIcon = "fa-mask"; }
+                                            else if (badge == "Mọt sách chính hiệu") { badgeClass = "badge-bookworm"; badgeIcon = "fa-book-open"; }
+                                            else if (badge == "Người dùng gương mẫu") { badgeClass = "badge-model-user"; badgeIcon = "fa-shield-halved"; }
+                                            else if (badge == "Cánh tay đắc lực") { badgeClass = "badge-mod-assistant"; badgeIcon = "fa-hands-helping"; }
+                                            
+                                            <div class="badge-chip @badgeClass" title="@badge">
+                                                <i class="fas @badgeIcon"></i>
+                                                <span>@badge</span>
+                                            </div>
+                                            displayCount++;
+                                        }
+                                    }
+                                    
+                                    @if (Model.Badges.Count > maxDisplay)
+                                    {
+                                        <div class="badge-chip badge-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
+                                            <span>+@(Model.Badges.Count - maxDisplay) View All</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- Modal for All Badges -->
+<div class="modal fade" id="allBadgesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content custom-modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12);">
+            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 10px;">
+                <h5 class="modal-title" style="font-family: 'Lora', serif; font-weight: 700; color: #111; font-size: 1.5rem;">All Earned Badges</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 10px 24px 24px;">
+                <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 20px;">A showcase of all the honors and achievements you have unlocked in the BookBlossom community.</p>
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var badge in Model.Badges)
+                    {
+                        var badgeClass = "badge-default";
+                        var badgeIcon = "fa-medal";
+                        var badgeDesc = "A well-deserved badge.";
+                        
+                        if (badge.Contains("Chiến thần Review")) { badgeClass = "badge-review-champ"; badgeIcon = "fa-star"; badgeDesc = "Awarded for writing high-quality book reviews with photos."; }
+                        else if (badge == "Sứ giả Tri thức") { badgeClass = "badge-knowledge-envoy"; badgeIcon = "fa-share-nodes"; badgeDesc = "Awarded for actively sharing book links to social media."; }
+                        else if (badge.Contains("Trùm Blind Date")) { badgeClass = "badge-blind-date-boss"; badgeIcon = "fa-mask"; badgeDesc = "Awarded for courageous exploration of Blind Date Books."; }
+                        else if (badge == "Mọt sách chính hiệu") { badgeClass = "badge-bookworm"; badgeIcon = "fa-book-open"; badgeDesc = "Awarded for purchasing books across 5 different genres."; }
+                        else if (badge == "Người dùng gương mẫu") { badgeClass = "badge-model-user"; badgeIcon = "fa-shield-halved"; badgeDesc = "Maintained max reputation for 3 consecutive months."; }
+                        else if (badge == "Cánh tay đắc lực") { badgeClass = "badge-mod-assistant"; badgeIcon = "fa-hands-helping"; badgeDesc = "Provided accurate reports to help moderation."; }
+
+                        <div class="badge-modal-item @badgeClass">
+                            <div class="badge-modal-icon">
+                                <i class="fas @badgeIcon"></i>
+                            </div>
+                            <div class="badge-modal-info">
+                                <h6>@badge</h6>
+                                <p>@badgeDesc</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

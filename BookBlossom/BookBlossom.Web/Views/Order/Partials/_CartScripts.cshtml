@@ -32,6 +32,24 @@
             });
         }
 
+        // [UPDATED] Helper function to show styled custom confirmation modal
+        function showCartConfirm(message, onConfirm) {
+            $('#cart-confirm-message').text(message);
+            $('#cart-confirm-modal').fadeIn(200);
+
+            // Unbind previous click events to prevent duplicates
+            $('#btn-cart-confirm-ok').off('click').on('click', function () {
+                $('#cart-confirm-modal').fadeOut(200);
+                if (typeof onConfirm === 'function') {
+                    onConfirm();
+                }
+            });
+
+            $('#btn-cart-confirm-cancel, #cart-confirm-modal .modal-backdrop').off('click').on('click', function () {
+                $('#cart-confirm-modal').fadeOut(200);
+            });
+        }
+
         
         // =========================================================
             // [UPDATED] SHOPPING CART INTERFACE SPA LOGIC
@@ -532,12 +550,13 @@
                         BookBlossomCart.saveCartItems(cartItems);
                         renderCart();
                     } else {
-                        if (confirm(`Remove "${item.title}" from your cart?`)) {
+                        // [UPDATED] Replaced native confirm dialog with premium styled custom confirmation modal
+                        showCartConfirm(`Remove "${item.title}" from your cart?`, function () {
                             cartItems = cartItems.filter(i => i.id !== itemId);
                             BookBlossomCart.saveCartItems(cartItems);
                             renderCart();
                             showToast("Item removed from cart");
-                        }
+                        });
                     }
                 }
             });
@@ -563,11 +582,14 @@
                 const itemId = $(this).attr('data-id');
                 const item = cartItems.find(i => i.id === itemId);
 
-                if (item && confirm(`Remove "${item.title}" from your cart?`)) {
-                    cartItems = cartItems.filter(i => i.id !== itemId);
-                    BookBlossomCart.saveCartItems(cartItems);
-                    renderCart();
-                    showToast("Item removed from cart");
+                if (item) {
+                    // [UPDATED] Replaced native confirm dialog with premium styled custom confirmation modal
+                    showCartConfirm(`Remove "${item.title}" from your cart?`, function () {
+                        cartItems = cartItems.filter(i => i.id !== itemId);
+                        BookBlossomCart.saveCartItems(cartItems);
+                        renderCart();
+                        showToast("Item removed from cart");
+                    });
                 }
             });
 

@@ -1,0 +1,604 @@
+/* Profile Page Styling System */
+.profile-page-section {
+    padding: 120px 0 80px 0;
+    background: #faf9f6;
+    min-height: 100vh;
+}
+
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Premium Profile Cards */
+.profile-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    border: 1px solid #f0f0f0;
+    padding: 28px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    height: 100%;
+}
+
+.profile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.profile-header-card {
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header-banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(135deg, #fce4ec 0%, #ffe0e2 100%);
+    z-index: 1;
+}
+
+.profile-avatar-wrapper {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    margin: 60px auto 15px auto;
+    z-index: 2;
+}
+
+.profile-avatar {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-edit-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: #C2185B;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: background 0.2s;
+}
+
+.avatar-edit-badge:hover {
+    background: #a01048;
+}
+
+/* Membership Tiers */
+.tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+}
+
+.tier-Gold {
+    background: #fef9e7;
+    color: #b7950b;
+    border: 1px solid #f9e79f;
+}
+
+.tier-Diamond {
+    background: #ebf5fb;
+    color: #2471a3;
+    border: 1px solid #aed6f1;
+}
+
+.tier-Silver {
+    background: #f2f3f4;
+    color: #7f8c8d;
+    border: 1px solid #d5dbdb;
+}
+
+.tier-Copper {
+    background: #fdf2e9;
+    color: #a04000;
+    border: 1px solid #f5cba7;
+}
+
+/* Progress Bar Style */
+.premium-progress-container {
+    margin-top: 15px;
+}
+
+.progress-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.premium-progress-bg {
+    width: 100%;
+    height: 8px;
+    background: #f0ebe1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.premium-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #C2185B 0%, #ec407a 100%);
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Limits Display Grid */
+.limit-item-box {
+    background: #faf9f6;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #f2ede4;
+    margin-bottom: 15px;
+}
+
+.limit-icon-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.limit-icon-header i {
+    color: #C2185B;
+    font-size: 1.1rem;
+}
+
+/* Badges Showcase */
+.badges-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.badge-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fffdfb;
+    border: 1.5px solid #f2ede4;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #444;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.badge-chip:hover {
+    border-color: #C2185B;
+    background: #fff5f7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(194, 24, 91, 0.05);
+}
+
+.badge-chip i {
+    font-size: 1rem;
+}
+
+/* Reputation Score System */
+.reputation-circle-container {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 20px auto;
+}
+
+.reputation-value-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.reputation-score-big {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #111;
+    line-height: 1;
+}
+
+.reputation-score-max {
+    font-size: 0.8rem;
+    color: #888;
+    display: block;
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+/* Warnings */
+.reputation-warning-card {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+}
+
+.warning-danger {
+    background: #fff5f5;
+    color: #e53e3e;
+    border: 1px solid #fed7d7;
+}
+
+.warning-warning {
+    background: #fffaf0;
+    color: #dd6b20;
+    border: 1px solid #feebc8;
+}
+
+.warning-safe {
+    background: #f0fff4;
+    color: #38a169;
+    border: 1px solid #c6f6d5;
+}
+
+/* Order Streak Dots */
+.streak-steps-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 10px 20px;
+    margin-top: 15px;
+}
+
+.streak-line-bg {
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    right: 40px;
+    height: 4px;
+    background: #e2e8f0;
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.streak-line-fill {
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    height: 4px;
+    background: #C2185B;
+    z-index: 2;
+    transform: translateY(-50%);
+    transition: width 0.5s ease;
+}
+
+.streak-step {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #cbd5e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #718096;
+    transition: all 0.3s ease;
+}
+
+.streak-step.active {
+    border-color: #C2185B;
+    background: #C2185B;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(194, 24, 91, 0.2);
+}
+
+.streak-step.completed {
+    border-color: #38a169;
+    background: #38a169;
+    color: #fff;
+}
+
+/* Edit Info Fields */
+.profile-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f6f5f2;
+}
+
+.profile-info-row:last-child {
+    border-bottom: none;
+}
+
+.profile-info-label {
+    font-weight: 600;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.profile-info-value {
+    font-weight: 700;
+    color: #222;
+    font-size: 0.9rem;
+}
+
+/* Edit View Toggles */
+#edit-profile-form {
+    display: none;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #f0f0f0;
+    padding: 24px;
+    margin-top: 20px;
+}
+
+.form-group-custom {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-group-custom label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.form-input-custom {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #ddd;
+    outline: none;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.form-input-custom:focus {
+    border-color: #C2185B;
+}
+
+/* Subscription Badges & Pricing Cards */
+.sub-tier-Free {
+    background: #f7dc6f;
+    color: #7d6608;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.sub-tier-Basic {
+    background: #85c1e9;
+    color: #1b4f72;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.sub-tier-Pro {
+    background: #bb8fce;
+    color: #4a235a;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.btn-profile-theme {
+    background: #C2185B;
+    color: #fff;
+    border-radius: 30px;
+    padding: 10px 24px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(194, 24, 91, 0.25);
+    transition: all 0.3s ease;
+}
+
+.btn-profile-theme:hover {
+    background: #a01048;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(194, 24, 91, 0.35);
+}
+
+.btn-profile-outline {
+    background: none;
+    border: 1.5px solid #C2185B;
+    color: #C2185B;
+    border-radius: 30px;
+    padding: 9px 24px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-profile-outline:hover {
+    background: #fff5f7;
+}
+
+.btn-profile-secondary {
+    background: #eee;
+    color: #333;
+    border-radius: 30px;
+    padding: 10px 24px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-profile-secondary:hover {
+    background: #ddd;
+}
+
+/* Custom Badges Styles */
+.badge-review-champ {
+    background: #fff4e5;
+    border-color: #ff9800;
+    color: #e65100;
+}
+.badge-review-champ i { color: #f57c00; }
+
+.badge-knowledge-envoy {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #0d47a1;
+}
+.badge-knowledge-envoy i { color: #1976d2; }
+
+.badge-blind-date-boss {
+    background: #f3e5f5;
+    border-color: #9c27b0;
+    color: #4a148c;
+}
+.badge-blind-date-boss i { color: #7b1fa2; }
+
+.badge-bookworm {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #1b5e20;
+}
+.badge-bookworm i { color: #388e3c; }
+
+.badge-model-user {
+    background: #e0f7fa;
+    border-color: #00bcd4;
+    color: #006064;
+}
+.badge-model-user i { color: #0097a7; }
+
+.badge-mod-assistant {
+    background: #fce4ec;
+    border-color: #e91e63;
+    color: #880e4f;
+}
+.badge-mod-assistant i { color: #c2185b; }
+
+.badge-view-all {
+    background: #f8f9fa;
+    border-color: #ddd;
+    color: #555;
+    cursor: pointer;
+    font-weight: 700;
+}
+.badge-view-all:hover {
+    background: #e9ecef;
+    border-color: #ccc;
+}
+
+/* Modal Specific Badge Styles */
+.badge-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    background: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.badge-modal-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.badge-modal-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.badge-modal-info h6 {
+    margin: 0 0 4px 0;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+.badge-modal-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Mystic Avatar Glow Effect */
+@keyframes mysticGlow {
+    0% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.4); }
+    50% { box-shadow: 0 0 30px rgba(156, 39, 176, 0.9); }
+    100% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.4); }
+}
+.mystic-aura .profile-avatar {
+    border: 5px solid #f3e5f5;
+    animation: mysticGlow 3s infinite alternate;
+}
+
+/* Badge Level Frames */
+.badge-frame-lvl1 {
+    border: 1px solid currentColor;
+}
+.badge-frame-lvl2 {
+    border: 2px solid currentColor;
+    box-shadow: 0 0 8px currentColor;
+    font-weight: 800;
+}
+.badge-frame-lvl3 {
+    border: 2px dashed currentColor;
+    box-shadow: 0 0 12px currentColor, inset 0 0 4px currentColor;
+    font-weight: 900;
+    position: relative;
+    overflow: hidden;
+}
+.badge-frame-lvl3::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+    transform: rotate(30deg);
+    animation: badgeShine 3s infinite;
+}
+@keyframes badgeShine {
+    0% { left: -100%; }
+    20% { left: 100%; }
+    100% { left: 100%; }
+}
