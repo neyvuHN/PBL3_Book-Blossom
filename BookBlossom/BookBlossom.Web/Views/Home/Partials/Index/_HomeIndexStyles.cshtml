@@ -1071,7 +1071,7 @@
             box-shadow: 0 6px 20px rgba(194, 24, 91, 0.45);
             background: #a8124c;
         }
-        /* Control Bar styling */
+        /* Control Bar styling - Redesigned to be solid premium dark to prevent page color blending */
         .preview-controls {
             position: fixed;
             bottom: 30px;
@@ -1081,51 +1081,56 @@
             display: flex;
             align-items: center;
             gap: 20px;
-            background: rgba(255, 255, 255, 0.08);
-            padding: 8px 24px;
+            background: #18181c !important; /* Solid premium dark slate-black to avoid color blending */
+            padding: 10px 28px;
             border-radius: 40px;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(194, 24, 91, 0.45) !important; /* Elegant BookBlossom magenta border highlight */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
         }
-        /* Solid carbon styling when zoom >= 130% to prevent overlapping invisibility */
+        /* Solid carbon styling when zoom >= 100% to prevent overlapping invisibility with magenta glow */
         .preview-controls.high-zoom {
-            background: #161616 !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
-            border: 1px solid rgba(194, 24, 91, 0.45) !important; /* Elegant BookBlossom magenta border highlight */
-            backdrop-filter: blur(15px);
+            background: #111114 !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 12px rgba(194, 24, 91, 0.4) !important;
+            border: 1.5px solid rgba(194, 24, 91, 0.75) !important; /* Brighter elegant magenta highlight */
+            backdrop-filter: blur(25px);
         }
         .preview-btn {
             background: none;
             border: none;
-            color: rgba(255,255,255,0.85);
+            color: rgba(255, 255, 255, 0.9) !important;
             font-size: 1rem;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .preview-btn:hover {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            transform: scale(1.05);
+            background: rgba(194, 24, 91, 0.3) !important; /* Elegant brand hover background highlight */
+            color: #fff !important;
+            transform: scale(1.08) translateY(-1px);
         }
         .preview-btn:disabled {
-            color: rgba(255,255,255,0.3);
+            color: rgba(255, 255, 255, 0.25) !important;
             cursor: not-allowed;
-            background: none;
+            background: none !important;
+            transform: none !important;
         }
         .preview-indicator {
-            color: #fff;
+            color: #ffffff !important;
             font-size: 0.92rem;
-            font-weight: 600;
+            font-weight: 700;
             font-family: 'Outfit', sans-serif;
             min-width: 80px;
             text-align: center;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
         /* Loader inside page */
         .page-loader {

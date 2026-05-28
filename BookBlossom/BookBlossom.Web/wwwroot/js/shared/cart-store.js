@@ -64,6 +64,9 @@
     }
 
     function normalizeItem(item) {
+        item = item || {};
+
+        const isBlind = item.isBlind === true || item.shop === 'Blind Date Books';
         const priceVnd = Number(item.priceVnd) || Math.round((Number(item.price) || 0) * 20000);
 
         return {

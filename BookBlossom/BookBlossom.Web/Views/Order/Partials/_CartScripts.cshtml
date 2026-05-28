@@ -44,6 +44,14 @@
             let cartItems = BookBlossomCart.getCartItems();
             let appliedVouchers = [];
 
+            function formatVnd(value) {
+                return new Intl.NumberFormat('vi-VN').format(Number(value) || 0) + ' VND';
+            }
+
+            function getItemPriceVnd(item) {
+                return Number(item.priceVnd) || Math.round((Number(item.price) || 0) * 20000);
+            }
+
             let globalCartCount = 4;
 
             // Dynamically view details from cart items
@@ -154,7 +162,7 @@
 
                                     <div class="price-action-box d-flex flex-column align-items-end gap-2" style="min-width: 120px;">
                                         <!-- [UPDATED] Row total converted to VND only -->
-                                        <span style="font-size: 1.15rem; font-weight: 800; color: #111;">${new Intl.NumberFormat('vi-VN').format(Math.round(item.price * 20000 * item.qty))} VND</span>
+                                        <span style="font-size: 1.15rem; font-weight: 800; color: #111;">${formatVnd(getItemPriceVnd(item) * item.qty)}</span>
                                         <button class="btn-delete-item" data-id="${item.id}" title="Remove item" style="background: none; border: none; color: #bbb; transition: all 0.2s; cursor: pointer; padding: 3px;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='#bbb'">
                                             <i class="far fa-trash-alt"></i>
                                         </button>
@@ -184,7 +192,7 @@
 
                 cartItems.forEach(item => {
                     if (item.selected) {
-                        const itemPriceVnd = Math.round(item.price * 20000);
+                        const itemPriceVnd = getItemPriceVnd(item);
                         subtotalVnd += itemPriceVnd * item.qty;
                         if (item.isBlind) {
                             blindSubtotalVnd += itemPriceVnd * item.qty;
@@ -587,7 +595,7 @@
                 let subtotalVnd = 0;
                 let hasBlind = false;
                 selectedItems.forEach(item => {
-                    subtotalVnd += Math.round(item.price * 20000) * item.qty;
+                    subtotalVnd += getItemPriceVnd(item) * item.qty;
                     if (item.isBlind) hasBlind = true;
                 });
 
@@ -684,11 +692,19 @@
             // =========================================================
 
         // Standalone Cart page initialization
-        $mainNavbar.addClass('navbar-light');
-        $navLinks.removeClass('active');
-        $('#nav-cart-btn').addClass('active');
+        $('#cart-section').show();
 
-        showCart(false);
+        if (window.BookBlossomLayout) {
+            window.BookBlossomLayout.refreshNavbar();
+            window.BookBlossomLayout.refreshCartBadge();
+        } else {
+            $('#main-navbar').addClass('navbar-light');
+            $('.nav-links a').removeClass('active');
+            $('#nav-cart-btn').addClass('active');
+        }
+
         history.replaceState({ view: 'cart' }, '', '/Cart');
+
+        renderCart();
     });
 </script>
