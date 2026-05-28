@@ -7,45 +7,7 @@
 }
 
 @section Head {
-    <style>
-        body.homepage-container {
-            background: #faf9f6 !important;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        #cart-section.cart-page-section {
-            display: block;
-            visibility: visible;
-            opacity: 1;
-            min-height: calc(100vh - 90px);
-            background: #faf9f6 !important;
-            position: relative;
-            z-index: 1;
-        }
-
-        .premium-footer {
-            position: relative !important;
-            z-index: 0 !important;
-            margin-top: 0 !important;
-        }
-
-        #main-navbar {
-            background: rgba(255, 255, 255, 0.96) !important;
-            color: #222 !important;
-        }
-
-        #main-navbar a,
-        #main-navbar span,
-        #main-navbar i {
-            color: #222 !important;
-        }
-
-        #main-navbar .active,
-        #main-navbar #nav-cart-btn.active {
-            color: #C2185B !important;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/order/cart.css" asp-append-version="true" />
 }
 
 <main>
