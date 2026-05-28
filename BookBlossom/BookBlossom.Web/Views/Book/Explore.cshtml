@@ -45,7 +45,7 @@
 
     @await Html.PartialAsync("Partials/_ExploreScripts")
 
-@* Tạm render cart/checkout DOM để Buy Now và checkout không lỗi *@
-    @await Html.PartialAsync("~/Views/Home/Partials/Index/_CheckoutScripts.cshtml")
+    @await Html.PartialAsync("~/Views/Shared/Partials/_CheckoutModal.cshtml")
+    <script src="~/js/shared/checkout.js" asp-append-version="true"></script>
 </body>
 </html>

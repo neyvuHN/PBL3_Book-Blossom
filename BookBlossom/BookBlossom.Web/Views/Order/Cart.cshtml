@@ -75,6 +75,7 @@
     <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
 
     @await Html.PartialAsync("Partials/_CartScripts")
-    @await Html.PartialAsync("Partials/_CheckoutScripts")
+    @await Html.PartialAsync("~/Views/Shared/Partials/_CheckoutModal.cshtml")
+    <script src="~/js/shared/checkout.js" asp-append-version="true"></script>
 </body>
 </html>
