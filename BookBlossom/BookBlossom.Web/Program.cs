@@ -66,6 +66,9 @@ builder.Services.AddScoped<IBlindBookService, BlindBookService>();
 // Đăng ký IOrderService
 builder.Services.AddScoped<IOrderService, OrderService>(); 
 
+// Đăng ký IReturnService
+builder.Services.AddScoped<IReturnService, ReturnService>(); 
+
 
 
 // Cấu hình JWT Authentication
