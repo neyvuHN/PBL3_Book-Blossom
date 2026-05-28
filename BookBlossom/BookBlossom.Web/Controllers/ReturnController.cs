@@ -24,12 +24,19 @@ namespace BookBlossom.Web.Controllers
         // API 1: Khách hàng tạo yêu cầu khiếu nại & trả hàng
         [HttpPost("order/{orderId}")]
         [Authorize(Policy = "CustomerOnly")]
+        [RequestSizeLimit(209715200)] // 200 MB
+        [RequestFormLimits(MultipartBodyLengthLimit = 209715200)] // 200 MB
         public async Task<IActionResult> CreateReturnRequest(
             [FromRoute] long orderId, 
-            [FromForm] CreateReturnRequestDTO dto, 
-            [FromForm] IFormFile videoFile)
+            [FromForm] CreateReturnRequestDTO dto)
         {
             if (dto == null) return BadRequest("Dữ liệu khiếu nại trống.");
+
+            if (dto.VideoFile == null || dto.VideoFile.Length == 0)
+            {
+                ModelState.AddModelError("VideoFile", "Vui lòng tải lên video mở hộp (unbox) để đối chiếu.");
+                return BadRequest(ModelState);
+            }
 
             var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
@@ -39,7 +46,7 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
-                var result = await _service.CreateReturnRequestAsync(customerId, orderId, dto, videoFile);
+                var result = await _service.CreateReturnRequestAsync(customerId, orderId, dto, dto.VideoFile);
                 return StatusCode(201, result);
             }
             catch (KeyNotFoundException ex)
