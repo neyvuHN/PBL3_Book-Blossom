@@ -45,7 +45,18 @@
             bookId = 'Book' + match[1];
         }
 
-        $modal.fadeIn(300);
+        $modal.fadeIn(300, function () {
+            const $scrollArea = $('#preview-modal-container .flipbook-scroll-area');
+
+            /*
+                Reset về góc trên giữa mỗi lần mở preview.
+                Sau đó người dùng zoom lên thì có scrollbar để kéo ngang/dọc.
+            */
+            $scrollArea.scrollTop(0);
+
+            const scrollLeft = Math.max(0, ($('#flipbook-zoom-wrapper').outerWidth() - $scrollArea.innerWidth()) / 2);
+            $scrollArea.scrollLeft(scrollLeft);
+        });
 
         // Load secure digital PDF pages from backend
         loadSecurePreview(bookId);
@@ -55,12 +66,12 @@
     async function renderPreviewPage(pdf, pageNum, canvasId, loaderId) {
         try {
             const page = await pdf.getPage(pageNum);
-            
+
             // Render page at high quality (1.5x scale)
             const viewport = page.getViewport({ scale: 1.5 });
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
-            
+
             const context = canvas.getContext('2d');
             canvas.height = viewport.height;
             canvas.width = viewport.width;
@@ -69,9 +80,9 @@
                 canvasContext: context,
                 viewport: viewport
             };
-            
+
             await page.render(renderContext).promise;
-            
+
             // Hide loader once page is successfully rendered
             $(`#${loaderId}`).fadeOut(200);
         } catch (error) {
@@ -84,7 +95,7 @@
     async function loadSecurePreview(bookId) {
         // Show loading states for all sheets
         $('.page-loader').show();
-        $('.page-loader').siblings('canvas').each(function() {
+        $('.page-loader').siblings('canvas').each(function () {
             const ctx = this.getContext('2d');
             if (ctx) {
                 ctx.clearRect(0, 0, this.width, this.height);
@@ -114,9 +125,9 @@
             // Step 3: Initialize PDF.js rendering
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
             const loadingTask = pdfjsLib.getDocument(pdfBlobUrl);
-            
+
             pdfDoc = await loadingTask.promise;
-            
+
             // Revoke URL immediately after document is loaded in memory for absolute security!
             URL.revokeObjectURL(pdfBlobUrl);
             pdfBlobUrl = null;
@@ -124,11 +135,11 @@
             // Render each of the first 5 pages concurrently
             const totalPages = Math.min(pdfDoc.numPages, 5);
             const renderPromises = [];
-            
+
             for (let p = 1; p <= totalPages; p++) {
                 renderPromises.push(renderPreviewPage(pdfDoc, p, `canvas-page-${p}`, `loader-${p}`));
             }
-            
+
             await Promise.all(renderPromises);
         } catch (error) {
             console.error('Secure preview error:', error);
@@ -138,7 +149,7 @@
     }
 
     function renderWatermarks() {
-        $('.watermark-overlay').each(function() {
+        $('.watermark-overlay').each(function () {
             const $overlay = $(this);
             $overlay.empty();
             for (let i = 0; i < 6; i++) {
@@ -180,6 +191,17 @@
         }
     }
 
+    function refreshPreviewScrollArea() {
+        const $scrollArea = $('#preview-modal-container .flipbook-scroll-area');
+
+        if (!$scrollArea.length) return;
+
+        $scrollArea.css({
+            overflowX: 'auto',
+            overflowY: 'auto'
+        });
+    }
+
     function flipNext() {
         if (currentSheetIndex >= maxSheets) return;
 
@@ -191,6 +213,7 @@
 
         currentSheetIndex = nextSheet;
         updatePreviewControls();
+        refreshPreviewScrollArea();
     }
 
     function flipPrev() {
@@ -204,6 +227,7 @@
 
         currentSheetIndex = prevSheet - 1;
         updatePreviewControls();
+        refreshPreviewScrollArea();
     }
 
     /* 
@@ -231,26 +255,63 @@
     function setZoomScale(scale) {
         currentZoomScale = Math.min(Math.max(scale, 0.8), 3.0);
 
-        $('#flipbook-container').css('transform', `scale(${currentZoomScale})`);
-        $('#zoom-indicator').text(`${Math.round(currentZoomScale * 100)}%`);
+        const $modal = $('#preview-modal-container');
+        const $scrollArea = $('#preview-modal-container .flipbook-scroll-area');
+        const $zoomWrapper = $('#flipbook-zoom-wrapper');
+        const $flipbook = $('#flipbook-container');
 
+        /*
+            Không dùng transform để quyết định layout.
+            Transform chỉ phóng to hình ảnh.
+            Wrapper mới là phần tử giữ kích thước thật để browser tạo scrollbar.
+        */
         const baseWidth = 840;
         const baseHeight = 560;
 
-        $('#flipbook-zoom-wrapper').css({
-            width: (baseWidth * currentZoomScale) + 'px',
-            height: (baseHeight * currentZoomScale) + 'px'
+        const scaledWidth = baseWidth * currentZoomScale;
+        const scaledHeight = baseHeight * currentZoomScale;
+
+        $zoomWrapper.css({
+            width: scaledWidth + 'px',
+            height: scaledHeight + 'px',
+            minWidth: scaledWidth + 'px',
+            minHeight: scaledHeight + 'px',
+            position: 'relative'
         });
 
-        // Toggle elegant high-contrast class on control bar to avoid background blending
-        if (currentZoomScale >= 1.0) {
-            $('.preview-controls').addClass('high-zoom');
-        } else {
-            $('.preview-controls').removeClass('high-zoom');
-        }
+        $flipbook.css({
+            width: baseWidth + 'px',
+            height: baseHeight + 'px',
+            transform: `scale(${currentZoomScale})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: '0',
+            left: '0'
+        });
+
+        $('#zoom-indicator').text(`${Math.round(currentZoomScale * 100)}%`);
 
         $('#btn-zoom-in').prop('disabled', currentZoomScale >= 3.0);
         $('#btn-zoom-out').prop('disabled', currentZoomScale <= 0.8);
+
+        if (currentZoomScale > 1) {
+            $modal.addClass('preview-zoomed');
+            $('.preview-toolbar, .preview-controls').addClass('is-zooming');
+        } else {
+            $modal.removeClass('preview-zoomed');
+            $('.preview-toolbar, .preview-controls').removeClass('is-zooming');
+        }
+
+        /*
+            Bắt browser tính lại scrollbar.
+            Không xóa logic cũ, chỉ ép vùng scroll nhận kích thước mới.
+        */
+        if ($scrollArea.length) {
+            $scrollArea.css({
+                overflowX: 'auto',
+                overflowY: 'auto'
+            });
+        }
     }
 
     function bindEvents() {
