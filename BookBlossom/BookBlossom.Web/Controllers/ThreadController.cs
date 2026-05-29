@@ -52,6 +52,23 @@ namespace BookBlossom.Web.Controllers
                 {
                     return NotFound(new { message = "Không tìm thấy bài viết hoặc bài viết đã bị ẩn." });
                 }
+
+                if (post.IsHidden)
+                {
+                    var roleStr = User.FindFirst(ClaimTypes.Role)?.Value;
+                    var isModeratorOrAdmin = !string.IsNullOrEmpty(roleStr) &&
+                        (roleStr.Equals("SystemAdmin", StringComparison.OrdinalIgnoreCase) ||
+                         roleStr.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                         roleStr.Equals("3") ||
+                         roleStr.Equals("Moderator", StringComparison.OrdinalIgnoreCase) ||
+                         roleStr.Equals("4"));
+
+                    if (!isModeratorOrAdmin)
+                    {
+                        return NotFound(new { message = "Không tìm thấy bài viết hoặc bài viết đã bị ẩn." });
+                    }
+                }
+
                 return Ok(post);
             }
             catch (Exception ex)
