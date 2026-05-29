@@ -27,12 +27,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // [UPDATED] openCheckout now resets the Order Note field on every fresh open
     function openCheckout() {
         checkoutModal.style.display = 'flex';
         // Trigger reflow for transition
         void checkoutModal.offsetWidth;
         checkoutContent.style.opacity = '1';
         checkoutContent.style.transform = 'scale(1)';
+
+        // Reset the order note textarea so previous sessions don't bleed over
+        const $note = document.getElementById('checkout-order-note');
+        if ($note) $note.value = '';
     }
 
     function closeCheckout() {
@@ -59,9 +64,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // [UPDATED] Expose helpers including getOrderNote for page-level controllers
     window.openCheckout = openCheckout;
     window.closeCheckout = closeCheckout;
     window.updateCheckoutTotals = updateCheckoutTotals;
+
+    // Returns the current value of the Order Note field (trimmed)
+    window.getOrderNote = function () {
+        const $note = document.getElementById('checkout-order-note');
+        return $note ? $note.value.trim() : '';
+    };
 
     // [UPDATED] Populator to dynamically render book information (single item details, or multiple items from cart)
     window.populateCheckoutBookInfo = function (items) {
@@ -351,8 +363,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Confirm & Pay Flow
+    // [UPDATED] Confirm & Pay Flow – reads Order Note and attaches to checkoutState before processing
     btnConfirmCheckout.addEventListener('click', function () {
+        // Read the Order Note value and persist it on the shared checkout state
+        const orderNote = window.getOrderNote ? window.getOrderNote() : '';
+        window.checkoutState.orderNote = orderNote;
+
+        // TODO (backend): pass orderNote to the order creation API payload
+        if (orderNote) {
+            console.info('[Checkout] Order note submitted by buyer:', orderNote);
+        }
+
         if (selectedMethod === 'vnpay') {
             closeCheckout();
             const loadingOverlay = document.getElementById('vnpay-loading-overlay');

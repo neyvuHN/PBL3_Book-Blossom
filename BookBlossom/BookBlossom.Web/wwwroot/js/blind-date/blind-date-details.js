@@ -650,13 +650,16 @@
                 const subtotal = item.priceVnd * item.qty;
                 const voucherResult = calculateBlindVoucherDiscount(subtotal);
 
+                // [UPDATED] checkoutState now includes orderNote (empty by default);
+                // the Order Note textarea is reset automatically by window.openCheckout()
                 window.checkoutState = {
                     isCart: false,
                     isBuyNow: true,
                     isBlind: true,
                     subtotal: subtotal,
                     shippingFee: voucherResult.shippingFeeVnd,
-                    discount: voucherResult.discountVnd
+                    discount: voucherResult.discountVnd,
+                    orderNote: ''
                 };
 
                 renderCheckoutVoucherBadges(voucherResult.appliedVoucherLines);

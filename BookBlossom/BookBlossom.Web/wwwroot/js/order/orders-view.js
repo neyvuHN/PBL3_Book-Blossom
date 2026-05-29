@@ -96,23 +96,26 @@ class OrdersView {
                 break;
             case 'completed':
                 statusText = 'Completed';
+                // [UPDATED] Buy Again opens the Secure Checkout popup
                 actionsHtml = `
-                    <button class="btn btn-primary">Buy Again</button>
+                    <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
                     ${!order.isRated ? '<button class="btn btn-outline-secondary">Rate</button>' : ''}
                 `;
                 break;
             case 'cancelled':
                 statusText = 'Cancelled';
                 extraInfoHtml = `<div class="text-muted small mb-2"><i class="fas fa-times-circle text-danger"></i> Reason: ${order.cancelReason}</div>`;
+                // [UPDATED] Buy Again opens the Secure Checkout popup
                 actionsHtml = `
-                    <button class="btn btn-primary">Buy Again</button>
+                    <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
                 `;
                 break;
             case 'returned':
                 statusText = 'Returned';
                 extraInfoHtml = `<div class="text-muted small mb-2"><i class="fas fa-undo-alt text-warning"></i> Reason: ${order.cancelReason}</div>`;
+                // [UPDATED] Buy Again opens the Secure Checkout popup
                 actionsHtml = `
-                    <button class="btn btn-primary">Buy Again</button>
+                    <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
                 `;
                 break;
         }
@@ -172,6 +175,17 @@ class OrdersView {
     bindOrderReceived(handler) {
         this.ordersListContainer.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-action="order-received"]');
+            if (btn) {
+                const orderId = btn.getAttribute('data-id');
+                handler(orderId);
+            }
+        });
+    }
+
+    // [UPDATED] Delegate Buy Again clicks to the controller handler
+    bindBuyAgain(handler) {
+        this.ordersListContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action="buy-again"]');
             if (btn) {
                 const orderId = btn.getAttribute('data-id');
                 handler(orderId);
