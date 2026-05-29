@@ -82,7 +82,7 @@ namespace BookBlossom.Web.Controllers
                 // Migrate Guest Cart and Wishlist if GuestID is present
                 if (Request.Headers.TryGetValue("X-Guest-ID", out var guestIdHeader) && Guid.TryParse(guestIdHeader.ToString(), out var guestId))
                 {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
                     if (user != null)
                     {
                         await _guestService.MigrateGuestDataToUserAsync(guestId, user.UserID);
@@ -90,7 +90,7 @@ namespace BookBlossom.Web.Controllers
                 }
                 else if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid guestIdFromItems)
                 {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
                     if (user != null)
                     {
                         await _guestService.MigrateGuestDataToUserAsync(guestIdFromItems, user.UserID);
@@ -179,7 +179,7 @@ namespace BookBlossom.Web.Controllers
                 // Tự động đăng nhập sau khi đăng ký thành công
                 var loginRequest = new LoginRequestDTO
                 {
-                    UserName = cachedRequest.UserName,
+                    PhoneNumber = cachedRequest.PhoneNumber,
                     Password = cachedRequest.Password
                 };
                 var authResponse = await _authService.LoginAsync(loginRequest);

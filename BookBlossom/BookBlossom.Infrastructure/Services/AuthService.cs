@@ -35,10 +35,10 @@ namespace BookBlossom.Infrastructure.Services
         {
             var user = await _context.Users
                 .Include(u => u.CustomerDetail)
-                .FirstOrDefaultAsync(u => u.UserName == request.UserName || u.PhoneNumber == request.UserName);
+                .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
             
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
-                throw new UnauthorizedActionException("Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác.");
+                throw new UnauthorizedActionException("Số điện thoại hoặc mật khẩu không chính xác.");
 
             if (user.AccountStatus != AccountStatus.Active)
                 throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa hoặc chưa được xác thực.");
