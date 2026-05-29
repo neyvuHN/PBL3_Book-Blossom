@@ -581,13 +581,28 @@
 }
 
 /* Fix Bootstrap modal backdrop cutoff bug caused by global absolute override in style.css */
+html.modal-open,
+body.modal-open {
+    overflow: hidden !important;
+    height: 100vh !important;
+    position: relative !important;
+}
+
 .modal-backdrop {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    z-index: 1040 !important;
+    background-color: rgba(15, 23, 42, 0.75) !important;
+    backdrop-filter: blur(4px) !important;
 }
+
 
 
 
