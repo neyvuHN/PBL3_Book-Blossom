@@ -166,12 +166,15 @@ class ProfileView {
             displayCount++;
         });
 
-        if (badges.length > maxDisplay) {
+        if (badges.length >= 1) {
+            const circleContent = badges.length > maxDisplay 
+                ? `<i class="fas fa-plus" style="font-size: 0.8rem; margin-bottom: 2px;"></i><span>${badges.length - maxDisplay}</span>`
+                : `<i class="fas fa-eye" style="font-size: 1.15rem; margin-bottom: 0;"></i>`;
+
             cabinetElement.append(`
                 <div class="badge-medal-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
                     <div class="view-all-circle">
-                        <i class="fas fa-plus"></i>
-                        <span>${badges.length - maxDisplay}</span>
+                        ${circleContent}
                     </div>
                     <span class="view-all-label">View All</span>
                 </div>

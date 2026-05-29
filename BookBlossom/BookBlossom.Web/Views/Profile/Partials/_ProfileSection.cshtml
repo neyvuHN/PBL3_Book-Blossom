@@ -358,9 +358,16 @@
                                     <div class="streak-steps-container">
                                         <div class="streak-line-bg"></div>
                                         @{
-                                            var streakFillPercent = Model.CurrentOrderStreak * 50;
+                                            var totalStreak = 3;
+                                            var currentStreak = Math.Clamp(Model.CurrentOrderStreak, 1, totalStreak);
+
+                                            var streakProgress = (currentStreak - 1) * 1.0 / (totalStreak - 1);
                                         }
-                                        <div class="streak-line-fill" id="display-streak-line" style="width: @streakFillPercent.ToString()%;"></div>
+
+                                        <div class="streak-line-fill"
+                                            id="display-streak-line"
+                                            style="--streak-progress: @streakProgress.ToString(System.Globalization.CultureInfo.InvariantCulture);">
+                                        </div>
                                         
                                         <div class="streak-step @(Model.CurrentOrderStreak >= 1 ? "completed" : "active")" id="streak-step-1">
                                             @if (Model.CurrentOrderStreak >= 1)
@@ -488,12 +495,19 @@
                                         }
                                     }
                                     
-                                    @if (Model.Badges.Count > maxDisplay)
+                                    @if (Model.Badges.Count >= 1)
                                     {
                                         <div class="badge-medal-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
                                             <div class="view-all-circle">
-                                                <i class="fas fa-plus"></i>
-                                                <span>@(Model.Badges.Count - maxDisplay)</span>
+                                                @if (Model.Badges.Count > maxDisplay)
+                                                {
+                                                    <i class="fas fa-plus" style="font-size: 0.8rem; margin-bottom: 2px;"></i>
+                                                    <span>@(Model.Badges.Count - maxDisplay)</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-eye" style="font-size: 1.15rem; margin-bottom: 0;"></i>
+                                                }
                                             </div>
                                             <span class="view-all-label">View All</span>
                                         </div>
