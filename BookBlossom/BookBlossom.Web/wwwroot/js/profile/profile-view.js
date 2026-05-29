@@ -589,6 +589,118 @@ class ProfileView {
             $('#payment-failed-overlay .btn-change-method').show();
         }
     }
+
+    /**
+     * Opens fullscreen avatar cropper modal overlay
+     */
+    openCropperModal() {
+        const overlay = document.getElementById('avatar-cropper-overlay');
+        const content = document.getElementById('avatar-cropper-content');
+        if (!overlay || !content) return;
+
+        overlay.style.display = 'flex';
+        // Trigger layout reflow
+        void overlay.offsetWidth;
+        content.style.opacity = '1';
+        content.style.transform = 'scale(1)';
+
+        // Reset elements
+        $('#avatar-file-input').val('');
+        $('#cropper-upload-placeholder').show();
+        $('#cropper-workspace').hide();
+        $('#cropper-controls').hide();
+        $('#btn-save-cropper').attr('disabled', 'disabled');
+        $('#cropper-image').attr('src', '');
+    }
+
+    /**
+     * Closes fullscreen avatar cropper modal overlay
+     */
+    closeCropperModal() {
+        const overlay = document.getElementById('avatar-cropper-overlay');
+        const content = document.getElementById('avatar-cropper-content');
+        if (!overlay || !content) return;
+
+        content.style.opacity = '0';
+        content.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 300);
+    }
+
+    /**
+     * Loads selected image into cropper workspace
+     */
+    loadCropperImage(src) {
+        $('#cropper-upload-placeholder').hide();
+        $('#cropper-workspace').css('display', 'flex');
+        $('#cropper-controls').css('display', 'flex');
+        $('#btn-save-cropper').removeAttr('disabled');
+        
+        const $img = $('#cropper-image');
+        $img.attr('src', src);
+        
+        // Reset transform values
+        $img.css({
+            'left': '50%',
+            'top': '50%',
+            'transform': 'translate(-50%, -50%) translate(0px, 0px) scale(1)'
+        });
+        $('#zoom-range').val(1);
+    }
+
+    /**
+     * Adjusts current scale & translation styling of cropper preview image
+     */
+    updateCropperImageTransform(scale, x, y) {
+        $('#cropper-image').css({
+            'transform': `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`
+        });
+        $('#zoom-range').val(scale);
+    }
+
+    /**
+     * Renders cropped circular area onto offscreen Canvas and returns Base64 Data URL
+     */
+    getCroppedImage(scale, x, y, callback) {
+        const img = document.getElementById('cropper-image');
+        if (!img || !img.src) return;
+
+        const originalImg = new Image();
+        originalImg.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            const ctx = canvas.getContext('2d');
+
+            const wImg = originalImg.naturalWidth;
+            const hImg = originalImg.naturalHeight;
+
+            // Crop center coordinates on the source image, taking into account zoom & pan offset
+            const origCenterX = wImg / 2 - (x / scale);
+            const origCenterY = hImg / 2 - (y / scale);
+            const origSize = 200 / scale;
+            const origX = origCenterX - origSize / 2;
+            const origY = origCenterY - origSize / 2;
+
+            // Draw circular clip path for perfect cropping preview export
+            ctx.beginPath();
+            ctx.arc(100, 100, 100, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Draw to offscreen canvas
+            ctx.drawImage(
+                originalImg,
+                origX, origY, origSize, origSize,
+                0, 0, 200, 200
+            );
+
+            // Export as JPEG Data URI
+            const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            callback(croppedDataUrl);
+        };
+        originalImg.src = img.src;
+    }
 }
 
 // Attach to window namespace for global access

@@ -621,6 +621,67 @@
     </div>
 </div>
 
+<!-- Modal for Changing Avatar (Fullscreen Overlay) -->
+<div id="avatar-cropper-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px); transition: all 0.3s ease;">
+    <div id="avatar-cropper-content" style="background: #ffffff; border-radius: 24px; width: 90%; max-width: 600px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden;">
+        <!-- Header -->
+        <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 800; color: #0f172a;">Update Profile Avatar</h3>
+                <p style="margin: 4px 0 0; color: #64748b; font-size: 0.85rem;">Upload and crop your avatar image to fit perfectly.</p>
+            </div>
+            <button id="btn-close-cropper" style="background: #f1f5f9; border: none; font-size: 1rem; color: #475569; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; background: #f8fafc;">
+            <!-- Hidden File Input -->
+            <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+            
+            <!-- Upload Placeholder (shown when no image selected) -->
+            <div id="cropper-upload-placeholder" style="width: 100%; height: 300px; border: 2px dashed #cbd5e1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #ffffff; transition: all 0.2s ease;">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #C2185B; margin-bottom: 12px;"></i>
+                <span style="font-weight: 700; color: #0f172a; font-size: 1rem;">Click to upload an image</span>
+                <span style="color: #64748b; font-size: 0.8rem; margin-top: 4px;">Supports PNG, JPG, JPEG</span>
+            </div>
+            
+            <!-- Crop Container (shown when image is loaded) -->
+            <div id="cropper-workspace" style="display: none; width: 100%; height: 300px; background: #0f172a; border-radius: 16px; position: relative; overflow: hidden; justify-content: center; align-items: center;">
+                <!-- Target Image -->
+                <img id="cropper-image" src="" style="position: absolute; cursor: move; user-select: none; max-width: none; max-height: none; transform-origin: center center;" alt="Avatar Cropper">
+                
+                <!-- Crop Grid Overlay -->
+                <div id="cropper-grid" style="position: absolute; width: 200px; height: 200px; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.7); pointer-events: none; display: flex; align-items: center; justify-content: center;">
+                    <!-- Grid Lines inside the crop circle -->
+                    <div style="position: absolute; top: 0; bottom: 0; left: 33.33%; width: 1px; border-left: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                    <div style="position: absolute; top: 0; bottom: 0; left: 66.66%; width: 1px; border-left: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                    <div style="position: absolute; left: 0; right: 0; top: 33.33%; height: 1px; border-top: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                    <div style="position: absolute; left: 0; right: 0; top: 66.66%; height: 1px; border-top: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                </div>
+            </div>
+            
+            <!-- Controls (Zoom Slider & Re-upload) -->
+            <div id="cropper-controls" style="display: none; width: 100%; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" id="btn-zoom-out" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #475569;"><i class="fas fa-minus"></i></button>
+                    <input type="range" id="zoom-range" min="0.1" max="3" step="0.05" value="1" style="flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; outline: none; accent-color: #C2185B;">
+                    <button type="button" id="btn-zoom-in" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #475569;"><i class="fas fa-plus"></i></button>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.8rem; color: #64748b;"><i class="fas fa-info-circle me-1"></i> Drag the image to reposition it</span>
+                    <button type="button" id="btn-reupload" style="background: transparent; border: none; color: #C2185B; font-weight: 700; font-size: 0.85rem; cursor: pointer;"><i class="fas fa-redo me-1"></i> Choose another photo</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Actions -->
+        <div style="padding: 20px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" id="btn-cancel-cropper" class="btn btn-profile-secondary btn-sm" style="padding: 10px 24px; border-radius: 30px;">Cancel</button>
+            <button type="button" id="btn-save-cropper" class="btn btn-profile-theme btn-sm" style="padding: 10px 24px; border-radius: 30px;" disabled>Apply Changes</button>
+        </div>
+    </div>
+</div>
+
 @functions {
     public string GetMedalHtml(string badgeName, string sizeClass) {
         string scallopGrad = "goldGrad";

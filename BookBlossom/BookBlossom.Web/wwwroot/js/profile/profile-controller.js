@@ -69,15 +69,120 @@ class ProfileController {
             self.view.showToast("Profile details updated successfully!");
         });
 
-        // Cycling through local premium preset avatars
+        // Initialize cropper state values for drag-and-drop and zoom scale tracking
+        self.cropper = {
+            scale: 1,
+            x: 0,
+            y: 0,
+            isDragging: false,
+            startX: 0,
+            startY: 0
+        };
+
+        // Open custom avatar cropper fullscreen modal on button click
         $('#btn-change-avatar').on('click', function () {
-            let currentIdx = self.presetAvatars.indexOf(self.model.user.avatar);
-            let nextIdx = (currentIdx + 1) % self.presetAvatars.length;
+            self.cropper.scale = 1;
+            self.cropper.x = 0;
+            self.cropper.y = 0;
+            self.view.openCropperModal();
+        });
+
+        // Trigger file input upload when clicking placeholder card or retry action button
+        $(document).on('click', '#cropper-upload-placeholder, #btn-reupload', function () {
+            $('#avatar-file-input').click();
+        });
+
+        // Handle Close and Cancel button clicks for cropper modal
+        $(document).on('click', '#btn-close-cropper, #btn-cancel-cropper', function () {
+            self.view.closeCropperModal();
+        });
+
+        // Close cropper modal when clicking dim backdrop overlay
+        $(document).on('click', '#avatar-cropper-overlay', function (e) {
+            if (e.target.id === 'avatar-cropper-overlay') {
+                self.view.closeCropperModal();
+            }
+        });
+
+        // Load custom image file via FileReader API when selected
+        $(document).on('change', '#avatar-file-input', function (e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    self.cropper.scale = 1;
+                    self.cropper.x = 0;
+                    self.cropper.y = 0;
+                    self.view.loadCropperImage(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Adjust image scale via dynamic range slider input
+        $(document).on('input change', '#zoom-range', function () {
+            self.cropper.scale = parseFloat($(this).val()) || 1;
+            self.view.updateCropperImageTransform(self.cropper.scale, self.cropper.x, self.cropper.y);
+        });
+
+        // Increment scale factor on Zoom In button click
+        $(document).on('click', '#btn-zoom-in', function () {
+            self.cropper.scale = Math.min(3, self.cropper.scale + 0.1);
+            self.view.updateCropperImageTransform(self.cropper.scale, self.cropper.x, self.cropper.y);
+        });
+
+        // Decrement scale factor on Zoom Out button click
+        $(document).on('click', '#btn-zoom-out', function () {
+            self.cropper.scale = Math.max(0.1, self.cropper.scale - 0.1);
+            self.view.updateCropperImageTransform(self.cropper.scale, self.cropper.x, self.cropper.y);
+        });
+
+        // Track drag movement coordinates via mouse dragging
+        $(document).on('mousedown touchstart', '#cropper-image', function (e) {
+            e.preventDefault();
+            self.cropper.isDragging = true;
             
-            self.model.updateField('avatar', self.presetAvatars[nextIdx]);
-            self.view.render(self.model.user);
+            const clientX = e.type === 'touchstart' ? e.originalEvent.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchstart' ? e.originalEvent.touches[0].clientY : e.clientY;
             
-            self.view.showToast("Avatar image updated successfully!");
+            self.cropper.startX = clientX - self.cropper.x;
+            self.cropper.startY = clientY - self.cropper.y;
+        });
+
+        // Calculate and update translation variables on mouse/touch drag
+        $(document).on('mousemove touchmove', function (e) {
+            if (!self.cropper.isDragging) return;
+            
+            const clientX = e.type === 'touchmove' ? e.originalEvent.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchmove' ? e.originalEvent.touches[0].clientY : e.clientY;
+            
+            self.cropper.x = clientX - self.cropper.startX;
+            self.cropper.y = clientY - self.cropper.startY;
+            
+            self.view.updateCropperImageTransform(self.cropper.scale, self.cropper.x, self.cropper.y);
+        });
+
+        // Stop tracking drag movements on release
+        $(document).on('mouseup touchend', function () {
+            self.cropper.isDragging = false;
+        });
+
+        // Render cropped canvas and apply final avatar changes to Model and View
+        $(document).on('click', '#btn-save-cropper', function () {
+            self.view.getCroppedImage(self.cropper.scale, self.cropper.x, self.cropper.y, function (croppedDataUrl) {
+                // Persist new base64 image data in localstorage via model
+                self.model.updateField('avatar', croppedDataUrl);
+                
+                // Re-render user view
+                self.view.render(self.model.user);
+                
+                // Close cropping overlay
+                self.view.closeCropperModal();
+                
+                // Trigger toast notification
+                self.view.showToast("Avatar image updated successfully!");
+            });
         });
 
         // Show Premium plans modal overlay on clicking Upgrade button
