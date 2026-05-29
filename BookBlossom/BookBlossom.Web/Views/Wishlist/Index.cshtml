@@ -1,0 +1,18 @@
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "My Wishlist - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/wishlist/wishlist.css" asp-append-version="true" />
+}
+
+<main>
+    @await Html.PartialAsync("Partials/_WishlistSection")
+</main>
+
+@section Scripts {
+    @await Html.PartialAsync("Partials/_WishlistScripts")
+}

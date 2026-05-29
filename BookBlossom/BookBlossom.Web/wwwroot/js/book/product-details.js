@@ -242,11 +242,21 @@
         $('.detail-tab-pane').hide();
         $('#tab-desc').show();
 
-        $('#btn-toggle-wishlist').find('i').attr('class', 'far fa-heart').css('color', '');
-        $('#btn-toggle-wishlist').css({
-            borderColor: '#ddd',
-            background: '#fff'
-        });
+        const title = $('#detail-title').text().trim();
+        const id = 'book-' + getStableHash(title);
+        
+        let isInWishlist = false;
+        if (window.BookBlossomWishlist) {
+            const items = window.BookBlossomWishlist.getWishlistItems();
+            isInWishlist = items.some(item => item.id === id);
+        }
+
+        const $btn = $('#btn-toggle-wishlist');
+        if (isInWishlist) {
+            setWishlistActive($btn);
+        } else {
+            setWishlistInactive($btn);
+        }
     }
 
     function getStableHash(text) {
@@ -602,10 +612,31 @@
             const $icon = $(this).find('i');
             const $btn = $(this);
 
+            const title = $('#detail-title').text().trim();
+            const author = $('#detail-author').text().trim() || 'Unknown Author';
+            const priceText = $('#detail-price').text() || '0 VND';
+            const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
+            const price = unitPriceVnd;
+            const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+            const id = 'book-' + getStableHash(title);
+
             if ($icon.hasClass('far')) {
+                if (window.BookBlossomWishlist) {
+                    window.BookBlossomWishlist.addToWishlist({
+                        id: id,
+                        title: title,
+                        author: author,
+                        price: price,
+                        imageUrl: img,
+                        isBlindDate: false
+                    });
+                }
                 setWishlistActive($btn);
                 showToast('Book added to your wishlist!');
             } else {
+                if (window.BookBlossomWishlist) {
+                    window.BookBlossomWishlist.removeItem(id);
+                }
                 setWishlistInactive($btn);
                 showToast('Book removed from your wishlist.');
             }

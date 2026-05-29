@@ -86,11 +86,29 @@
 
         const $wishlist = $('#btn-toggle-blind-wishlist');
 
-        $wishlist.find('i').attr('class', 'far fa-heart').css('color', '');
-        $wishlist.css({
-            borderColor: '#ddd',
-            background: '#fff'
-        });
+        const title = getBlindTitle();
+        const category = $('#blind-clue-category').text().trim() || 'Mystery';
+        const id = 'blind-' + getBlindHashKey({ title: title, category: category });
+        
+        let isInWishlist = false;
+        if (window.BookBlossomWishlist) {
+            const items = window.BookBlossomWishlist.getWishlistItems();
+            isInWishlist = items.some(item => item.id === id);
+        }
+
+        if (isInWishlist) {
+            $wishlist.find('i').removeClass('far').addClass('fas').css('color', '#ff4444');
+            $wishlist.css({
+                borderColor: '#ff4444',
+                background: '#fff5f5'
+            });
+        } else {
+            $wishlist.find('i').attr('class', 'far fa-heart').css('color', '');
+            $wishlist.css({
+                borderColor: '#ddd',
+                background: '#fff'
+            });
+        }
 
         $('.blind-thumb-wrapper').removeClass('active').css('border-color', 'transparent');
         $('.blind-thumb-wrapper').first().addClass('active').css('border-color', '#a291b5');
@@ -390,8 +408,29 @@
         $('#btn-toggle-blind-wishlist').off('click.blindDetails').on('click.blindDetails', function () {
             const $btn = $(this);
             const $icon = $btn.find('i');
+            
+            const title = getBlindTitle();
+            const id = 'blind-' + getBlindHashKey({ title: title, category: $('#blind-clue-category').text().trim() });
+            const author = 'Unknown';
+            const priceText = $('#blind-detail-price').text() || '0 VNĐ';
+            const priceVnd = parsePriceToVnd(priceText);
+            const price = priceVnd;
+            const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook.jpg';
+            const hashtags = getCurrentHashtags();
 
             if ($icon.hasClass('far')) {
+                if (window.BookBlossomWishlist) {
+                    window.BookBlossomWishlist.addToWishlist({
+                        id: id,
+                        title: title,
+                        author: author,
+                        price: price,
+                        imageUrl: img,
+                        isBlindDate: true,
+                        hashtags: hashtags
+                    });
+                }
+
                 $icon.removeClass('far').addClass('fas').css('color', '#ff4444');
                 $btn.css({
                     borderColor: '#ff4444',
@@ -399,6 +438,10 @@
                 });
                 showToast('Mystery Book added to your wishlist!');
             } else {
+                if (window.BookBlossomWishlist) {
+                    window.BookBlossomWishlist.removeItem(id);
+                }
+
                 $icon.removeClass('fas').addClass('far').css('color', '');
                 $btn.css({
                     borderColor: '#ddd',
