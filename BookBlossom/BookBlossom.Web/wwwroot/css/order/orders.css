@@ -173,3 +173,66 @@
     background-color: #f8f9fa;
     color: #333;
 }
+
+/* Premium Vertical Timeline */
+#detail-timeline {
+    position: relative;
+    padding-left: 24px;
+    margin-left: 8px;
+    border-left: 2px solid #e9ecef;
+}
+
+#detail-timeline li {
+    position: relative;
+    padding-bottom: 20px;
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+#detail-timeline li:last-child {
+    padding-bottom: 0;
+}
+
+#detail-timeline li::before {
+    content: '';
+    position: absolute;
+    left: -31px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    transition: all 0.2s ease-in-out;
+}
+
+#detail-timeline li:last-child::before {
+    background-color: #d8456b;
+    box-shadow: 0 0 0 3px rgba(216, 69, 107, 0.25);
+}
+
+/* Confirm Action Modal */
+#confirmActionModal .modal-content {
+    animation: confirmModalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes confirmModalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.88) translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+#confirmActionModal #confirm-modal-icon {
+    transition: transform 0.3s ease;
+}
+
+#confirmActionModal #confirm-modal-icon:hover {
+    transform: scale(1.1);
+}
+

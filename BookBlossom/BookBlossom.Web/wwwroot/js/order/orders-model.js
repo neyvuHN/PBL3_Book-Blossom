@@ -20,7 +20,16 @@ class OrdersModel {
                         image: '/images/Book/book1.jpg'
                     }
                 ],
-                totalPrice: 150000
+                totalPrice: 150000,
+                shipReceiverName: 'Jane Doe',
+                shipPhoneNumber: '0901234567',
+                shipDetailAddress: '123 Nguyen Van Linh, Da Nang',
+                paymentMethod: 'Cash on Delivery (COD)',
+                note: 'Call me before delivery',
+                subTotal: 150000,
+                shippingFee: 0,
+                discountAmount: 0,
+                orderDate: '2026-05-29 10:00'
             },
             {
                 id: 'ORD-12346',
@@ -36,7 +45,17 @@ class OrdersModel {
                     }
                 ],
                 totalPrice: 240000,
-                tracking: 'Preparing for shipment'
+                tracking: 'Preparing for shipment',
+                shipReceiverName: 'John Smith',
+                shipPhoneNumber: '0912345678',
+                shipDetailAddress: '456 Le Loi, District 1, HCM',
+                paymentMethod: 'Bank Transfer',
+                note: 'Deliver during office hours',
+                subTotal: 240000,
+                shippingFee: 20000,
+                discountAmount: 20000,
+                orderDate: '2026-05-28 14:30',
+                shippedDate: '2026-05-29 08:00'
             },
             {
                 id: 'ORD-12347',
@@ -52,7 +71,18 @@ class OrdersModel {
                     }
                 ],
                 totalPrice: 200000,
-                tracking: 'Out for delivery'
+                tracking: 'Out for delivery',
+                shipReceiverName: 'Alice Green',
+                shipPhoneNumber: '0923456789',
+                shipDetailAddress: '789 Tran Hung Dao, Hoan Kiem, Hanoi',
+                paymentMethod: 'Momo E-Wallet',
+                note: 'Leave at the reception desk',
+                subTotal: 200000,
+                shippingFee: 15000,
+                discountAmount: 15000,
+                orderDate: '2026-05-27 09:15',
+                shippedDate: '2026-05-28 10:00',
+                deliveredDate: '2026-05-29 11:30'
             },
             {
                 id: 'ORD-12348',
@@ -68,7 +98,17 @@ class OrdersModel {
                     }
                 ],
                 totalPrice: 250000,
-                tracking: 'Arrived at local facility'
+                tracking: 'Arrived at local facility',
+                shipReceiverName: 'Bob Brown',
+                shipPhoneNumber: '0934567890',
+                shipDetailAddress: '101 Nguyen Hue, District 1, HCM',
+                paymentMethod: 'Cash on Delivery (COD)',
+                note: '',
+                subTotal: 250000,
+                shippingFee: 30000,
+                discountAmount: 30000,
+                orderDate: '2026-05-27 16:40',
+                shippedDate: '2026-05-28 15:20'
             },
             {
                 id: 'ORD-12349',
@@ -84,7 +124,19 @@ class OrdersModel {
                     }
                 ],
                 totalPrice: 110000,
-                isRated: false
+                isRated: false,
+                shipReceiverName: 'Emma Wilson',
+                shipPhoneNumber: '0945678901',
+                shipDetailAddress: '202 Dien Bien Phu, Binh Thanh, HCM',
+                paymentMethod: 'Momo E-Wallet',
+                note: '',
+                subTotal: 110000,
+                shippingFee: 15000,
+                discountAmount: 15000,
+                orderDate: '2026-05-25 11:20',
+                shippedDate: '2026-05-26 09:00',
+                deliveredDate: '2026-05-27 14:00',
+                completedDate: '2026-05-27 15:30'
             },
             {
                 id: 'ORD-12350',
@@ -100,12 +152,24 @@ class OrdersModel {
                     }
                 ],
                 totalPrice: 150000,
-                isRated: true
+                isRated: true,
+                shipReceiverName: 'James Watson',
+                shipPhoneNumber: '0956789012',
+                shipDetailAddress: '303 Bach Dang, Da Nang',
+                paymentMethod: 'Bank Transfer',
+                note: 'Please pack carefully',
+                subTotal: 150000,
+                shippingFee: 0,
+                discountAmount: 0,
+                orderDate: '2026-05-24 10:00',
+                shippedDate: '2026-05-25 14:00',
+                deliveredDate: '2026-05-26 10:00',
+                completedDate: '2026-05-26 12:00'
             },
             {
                 id: 'ORD-12351',
                 shopName: 'Book Blossom',
-                status: 'cancelled-return',
+                status: 'cancelled',
                 items: [
                     {
                         title: 'Moby Dick',
@@ -116,7 +180,43 @@ class OrdersModel {
                     }
                 ],
                 totalPrice: 180000,
+                shipReceiverName: 'David Miller',
+                shipPhoneNumber: '0967890123',
+                shipDetailAddress: '404 Le Duan, Da Nang',
+                paymentMethod: 'Cash on Delivery (COD)',
+                note: '',
+                subTotal: 180000,
+                shippingFee: 20000,
+                discountAmount: 20000,
+                orderDate: '2026-05-28 18:00',
                 cancelReason: 'Changed mind'
+            },
+            {
+                id: 'ORD-12352',
+                shopName: 'Book Blossom',
+                status: 'returned',
+                items: [
+                    {
+                        title: 'The Alchemist',
+                        author: 'Paulo Coelho',
+                        price: 90000,
+                        quantity: 2,
+                        image: '/images/Book/book2.webp'
+                    }
+                ],
+                totalPrice: 180000,
+                shipReceiverName: 'David Miller',
+                shipPhoneNumber: '0967890123',
+                shipDetailAddress: '404 Le Duan, Da Nang',
+                paymentMethod: 'Bank Transfer',
+                note: '',
+                subTotal: 180000,
+                shippingFee: 15000,
+                discountAmount: 15000,
+                orderDate: '2026-05-27 10:00',
+                shippedDate: '2026-05-28 09:00',
+                deliveredDate: '2026-05-29 14:00',
+                cancelReason: 'Damaged book cover (Returned)'
             }
         ];
     }
@@ -133,8 +233,8 @@ class OrdersModel {
         return this.orders.filter(order => {
             const matchesTab = order.status === this.currentTab;
             const matchesSearch = order.shopName.toLowerCase().includes(this.searchQuery) ||
-                                  order.id.toLowerCase().includes(this.searchQuery) ||
-                                  order.items.some(item => item.title.toLowerCase().includes(this.searchQuery));
+                order.id.toLowerCase().includes(this.searchQuery) ||
+                order.items.some(item => item.title.toLowerCase().includes(this.searchQuery));
             return matchesTab && matchesSearch;
         });
     }
