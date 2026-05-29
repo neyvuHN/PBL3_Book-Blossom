@@ -15,6 +15,7 @@ class OrdersController {
         this.view.bindViewDetails(this.handleViewDetails.bind(this));
         this.view.bindCancelOrder(this.handleCancelOrder.bind(this));
         this.view.bindOrderReceived(this.handleOrderReceived.bind(this));
+        this.view.bindTrackOrder(this.handleTrackOrder.bind(this));
         // [UPDATED] Bind Buy Again to open Secure Checkout popup
         this.view.bindBuyAgain(this.handleBuyAgain.bind(this));
         // [UPDATED] Bind clicking on book items to navigate to book details / blind book details
@@ -25,6 +26,13 @@ class OrdersController {
         const order = this.model.orders.find(o => o.id === orderId);
         if (order) {
             this.view.showOrderDetailsModal(order);
+        }
+    }
+
+    handleTrackOrder(orderId) {
+        const order = this.model.orders.find(o => o.id === orderId);
+        if (order) {
+            this.view.showOrderTrackingModal(order);
         }
     }
 

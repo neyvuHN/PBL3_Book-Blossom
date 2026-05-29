@@ -257,3 +257,160 @@
     text-decoration: underline !important;
 }
 
+/* Premium Tracking Timeline */
+.tracking-timeline {
+    position: relative;
+    padding-left: 50px;
+    margin-left: 20px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.tracking-step {
+    position: relative;
+    margin-bottom: 45px;
+    z-index: 2;
+}
+
+.tracking-step:last-child {
+    margin-bottom: 0;
+}
+
+/* Timeline Node */
+.tracking-node {
+    position: absolute;
+    left: -48px;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 2px solid #cbd5e1;
+    z-index: 3;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Completed Step (Green checkmark, matches mockup) */
+.tracking-step.completed .tracking-node {
+    background: #38a169;
+    border-color: #38a169;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    left: -39px;
+    top: 0px;
+}
+
+.tracking-step.completed .tracking-node i {
+    font-size: 11px;
+}
+
+/* Current Step (Blue large node with truck + In Transit inside, matching mockup) */
+.tracking-step.current .tracking-node {
+    background: #2b6cb0;
+    border-color: #93c5fd;
+    color: #fff;
+    box-shadow: 0 0 0 6px rgba(147, 197, 253, 0.45);
+    width: 50px;
+    height: 50px;
+    left: -52px;
+    top: -12px; /* Pull up to align text center */
+    display: flex;
+    flex-direction: column;
+}
+
+.tracking-step.current .tracking-node i {
+    font-size: 16px;
+    margin-top: 6px;
+}
+
+.tracking-step.current .tracking-node .node-subtext {
+    font-size: 7px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 2px;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+}
+
+/* Pending Step (Gray outline) */
+.tracking-step.pending .tracking-node {
+    background: #fff;
+    border: 2px solid #cbd5e1;
+    width: 24px;
+    height: 24px;
+    left: -39px;
+    top: 0px;
+}
+
+/* Tracking Step connector lines */
+.tracking-connector {
+    position: absolute;
+    left: -28px; /* Center aligned with the nodes */
+    width: 2px;
+    z-index: 1;
+}
+
+/* Connector sizing adaptively matching the node state */
+.tracking-step.completed .tracking-connector {
+    top: 20px;
+    bottom: -48px;
+}
+
+.tracking-step.current .tracking-connector {
+    top: 36px;
+    bottom: -48px;
+}
+
+.tracking-step.pending .tracking-connector {
+    top: 20px;
+    bottom: -48px;
+}
+
+.tracking-connector.solid-green {
+    background-color: #38a169;
+}
+
+.tracking-connector.dashed-gray {
+    border-left: 2px dashed #cbd5e1;
+}
+
+/* Text Content layout */
+.tracking-info {
+    padding-left: 15px;
+    min-height: 35px;
+}
+
+.tracking-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #a0aec0;
+    margin-bottom: 2px;
+    transition: color 0.2s ease;
+}
+
+.tracking-step.completed .tracking-title {
+    color: #1a202c;
+}
+
+.tracking-step.current .tracking-title {
+    color: #1a202c;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.tracking-time {
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+.tracking-desc {
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin-top: 4px;
+}
+
+

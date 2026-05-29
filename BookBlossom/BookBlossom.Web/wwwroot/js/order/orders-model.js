@@ -57,7 +57,39 @@ class OrdersModel {
                 shippingFee: 20000,
                 discountAmount: 20000,
                 orderDate: '2026-05-28 14:30',
-                shippedDate: '2026-05-29 08:00'
+                shippedDate: '2026-05-29 08:00',
+                trackingMilestones: [
+                    {
+                        title: "Order Placed",
+                        time: "Today, 14:30",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Seller Shipped",
+                        time: "Today, 14:30",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Arrived at Central Hub - Da Nang",
+                        time: "Today, 14:30",
+                        description: "Package is being sorted for dispatch.",
+                        status: "current"
+                    },
+                    {
+                        title: "Out for Delivery",
+                        time: "",
+                        description: "",
+                        status: "pending"
+                    },
+                    {
+                        title: "Delivered",
+                        time: "",
+                        description: "",
+                        status: "pending"
+                    }
+                ]
             },
             {
                 id: 'ORD-12347',
@@ -85,7 +117,39 @@ class OrdersModel {
                 discountAmount: 15000,
                 orderDate: '2026-05-27 09:15',
                 shippedDate: '2026-05-28 10:00',
-                deliveredDate: '2026-05-29 11:30'
+                deliveredDate: '2026-05-29 11:30',
+                trackingMilestones: [
+                    {
+                        title: "Order Placed",
+                        time: "2026-05-27 09:15",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Seller Shipped",
+                        time: "2026-05-28 10:00",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Arrived at Central Hub - Da Nang",
+                        time: "2026-05-29 08:00",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Out for Delivery",
+                        time: "2026-05-29 11:30",
+                        description: "Package is out for delivery with shipper David.",
+                        status: "current"
+                    },
+                    {
+                        title: "Delivered",
+                        time: "",
+                        description: "",
+                        status: "pending"
+                    }
+                ]
             },
             {
                 id: 'ORD-12348',
@@ -112,7 +176,45 @@ class OrdersModel {
                 shippingFee: 30000,
                 discountAmount: 30000,
                 orderDate: '2026-05-27 16:40',
-                shippedDate: '2026-05-28 15:20'
+                shippedDate: '2026-05-28 15:20',
+                trackingMilestones: [
+                    {
+                        title: "Order Placed",
+                        time: "2026-05-27 16:40",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Seller Shipped",
+                        time: "2026-05-28 15:20",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Arrived at Central Hub - Da Nang",
+                        time: "2026-05-29 09:00",
+                        description: "",
+                        status: "completed"
+                    },
+                    {
+                        title: "Arrived at Local Facility",
+                        time: "2026-05-29 14:00",
+                        description: "Package has arrived at the delivery hub near you.",
+                        status: "current"
+                    },
+                    {
+                        title: "Out for Delivery",
+                        time: "",
+                        description: "",
+                        status: "pending"
+                    },
+                    {
+                        title: "Delivered",
+                        time: "",
+                        description: "",
+                        status: "pending"
+                    }
+                ]
             },
             {
                 id: 'ORD-12349',

@@ -85,7 +85,7 @@ class OrdersView {
                 statusText = 'To Ship';
                 extraInfoHtml = `<div class="text-muted small mb-2"><i class="fas fa-truck"></i> ${order.tracking}</div>`;
                 actionsHtml = `
-                    <button class="btn btn-primary">Track Order</button>
+                    <button class="btn btn-primary" data-action="track-order" data-id="${order.id}">Track Order</button>
                 `;
                 break;
             case 'to-receive':
@@ -177,6 +177,16 @@ class OrdersView {
     bindOrderReceived(handler) {
         this.ordersListContainer.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-action="order-received"]');
+            if (btn) {
+                const orderId = btn.getAttribute('data-id');
+                handler(orderId);
+            }
+        });
+    }
+
+    bindTrackOrder(handler) {
+        this.ordersListContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action="track-order"]');
             if (btn) {
                 const orderId = btn.getAttribute('data-id');
                 handler(orderId);
@@ -337,5 +347,135 @@ class OrdersView {
 
         // Show modal using jQuery
         $('#orderDetailsModal').modal('show');
+    }
+
+    showOrderTrackingModal(order) {
+        document.getElementById('tracking-order-id').textContent = order.id;
+
+        const statusBadge = document.getElementById('tracking-order-status');
+        let statusLabel = '';
+        let statusBg = '#ebf8ff';
+        let statusColor = '#2b6cb0';
+
+        switch (order.status) {
+            case 'to-confirm': 
+                statusLabel = 'To Confirm'; 
+                statusBg = '#edf2f7';
+                statusColor = '#4a5568';
+                break;
+            case 'to-ship': 
+                statusLabel = 'To Ship'; 
+                statusBg = '#feebc8';
+                statusColor = '#dd6b20';
+                break;
+            case 'to-receive': 
+                statusLabel = 'To Receive'; 
+                statusBg = '#ebf8ff';
+                statusColor = '#2b6cb0';
+                break;
+            case 'completed': 
+                statusLabel = 'Completed'; 
+                statusBg = '#c6f6d5';
+                statusColor = '#22543d';
+                break;
+            case 'cancelled': 
+                statusLabel = 'Cancelled'; 
+                statusBg = '#fed7d7';
+                statusColor = '#9b2c2c';
+                break;
+            case 'returned': 
+                statusLabel = 'Returned'; 
+                statusBg = '#e2e8f0';
+                statusColor = '#4a5568';
+                break;
+            default: 
+                statusLabel = order.status;
+        }
+
+        statusBadge.textContent = statusLabel;
+        statusBadge.style.backgroundColor = statusBg;
+        statusBadge.style.color = statusColor;
+
+        const container = document.getElementById('tracking-timeline-container');
+        const milestones = order.trackingMilestones || this.generateDefaultMilestones(order);
+
+        container.innerHTML = milestones.map((ms, idx) => {
+            const isCompleted = ms.status === 'completed';
+            const isCurrent = ms.status === 'current';
+            
+            let stepClass = 'pending';
+            let iconHtml = '';
+            
+            if (isCompleted) {
+                stepClass = 'completed';
+                iconHtml = '<i class="fas fa-check"></i>';
+            } else if (isCurrent) {
+                stepClass = 'current';
+                iconHtml = '<i class="fas fa-truck"></i><span class="node-subtext">In Transit</span>';
+            }
+
+            let connectorHtml = '';
+            if (idx < milestones.length - 1) {
+                const nextMs = milestones[idx + 1];
+                const isNextActive = nextMs.status === 'completed' || nextMs.status === 'current';
+                const lineClass = (isCompleted && isNextActive) ? 'solid-green' : 'dashed-gray';
+                connectorHtml = `<div class="tracking-connector ${lineClass}"></div>`;
+            }
+
+            const timeHtml = ms.time ? `<div class="tracking-time">${ms.time}</div>` : '';
+            const descHtml = ms.description ? `<div class="tracking-desc">${ms.description}</div>` : '';
+
+            return `
+                <div class="tracking-step ${stepClass}">
+                    <div class="tracking-node">
+                        ${iconHtml}
+                    </div>
+                    <div class="tracking-info">
+                        <div class="tracking-title">${ms.title}</div>
+                        ${timeHtml}
+                        ${descHtml}
+                    </div>
+                    ${connectorHtml}
+                </div>
+            `;
+        }).join('');
+
+        // Show modal using Bootstrap 5
+        const modalEl = document.getElementById('orderTrackingModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    generateDefaultMilestones(order) {
+        // Fallback milestone generator if specific milestones are not supplied
+        const milestones = [
+            { title: "Order Placed", time: order.orderDate || "Today, 10:00", description: "", status: "completed" },
+            { title: "Seller Shipped", time: order.shippedDate || "", description: "", status: "pending" },
+            { title: "Arrived at Sort Facility", time: "", description: "", status: "pending" },
+            { title: "Out for Delivery", time: "", description: "", status: "pending" },
+            { title: "Delivered", time: "", description: "", status: "pending" }
+        ];
+
+        if (order.status === 'to-ship') {
+            milestones[1].status = 'current';
+            milestones[1].time = 'Today, 14:30';
+            milestones[1].description = 'Seller is preparing your package.';
+        } else if (order.status === 'to-receive') {
+            milestones[1].status = 'completed';
+            milestones[2].status = 'completed';
+            milestones[2].time = order.shippedDate || 'Yesterday, 14:00';
+            milestones[3].status = 'current';
+            milestones[3].time = 'Today, 08:30';
+            milestones[3].description = 'Parcel is out for delivery with the local courier.';
+        } else if (order.status === 'completed') {
+            milestones.forEach(m => m.status = 'completed');
+            milestones[1].time = order.shippedDate || '2 days ago';
+            milestones[2].time = 'Yesterday, 10:00';
+            milestones[3].time = 'Yesterday, 14:00';
+            milestones[4].time = order.completedDate || 'Today, 11:30';
+            milestones[4].description = 'Package has been successfully handed over.';
+        }
+
+        return milestones;
     }
 }
