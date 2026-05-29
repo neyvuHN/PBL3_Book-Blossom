@@ -1,0 +1,357 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using BookBlossom.Core.Entities;
+using BookBlossom.Core.Enums;
+using BookBlossom.Core.DTOs.Thread;
+using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Infrastructure.Data;
+
+namespace BookBlossom.Infrastructure.Services
+{
+    public class ThreadService : IThreadService
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<ThreadService> _logger;
+        private readonly string _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "threads");
+
+        public ThreadService(ApplicationDbContext context, ILogger<ThreadService> logger)
+        {
+            _context = context;
+            _logger = logger;
+            if (!Directory.Exists(_uploadFolder))
+            {
+                Directory.CreateDirectory(_uploadFolder);
+            }
+        }
+
+        public async Task<ThreadPostDTO> CreatePostAsync(long customerId, CreateThreadPostDTO dto, List<IFormFile>? images)
+        {
+            // 1. Validate Phone Numbers
+            ValidateNoPhoneNumbers(dto.Title, "tiêu đề");
+            ValidateNoPhoneNumbers(dto.Content, "nội dung");
+
+            // 2. Check Customer details
+            var customerDetail = await _context.CustomerDetails
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.CustomerID == customerId);
+            if (customerDetail == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy thông tin chi tiết khách hàng.");
+            }
+
+            // 3. Reset monthly thread count if new month
+            var now = DateTime.UtcNow;
+            if (!customerDetail.LastThreadResetDate.HasValue || 
+                customerDetail.LastThreadResetDate.Value.Month != now.Month || 
+                customerDetail.LastThreadResetDate.Value.Year != now.Year)
+            {
+                customerDetail.CurrentMonthThreadCount = 0;
+                customerDetail.LastThreadResetDate = now;
+            }
+
+            // 4. Check Thread Limit based on Subscription
+            var customerService = await _context.CustomerServices
+                .Include(cs => cs.ServicePackage)
+                .FirstOrDefaultAsync(cs => cs.CustomerID == customerId);
+            int threadLimit = customerService?.ServicePackage?.ThreadLimit ?? 3; // Fallback to Free (3)
+
+            if (customerDetail.CurrentMonthThreadCount >= threadLimit)
+            {
+                throw new InvalidOperationException($"Bạn đã vượt quá giới hạn đăng bài ({threadLimit} bài/tháng) của gói dịch vụ hiện tại.");
+            }
+
+            // 5. Create ThreadPost
+            var post = new ThreadPost
+            {
+                CustomerID = customerId,
+                Title = dto.Title,
+                Content = dto.Content,
+                Hashtags = dto.Hashtags,
+                CreatedAt = now,
+                IsHidden = false,
+                ReportCount = 0
+            };
+
+            _context.ThreadPosts.Add(post);
+            await _context.SaveChangesAsync(); // Save to generate PostID
+
+            // 6. Handle Image Uploads
+            if (images != null && images.Count > 0)
+            {
+                foreach (var file in images)
+                {
+                    if (file.Length == 0) continue;
+
+                    var extension = Path.GetExtension(file.FileName).ToLower();
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        throw new ArgumentException("Chỉ chấp nhận các tệp hình ảnh (.jpg, .jpeg, .png, .gif).");
+                    }
+
+                    var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+                    var absolutePath = Path.Combine(_uploadFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(absolutePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    var threadImage = new ThreadImage
+                    {
+                        PostID = post.PostID,
+                        ImagePath = $"/uploads/threads/{uniqueFileName}"
+                    };
+                    _context.ThreadImages.Add(threadImage);
+                }
+            }
+
+            // 7. Increment Monthly Post Count
+            customerDetail.CurrentMonthThreadCount += 1;
+            await _context.SaveChangesAsync();
+
+            // Load complete entity to return DTO
+            var createdPost = await _context.ThreadPosts
+                .Include(p => p.User)
+                .Include(p => p.Images)
+                .Include(p => p.Comments)
+                .FirstAsync(p => p.PostID == post.PostID);
+
+            return MapToPostDTO(createdPost);
+        }
+
+        public async Task<ThreadPostDTO> UpdatePostAsync(long customerId, long postId, UpdateThreadPostDTO dto)
+        {
+            ValidateNoPhoneNumbers(dto.Title, "tiêu đề");
+            ValidateNoPhoneNumbers(dto.Content, "nội dung");
+
+            var post = await _context.ThreadPosts
+                .Include(p => p.User)
+                .Include(p => p.Images)
+                .Include(p => p.Comments)
+                .FirstOrDefaultAsync(p => p.PostID == postId);
+
+            if (post == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy bài viết.");
+            }
+
+            if (post.CustomerID != customerId)
+            {
+                throw new UnauthorizedAccessException("Bạn không phải là chủ sở hữu của bài viết này.");
+            }
+
+            post.Title = dto.Title;
+            post.Content = dto.Content;
+            post.Hashtags = dto.Hashtags;
+
+            await _context.SaveChangesAsync();
+            return MapToPostDTO(post);
+        }
+
+        public async Task<bool> DeletePostAsync(long userId, UserRole role, long postId)
+        {
+            var post = await _context.ThreadPosts.FindAsync(postId);
+            if (post == null) return false;
+
+            // Only post owner or Moderator/Admin can delete
+            if (post.CustomerID != userId && role != UserRole.Moderator && role != UserRole.SystemAdmin)
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền xóa bài viết này.");
+            }
+
+            // Also delete associated images from disk
+            var images = await _context.ThreadImages.Where(ti => ti.PostID == postId).ToListAsync();
+            foreach (var img in images)
+            {
+                var relativePath = img.ImagePath.TrimStart('/');
+                var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
+                if (File.Exists(absolutePath))
+                {
+                    try
+                    {
+                        File.Delete(absolutePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Không thể xóa tệp ảnh: {absolutePath}");
+                    }
+                }
+            }
+
+            _context.ThreadPosts.Remove(post);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> HidePostAsync(long postId, bool isHidden)
+        {
+            var post = await _context.ThreadPosts.FindAsync(postId);
+            if (post == null) return false;
+
+            post.IsHidden = isHidden;
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<IEnumerable<ThreadPostDTO>> GetFeedAsync(int page, int pageSize)
+        {
+            var query = _context.ThreadPosts
+                .Include(p => p.User)
+                .Include(p => p.Images)
+                .Include(p => p.Comments)
+                .Where(p => !p.IsHidden)
+                .OrderByDescending(p => p.CreatedAt)
+                .AsQueryable();
+
+            var pagedQuery = query.Skip((page - 1) * pageSize).Take(pageSize);
+            var posts = await pagedQuery.ToListAsync();
+
+            return posts.Select(MapToPostDTO);
+        }
+
+        public async Task<ThreadPostDTO?> GetPostByIdAsync(long postId)
+        {
+            var post = await _context.ThreadPosts
+                .Include(p => p.User)
+                .Include(p => p.Images)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.User)
+                .FirstOrDefaultAsync(p => p.PostID == postId);
+
+            if (post == null) return null;
+
+            // Load comments sorted by CreatedAt asc
+            var dto = MapToPostDTO(post);
+            dto.Comments = post.Comments
+                .OrderBy(c => c.CreatedAt)
+                .Select(c => new ThreadCommentDTO
+                {
+                    CommentID = c.CommentID,
+                    PostID = c.PostID,
+                    CustomerID = c.CustomerID,
+                    CustomerName = $"{c.User.LastName} {c.User.FirstName}".Trim(),
+                    CustomerAvatar = c.User.Avatar,
+                    Content = c.Content,
+                    CreatedAt = c.CreatedAt
+                }).ToList();
+
+            return dto;
+        }
+
+        public async Task<ThreadCommentDTO> AddCommentAsync(long customerId, long postId, CreateThreadCommentDTO dto)
+        {
+            ValidateNoPhoneNumbers(dto.Content, "nội dung bình luận");
+
+            var postExists = await _context.ThreadPosts.AnyAsync(p => p.PostID == postId && !p.IsHidden);
+            if (!postExists)
+            {
+                throw new KeyNotFoundException("Bài viết không tồn tại hoặc đã bị ẩn.");
+            }
+
+            var user = await _context.Users.FindAsync(customerId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy thông tin tài khoản người dùng.");
+            }
+
+            var comment = new ThreadComment
+            {
+                PostID = postId,
+                CustomerID = customerId,
+                Content = dto.Content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ThreadComments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return new ThreadCommentDTO
+            {
+                CommentID = comment.CommentID,
+                PostID = comment.PostID,
+                CustomerID = comment.CustomerID,
+                CustomerName = $"{user.LastName} {user.FirstName}".Trim(),
+                CustomerAvatar = user.Avatar,
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt
+            };
+        }
+
+        public async Task<bool> DeleteCommentAsync(long userId, UserRole role, long commentId)
+        {
+            var comment = await _context.ThreadComments.FindAsync(commentId);
+            if (comment == null) return false;
+
+            // Only comment owner or Moderator/Admin can delete
+            if (comment.CustomerID != userId && role != UserRole.Moderator && role != UserRole.SystemAdmin)
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền xóa bình luận này.");
+            }
+
+            _context.ThreadComments.Remove(comment);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<int> ReportPostAsync(long postId)
+        {
+            var post = await _context.ThreadPosts.FindAsync(postId);
+            if (post == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy bài viết để báo cáo.");
+            }
+
+            post.ReportCount += 1;
+
+            if (post.ReportCount >= 5)
+            {
+                post.IsHidden = true;
+                _logger.LogWarning($"[Moderation Alert] Bài viết ID {post.PostID} của khách hàng ID {post.CustomerID} đã nhận đủ 5 báo cáo vi phạm. Hệ thống đã tự động ẩn bài viết này.");
+            }
+
+            await _context.SaveChangesAsync();
+            return post.ReportCount;
+        }
+
+        // --- HELPER METHODS ---
+
+        private void ValidateNoPhoneNumbers(string text, string fieldName)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            // Vietnamese phone numbers regex pattern
+            var pattern = @"(?:\+84|84|0)[35789](?:[\s.-]*\d){8}";
+            if (Regex.IsMatch(text, pattern))
+            {
+                throw new ArgumentException($"Nội dung {fieldName} chứa số điện thoại. Để đảm bảo an toàn bảo mật, hệ thống không cho phép đăng tải số điện thoại lên cộng đồng.");
+            }
+        }
+
+        private static ThreadPostDTO MapToPostDTO(ThreadPost p)
+        {
+            return new ThreadPostDTO
+            {
+                PostID = p.PostID,
+                CustomerID = p.CustomerID,
+                CustomerName = p.User != null ? $"{p.User.LastName} {p.User.FirstName}".Trim() : string.Empty,
+                CustomerAvatar = p.User?.Avatar,
+                Title = p.Title,
+                Content = p.Content,
+                Hashtags = p.Hashtags,
+                CreatedAt = p.CreatedAt,
+                IsHidden = p.IsHidden,
+                ReportCount = p.ReportCount,
+                CommentsCount = p.Comments?.Count ?? 0,
+                Images = p.Images?.Select(img => new ThreadImageDTO
+                {
+                    ImageID = img.ImageID,
+                    ImagePath = img.ImagePath
+                }).ToList() ?? new List<ThreadImageDTO>()
+            };
+        }
+    }
+}

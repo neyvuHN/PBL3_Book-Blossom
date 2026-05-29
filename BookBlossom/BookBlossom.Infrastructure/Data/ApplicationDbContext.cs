@@ -30,6 +30,9 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<MembershipRank> MembershipRanks { get; set; }
         public DbSet<CustomerReputation> CustomerReputations { get; set; }
         public DbSet<ReturnRequest> ReturnRequests { get; set; }
+        public DbSet<ThreadPost> ThreadPosts { get; set; }
+        public DbSet<ThreadComment> ThreadComments { get; set; }
+        public DbSet<ThreadImage> ThreadImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
