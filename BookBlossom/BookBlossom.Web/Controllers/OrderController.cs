@@ -15,5 +15,11 @@ namespace BookBlossom.Web.Controllers
         {
             return View();
         }
+
+        [HttpGet("/Orders")]
+        public IActionResult Orders()
+        {
+            return View();
+        }
     }
 }
