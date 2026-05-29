@@ -72,11 +72,14 @@ class WishlistController {
         const item = this.model.items.find(i => i.id === id);
         if (item) {
             if (isBlind) {
-                // Navigate to blind date book details
-                window.location.href = `/BlindDate/Details?id=${id}`;
+                // Navigate to blind date book details using SPA hash
+                const tags = item.hashtags && item.hashtags.length
+                    ? item.hashtags.join('-')
+                    : 'Mystery';
+                window.location.href = `/BlindDate#blind-details-${encodeURIComponent(tags)}`;
             } else {
-                // Navigate to normal book details
-                window.location.href = `/Book/Details?id=${id}`;
+                // Navigate to normal book details using SPA hash
+                window.location.href = `/Explore#book-details-${encodeURIComponent(item.title)}`;
             }
         }
     }
