@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Core.Entities;
 using System.Security.Claims;
 
 namespace BookBlossom.Web.Controllers
@@ -17,6 +18,8 @@ namespace BookBlossom.Web.Controllers
         {
             _packageService = packageService;
         }
+
+        // ======================== PUBLIC ========================
 
         [HttpGet("all")]
         public async Task<IActionResult> GetAllPackages()
@@ -54,11 +57,45 @@ namespace BookBlossom.Web.Controllers
 
             var result = await _packageService.SubscribeToPackageAsync(userId, packageId, paymentMethod);
             if (result) return Ok("Đăng ký gói thành công!");
-            
+
             return BadRequest("Đăng ký gói thất bại.");
         }
 
-        // Endpoint dành cho Admin/System để trigger background job thủ công (phục vụ test)
+        // ======================== STAFF ONLY - CRUD GÓI ========================
+
+        [Authorize(Roles = "Staff")]
+        [HttpPost("create")]
+        public async Task<IActionResult> CreatePackage([FromBody] ServicePackage package)
+        {
+            if (package == null) return BadRequest("Dữ liệu không hợp lệ.");
+            var result = await _packageService.CreatePackageAsync(package);
+            if (result) return Ok("Tạo gói dịch vụ thành công.");
+            return BadRequest("Tạo gói dịch vụ thất bại.");
+        }
+
+        [Authorize(Roles = "Staff")]
+        [HttpPut("update/{packageId}")]
+        public async Task<IActionResult> UpdatePackage(long packageId, [FromBody] ServicePackage package)
+        {
+            if (package == null) return BadRequest("Dữ liệu không hợp lệ.");
+            package.PackageID = packageId;
+            var result = await _packageService.UpdatePackageAsync(package);
+            if (result) return Ok("Cập nhật gói dịch vụ thành công.");
+            return NotFound("Không tìm thấy gói dịch vụ.");
+        }
+
+        [Authorize(Roles = "Staff")]
+        [HttpDelete("delete/{packageId}")]
+        public async Task<IActionResult> DeletePackage(long packageId)
+        {
+            var result = await _packageService.DeletePackageAsync(packageId);
+            if (result) return Ok("Xóa gói dịch vụ thành công.");
+            return NotFound("Không tìm thấy gói dịch vụ hoặc không thể xóa (gói đang được sử dụng).");
+        }
+
+        // ======================== SYSTEM / TEST ========================
+
+        // Trigger thủ công cho test, production nên thêm [Authorize(Roles = "Staff")]
         [HttpPost("trigger-expiry-check")]
         public async Task<IActionResult> TriggerExpiryCheck()
         {

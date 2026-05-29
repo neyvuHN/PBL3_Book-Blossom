@@ -1,5 +1,6 @@
 using BookBlossom.Core.DTOs.Tindbook;
 using BookBlossom.Core.Interfaces;
+using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BookBlossom.Core.Enums;
@@ -10,8 +11,13 @@ namespace BookBlossom.Infrastructure.Services
     public class TindbookService : ITindbookService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IServicePackageService _packageService;
 
-        public TindbookService(ApplicationDbContext context) => _context = context;
+        public TindbookService(ApplicationDbContext context, IServicePackageService packageService)
+        {
+            _context = context;
+            _packageService = packageService;
+        }
 
         // ======================== CUSTOMER ========================
 
@@ -101,6 +107,10 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<bool> UndoLastSwipeAsync(long userId)
         {
+            // Kiểm tra giới hạn undo theo gói dịch vụ
+            bool canUndo = await _packageService.CanUndoTindbookAsync(userId);
+            if (!canUndo) return false; // Hết lượt undo trong tháng
+
             var lastSwipe = await _context.SwipeLogs.Where(l => l.CustomerID == userId)
                 .OrderByDescending(l => l.CreatedAt).FirstOrDefaultAsync();
             if (lastSwipe == null) return false;
@@ -122,6 +132,19 @@ namespace BookBlossom.Infrastructure.Services
             }
 
             _context.SwipeLogs.Remove(lastSwipe);
+
+            // Ghi nhận lượt undo vào ServiceHistory để đếm giới hạn tháng
+            _context.ServiceHistories.Add(new ServiceHistory
+            {
+                CustomerID = userId,
+                Price = 0,
+                PaymentMethod = PaymentMethod.VNPay,
+                PaymentStatus = PaymentStatus.Completed,
+                Description = "Undo Tindbook",
+                CreateAt = DateTime.UtcNow,
+                IsAutoRenew = false
+            });
+
             await _context.SaveChangesAsync();
             return true;
         }
