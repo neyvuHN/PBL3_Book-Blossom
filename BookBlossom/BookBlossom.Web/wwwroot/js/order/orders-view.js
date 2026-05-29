@@ -5,6 +5,7 @@ class OrdersView {
         this.tabLinks = document.querySelectorAll('.orders-tabs .nav-link');
         this.searchInput = document.getElementById('orders-search-input');
         this.toReceiveBadge = document.getElementById('to-receive-badge');
+        this.toReceiveBannerContainer = document.getElementById('to-receive-banner-container');
     }
 
     bindTabChange(handler) {
@@ -38,6 +39,10 @@ class OrdersView {
     }
 
     renderOrders(orders) {
+        const activeTabEl = document.querySelector('.orders-tabs .nav-link.active');
+        const currentTab = activeTabEl ? activeTabEl.getAttribute('data-tab') : '';
+        this.updateToReceiveBanner(currentTab);
+
         this.ordersListContainer.innerHTML = '';
 
         if (orders.length === 0) {
@@ -53,6 +58,28 @@ class OrdersView {
             const orderHtml = this.generateOrderHtml(order);
             this.ordersListContainer.insertAdjacentHTML('beforeend', orderHtml);
         });
+    }
+
+    updateToReceiveBanner(currentTab) {
+        if (!this.toReceiveBannerContainer) return;
+
+        if (currentTab === 'to-receive') {
+            this.toReceiveBannerContainer.innerHTML = `
+                <div class="alert alert-info alert-dismissible fade show mb-4 border-0 shadow-sm d-flex align-items-center" role="alert" style="background-color: #ebf8ff; border-left: 4px solid #3182ce !important; border-radius: 8px; color: #2b6cb0; padding: 16px 20px; position: relative;">
+                    <div style="font-size: 1.25rem; display: flex; align-items: center; margin-right: 18px;">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div style="font-size: 0.92rem; line-height: 1.5; padding-right: 24px; margin-left: 6px;">
+                        <strong>Auto-Complete Policy:</strong> If you do not respond (click "Order Received" or submit a "Return/Refund" request) within <strong>7 days</strong> of successful delivery, the order will be automatically marked as <strong>Completed</strong>.
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: #2b6cb0; font-size: 0.8rem;"></button>
+                </div>
+            `;
+            this.toReceiveBannerContainer.style.display = 'block';
+        } else {
+            this.toReceiveBannerContainer.innerHTML = '';
+            this.toReceiveBannerContainer.style.display = 'none';
+        }
     }
 
     generateOrderHtml(order) {
@@ -358,37 +385,37 @@ class OrdersView {
         let statusColor = '#2b6cb0';
 
         switch (order.status) {
-            case 'to-confirm': 
-                statusLabel = 'To Confirm'; 
+            case 'to-confirm':
+                statusLabel = 'To Confirm';
                 statusBg = '#edf2f7';
                 statusColor = '#4a5568';
                 break;
-            case 'to-ship': 
-                statusLabel = 'To Ship'; 
+            case 'to-ship':
+                statusLabel = 'To Ship';
                 statusBg = '#feebc8';
                 statusColor = '#dd6b20';
                 break;
-            case 'to-receive': 
-                statusLabel = 'To Receive'; 
+            case 'to-receive':
+                statusLabel = 'To Receive';
                 statusBg = '#ebf8ff';
                 statusColor = '#2b6cb0';
                 break;
-            case 'completed': 
-                statusLabel = 'Completed'; 
+            case 'completed':
+                statusLabel = 'Completed';
                 statusBg = '#c6f6d5';
                 statusColor = '#22543d';
                 break;
-            case 'cancelled': 
-                statusLabel = 'Cancelled'; 
+            case 'cancelled':
+                statusLabel = 'Cancelled';
                 statusBg = '#fed7d7';
                 statusColor = '#9b2c2c';
                 break;
-            case 'returned': 
-                statusLabel = 'Returned'; 
+            case 'returned':
+                statusLabel = 'Returned';
                 statusBg = '#e2e8f0';
                 statusColor = '#4a5568';
                 break;
-            default: 
+            default:
                 statusLabel = order.status;
         }
 
@@ -402,10 +429,10 @@ class OrdersView {
         container.innerHTML = milestones.map((ms, idx) => {
             const isCompleted = ms.status === 'completed';
             const isCurrent = ms.status === 'current';
-            
+
             let stepClass = 'pending';
             let iconHtml = '';
-            
+
             if (isCompleted) {
                 stepClass = 'completed';
                 iconHtml = '<i class="fas fa-check"></i>';
