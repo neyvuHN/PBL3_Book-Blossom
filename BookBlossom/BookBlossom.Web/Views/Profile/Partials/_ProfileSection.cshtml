@@ -426,16 +426,18 @@
                                         <span class="limit-icon-header">
                                             <i class="fas fa-comments"></i> Monthly Thread Limit
                                         </span>
-                                        <span id="display-thread-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@Model.CurrentMonthThreadCount / @Model.MaxMonthlyThreadLimit posts</span>
+                                        @{
+                                            var isProPlan = Model.SubscriptionPackage == "Pro";
+                                            var threadLabelText = isProPlan ? $"{Model.CurrentMonthThreadCount} / Unlimited" : $"{Model.CurrentMonthThreadCount} / {Model.MaxMonthlyThreadLimit} posts";
+                                            var threadFillPercent = isProPlan ? 100.0 : Math.Min(100.0, ((double)Model.CurrentMonthThreadCount / Model.MaxMonthlyThreadLimit) * 100);
+                                        }
+                                        <span id="display-thread-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@threadLabelText</span>
                                     </div>
                                     <div class="premium-progress-bg" style="height: 6px;">
-                                        @{
-                                            var threadPercent = ((double)Model.CurrentMonthThreadCount / Model.MaxMonthlyThreadLimit) * 100;
-                                        }
-                                        <div class="premium-progress-fill" id="display-thread-progress" style="width: @threadPercent.ToString("0")%;"></div>
+                                        <div class="premium-progress-fill" id="display-thread-progress" style="width: @threadFillPercent.ToString("0")%;"></div>
                                     </div>
                                     <div class="d-flex justify-content-between" style="font-size: 0.72rem; color: #888;">
-                                        <span>Usage: @threadPercent.ToString("0")%</span>
+                                        <span>Usage: @(isProPlan ? "0" : threadFillPercent.ToString("0"))%</span>
                                         <span id="display-thread-reset">Resets: @Model.LastThreadResetDate.AddMonths(1).ToString("MM/dd/yyyy")</span>
                                     </div>
                                 </div>
@@ -446,16 +448,17 @@
                                         <span class="limit-icon-header">
                                             <i class="fas fa-undo"></i> Daily Tindbook Undo Limit
                                         </span>
-                                        <span id="display-undo-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@Model.DailyUndoCount / @Model.MaxDailyUndoLimit undos</span>
+                                        @{
+                                            var undoLabelText = isProPlan ? $"{Model.DailyUndoCount} / Unlimited" : $"{Model.DailyUndoCount} / {Model.MaxDailyUndoLimit} undos";
+                                            var undoFillPercent = isProPlan ? 100.0 : Math.Min(100.0, ((double)Model.DailyUndoCount / Model.MaxDailyUndoLimit) * 100);
+                                        }
+                                        <span id="display-undo-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@undoLabelText</span>
                                     </div>
                                     <div class="premium-progress-bg" style="height: 6px;">
-                                        @{
-                                            var undoPercent = ((double)Model.DailyUndoCount / Model.MaxDailyUndoLimit) * 100;
-                                        }
-                                        <div class="premium-progress-fill" id="display-undo-progress" style="width: @undoPercent.ToString("0")%;"></div>
+                                        <div class="premium-progress-fill" id="display-undo-progress" style="width: @undoFillPercent.ToString("0")%;"></div>
                                     </div>
                                     <div class="d-flex justify-content-between" style="font-size: 0.72rem; color: #888;">
-                                        <span>Usage: @undoPercent.ToString("0")%</span>
+                                        <span>Usage: @(isProPlan ? "0" : undoFillPercent.ToString("0"))%</span>
                                         <span id="display-undo-reset">Resets: Tonight at 12:00 AM</span>
                                     </div>
                                 </div>
@@ -524,6 +527,81 @@
                         @Html.Raw(GetMedalHtml(badge, "large"))
                     }
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Premium Subscriptions Upgrade Plan (Full Screen dark-dimmed backdrop popup) -->
+<div id="subscription-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.76); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.3s ease;">
+    <div id="subscription-modal-content" style="background: #fff; border-radius: 24px; width: 95%; max-width: 920px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden;">
+        <!-- Header -->
+        <div style="padding: 24px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+            <div>
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 800; color: #0f172a;">Upgrade Your Package</h3>
+                <p style="margin: 4px 0 0; color: #64748b; font-size: 0.9rem;">Choose the perfect plan to unlock premium privileges on BookBlossom.</p>
+            </div>
+            <button id="btn-close-subscription" style="background: #f1f5f9; border: none; font-size: 1.1rem; color: #475569; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Body: Three Plans Grid -->
+        <div style="padding: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; background: #f8fafc; max-height: 70vh; overflow-y: auto;">
+            <!-- Free Plan -->
+            <div class="sub-plan-card" data-plan-card="Free" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; position: relative;">
+                <div>
+                    <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Standard</span>
+                    <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Free Plan</h4>
+                    <div style="margin: 15px 0 20px;">
+                        <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">0 VND</span>
+                        <span style="color: #64748b; font-size: 0.85rem;">/month</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 3 threads / month</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 2 Tindbook undos / day</li>
+                        <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Critic Badge & sharing honors</li>
+                        <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Mystic Destiny glow aura</li>
+                    </ul>
+                </div>
+                <button class="btn-select-plan" data-plan="Free" data-price="0" style="margin-top: 30px; width: 100%; background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">Active Plan</button>
+            </div>
+
+            <!-- Basic Plan -->
+            <div class="sub-plan-card" data-plan-card="Basic" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; position: relative;">
+                <div>
+                    <span style="background: #fdf2f8; color: #c2185b; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Most Popular</span>
+                    <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Basic Plan</h4>
+                    <div style="margin: 15px 0 20px;">
+                        <span style="font-size: 1.8rem; font-weight: 800; color: #c2185b;">50,000 VND</span>
+                        <span style="color: #64748b; font-size: 0.85rem;">/month</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 20 threads / month</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 5 Tindbook undos / day</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Critic Badge & sharing honors</li>
+                        <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Mystic Destiny glow aura</li>
+                    </ul>
+                </div>
+                <button class="btn-select-plan select-premium" data-plan="Basic" data-price="50000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #c2185b 0%, #ec4899 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.25);">Upgrade Now</button>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="sub-plan-card" data-plan-card="Pro" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; position: relative;">
+                <div class="pro-tag" style="display: none; position: absolute; top: -12px; right: 24px; background: #7b1fa2; color: #fff; font-size: 0.65rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; z-index: 2;">Ultimate Experience</div>
+                <div>
+                    <span style="background: #f3e5f5; color: #7b1fa2; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Best Value</span>
+                    <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Pro Plan</h4>
+                    <div style="margin: 15px 0 20px;">
+                        <span style="font-size: 1.8rem; font-weight: 800; color: #7b1fa2;">200,000 VND</span>
+                        <span style="color: #64748b; font-size: 0.85rem;">/month</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Unlimited monthly threads</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Unlimited Tindbook undos</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Sage Badge & sharing honors</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Mystic Destiny glow aura active</li>
+                    </ul>
+                </div>
+                <button class="btn-select-plan select-premium" data-plan="Pro" data-price="200000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #7b1fa2 0%, #c084fc 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(123, 31, 162, 0.25);">Upgrade Now</button>
             </div>
         </div>
     </div>

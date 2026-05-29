@@ -109,13 +109,20 @@ class ProfileView {
         }
 
         // Subscription Limit counters & progress bars
-        $('#display-thread-counter').text(`${user.currentMonthThreadCount} / ${user.maxMonthlyThreadLimit} posts`);
-        const threadPercent = Math.min(100, (user.currentMonthThreadCount / user.maxMonthlyThreadLimit) * 100);
-        $('#display-thread-progress').css('width', threadPercent + '%');
+        if (user.subscriptionPackage === "Pro") {
+            $('#display-thread-counter').text(`${user.currentMonthThreadCount} / Unlimited`);
+            $('#display-thread-progress').css('width', '100%');
+            $('#display-undo-counter').text(`${user.dailyUndoCount} / Unlimited`);
+            $('#display-undo-progress').css('width', '100%');
+        } else {
+            $('#display-thread-counter').text(`${user.currentMonthThreadCount} / ${user.maxMonthlyThreadLimit} posts`);
+            const threadPercent = Math.min(100, (user.currentMonthThreadCount / user.maxMonthlyThreadLimit) * 100);
+            $('#display-thread-progress').css('width', threadPercent + '%');
 
-        $('#display-undo-counter').text(`${user.dailyUndoCount} / ${user.maxDailyUndoLimit} undos`);
-        const undoPercent = Math.min(100, (user.dailyUndoCount / user.maxDailyUndoLimit) * 100);
-        $('#display-undo-progress').css('width', undoPercent + '%');
+            $('#display-undo-counter').text(`${user.dailyUndoCount} / ${user.maxDailyUndoLimit} undos`);
+            const undoPercent = Math.min(100, (user.dailyUndoCount / user.maxDailyUndoLimit) * 100);
+            $('#display-undo-progress').css('width', undoPercent + '%');
+        }
 
         // Badge Cabinet Rendering
         const cabinet = $('#display-badges-cabinet');
@@ -349,6 +356,234 @@ class ProfileView {
             setTimeout(() => {
                 $toast.fadeOut(300, function () { $(this).remove(); });
             }, 4000);
+        }
+    }
+
+    /**
+     * Opens subscription plans overlay with dark slate glassmorphism
+     */
+    openSubscriptionModal(currentPlan) {
+        const overlay = document.getElementById('subscription-modal-overlay');
+        const content = document.getElementById('subscription-modal-content');
+        if (!overlay || !content) return;
+
+        overlay.style.display = 'flex';
+        // Trigger layout reflow for transitions
+        void overlay.offsetWidth;
+        content.style.opacity = '1';
+        content.style.transform = 'scale(1)';
+
+        // Iterate plans cards to highlight active one
+        $('.sub-plan-card').each(function () {
+            const plan = $(this).attr('data-plan-card');
+            const $btn = $(this).find('.btn-select-plan');
+            const $tag = $(this).find('.pro-tag');
+
+            if (plan === currentPlan) {
+                $(this).addClass('active-package');
+                $btn.text('Active Plan')
+                    .attr('disabled', 'disabled')
+                    .css({
+                        'background': '#f1f5f9',
+                        'color': '#475569',
+                        'cursor': 'default',
+                        'box-shadow': 'none',
+                        'pointer-events': 'none'
+                    });
+                if ($tag.length) $tag.show();
+            } else {
+                $(this).removeClass('active-package');
+                $btn.removeAttr('disabled').css({
+                    'cursor': 'pointer',
+                    'pointer-events': 'auto'
+                });
+
+                if (plan === 'Free') {
+                    $btn.text('Activate Standard').css({
+                        'background': '#f1f5f9',
+                        'color': '#475569',
+                        'box-shadow': 'none'
+                    });
+                } else if (plan === 'Basic') {
+                    $btn.text('Upgrade Now').css({
+                        'background': 'linear-gradient(135deg, #c2185b 0%, #ec4899 100%)',
+                        'color': '#fff',
+                        'box-shadow': '0 4px 12px rgba(194, 24, 91, 0.25)'
+                    });
+                } else if (plan === 'Pro') {
+                    $btn.text('Upgrade Now').css({
+                        'background': 'linear-gradient(135deg, #7b1fa2 0%, #c084fc 100%)',
+                        'color': '#fff',
+                        'box-shadow': '0 4px 12px rgba(123, 31, 162, 0.25)'
+                    });
+                }
+                if ($tag.length) $tag.hide();
+            }
+        });
+    }
+
+    /**
+     * Closes subscription plans overlay
+     */
+    closeSubscriptionModal() {
+        const overlay = document.getElementById('subscription-modal-overlay');
+        const content = document.getElementById('subscription-modal-content');
+        if (!overlay || !content) return;
+
+        content.style.opacity = '0';
+        content.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 300);
+    }
+
+    /**
+     * Displays redirect loading overlay for VNPay Payment Gateway
+     */
+    showVNPayLoading() {
+        const loading = document.getElementById('vnpay-loading-overlay');
+        if (loading) loading.style.display = 'flex';
+    }
+
+    /**
+     * Hides loading overlay
+     */
+    hideVNPayLoading() {
+        const loading = document.getElementById('vnpay-loading-overlay');
+        if (loading) loading.style.display = 'none';
+    }
+
+    /**
+     * Displays VNPay status verification overlay
+     */
+    showVNPayReturn() {
+        const verify = document.getElementById('vnpay-return-overlay');
+        if (verify) verify.style.display = 'flex';
+    }
+
+    /**
+     * Hides VNPay return verification overlay
+     */
+    hideVNPayReturn() {
+        const verify = document.getElementById('vnpay-return-overlay');
+        if (verify) verify.style.display = 'none';
+    }
+
+    /**
+     * Displays payment successful screen overlay customized for Package Upgrades
+     */
+    showPaymentSuccess(planName, price) {
+        const success = document.getElementById('payment-success-overlay');
+        if (!success) return;
+
+        // Customize the text for subscription business
+        $('#payment-success-overlay h2').text("Subscription Upgraded!");
+        
+        // Find the details card wrapper inside success screen
+        const cardBox = $('#payment-success-overlay div[style*="background: #f8fafc"]');
+        if (cardBox.length) {
+            cardBox.html(`
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #64748b;">Selected Plan:</span>
+                    <strong style="color: #0f172a;">${planName} Package</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #64748b;">Amount:</span>
+                    <strong style="color: #C2185B;">${new Intl.NumberFormat('vi-VN').format(price)} VND</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b;">Status:</span>
+                    <strong style="color: #166534;">Active, instant privileges unlocked</strong>
+                </div>
+            `);
+        }
+
+        // Customize action buttons
+        const $viewOrderBtn = $('#payment-success-overlay .btn-view-order');
+        const $continueBtn = $('#payment-success-overlay .btn-continue-shopping');
+        if ($viewOrderBtn.length) {
+            // Clone the button to remove checkout.js event listeners (preventing alert)
+            const $newBtn = $viewOrderBtn.clone();
+            $newBtn.text("Enjoy Premium Privileges")
+                .css({
+                    'background': planName === 'Pro' ? 'linear-gradient(135deg, #7b1fa2 0%, #c084fc 100%)' : 'linear-gradient(135deg, #c2185b 0%, #ec4899 100%)',
+                    'box-shadow': '0 6px 20px rgba(0, 0, 0, 0.15)',
+                    'padding': '12px 30px',
+                    'border-radius': '30px'
+                });
+            $viewOrderBtn.replaceWith($newBtn);
+        }
+        if ($continueBtn.length) {
+            $continueBtn.hide();
+        }
+
+        success.style.display = 'flex';
+    }
+
+    /**
+     * Hides payment success screen overlay
+     */
+    hidePaymentSuccess() {
+        const success = document.getElementById('payment-success-overlay');
+        if (success) {
+            success.style.display = 'none';
+            // Restore continue button visibility for other contexts
+            $('#payment-success-overlay .btn-continue-shopping').show();
+        }
+    }
+
+    /**
+     * Displays payment failed screen overlay customized for Package Upgrades
+     */
+    showPaymentFailed(planName) {
+        const failed = document.getElementById('payment-failed-overlay');
+        if (!failed) return;
+
+        // Customize text descriptions
+        $('#payment-failed-overlay h2').text("Upgrade Failed");
+        $('#payment-failed-overlay p').html(`The payment transaction for upgrading to the <strong>${planName} Plan</strong> has failed or was cancelled. Please try again to unlock premium privileges.`);
+
+        // Customize action buttons
+        const $retryBtn = $('#payment-failed-overlay .btn-retry-payment');
+        const $changeMethodBtn = $('#payment-failed-overlay .btn-change-method');
+        const $cancelBtn = $('#payment-failed-overlay .btn-cancel-order');
+
+        if ($retryBtn.length) {
+            const $newRetry = $retryBtn.clone();
+            $newRetry.text("Retry Upgrade")
+                .css({
+                    'background': '#c2185b',
+                    'box-shadow': '0 4px 12px rgba(194, 24, 91, 0.2)'
+                });
+            $retryBtn.replaceWith($newRetry);
+        }
+        if ($changeMethodBtn.length) {
+            $changeMethodBtn.hide();
+        }
+        if ($cancelBtn.length) {
+            const $newCancel = $cancelBtn.clone();
+            $newCancel.text("Close").css({
+                'background': 'transparent',
+                'color': '#64748b',
+                'border': 'none',
+                'font-weight': '700',
+                'margin-top': '5px'
+            });
+            $cancelBtn.replaceWith($newCancel);
+        }
+
+        failed.style.display = 'flex';
+    }
+
+    /**
+     * Hides payment failed screen overlay
+     */
+    hidePaymentFailed() {
+        const failed = document.getElementById('payment-failed-overlay');
+        if (failed) {
+            failed.style.display = 'none';
+            // Restore change method visibility for other contexts
+            $('#payment-failed-overlay .btn-change-method').show();
         }
     }
 }
