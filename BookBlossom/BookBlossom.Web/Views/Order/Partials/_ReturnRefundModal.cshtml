@@ -1,0 +1,207 @@
+<!-- Full-Screen Return/Refund Modal -->
+<div class="modal fade" id="returnRefundModal" tabindex="-1" role="dialog" aria-labelledby="returnRefundModalLabel" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable" role="document">
+        <div class="modal-content border-0" style="background-color: #faf9f6;">
+            
+            <!-- Sleek Top Accent Line -->
+            <div style="height: 6px; background: linear-gradient(90deg, #d8456b, #f76b8a); position: sticky; top: 0; z-index: 10;"></div>
+
+            <!-- Modal Header -->
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 px-md-5 d-flex align-items-center justify-content-between" style="background-color: #faf9f6; position: sticky; top: 6px; z-index: 10;">
+                <div>
+                    <h3 class="modal-title font-weight-bold" id="returnRefundModalLabel" style="color: #1a202c; font-family: 'Playfair Display', serif;">
+                        Return/Refund Request
+                    </h3>
+                    <p class="text-muted mb-0 small">Order ID: <strong id="refund-modal-order-id" style="color: #d8456b;">#ORD-12345</strong> &bull; Total Amount: <strong id="refund-modal-order-total" style="color: #2d3748;">250,000đ</strong></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 1.2rem;"></button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="modal-body py-4 px-4 px-md-5">
+                <div class="mx-auto" style="max-width: 680px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); padding: 30px;">
+                    
+                    <form id="returnRefundForm" onsubmit="event.preventDefault();">
+                        
+                        <!-- 1. Reason to Refund -->
+                        <div class="form-group mb-4">
+                            <label class="form-label font-weight-bold mb-2" style="color: #2d3748; font-size: 1.05rem;">Reason to Refund</label>
+                            <div class="position-relative">
+                                <select class="form-select form-control custom-select-premium" id="refund-reason-select" style="height: 50px; border-radius: 10px; font-size: 0.95rem; border: 1px solid #cbd5e1; padding-right: 40px; cursor: pointer;">
+                                    <option value="" disabled selected>Select a reason</option>
+                                    <option value="damaged">Damaged/Defective item (e.g. torn pages, broken cover)</option>
+                                    <option value="incorrect">Incorrect item sent (e.g. wrong book title/author)</option>
+                                    <option value="missing">Missing items or accessories in parcel</option>
+                                    <option value="description">Item doesn't match product description</option>
+                                    <option value="change_mind">Changed my mind (Keep item option only)</option>
+                                    <option value="other">Other (Please specify below)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Custom Reason Textbox (Shown when Other is selected) -->
+                        <div class="form-group mb-4" id="custom-reason-block" style="display: none; animation: slideDown 0.3s ease;">
+                            <label class="form-label font-weight-bold mb-2 small text-muted text-uppercase" style="letter-spacing: 0.5px;">Custom Reason</label>
+                            <textarea class="form-control" id="custom-reason-input" rows="2" placeholder="Please specify your reason for return/refund..." style="border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.95rem; resize: none; padding: 10px 14px; outline: none; transition: border-color 0.2s;"></textarea>
+                        </div>
+
+                        <!-- Requirement Alert -->
+                        <div class="alert alert-warning mb-4 d-flex align-items-center" role="alert" style="background-color: #fefcbf; border: 1px solid #fef08a; border-radius: 10px; color: #744210; padding: 15px 20px;">
+                            <div class="me-3" style="font-size: 1.3rem;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.4;">
+                                <strong>Requirement:</strong> You must upload at least 2 pictures and an unboxing video for missing item claims.
+                            </div>
+                        </div>
+
+                        <!-- 2. Proof Upload Area -->
+                        <div class="mb-4">
+                            <label class="form-label font-weight-bold mb-2" style="color: #2d3748; font-size: 1.05rem;">Proof Upload Area</label>
+                            
+                            <!-- Photos Upload Grid -->
+                            <div class="proof-photo-grid mb-3 d-flex flex-wrap gap-2 align-items-center">
+                                <!-- Trigger button box -->
+                                <div class="upload-box-square dotted-box-trigger" id="trigger-photo-upload" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; background-color: #f7fafc;">
+                                    <i class="fas fa-plus text-muted" style="font-size: 1.2rem;"></i>
+                                    <input type="file" id="refund-images-input" accept="image/*" multiple style="display: none;">
+                                </div>
+                                
+                                <!-- Empty state slot placeholders (max 5) -->
+                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
+                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
+                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
+                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
+                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
+                            </div>
+                            
+                            <!-- Video Upload Panel -->
+                            <div class="video-upload-panel dotted-box-trigger p-4 text-center mb-2" id="trigger-video-upload" style="border: 2px dashed #d2e8d8; border-radius: 16px; background-color: #f3faf5; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden;">
+                                <input type="file" id="refund-video-input" accept="video/*" style="display: none;">
+                                
+                                <div id="video-upload-initial-state">
+                                    <i class="fas fa-video text-success mb-3" style="font-size: 2.2rem; color: #38a169 !important;"></i>
+                                    <h5 class="font-weight-bold mb-1" style="color: #2d3748; font-size: 1rem;">Upload Unboxing Video</h5>
+                                    <p class="text-muted mb-0 small" id="video-upload-requirement-text">Required for orders > 500k (Mandatory for all refund requests)</p>
+                                </div>
+                                
+                                <div id="video-upload-progress-state" style="display: none;">
+                                    <i class="fas fa-circle-notch fa-spin text-success mb-2" style="font-size: 1.8rem; color: #38a169 !important;"></i>
+                                    <p class="mb-2 font-weight-medium small" id="video-upload-status" style="color: #2d3748;">Uploading video ...</p>
+                                    <div class="progress mx-auto" style="width: 80%; height: 6px; border-radius: 3px; background-color: #e2e8f0;">
+                                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="video-upload-progressbar" role="progressbar" style="width: 0%; border-radius: 3px; background-color: #38a169 !important;"></div>
+                                    </div>
+                                </div>
+
+                                <div id="video-upload-success-state" style="display: none;">
+                                    <i class="fas fa-check-circle text-success mb-2" style="font-size: 2rem; color: #38a169 !important;"></i>
+                                    <p class="mb-1 font-weight-bold small" style="color: #2d3748;">Video Uploaded Successfully</p>
+                                    <p class="text-muted mb-2 small" id="uploaded-video-filename" style="font-size: 0.8rem; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; margin: 0 auto;"></p>
+                                    <button type="button" class="btn btn-sm btn-outline-danger px-3 py-1 rounded-pill" id="remove-video-btn" style="font-size: 0.75rem; border-color: #fc8181; color: #e53e3e;">
+                                        Remove Video
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Proposal Section -->
+                        <div class="mb-5">
+                            <label class="form-label font-weight-bold mb-2" style="color: #2d3748; font-size: 1.05rem;">Proposal Section</label>
+                            
+                            <!-- Premium Segmented Tab Controls -->
+                            <div class="proposal-selector-wrapper d-flex p-1 mb-4" style="background-color: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <button type="button" class="btn flex-grow-1 proposal-tab-btn active" id="proposal-return-tab" data-proposal="return" style="border-radius: 9px; padding: 12px; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; background: transparent; color: #64748b; transition: all 0.2s ease;">
+                                    <i class="fas fa-undo-alt" style="font-size: 0.95rem;"></i> Return Item
+                                </button>
+                                <button type="button" class="btn flex-grow-1 proposal-tab-btn" id="proposal-keep-tab" data-proposal="keep" style="border-radius: 9px; padding: 12px; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; background: transparent; color: #64748b; transition: all 0.2s ease;">
+                                    <i class="fas fa-hand-holding-usd" style="font-size: 0.95rem;"></i> Keep Item (Refund Only)
+                                </button>
+                            </div>
+                            
+                            <!-- Refund Amount Input (Shown when Keep Item is active) -->
+                            <div class="refund-amount-container mb-3" id="refund-amount-block" style="display: none; animation: slideDown 0.3s ease;">
+                                <label class="form-label font-weight-bold mb-2 small text-muted text-uppercase" style="letter-spacing: 0.5px;">Refund Amount</label>
+                                <div class="input-group input-group-premium" style="height: 50px; border-radius: 10px; border: 1px solid #cbd5e1; overflow: hidden; background-color: #ffffff;">
+                                    <input type="text" class="form-control border-0 px-3" id="refund-amount-input" style="font-size: 1.1rem; font-weight: 600; color: #2d3748; box-shadow: none;" value="250,000">
+                                    <span class="input-group-text border-0 bg-transparent font-weight-bold px-3 text-muted" style="font-size: 0.95rem; letter-spacing: 0.5px;">VND</span>
+                                </div>
+                                <div class="mt-2 d-flex align-items-center justify-content-between flex-wrap text-muted small" style="font-size: 0.85rem;">
+                                    <span>Maximum refundable: <strong id="refund-max-text" style="color: #2d3748;">250,000 VND</strong></span>
+                                    <span id="refund-validation-error" class="text-danger font-weight-medium" style="display: none;"><i class="fas fa-exclamation-circle me-1"></i> Cannot exceed total amount</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Return Note (Shown when Return Item is active) -->
+                            <div class="return-note-container p-3 mb-3" id="return-note-block" style="background-color: #f8fafc; border-left: 4px solid #94a3b8; border-radius: 8px; font-size: 0.9rem; line-height: 1.5; color: #475569;">
+                                <i class="fas fa-info-circle text-secondary me-2"></i>
+                                You are choosing to return this item to the seller. Once the seller receives and inspects the parcel, you will receive a full refund of <strong id="return-full-amount-text" style="color: #1e293b;">250,000 VND</strong>.
+                            </div>
+                        </div>
+
+                        <!-- 4. Submit Area -->
+                        <div class="submit-area-wrapper text-center border-top pt-4">
+                            <p class="mb-3 text-muted" style="font-size: 0.82rem; font-weight: 500;">
+                                By submitting, you agree to our 
+                                <a href="#" id="open-dispute-policy-btn" style="text-decoration: underline; color: #3b82f6; font-weight: 600;">Fair Dispute Policy</a>
+                            </p>
+                            
+                            <button type="button" class="btn btn-lg w-100 py-3 rounded-pill font-weight-bold" id="submit-refund-request-btn" style="background-color: #1e293b; color: #ffffff; border: none; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(30,41,59,0.15); cursor: not-allowed; opacity: 0.6;" disabled>
+                                Submit Request
+                            </button>
+                            
+                            <p class="mt-3 mb-0 text-muted" style="font-size: 0.8rem; font-style: italic;">
+                                <i class="far fa-lightbulb text-warning me-1"></i> Top Tip: Clear photos of the packaging label help speed up the process.
+                            </p>
+                        </div>
+                    </form>
+                    
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4 px-md-5 justify-content-center" style="background-color: #faf9f6;">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal" style="min-width: 140px; font-weight: 600;">
+                    Cancel Request
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Overlay Modal: Fair Dispute Policy -->
+<div class="modal fade" id="fairDisputePolicyModal" tabindex="-1" role="dialog" aria-labelledby="fairDisputePolicyModalLabel" aria-hidden="true" style="z-index: 1060; background: rgba(0,0,0,0.25);">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div style="height: 6px; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-top-left-radius: 16px; border-top-right-radius: 16px;"></div>
+            
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h4 class="modal-title font-weight-bold" id="fairDisputePolicyModalLabel" style="color: #1e293b; font-family: 'Playfair Display', serif;">
+                    Fair Dispute Policy
+                </h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="close-policy-btn"></button>
+            </div>
+            
+            <div class="modal-body p-4 text-muted" style="font-size: 0.92rem; line-height: 1.6;">
+                <p class="mb-3">To ensure a fair and transparent experience for both buyers and sellers, BookBlossom operates under a <strong>Fair Dispute Policy</strong>. Please review our submission guidelines below:</p>
+                
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">1. Required Unboxing Video</h6>
+                <p class="mb-3">An unedited, continuous unboxing video is **mandatory** for any returns or refunds claiming missing items, outer packaging damage, or wrong items sent. The video must clearly show the unopened package label before unpacking.</p>
+                
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">2. Clear Photo Evidence</h6>
+                <p class="mb-3">At least **2 high-resolution photos** are required. Make sure to capture the overall packaging box with the shipping label visible, and close-up views of any damage or discrepancy on the book cover or pages.</p>
+                
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">3. Fair Refund Allocation</h6>
+                <p class="mb-3">When requesting "Keep Item (Refund Only)", you may negotiate a partial refund. The requested refund amount cannot exceed the **Total price paid** for the order. Refund allocations will be verified by our dispute managers.</p>
+                
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">4. Processing Timelines</h6>
+                <p class="mb-0">Once submitted, the seller has **48 hours** to accept the proposal or dispute it. If disputed, BookBlossom Dispute Managers will step in within 24 hours to review your uploaded unboxing video and photo proof to make a final binding decision.</p>
+            </div>
+            
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-primary rounded-pill px-5 w-100 font-weight-bold" id="dismiss-policy-btn" style="background-color: #3b82f6; border: none;">
+                    I Understand
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

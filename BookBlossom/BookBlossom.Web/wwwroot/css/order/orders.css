@@ -413,4 +413,182 @@
     margin-top: 4px;
 }
 
+/* ==========================================
+   Premium Return/Refund Modal & Form Styles
+   ========================================== */
+
+/* Full screen modal adjustments */
+.modal-fullscreen .modal-content {
+    min-height: 100vh;
+}
+
+/* Custom premium select styling */
+.custom-select-premium {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%234a5568' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 14px 10px;
+    background-color: #ffffff;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-select-premium:focus {
+    border-color: #d8456b !important;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(216, 69, 107, 0.15) !important;
+}
+
+/* Image Upload Slots */
+.proof-photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.upload-box-square {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dotted-box-trigger:hover {
+    border-color: #d8456b !important;
+    background-color: rgba(216, 69, 107, 0.02) !important;
+    transform: translateY(-2px);
+}
+
+/* Uploaded Image Slot */
+.photo-slot.has-image {
+    border: 1px solid #cbd5e1 !important;
+    background-color: #f8fafc;
+    opacity: 1 !important;
+}
+
+.photo-slot.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.photo-slot.has-image .delete-photo-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgba(229, 62, 62, 0.9);
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.photo-slot.has-image .delete-photo-btn:hover {
+    background-color: #e53e3e;
+    transform: scale(1.1);
+}
+
+/* Video Upload Panel */
+.video-upload-panel {
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    background-color: #fafbfc;
+    transition: all 0.25s ease-in-out;
+}
+
+.video-upload-panel:hover {
+    border-color: #38a169 !important;
+    background-color: rgba(56, 161, 105, 0.02) !important;
+}
+
+/* Segmented Proposal Tabs */
+.proposal-selector-wrapper {
+    background-color: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.proposal-tab-btn {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.proposal-tab-btn.active[data-proposal="return"] {
+    background-color: #e6f4ea !important;
+    color: #137333 !important;
+    border: 1px solid #c4eed0 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.proposal-tab-btn.active[data-proposal="keep"] {
+    background-color: #e6f4ea !important;
+    color: #137333 !important;
+    border: 1px solid #c4eed0 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Input group styling */
+.input-group-premium {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-group-premium:focus-within {
+    border-color: #d8456b !important;
+    box-shadow: 0 0 0 3px rgba(216, 69, 107, 0.15) !important;
+}
+
+/* Interactive hover logic for button submitting */
+#submit-refund-request-btn:not([disabled]) {
+    cursor: pointer !important;
+    opacity: 1 !important;
+    background-color: #d8456b !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#submit-refund-request-btn:not([disabled]):hover {
+    background-color: #c03859 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(216, 69, 107, 0.25) !important;
+}
+
+/* Smooth Slide Animations */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fix Bootstrap modal backdrop cutoff bug caused by global absolute override in style.css */
+.modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+}
+
+
+
 

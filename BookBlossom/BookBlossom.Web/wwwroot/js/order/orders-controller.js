@@ -20,6 +20,9 @@ class OrdersController {
         this.view.bindBuyAgain(this.handleBuyAgain.bind(this));
         // [UPDATED] Bind clicking on book items to navigate to book details / blind book details
         this.view.bindViewBook(this.handleViewBook.bind(this));
+        // [NEW] Bind Return/Refund click and submit handlers
+        this.view.bindReturnRefundClick(this.handleReturnRefundClick.bind(this));
+        this.view.bindReturnRefundSubmit(this.handleReturnRefundSubmit.bind(this));
     }
 
     handleViewDetails(orderId) {
@@ -155,5 +158,45 @@ class OrdersController {
     updateBadge() {
         const toReceiveCount = this.model.getToReceiveCount();
         this.view.updateToReceiveBadge(toReceiveCount);
+    }
+
+    // [NEW] Handle clicking on Return/Refund button on an order
+    handleReturnRefundClick(orderId) {
+        const order = this.model.orders.find(o => o.id === orderId);
+        if (order) {
+            this.view.showReturnRefundModal(order);
+        }
+    }
+
+    // [NEW] Handle submitting Return/Refund request data
+    handleReturnRefundSubmit(orderId, requestData) {
+        const order = this.model.orders.find(o => o.id === orderId);
+        if (!order) return;
+
+        // Perform model update
+        this.model.submitReturnRefund(orderId, requestData);
+
+        // Hide return/refund modal using Bootstrap 5
+        const modalEl = document.getElementById('returnRefundModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+
+        // Show successful completion feedback overlay popup modal using confirmation styling
+        this.view.showConfirmModal({
+            icon: 'fas fa-check-circle',
+            iconColor: '#38a169',
+            accentColor: 'linear-gradient(90deg, #38a169, #68d391)',
+            title: 'Request Submitted',
+            message: `Your return/refund request for Order #${orderId} was submitted successfully! The seller has 48 hours to respond.`,
+            confirmText: 'Great, Thank You',
+            confirmBtnClass: 'btn-success',
+            onConfirm: () => {
+                // Refresh views
+                this.updateView();
+                this.updateBadge();
+            }
+        });
     }
 }

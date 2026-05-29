@@ -6,6 +6,15 @@ class OrdersView {
         this.searchInput = document.getElementById('orders-search-input');
         this.toReceiveBadge = document.getElementById('to-receive-badge');
         this.toReceiveBannerContainer = document.getElementById('to-receive-banner-container');
+        
+        // [NEW] Return/Refund state management
+        this.uploadedImages = [];
+        this.uploadedVideo = null;
+        this.activeProposal = 'return'; // Default proposal
+        this.currentOrderTotal = 0;
+        this.isVideoUploading = false;
+        
+        this.initReturnRefundEvents();
     }
 
     bindTabChange(handler) {
@@ -120,7 +129,7 @@ class OrdersView {
                 extraInfoHtml = `<div class="text-muted small mb-2"><i class="fas fa-truck"></i> ${order.tracking}</div>`;
                 actionsHtml = `
                     <button class="btn btn-primary" data-action="order-received" data-id="${order.id}">Order Received</button>
-                    <button class="btn btn-outline-secondary">Return/Refund</button>
+                    <button class="btn btn-outline-secondary" data-action="return-refund" data-id="${order.id}">Return/Refund</button>
                 `;
                 break;
             case 'completed':
@@ -504,5 +513,403 @@ class OrdersView {
         }
 
         return milestones;
+    }
+
+    // [NEW] Bind click on Return/Refund button
+    bindReturnRefundClick(handler) {
+        this.ordersListContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action="return-refund"]');
+            if (btn) {
+                const orderId = btn.getAttribute('data-id');
+                handler(orderId);
+            }
+        });
+    }
+
+    // [NEW] Bind Submit Request click
+    bindReturnRefundSubmit(handler) {
+        const submitBtn = document.getElementById('submit-refund-request-btn');
+        if (!submitBtn) return;
+
+        submitBtn.addEventListener('click', () => {
+            if (submitBtn.hasAttribute('disabled')) return;
+
+            const orderId = submitBtn.getAttribute('data-order-id');
+            const reasonSelect = document.getElementById('refund-reason-select');
+            
+            let reasonText = "";
+            if (reasonSelect.value === 'other') {
+                const customInput = document.getElementById('custom-reason-input');
+                reasonText = customInput ? customInput.value.trim() : "Other reason";
+            } else {
+                reasonText = reasonSelect.options[reasonSelect.selectedIndex].text;
+            }
+            
+            let refundAmount = this.currentOrderTotal;
+            if (this.activeProposal === 'keep') {
+                const cleanAmount = document.getElementById('refund-amount-input').value.replace(/,/g, '');
+                refundAmount = parseFloat(cleanAmount) || 0;
+            }
+
+            handler(orderId, {
+                reason: reasonText,
+                proposal: this.activeProposal,
+                refundAmount: refundAmount,
+                imagesCount: this.uploadedImages.length,
+                hasVideo: !!this.uploadedVideo
+            });
+        });
+    }
+
+    // [NEW] Open Return/Refund full-screen modal and initialize order-related fields
+    showReturnRefundModal(order) {
+        this.currentOrderTotal = order.totalPrice;
+        
+        // Set dynamic display fields
+        document.getElementById('refund-modal-order-id').textContent = `#${order.id}`;
+        document.getElementById('refund-modal-order-total').textContent = `${order.totalPrice.toLocaleString('vi-VN')}đ`;
+        document.getElementById('return-full-amount-text').textContent = `${order.totalPrice.toLocaleString('vi-VN')} VND`;
+        document.getElementById('refund-max-text').textContent = `${order.totalPrice.toLocaleString('vi-VN')} VND`;
+        
+        // Prefill maximum refund amount
+        const amountInput = document.getElementById('refund-amount-input');
+        amountInput.value = order.totalPrice.toLocaleString('vi-VN');
+        
+        // Configure requirement text dynamically (video mandatory for orders > 500k as a tooltip tip)
+        const requirementText = document.getElementById('video-upload-requirement-text');
+        if (order.totalPrice > 500000) {
+            requirementText.textContent = "Upload Unboxing Video (REQUIRED - Order exceeds 500k)";
+        } else {
+            requirementText.textContent = "Upload Unboxing Video (Required for all missing/damaged claims)";
+        }
+
+        // Attach order ID to the submit button
+        document.getElementById('submit-refund-request-btn').setAttribute('data-order-id', order.id);
+
+        // Reset uploads & form fields
+        this.uploadedImages = [];
+        this.uploadedVideo = null;
+        this.isVideoUploading = false;
+        document.getElementById('refund-reason-select').value = "";
+        
+        const customBlock = document.getElementById('custom-reason-block');
+        const customInput = document.getElementById('custom-reason-input');
+        if (customBlock) customBlock.style.display = 'none';
+        if (customInput) customInput.value = "";
+        
+        // Reset view states
+        this.renderPhotoSlots();
+        
+        // Reset video panel view states
+        document.getElementById('video-upload-initial-state').style.display = 'block';
+        document.getElementById('video-upload-progress-state').style.display = 'none';
+        document.getElementById('video-upload-success-state').style.display = 'none';
+        
+        // Reset proposal state to default (Return Item)
+        this.selectProposal('return');
+        
+        // Check initial state
+        this.updateSubmitButtonState();
+
+        // Show Return/Refund Modal
+        const modalEl = document.getElementById('returnRefundModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    // [NEW] Initialize interactive forms, upload actions, and overlay popups
+    initReturnRefundEvents() {
+        const photoTrigger = document.getElementById('trigger-photo-upload');
+        const photoInput = document.getElementById('refund-images-input');
+        const videoTrigger = document.getElementById('trigger-video-upload');
+        const videoInput = document.getElementById('refund-video-input');
+        const reasonSelect = document.getElementById('refund-reason-select');
+        const refundAmountInput = document.getElementById('refund-amount-input');
+        const customReasonInput = document.getElementById('custom-reason-input');
+        
+        // Photo trigger click
+        if (photoTrigger && photoInput) {
+            photoTrigger.addEventListener('click', () => photoInput.click());
+            photoInput.addEventListener('change', (e) => this.handlePhotoUpload(e.target.files));
+        }
+
+        // Video trigger click
+        if (videoTrigger && videoInput) {
+            videoTrigger.addEventListener('click', () => {
+                if (!this.uploadedVideo && !this.isVideoUploading) {
+                    videoInput.click();
+                }
+            });
+            videoInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.handleVideoUpload(e.target.files[0]);
+                }
+            });
+        }
+
+        // Remove video action
+        const removeVideoBtn = document.getElementById('remove-video-btn');
+        if (removeVideoBtn) {
+            removeVideoBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Avoid triggering videoInput click
+                this.uploadedVideo = null;
+                document.getElementById('video-upload-initial-state').style.display = 'block';
+                document.getElementById('video-upload-success-state').style.display = 'none';
+                if (videoInput) videoInput.value = "";
+                this.updateSubmitButtonState();
+            });
+        }
+
+        // Proposal Tab Toggles
+        const returnTab = document.getElementById('proposal-return-tab');
+        const keepTab = document.getElementById('proposal-keep-tab');
+        if (returnTab && keepTab) {
+            returnTab.addEventListener('click', () => this.selectProposal('return'));
+            keepTab.addEventListener('click', () => this.selectProposal('keep'));
+        }
+
+        // Reason change validation
+        if (reasonSelect) {
+            reasonSelect.addEventListener('change', () => {
+                const customBlock = document.getElementById('custom-reason-block');
+                const customInput = document.getElementById('custom-reason-input');
+                if (reasonSelect.value === 'other') {
+                    if (customBlock) customBlock.style.display = 'block';
+                    if (customInput) customInput.focus();
+                } else {
+                    if (customBlock) customBlock.style.display = 'none';
+                    if (customInput) customInput.value = "";
+                }
+                this.updateSubmitButtonState();
+            });
+        }
+
+        // Custom Reason typing validation
+        if (customReasonInput) {
+            customReasonInput.addEventListener('input', () => {
+                this.updateSubmitButtonState();
+            });
+        }
+
+        // Refund Amount inputs formatting and validation
+        if (refundAmountInput) {
+            refundAmountInput.addEventListener('input', (e) => {
+                // Extract numeric values only
+                let valueStr = e.target.value.replace(/[^0-9]/g, '');
+                let numericVal = parseFloat(valueStr) || 0;
+                
+                // Enforce max validation
+                const validationError = document.getElementById('refund-validation-error');
+                if (numericVal > this.currentOrderTotal) {
+                    validationError.style.display = 'inline';
+                    refundAmountInput.style.borderColor = '#e53e3e';
+                } else {
+                    validationError.style.display = 'none';
+                    refundAmountInput.style.borderColor = '#cbd5e1';
+                }
+                
+                // Prefill back formatted text
+                e.target.value = numericVal.toLocaleString('vi-VN');
+                this.updateSubmitButtonState();
+            });
+        }
+
+        // Policy overlay triggers
+        const openPolicyBtn = document.getElementById('open-dispute-policy-btn');
+        const dismissPolicyBtn = document.getElementById('dismiss-policy-btn');
+        const closePolicyBtn = document.getElementById('close-policy-btn');
+        
+        if (openPolicyBtn) {
+            openPolicyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const policyModalEl = document.getElementById('fairDisputePolicyModal');
+                const policyModal = new bootstrap.Modal(policyModalEl);
+                policyModal.show();
+            });
+        }
+
+        const hidePolicy = () => {
+            const policyModalEl = document.getElementById('fairDisputePolicyModal');
+            const modalInstance = bootstrap.Modal.getInstance(policyModalEl);
+            if (modalInstance) modalInstance.hide();
+        };
+
+        if (dismissPolicyBtn) dismissPolicyBtn.addEventListener('click', hidePolicy);
+        if (closePolicyBtn) closePolicyBtn.addEventListener('click', hidePolicy);
+    }
+
+    // [NEW] Handle simulated photo file uploads
+    handlePhotoUpload(files) {
+        if (this.uploadedImages.length >= 5) return;
+        
+        // Mock upload images simulation
+        for (let i = 0; i < files.length; i++) {
+            if (this.uploadedImages.length >= 5) break;
+            
+            const file = files[i];
+            const objectUrl = URL.createObjectURL(file);
+            this.uploadedImages.push({
+                name: file.name,
+                url: objectUrl
+            });
+        }
+
+        this.renderPhotoSlots();
+        this.updateSubmitButtonState();
+        
+        // Reset file input value to allow uploading same photo again
+        const photoInput = document.getElementById('refund-images-input');
+        if (photoInput) photoInput.value = "";
+    }
+
+    // [NEW] Renders photo grids including custom uploaded image containers and triggers
+    renderPhotoSlots() {
+        const photoGrid = document.querySelector('.proof-photo-grid');
+        if (!photoGrid) return;
+
+        // Clear all except the first item (which is the trigger)
+        const photoSlots = photoGrid.querySelectorAll('.photo-slot');
+        photoSlots.forEach(slot => slot.remove());
+
+        // Append active uploaded photo containers
+        this.uploadedImages.forEach((imgData, index) => {
+            const slotHtml = `
+                <div class="upload-box-square photo-slot has-image" style="width: 85px; height: 85px;">
+                    <img src="${imgData.url}" alt="Proof Image ${index + 1}">
+                    <button type="button" class="delete-photo-btn" data-index="${index}">&times;</button>
+                </div>
+            `;
+            photoGrid.insertAdjacentHTML('beforeend', slotHtml);
+        });
+
+        // Add back placeholders to pad up to 5 empty boxes
+        const emptySlotsCount = 5 - this.uploadedImages.length;
+        for (let i = 0; i < emptySlotsCount; i++) {
+            const slotHtml = `
+                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
+            `;
+            photoGrid.insertAdjacentHTML('beforeend', slotHtml);
+        }
+
+        // Attach click actions to delete photo buttons
+        const deleteBtns = photoGrid.querySelectorAll('.delete-photo-btn');
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(btn.getAttribute('data-index'));
+                
+                // Revoke URL to prevent memory leaks
+                URL.revokeObjectURL(this.uploadedImages[index].url);
+                this.uploadedImages.splice(index, 1);
+                
+                this.renderPhotoSlots();
+                this.updateSubmitButtonState();
+            });
+        });
+    }
+
+    // [NEW] Handle simulated unboxing video upload progress animation
+    handleVideoUpload(file) {
+        this.isVideoUploading = true;
+        
+        // Switch view states
+        document.getElementById('video-upload-initial-state').style.display = 'none';
+        document.getElementById('video-upload-progress-state').style.display = 'block';
+        document.getElementById('video-upload-success-state').style.display = 'none';
+        
+        const progressbar = document.getElementById('video-upload-progressbar');
+        const statusText = document.getElementById('video-upload-status');
+        progressbar.style.width = '0%';
+        
+        let progress = 0;
+        const uploadSpeed = 100; // ms intervals
+        
+        const interval = setInterval(() => {
+            progress += Math.floor(Math.random() * 12) + 6;
+            if (progress >= 100) {
+                progress = 100;
+                progressbar.style.width = '100%';
+                statusText.textContent = "Uploading video ... 100%";
+                clearInterval(interval);
+                
+                // Wait briefly, then display success state
+                setTimeout(() => {
+                    this.isVideoUploading = false;
+                    this.uploadedVideo = file;
+                    
+                    document.getElementById('video-upload-progress-state').style.display = 'none';
+                    document.getElementById('video-upload-success-state').style.display = 'block';
+                    document.getElementById('uploaded-video-filename').textContent = file.name;
+                    
+                    this.updateSubmitButtonState();
+                }, 400);
+            } else {
+                progressbar.style.width = `${progress}%`;
+                statusText.textContent = `Uploading video ... ${progress}%`;
+            }
+        }, uploadSpeed);
+    }
+
+    // [NEW] Toggle active proposal option: Return Item vs Keep Item
+    selectProposal(type) {
+        this.activeProposal = type;
+        
+        const returnTab = document.getElementById('proposal-return-tab');
+        const keepTab = document.getElementById('proposal-keep-tab');
+        const refundAmountBlock = document.getElementById('refund-amount-block');
+        const returnNoteBlock = document.getElementById('return-note-block');
+        
+        if (type === 'return') {
+            returnTab.classList.add('active');
+            keepTab.classList.remove('active');
+            if (refundAmountBlock) refundAmountBlock.style.display = 'none';
+            if (returnNoteBlock) returnNoteBlock.style.display = 'block';
+        } else {
+            returnTab.classList.remove('active');
+            keepTab.classList.add('active');
+            if (refundAmountBlock) refundAmountBlock.style.display = 'block';
+            if (returnNoteBlock) returnNoteBlock.style.display = 'none';
+        }
+        
+        this.updateSubmitButtonState();
+    }
+
+    // [NEW] Validate requirements: unboxing video mandatory, at least 2 images, reason selected, valid refund amount
+    updateSubmitButtonState() {
+        const submitBtn = document.getElementById('submit-refund-request-btn');
+        if (!submitBtn) return;
+
+        const reasonSelect = document.getElementById('refund-reason-select');
+        let reasonSelected = reasonSelect && reasonSelect.value !== "";
+        
+        // If 'other' is selected, require custom reason text
+        if (reasonSelect && reasonSelect.value === 'other') {
+            const customInput = document.getElementById('custom-reason-input');
+            reasonSelected = customInput && customInput.value.trim() !== "";
+        }
+        
+        const hasVideo = this.uploadedVideo !== null;
+        const hasMinPhotos = this.uploadedImages.length >= 2;
+        
+        let amountIsValid = true;
+        if (this.activeProposal === 'keep') {
+            const amountInput = document.getElementById('refund-amount-input');
+            const cleanAmount = amountInput ? amountInput.value.replace(/[^0-9]/g, '') : "0";
+            const numericVal = parseFloat(cleanAmount) || 0;
+            
+            amountIsValid = numericVal > 0 && numericVal <= this.currentOrderTotal;
+        }
+
+        // Must upload unboxing video AND at least 2 images AND choose refund reason AND valid amount
+        const canSubmit = reasonSelected && hasVideo && hasMinPhotos && amountIsValid && !this.isVideoUploading;
+
+        if (canSubmit) {
+            submitBtn.removeAttribute('disabled');
+            submitBtn.style.cursor = 'pointer';
+            submitBtn.style.opacity = '1';
+        } else {
+            submitBtn.setAttribute('disabled', 'true');
+            submitBtn.style.cursor = 'not-allowed';
+            submitBtn.style.opacity = '0.6';
+        }
     }
 }

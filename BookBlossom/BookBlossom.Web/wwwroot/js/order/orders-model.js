@@ -352,4 +352,28 @@ class OrdersModel {
     getToReceiveCount() {
         return this.orders.filter(order => order.status === 'to-receive').length;
     }
+
+    // [NEW] Submit Return/Refund request and update order status in local dummy model
+    submitReturnRefund(orderId, requestData) {
+        const order = this.orders.find(o => o.id === orderId);
+        if (!order) return;
+
+        order.status = 'returned';
+        
+        const proposalLabel = requestData.proposal === 'keep' 
+            ? `Keep Item (Refund Request: ${requestData.refundAmount.toLocaleString('vi-VN')}đ)` 
+            : 'Return & Refund Item';
+
+        order.cancelReason = `${requestData.reason} - ${proposalLabel}`;
+        
+        // Add timeline record if trackingMilestones is defined
+        if (order.trackingMilestones) {
+            order.trackingMilestones.push({
+                title: "Return/Refund Requested",
+                time: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', year: 'numeric', month: '2-digit', day: '2-digit' }),
+                description: `Reason: ${requestData.reason}. Proposal: ${proposalLabel}.`,
+                status: "completed"
+            });
+        }
+    }
 }
