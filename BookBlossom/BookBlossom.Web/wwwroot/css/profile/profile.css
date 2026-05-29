@@ -469,136 +469,326 @@
     background: #ddd;
 }
 
-/* Custom Badges Styles */
-.badge-review-champ {
-    background: #fff4e5;
-    border-color: #ff9800;
-    color: #e65100;
-}
-.badge-review-champ i { color: #f57c00; }
+/* ==========================================================================
+   PREMIUM BADGE MEDALS STYLING SYSTEM
+   Replaces legacy badge chips with 3D scalloped medals & hanging ribbons.
+   ========================================================================== */
 
-.badge-knowledge-envoy {
-    background: #e3f2fd;
-    border-color: #2196f3;
-    color: #0d47a1;
-}
-.badge-knowledge-envoy i { color: #1976d2; }
-
-.badge-blind-date-boss {
-    background: #f3e5f5;
-    border-color: #9c27b0;
-    color: #4a148c;
-}
-.badge-blind-date-boss i { color: #7b1fa2; }
-
-.badge-bookworm {
-    background: #e8f5e9;
-    border-color: #4caf50;
-    color: #1b5e20;
-}
-.badge-bookworm i { color: #388e3c; }
-
-.badge-model-user {
-    background: #e0f7fa;
-    border-color: #00bcd4;
-    color: #006064;
-}
-.badge-model-user i { color: #0097a7; }
-
-.badge-mod-assistant {
-    background: #fce4ec;
-    border-color: #e91e63;
-    color: #880e4f;
-}
-.badge-mod-assistant i { color: #c2185b; }
-
-.badge-view-all {
-    background: #f8f9fa;
-    border-color: #ddd;
-    color: #555;
-    cursor: pointer;
-    font-weight: 700;
-}
-.badge-view-all:hover {
-    background: #e9ecef;
-    border-color: #ccc;
-}
-
-/* Modal Specific Badge Styles */
-.badge-modal-item {
-    display: flex;
+/* Main Medal Container */
+.badge-medal, .badge-medal:hover {
+    display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #eee;
-    background: #fff;
-    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    width: 105px;
+    margin: 10px 8px;
+    position: relative;
+    cursor: pointer;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
-.badge-modal-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
-.badge-modal-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
+
+/* Medal Lift / Pop up Effect on Hover */
+.medal-container {
+    position: relative;
+    width: 80px;
+    height: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
-    background: rgba(255,255,255,0.8);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 6px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
 }
-.badge-modal-info h6 {
-    margin: 0 0 4px 0;
+
+.badge-medal:hover .medal-container {
+    transform: translateY(-10px) scale(1.12);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.22)) !important;
+}
+
+.medal-svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.12));
+}
+
+.medal-icon-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateY(-5px);
+    z-index: 3;
+    font-size: 1.35rem;
+    color: #ffffff;
+    text-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.badge-medal:hover .medal-icon-container {
+    transform: translate(-50%, -50%) translateY(-5px) scale(1.22) rotate(15deg);
+}
+
+.medal-title {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #475569;
+    max-width: 95px;
+    line-height: 1.25;
+    margin-top: 4px;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Beautiful Glow & Lift for the Medal Title */
+.badge-medal:hover .medal-title {
+    color: #e2a000 !important; /* Elegant golden text glow */
+    text-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+    transform: translateY(2px) scale(1.08);
+}
+
+/* Medal Level Layouts & Animations */
+.medal-scallop-base {
+    transition: filter 0.3s ease;
+}
+
+.badge-medal:hover .medal-scallop-base {
+    filter: brightness(1.05);
+}
+
+/* Level 2 Medals - Silver Metallic Outline & Glow */
+.medal-lvl2 .medal-container {
+    filter: drop-shadow(0 0 6px rgba(189, 189, 189, 0.6));
+}
+
+/* Level 3 Medals - Gold Sparkle & Rotating Dotted Frame */
+.medal-lvl3 .medal-container {
+    filter: drop-shadow(0 0 10px rgba(255, 179, 0, 0.6));
+}
+
+/* Sparkle Animations for Level 3 */
+.medal-lvl3::before {
+    content: '✦';
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 0.8rem;
+    color: #ffb300;
+    z-index: 4;
+    opacity: 0;
+    animation: sparkleSpin 4s infinite ease-in-out;
+}
+
+.medal-lvl3::after {
+    content: '✦';
+    position: absolute;
+    bottom: 25px;
+    left: 10px;
+    font-size: 0.65rem;
+    color: #ffd54f;
+    z-index: 4;
+    opacity: 0;
+    animation: sparkleSpin 4s infinite ease-in-out 2s;
+}
+
+@keyframes sparkleSpin {
+    0%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
+    50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+}
+
+/* Special Mystic Destiny Pulsing Effect */
+.theme-destiny .medal-container {
+    animation: destinyMedalPulse 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes destinyMedalPulse {
+    0% { filter: drop-shadow(0 0 5px rgba(123, 31, 162, 0.5)); }
+    100% { filter: drop-shadow(0 0 15px rgba(123, 31, 162, 0.95)) brightness(1.1); }
+}
+
+/* Ribbon Tailwind Micro-Movement */
+.badge-medal:hover .ribbon-tail-left {
+    transform: rotate(-3deg) translate(-1px, 1px);
+    transform-origin: 36px 50px;
+    transition: transform 0.3s ease;
+}
+
+.badge-medal:hover .ribbon-tail-right {
+    transform: rotate(3deg) translate(1px, 1px);
+    transform-origin: 64px 50px;
+    transition: transform 0.3s ease;
+}
+
+/* --- View All Cabinet Placeholder --- */
+.badge-medal-view-all {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 105px;
+    margin: 10px 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.badge-medal-view-all:hover {
+    transform: scale(1.08) translateY(-4px);
+}
+
+.view-all-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px dashed #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 6px 0 16px 0;
+    color: #64748b;
     font-weight: 700;
-    font-size: 1.05rem;
+    transition: all 0.3s ease;
 }
+
+.view-all-circle i {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.view-all-circle span {
+    font-size: 0.75rem;
+}
+
+.badge-medal-view-all:hover .view-all-circle {
+    background: #fff5f7;
+    border-color: #C2185B;
+    color: #C2185B;
+    box-shadow: 0 4px 12px rgba(194, 24, 91, 0.1);
+}
+
+.view-all-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+.badge-medal-view-all:hover .view-all-label {
+    color: #C2185B;
+}
+
+/* ==========================================================================
+   MODAL DIALOG - BADGE DETAILS SPECIFICS
+   ========================================================================== */
+
+/* Premium List Row layout for badges in modal */
+.badge-modal-medal-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    background: #ffffff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.badge-modal-medal-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+    border-color: #e2e8f0;
+}
+
+.badge-modal-info {
+    flex: 1;
+}
+
+.badge-modal-info h6 {
+    margin: 0 0 5px 0;
+    font-weight: 750;
+    font-size: 1.05rem;
+    color: #1e293b;
+    font-family: 'Lora', serif;
+}
+
 .badge-modal-info p {
     margin: 0;
     font-size: 0.85rem;
-    color: #666;
-    line-height: 1.4;
+    color: #64748b;
+    line-height: 1.45;
 }
 
-/* Mystic Avatar Glow Effect */
-@keyframes mysticGlow {
-    0% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.4); }
-    50% { box-shadow: 0 0 30px rgba(156, 39, 176, 0.9); }
-    100% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.4); }
+/* Accent Badge for Earned Dates */
+.badge-earned-date {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #c2185b; /* BookBlossom theme accent pink */
+    background: #fdf2f8; /* Elegant ultra-soft pink background */
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px dashed #fbcfe8;
+    line-height: 1;
 }
+
+.badge-earned-date i {
+    font-size: 0.8rem;
+    margin-right: 4px;
+}
+
+/* ==========================================================================
+   PREMIUM MODAL DIMMED SLATE BACKDROP
+   ========================================================================== */
+.modal-backdrop {
+    background-color: rgba(15, 23, 42, 0.72) !important; /* Premium dark slate transparent backdrop */
+    backdrop-filter: blur(5px) !important; /* Elegant glassmorphism blur overlay */
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.modal-backdrop.show {
+    opacity: 1 !important;
+}
+
+/* Dynamic themes shadows & micro-details */
+.theme-bronze:hover { box-shadow: 0 6px 15px rgba(216, 67, 21, 0.12); }
+.theme-silver:hover { box-shadow: 0 6px 15px rgba(189, 189, 189, 0.15); }
+.theme-gold:hover { box-shadow: 0 6px 15px rgba(255, 160, 0, 0.15); }
+.theme-blue:hover { box-shadow: 0 6px 15px rgba(2, 136, 209, 0.15); }
+.theme-purple:hover { box-shadow: 0 6px 15px rgba(123, 31, 162, 0.15); }
+.theme-green:hover { box-shadow: 0 6px 15px rgba(56, 142, 60, 0.15); }
+.theme-teal:hover { box-shadow: 0 6px 15px rgba(0, 121, 107, 0.15); }
+.theme-crimson:hover { box-shadow: 0 6px 15px rgba(211, 47, 47, 0.15); }
+
+/* ==========================================================================
+   MYSTIC AVATAR AURA GLOW EFFECT
+   ========================================================================== */
+@keyframes mysticGlow {
+    0% {
+        box-shadow: 0 0 15px rgba(156, 39, 176, 0.4), 
+                    0 0 5px rgba(156, 39, 176, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(156, 39, 176, 0.85), 
+                    0 0 15px rgba(156, 39, 176, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 15px rgba(156, 39, 176, 0.4), 
+                    0 0 5px rgba(156, 39, 176, 0.2);
+    }
+}
+
 .mystic-aura .profile-avatar {
     border: 5px solid #f3e5f5;
-    animation: mysticGlow 3s infinite alternate;
+    animation: mysticGlow 3s infinite alternate ease-in-out;
 }
 
-/* Badge Level Frames */
-.badge-frame-lvl1 {
-    border: 1px solid currentColor;
-}
-.badge-frame-lvl2 {
-    border: 2px solid currentColor;
-    box-shadow: 0 0 8px currentColor;
-    font-weight: 800;
-}
-.badge-frame-lvl3 {
-    border: 2px dashed currentColor;
-    box-shadow: 0 0 12px currentColor, inset 0 0 4px currentColor;
-    font-weight: 900;
-    position: relative;
-    overflow: hidden;
-}
-.badge-frame-lvl3::after {
-    content: '';
-    position: absolute;
-    top: -50%; left: -50%; width: 200%; height: 200%;
-    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
-    transform: rotate(30deg);
-    animation: badgeShine 3s infinite;
-}
-@keyframes badgeShine {
-    0% { left: -100%; }
-    20% { left: 100%; }
-    100% { left: 100%; }
-}

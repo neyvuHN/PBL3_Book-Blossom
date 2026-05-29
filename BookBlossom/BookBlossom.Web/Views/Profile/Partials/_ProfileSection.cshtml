@@ -1,5 +1,118 @@
 @model BookBlossom.Web.ViewModels.Profile.ProfileViewModel
 
+<!-- Core SVG Definitions for Badge Medals (Common Gradient & DropShadow Definitions) -->
+<svg style="position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;">
+    <defs>
+        <!-- Ribbons Gradients -->
+        <linearGradient id="ribbonLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E53935" />
+            <stop offset="100%" stop-color="#B71C1C" />
+        </linearGradient>
+        <linearGradient id="ribbonRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF5252" />
+            <stop offset="100%" stop-color="#C62828" />
+        </linearGradient>
+
+        <!-- Gold Medallion Gradient -->
+        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE082" />
+            <stop offset="30%" stop-color="#FFB300" />
+            <stop offset="70%" stop-color="#FFA000" />
+            <stop offset="100%" stop-color="#FF6F00" />
+        </linearGradient>
+        <linearGradient id="goldInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFF9C4" />
+            <stop offset="40%" stop-color="#FBC02D" />
+            <stop offset="100%" stop-color="#F57F17" />
+        </linearGradient>
+
+        <!-- Silver Medallion Gradient -->
+        <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E0E0E0" />
+            <stop offset="30%" stop-color="#BDBDBD" />
+            <stop offset="70%" stop-color="#9E9E9E" />
+            <stop offset="100%" stop-color="#757575" />
+        </linearGradient>
+        <linearGradient id="silverInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F5F5F5" />
+            <stop offset="40%" stop-color="#CFD8DC" />
+            <stop offset="100%" stop-color="#90A4AE" />
+        </linearGradient>
+
+        <!-- Bronze Medallion Gradient -->
+        <linearGradient id="bronzeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFCCBC" />
+            <stop offset="40%" stop-color="#D84315" />
+            <stop offset="100%" stop-color="#BF360C" />
+        </linearGradient>
+        <linearGradient id="bronzeInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE0B2" />
+            <stop offset="40%" stop-color="#FFB74D" />
+            <stop offset="100%" stop-color="#E65100" />
+        </linearGradient>
+
+        <!-- Blue Gradient -->
+        <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#B3E5FC" />
+            <stop offset="40%" stop-color="#0288D1" />
+            <stop offset="100%" stop-color="#01579B" />
+        </linearGradient>
+        <linearGradient id="blueInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E1F5FE" />
+            <stop offset="40%" stop-color="#29B6F6" />
+            <stop offset="100%" stop-color="#0288D1" />
+        </linearGradient>
+
+        <!-- Purple Gradient -->
+        <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E1BEE7" />
+            <stop offset="40%" stop-color="#7B1FA2" />
+            <stop offset="100%" stop-color="#4A148C" />
+        </linearGradient>
+        <linearGradient id="purpleInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F3E5F5" />
+            <stop offset="40%" stop-color="#BA68C8" />
+            <stop offset="100%" stop-color="#7B1FA2" />
+        </linearGradient>
+
+        <!-- Green Gradient -->
+        <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C8E6C9" />
+            <stop offset="40%" stop-color="#388E3C" />
+            <stop offset="100%" stop-color="#1B5E20" />
+        </linearGradient>
+        <linearGradient id="greenInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E8F5E9" />
+            <stop offset="40%" stop-color="#81C784" />
+            <stop offset="100%" stop-color="#388E3C" />
+        </linearGradient>
+
+        <!-- Teal Gradient -->
+        <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#B2DFDB" />
+            <stop offset="40%" stop-color="#00796B" />
+            <stop offset="100%" stop-color="#004D40" />
+        </linearGradient>
+        <linearGradient id="tealInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E0F2F1" />
+            <stop offset="40%" stop-color="#4DB6AC" />
+            <stop offset="100%" stop-color="#00796B" />
+        </linearGradient>
+
+        <!-- Crimson Gradient -->
+        <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFCDD2" />
+            <stop offset="40%" stop-color="#D32F2F" />
+            <stop offset="100%" stop-color="#B71C1C" />
+        </linearGradient>
+        <linearGradient id="crimsonInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFEBEE" />
+            <stop offset="40%" stop-color="#E57373" />
+            <stop offset="100%" stop-color="#C62828" />
+        </linearGradient>
+    </defs>
+</svg>
+
 <!-- My Account Profile Section -->
 <section class="profile-page-section">
     <div class="container profile-container animate__animated animate__fadeIn">
@@ -34,7 +147,7 @@
                     <div class="profile-card profile-header-card">
                         <div class="profile-header-banner"></div>
                         @{
-                            var hasMysticAura = Model.Badges.Contains("Trùm Blind Date - Cấp 3");
+                            var hasMysticAura = Model.Badges.Contains("Blind Date Adventurer - Destiny");
                             var mysticClass = hasMysticAura ? "mystic-aura" : "";
                         }
                         <div class="profile-avatar-wrapper @mysticClass">
@@ -367,30 +480,19 @@
                                         foreach (var badge in Model.Badges)
                                         {
                                             if (displayCount >= maxDisplay) break;
-                                            
-                                            // Assign beautiful styles for specific badges
-                                            var badgeClass = "badge-default";
-                                            var badgeIcon = "fa-medal";
-                                            
-                                            if (badge.Contains("Chiến thần Review")) { badgeClass = "badge-review-champ"; badgeIcon = "fa-star"; }
-                                            else if (badge == "Sứ giả Tri thức") { badgeClass = "badge-knowledge-envoy"; badgeIcon = "fa-share-nodes"; }
-                                            else if (badge.Contains("Trùm Blind Date")) { badgeClass = "badge-blind-date-boss"; badgeIcon = "fa-mask"; }
-                                            else if (badge == "Mọt sách chính hiệu") { badgeClass = "badge-bookworm"; badgeIcon = "fa-book-open"; }
-                                            else if (badge == "Người dùng gương mẫu") { badgeClass = "badge-model-user"; badgeIcon = "fa-shield-halved"; }
-                                            else if (badge == "Cánh tay đắc lực") { badgeClass = "badge-mod-assistant"; badgeIcon = "fa-hands-helping"; }
-                                            
-                                            <div class="badge-chip @badgeClass" title="@badge">
-                                                <i class="fas @badgeIcon"></i>
-                                                <span>@badge</span>
-                                            </div>
+                                            @Html.Raw(GetMedalHtml(badge, "small"))
                                             displayCount++;
                                         }
                                     }
                                     
                                     @if (Model.Badges.Count > maxDisplay)
                                     {
-                                        <div class="badge-chip badge-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
-                                            <span>+@(Model.Badges.Count - maxDisplay) View All</span>
+                                        <div class="badge-medal-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
+                                            <div class="view-all-circle">
+                                                <i class="fas fa-plus"></i>
+                                                <span>@(Model.Badges.Count - maxDisplay)</span>
+                                            </div>
+                                            <span class="view-all-label">View All</span>
                                         </div>
                                     }
                                 </div>
@@ -419,29 +521,151 @@
                 <div class="d-flex flex-column gap-3">
                     @foreach (var badge in Model.Badges)
                     {
-                        var badgeClass = "badge-default";
-                        var badgeIcon = "fa-medal";
-                        var badgeDesc = "A well-deserved badge.";
-                        
-                        if (badge.Contains("Chiến thần Review")) { badgeClass = "badge-review-champ"; badgeIcon = "fa-star"; badgeDesc = "Awarded for writing high-quality book reviews with photos."; }
-                        else if (badge == "Sứ giả Tri thức") { badgeClass = "badge-knowledge-envoy"; badgeIcon = "fa-share-nodes"; badgeDesc = "Awarded for actively sharing book links to social media."; }
-                        else if (badge.Contains("Trùm Blind Date")) { badgeClass = "badge-blind-date-boss"; badgeIcon = "fa-mask"; badgeDesc = "Awarded for courageous exploration of Blind Date Books."; }
-                        else if (badge == "Mọt sách chính hiệu") { badgeClass = "badge-bookworm"; badgeIcon = "fa-book-open"; badgeDesc = "Awarded for purchasing books across 5 different genres."; }
-                        else if (badge == "Người dùng gương mẫu") { badgeClass = "badge-model-user"; badgeIcon = "fa-shield-halved"; badgeDesc = "Maintained max reputation for 3 consecutive months."; }
-                        else if (badge == "Cánh tay đắc lực") { badgeClass = "badge-mod-assistant"; badgeIcon = "fa-hands-helping"; badgeDesc = "Provided accurate reports to help moderation."; }
-
-                        <div class="badge-modal-item @badgeClass">
-                            <div class="badge-modal-icon">
-                                <i class="fas @badgeIcon"></i>
-                            </div>
-                            <div class="badge-modal-info">
-                                <h6>@badge</h6>
-                                <p>@badgeDesc</p>
-                            </div>
-                        </div>
+                        @Html.Raw(GetMedalHtml(badge, "large"))
                     }
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@functions {
+    public string GetMedalHtml(string badgeName, string sizeClass) {
+        string scallopGrad = "goldGrad";
+        string innerGrad = "goldInner";
+        string iconClass = "fa-medal";
+        string desc = "A well-deserved badge of honor.";
+        string themeClass = "theme-gold";
+        string levelClass = "";
+
+        // Define mapping for earned dates
+        var earnedDates = new Dictionary<string, string> {
+            { "Review Champion - Explorer", "February 14, 2025" },
+            { "Review Champion - Critic", "April 18, 2025" },
+            { "Review Champion - Sage", "May 12, 2026" },
+            { "Knowledge Ambassador", "March 05, 2025" },
+            { "Blind Date Adventurer - Curious", "January 20, 2025" },
+            { "Blind Date Adventurer - Seeker", "March 22, 2025" },
+            { "Blind Date Adventurer - Destiny", "November 15, 2025" },
+            { "True Bookworm", "February 01, 2025" },
+            { "Exemplary User", "August 10, 2025" },
+            { "Moderator Assistant", "December 05, 2025" }
+        };
+
+        string earnedDate = earnedDates.ContainsKey(badgeName) ? earnedDates[badgeName] : "May 29, 2026";
+
+        if (badgeName == "Review Champion - Explorer") {
+            scallopGrad = "bronzeGrad";
+            innerGrad = "bronzeInner";
+            iconClass = "fa-star";
+            desc = "Write 5 book reviews with photos.";
+            themeClass = "theme-bronze";
+            levelClass = "medal-lvl1";
+        } else if (badgeName == "Review Champion - Critic") {
+            scallopGrad = "silverGrad";
+            innerGrad = "silverInner";
+            iconClass = "fa-star";
+            desc = "Write 20 high-quality reviews (with >= 5 likes).";
+            themeClass = "theme-silver";
+            levelClass = "medal-lvl2";
+        } else if (badgeName == "Review Champion - Sage") {
+            scallopGrad = "goldGrad";
+            innerGrad = "goldInner";
+            iconClass = "fa-star";
+            desc = "Write 50 high-quality reviews and rank in the Top 'Reviews of the Month'.";
+            themeClass = "theme-gold";
+            levelClass = "medal-lvl3";
+        } else if (badgeName == "Knowledge Ambassador") {
+            scallopGrad = "blueGrad";
+            innerGrad = "blueInner";
+            iconClass = "fa-share-nodes";
+            desc = "Actively share book links or posts to Facebook or Instagram from Web.";
+            themeClass = "theme-blue";
+        } else if (badgeName == "Blind Date Adventurer - Curious") {
+            scallopGrad = "purpleGrad";
+            innerGrad = "purpleInner";
+            iconClass = "fa-mask";
+            desc = "Purchase 3 Blind Date book orders.";
+            themeClass = "theme-purple";
+            levelClass = "medal-lvl1";
+        } else if (badgeName == "Blind Date Adventurer - Seeker") {
+            scallopGrad = "purpleGrad";
+            innerGrad = "purpleInner";
+            iconClass = "fa-mask";
+            desc = "Purchase 10 Blind Date book orders.";
+            themeClass = "theme-purple";
+            levelClass = "medal-lvl2";
+        } else if (badgeName == "Blind Date Adventurer - Destiny") {
+            scallopGrad = "purpleGrad";
+            innerGrad = "purpleInner";
+            iconClass = "fa-mask";
+            desc = "Purchase 25 Blind Date book orders to unlock a mysterious purple avatar glow.";
+            themeClass = "theme-purple theme-destiny";
+            levelClass = "medal-lvl3";
+        } else if (badgeName == "True Bookworm") {
+            scallopGrad = "greenGrad";
+            innerGrad = "greenInner";
+            iconClass = "fa-book-open";
+            desc = "Purchase books across 5 diverse genres (e.g. Psychology, Novel, Horror).";
+            themeClass = "theme-green";
+        } else if (badgeName == "Exemplary User") {
+            scallopGrad = "tealGrad";
+            innerGrad = "tealInner";
+            iconClass = "fa-shield-halved";
+            desc = "Maintain the maximum reputation score of 150 points for 3 consecutive months.";
+            themeClass = "theme-teal";
+        } else if (badgeName == "Moderator Assistant") {
+            scallopGrad = "crimsonGrad";
+            innerGrad = "crimsonInner";
+            iconClass = "fa-hands-helping";
+            desc = "Submit more than 10 accurate violation reports to help keep the community clean.";
+            themeClass = "theme-crimson";
+        }
+
+        if (sizeClass == "small") {
+            return $@"
+                <div class=""badge-medal {themeClass} {levelClass}"" title=""{badgeName}: {desc}"">
+                    <div class=""medal-container"">
+                        <svg class=""medal-svg"" viewBox=""0 0 100 100"">
+                            <path class=""ribbon-tail-left"" d=""M 36 50 L 15 92 L 32 83 L 45 92 Z"" fill=""url(#ribbonLeftGrad)"" />
+                            <path class=""ribbon-tail-right"" d=""M 64 50 L 85 92 L 68 83 L 55 92 Z"" fill=""url(#ribbonRightGrad)"" />
+                            <polygon class=""medal-scallop-base"" fill=""url(#{scallopGrad})"" points=""
+                                50,5 53.5,10 58.7,6.3 60.9,12.1 67.2,10.2 68.1,16.7 75,16.4 74.4,22.9 81.3,24.1 79.2,30.3 85.7,32.7 82.2,38.4 87.7,41.9 83,47.1 87.2,51.5 81.5,55.9 84.4,61.4 78,64.8 79.5,70.9 72.8,73.1 73.1,79.5 66.2,80.5 65.1,86.9 58.5,86.4 56.4,92.5 50,90.5 43.6,92.5 41.5,86.4 34.9,86.9 33.8,80.5 26.9,79.5 27.2,73.1 20.5,70.9 22,64.8 15.6,61.4 18.5,55.9 12.8,51.5 17,47.1 12.3,41.9 17.8,38.4 14.3,32.7 20.8,30.3 18.7,24.1 25.6,22.9 25,16.4 31.9,16.7 32.8,10.2 39.1,12.1 41.3,6.3 46.5,10
+                            "" />
+                            <circle class=""medal-center"" cx=""50"" cy=""50"" r=""31.5"" fill=""url(#{innerGrad})"" />
+                            <circle cx=""50"" cy=""50"" r=""28"" fill=""none"" stroke=""#FFFFFF"" stroke-opacity=""0.4"" stroke-width=""0.75"" />
+                            <path class=""medal-gloss"" d=""M 23 35 A 31.5 31.5 0 0 1 77 35 A 31.5 28 0 0 0 23 35 Z"" fill=""rgba(255,255,255,0.18)"" />
+                        </svg>
+                        <div class=""medal-icon-container"">
+                            <i class=""fas {iconClass}""></i>
+                        </div>
+                    </div>
+                    <span class=""medal-title"">{badgeName}</span>
+                </div>";
+        } else {
+            return $@"
+                <div class=""badge-modal-medal-row {themeClass} {levelClass}"">
+                    <div class=""medal-container"" style=""width: 70px; height: 80px;"">
+                        <svg class=""medal-svg"" viewBox=""0 0 100 100"">
+                            <path class=""ribbon-tail-left"" d=""M 36 50 L 15 92 L 32 83 L 45 92 Z"" fill=""url(#ribbonLeftGrad)"" />
+                            <path class=""ribbon-tail-right"" d=""M 64 50 L 85 92 L 68 83 L 55 92 Z"" fill=""url(#ribbonRightGrad)"" />
+                            <polygon class=""medal-scallop-base"" fill=""url(#{scallopGrad})"" points=""
+                                50,5 53.5,10 58.7,6.3 60.9,12.1 67.2,10.2 68.1,16.7 75,16.4 74.4,22.9 81.3,24.1 79.2,30.3 85.7,32.7 82.2,38.4 87.7,41.9 83,47.1 87.2,51.5 81.5,55.9 84.4,61.4 78,64.8 79.5,70.9 72.8,73.1 73.1,79.5 66.2,80.5 65.1,86.9 58.5,86.4 56.4,92.5 50,90.5 43.6,92.5 41.5,86.4 34.9,86.9 33.8,80.5 26.9,79.5 27.2,73.1 20.5,70.9 22,64.8 15.6,61.4 18.5,55.9 12.8,51.5 17,47.1 12.3,41.9 17.8,38.4 14.3,32.7 20.8,30.3 18.7,24.1 25.6,22.9 25,16.4 31.9,16.7 32.8,10.2 39.1,12.1 41.3,6.3 46.5,10
+                            "" />
+                            <circle class=""medal-center"" cx=""50"" cy=""50"" r=""31.5"" fill=""url(#{innerGrad})"" />
+                            <circle cx=""50"" cy=""50"" r=""28"" fill=""none"" stroke=""#FFFFFF"" stroke-opacity=""0.4"" stroke-width=""0.75"" />
+                            <path class=""medal-gloss"" d=""M 23 35 A 31.5 31.5 0 0 1 77 35 A 31.5 28 0 0 0 23 35 Z"" fill=""rgba(255,255,255,0.18)"" />
+                        </svg>
+                        <div class=""medal-icon-container"" style=""font-size: 1.15rem; transform: translate(-50%, -50%) translateY(-4px);"">
+                            <i class=""fas {iconClass}""></i>
+                        </div>
+                    </div>
+                    <div class=""badge-modal-info"">
+                        <h6>{badgeName}</h6>
+                        <p>{desc}</p>
+                        <span class=""badge-earned-date""><i class=""far fa-calendar-alt""></i> Earned on: {earnedDate}</span>
+                    </div>
+                </div>";
+        }
+    }
+}

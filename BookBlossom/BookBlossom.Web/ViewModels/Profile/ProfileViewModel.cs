@@ -29,12 +29,12 @@ namespace BookBlossom.Web.ViewModels.Profile
         
         // Badges Collection
         public List<string> Badges { get; set; } = new List<string> { 
-            "Chiến thần Review - Cấp 2", 
-            "Sứ giả Tri thức", 
-            "Trùm Blind Date - Cấp 3", 
-            "Mọt sách chính hiệu",
-            "Người dùng gương mẫu",
-            "Cánh tay đắc lực"
+            "Review Champion - Critic", 
+            "Knowledge Ambassador", 
+            "Blind Date Adventurer - Destiny", 
+            "True Bookworm",
+            "Exemplary User",
+            "Moderator Assistant"
         };
         
         // Subscription limits
