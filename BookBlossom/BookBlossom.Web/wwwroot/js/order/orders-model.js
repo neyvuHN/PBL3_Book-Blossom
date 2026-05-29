@@ -17,7 +17,8 @@ class OrdersModel {
                         author: 'F. Scott Fitzgerald',
                         price: 150000,
                         quantity: 1,
-                        image: '/images/Book/book1.jpg'
+                        image: '/images/Book/book1.jpg',
+                        isBlind: false // [UPDATED]
                     }
                 ],
                 totalPrice: 150000,
@@ -41,7 +42,8 @@ class OrdersModel {
                         author: 'George Orwell',
                         price: 120000,
                         quantity: 2,
-                        image: '/images/Book/book2.webp'
+                        image: '/images/Book/book2.webp',
+                        isBlind: false // [UPDATED]
                     }
                 ],
                 totalPrice: 240000,
@@ -67,7 +69,8 @@ class OrdersModel {
                         author: 'J.R.R. Tolkien',
                         price: 200000,
                         quantity: 1,
-                        image: '/images/Book/book3.avif'
+                        image: '/images/Book/book3.avif',
+                        isBlind: false // [UPDATED]
                     }
                 ],
                 totalPrice: 200000,
@@ -86,15 +89,16 @@ class OrdersModel {
             },
             {
                 id: 'ORD-12348',
-                shopName: 'Book Blossom',
+                shopName: 'Blind Date Books', // [UPDATED] Shop changed for Blind Book
                 status: 'to-receive',
                 items: [
                     {
-                        title: 'Harry Potter',
-                        author: 'J.K. Rowling',
+                        title: '#SpaceOpera #AI #FirstContact', // [UPDATED] Hashtags as blind key title
+                        author: 'Hidden Author',
                         price: 250000,
                         quantity: 1,
-                        image: '/images/Book/book4.jpg'
+                        image: '/images/BlindDateBook/BlindBook3.jpg', // [UPDATED]
+                        isBlind: true // [UPDATED]
                     }
                 ],
                 totalPrice: 250000,
@@ -120,7 +124,8 @@ class OrdersModel {
                         author: 'Jane Austen',
                         price: 110000,
                         quantity: 1,
-                        image: '/images/Book/book5.jpg'
+                        image: '/images/Book/book5.jpg',
+                        isBlind: false // [UPDATED]
                     }
                 ],
                 totalPrice: 110000,
@@ -148,7 +153,8 @@ class OrdersModel {
                         author: 'Harper Lee',
                         price: 150000,
                         quantity: 1,
-                        image: '/images/Book/book6.webp'
+                        image: '/images/Book/book6.webp',
+                        isBlind: false // [UPDATED]
                     }
                 ],
                 totalPrice: 150000,
@@ -176,7 +182,8 @@ class OrdersModel {
                         author: 'Herman Melville',
                         price: 180000,
                         quantity: 1,
-                        image: '/images/Book/book1.jpg'
+                        image: '/images/Book/book1.jpg',
+                        isBlind: false // [UPDATED]
                     }
                 ],
                 totalPrice: 180000,
@@ -201,7 +208,8 @@ class OrdersModel {
                         author: 'Paulo Coelho',
                         price: 90000,
                         quantity: 2,
-                        image: '/images/Book/book2.webp'
+                        image: '/images/Book/book2.webp',
+                        isBlind: false // [UPDATED]
                     }
                 ],
                 totalPrice: 180000,

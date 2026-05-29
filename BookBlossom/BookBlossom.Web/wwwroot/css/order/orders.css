@@ -236,3 +236,24 @@
     transform: scale(1.1);
 }
 
+/* [UPDATED] Premium hover effects for clickable book items */
+.order-item-img-link {
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+.order-item-img-link:hover {
+    transform: scale(1.04);
+    opacity: 0.88;
+}
+
+.order-item-title-link {
+    cursor: pointer;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.order-item-title-link:hover {
+    color: #d8456b !important;
+    text-decoration: underline !important;
+}
+

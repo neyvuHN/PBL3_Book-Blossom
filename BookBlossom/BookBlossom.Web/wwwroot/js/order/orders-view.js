@@ -58,9 +58,11 @@ class OrdersView {
     generateOrderHtml(order) {
         const itemsHtml = order.items.map(item => `
             <div class="order-item">
-                <img src="${item.image}" alt="${item.title}" class="order-item-img" onerror="this.src='/images/placeholder.jpg'">
+                <!-- [UPDATED] Added data attributes and CSS link class to the book image -->
+                <img src="${item.image}" alt="${item.title}" class="order-item-img order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.src='/images/placeholder.jpg'">
                 <div class="order-item-details">
-                    <div class="order-item-title">${item.title}</div>
+                    <!-- [UPDATED] Added data attributes and CSS link class to the book title -->
+                    <div class="order-item-title order-item-title-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}">${item.title}</div>
                     <div class="order-item-meta">Author: ${item.author}</div>
                     <div class="order-item-meta">Qty: ${item.quantity}</div>
                 </div>
@@ -193,6 +195,34 @@ class OrdersView {
         });
     }
 
+    // [UPDATED] Delegate book/blind-date item clicks to the controller handler
+    bindViewBook(handler) {
+        // Bind click on order list items
+        this.ordersListContainer.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action="view-book"]');
+            if (target) {
+                const title = target.getAttribute('data-title');
+                const isBlind = target.getAttribute('data-blind') === 'true';
+                handler(title, isBlind);
+            }
+        });
+
+        // Bind click on order details modal items
+        const modalItemsList = document.getElementById('detail-items-list');
+        if (modalItemsList) {
+            modalItemsList.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-action="view-book"]');
+                if (target) {
+                    // Hide the details modal first before navigating
+                    $('#orderDetailsModal').modal('hide');
+                    const title = target.getAttribute('data-title');
+                    const isBlind = target.getAttribute('data-blind') === 'true';
+                    handler(title, isBlind);
+                }
+            });
+        }
+    }
+
     showConfirmModal({ icon, iconColor, accentColor, title, message, confirmText, confirmBtnClass, showReasonInput = false, onConfirm }) {
         // Set accent bar color
         document.getElementById('confirm-modal-accent').style.background = accentColor || 'linear-gradient(90deg, #d8456b, #f76b8a)';
@@ -274,9 +304,11 @@ class OrdersView {
         const itemsList = document.getElementById('detail-items-list');
         itemsList.innerHTML = order.items.map(item => `
             <div class="d-flex align-items-center mb-3">
-                <img src="${item.image}" alt="${item.title}" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px;" class="mr-3" onerror="this.src='/images/placeholder.jpg'">
+                <!-- [UPDATED] Added data attributes and CSS link class to modal book image -->
+                <img src="${item.image}" alt="${item.title}" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px;" class="mr-3 order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.src='/images/placeholder.jpg'">
                 <div class="flex-grow-1">
-                    <div class="font-weight-medium text-dark">${item.title}</div>
+                    <!-- [UPDATED] Added data attributes and CSS link class to modal book title -->
+                    <div class="font-weight-medium text-dark order-item-title-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}">${item.title}</div>
                     <div class="text-muted small">Qty: ${item.quantity}</div>
                 </div>
                 <div class="font-weight-medium">${item.price.toLocaleString('vi-VN')}đ</div>

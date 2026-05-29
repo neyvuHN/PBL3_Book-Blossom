@@ -17,6 +17,8 @@ class OrdersController {
         this.view.bindOrderReceived(this.handleOrderReceived.bind(this));
         // [UPDATED] Bind Buy Again to open Secure Checkout popup
         this.view.bindBuyAgain(this.handleBuyAgain.bind(this));
+        // [UPDATED] Bind clicking on book items to navigate to book details / blind book details
+        this.view.bindViewBook(this.handleViewBook.bind(this));
     }
 
     handleViewDetails(orderId) {
@@ -90,7 +92,7 @@ class OrdersController {
             qty:      item.quantity,
             priceVnd: item.price,
             price:    item.price / 20000,
-            isBlind:  false
+            isBlind:  item.isBlind || false
         }));
 
         // Build a fresh checkoutState from the original order totals
@@ -116,6 +118,15 @@ class OrdersController {
 
         // Open the Secure Checkout popup
         window.openCheckout();
+    }
+
+    // [UPDATED] handleViewBook – redirects to either Explore (normal book) or BlindDate page with hash key
+    handleViewBook(title, isBlind) {
+        if (isBlind) {
+            window.location.href = `/BlindDate#blind-details-${encodeURIComponent(title)}`;
+        } else {
+            window.location.href = `/Explore#book-details-${encodeURIComponent(title)}`;
+        }
     }
 
     handleTabChange(tab) {
