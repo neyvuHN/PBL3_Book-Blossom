@@ -26,6 +26,10 @@ class ProfileView {
         $('#display-bio').text('"' + user.bio + '"');
         $('#display-avatar-img').attr('src', user.avatar);
 
+        // Instantly synchronize top-right Navbar elements
+        $('.user-dropdown img.avatar').attr('src', user.avatar);
+        $('.user-dropdown span.username').text(user.fullName);
+
         // Contact info
         $('#display-phone').text(user.phoneNumber);
         $('#display-email').text(user.email);
