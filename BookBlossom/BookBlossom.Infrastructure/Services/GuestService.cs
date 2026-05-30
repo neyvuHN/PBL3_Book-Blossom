@@ -126,5 +126,10 @@ namespace BookBlossom.Infrastructure.Services
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
+
+        public async Task<bool> IsGuestExistsAsync(Guid guestId)
+        {
+            return await _context.GuestDetails.AnyAsync(g => g.GuestID == guestId);
+        }
     }
 }

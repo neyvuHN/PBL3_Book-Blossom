@@ -121,8 +121,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         { securityScheme, Array.Empty<string>() }
     });
-
-    // 2. 🟢 CHỖ THÊM MỚI: Cấu hình cho GUEST (Dùng X-Guest-Id và X-Guest-Token)
+    // X-Guest-Id
     var guestIdScheme = new OpenApiModels.OpenApiSecurityScheme
     {
         Name = "X-Guest-Id",
@@ -136,23 +135,9 @@ builder.Services.AddSwaggerGen(c =>
     };
     c.AddSecurityDefinition("GuestId", guestIdScheme);
 
-    var guestTokenScheme = new OpenApiModels.OpenApiSecurityScheme
-    {
-        Name = "X-Guest-Token",
-        In = OpenApiModels.ParameterLocation.Header,
-        Type = OpenApiModels.SecuritySchemeType.ApiKey,
-        Reference = new OpenApiModels.OpenApiReference
-        {
-            Id = "GuestToken",
-            Type = OpenApiModels.ReferenceType.SecurityScheme
-        }
-    };
-    c.AddSecurityDefinition("GuestToken", guestTokenScheme);
-
     c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
     {
-        { guestIdScheme, Array.Empty<string>() },
-        { guestTokenScheme, Array.Empty<string>() }
+        { guestIdScheme, Array.Empty<string>() }
     });
 });
 
