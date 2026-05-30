@@ -30,6 +30,7 @@ body.admin-mode {
     position: fixed;
     height: 100vh;
     z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-sidebar .sidebar-brand {
@@ -86,6 +87,7 @@ body.admin-mode {
     margin-left: 250px;
     display: flex;
     flex-direction: column;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Topbar */
@@ -202,4 +204,69 @@ body.admin-mode {
     100% {
         box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
     }
+}
+
+/* Topbar Left Container Alignment */
+.topbar-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+/* Sidebar Toggle Button Styles - Premium Hover Reveal */
+.sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--admin-sidebar-bg);
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    outline: none;
+    
+    /* Initially hidden & collapsed */
+    opacity: 0;
+    transform: translateX(-15px);
+    width: 0;
+    padding: 0;
+    margin-right: 0;
+    overflow: hidden;
+    
+    /* Smooth timing function transitions */
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s,
+                color 0.2s;
+}
+
+/* Hovering on the top-left corner region reveals the button */
+.topbar-left:hover .sidebar-toggle-btn {
+    opacity: 1;
+    transform: translateX(0);
+    width: 42px;
+    padding: 8px;
+    margin-right: 15px;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: rgba(227, 89, 125, 0.05);
+    color: var(--admin-sidebar-active);
+}
+
+.sidebar-toggle-btn:active {
+    transform: scale(0.92);
+}
+
+/* Sidebar Collapsed State Rules */
+.admin-wrapper.sidebar-collapsed .admin-sidebar {
+    transform: translateX(-250px);
+}
+
+.admin-wrapper.sidebar-collapsed .admin-main-content {
+    margin-left: 0;
 }

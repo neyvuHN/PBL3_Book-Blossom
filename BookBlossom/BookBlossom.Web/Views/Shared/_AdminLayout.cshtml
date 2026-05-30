@@ -36,6 +36,20 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Admin Layout MVC (Collapsible Sidebar) -->
+    <script src="~/js/admin/layout/layout-model.js" asp-append-version="true"></script>
+    <script src="~/js/admin/layout/layout-view.js" asp-append-version="true"></script>
+    <script src="~/js/admin/layout/layout-controller.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const layoutModel = new LayoutModel();
+            const layoutView = new LayoutView();
+            const layoutController = new LayoutController(layoutModel, layoutView);
+            layoutController.init();
+        });
+    </script>
+
     <script src="~/js/admin/admin-dashboard.js" asp-append-version="true"></script>
     <!-- Include Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
