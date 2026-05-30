@@ -15,7 +15,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Đăng ký các Service khác (Đảm bảo đã có các dòng này)
 builder.Services.AddScoped<IOTPService, OTPService>();
-builder.Services.AddScoped<ISMSService, MockSmsService>();
+builder.Services.AddHttpClient<ISMSService, EsmsSmsService>();
 builder.Services.AddMemoryCache();
 
 // Đăng ký Background Job dọn dẹp OTP
