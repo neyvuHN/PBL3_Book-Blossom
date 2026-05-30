@@ -1,0 +1,104 @@
+@model BookBlossom.Web.ViewModels.Admin.UserManagementViewModel
+@{
+    ViewData["Title"] = "User & Staff Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/users.css" asp-append-version="true" />
+}
+
+<div class="users-management-container">
+    <!-- Header Block -->
+    <div class="management-header">
+        <div>
+            <h2>User Management</h2>
+        </div>
+        <button class="btn-add-staff" id="btnAddStaff">
+            <i class="ph ph-plus-circle"></i> Add New Staff
+        </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="admin-tabs">
+        <div class="admin-tab-item active" data-tab="buyers">
+            Buyers
+        </div>
+        <div class="admin-tab-item" data-tab="staff">
+            Staff
+        </div>
+        <div class="admin-tab-item" data-tab="banned">
+            Banned
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-bar">
+        <div class="search-box-wrapper">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search by Email, Username, or ID..." />
+        </div>
+        <div class="dropdown-filters">
+            <select class="filter-select" id="roleFilter" disabled>
+                <option value="">Role: Buyer</option>
+            </select>
+            <select class="filter-select" id="scoreFilter">
+                <option value="">Reputation Score</option>
+                <option value="A">Under 80 (Muted)</option>
+                <option value="B">Under 60 (No COD)</option>
+                <option value="C">Under 30 (Banned)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Main Card Body for Table lists -->
+    <div class="management-card">
+        <!-- Buyers list container -->
+        <div id="buyersContent" class="tab-pane-content">
+            @await Html.PartialAsync("Partials/_UserTable", Model.Buyers)
+        </div>
+
+        <!-- Staff list container -->
+        <div id="staffContent" class="tab-pane-content" style="display: none;">
+            @await Html.PartialAsync("Partials/_StaffTable", Model.Staff)
+        </div>
+
+
+        <!-- Banned list container -->
+        <div id="bannedContent" class="tab-pane-content" style="display: none;">
+            @await Html.PartialAsync("Partials/_UserTable", Model.Banned)
+        </div>
+
+        <!-- Inline Floating Edit Role Modal -->
+        @await Html.PartialAsync("Partials/_EditRoleModal")
+
+        <!-- Full-Screen Add New Staff Modal -->
+        @await Html.PartialAsync("Partials/_AddStaffModal")
+
+        <!-- Buyer Notes Modal -->
+        @await Html.PartialAsync("Partials/_BuyerNoteModal")
+    </div>
+
+</div>
+
+@section Scripts {
+    <!-- Import Frontend Modular MVC Components -->
+    <script src="~/js/admin/users/users-model.js" asp-append-version="true"></script>
+    <script src="~/js/admin/users/users-view.js" asp-append-version="true"></script>
+    <script src="~/js/admin/users/users-controller.js" asp-append-version="true"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Retrieve and parse backend data passed dynamically from ASP.NET MVC ViewModel
+            const initialData = @Html.Raw(Json.Serialize(Model));
+            
+            // Initialize Modular Frontend MVC Architecture
+            const model = new UsersModel(initialData);
+            const view = new UsersView();
+            const controller = new UsersController(model, view);
+            
+            // Start listening and managing the DOM
+            controller.init();
+        });
+    </script>
+}

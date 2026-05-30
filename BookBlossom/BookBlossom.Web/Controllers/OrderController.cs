@@ -17,7 +17,7 @@ namespace BookBlossom.Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OrderController : ControllerBase
+    public class OrderController : Controller
     {
         private readonly IOrderService _service;
         private readonly ApplicationDbContext _context;
@@ -27,6 +27,28 @@ namespace BookBlossom.Web.Controllers
             _service = service;
             _context = context;
         }
+
+        // --- MVC VIEWS ---
+
+        [HttpGet("/Cart")]
+        public IActionResult Cart()
+        {
+            return View();
+        }
+
+        [HttpGet("/Checkout")]
+        public IActionResult Checkout()
+        {
+            return View();
+        }
+
+        [HttpGet("/Orders")]
+        public IActionResult Orders()
+        {
+            return View();
+        }
+
+        // --- API ENDPOINTS ---
 
         // API 1: Khởi tạo tiến trình Đặt hàng (Checkout & Tạo đơn hàng)
         [HttpPost("checkout")]

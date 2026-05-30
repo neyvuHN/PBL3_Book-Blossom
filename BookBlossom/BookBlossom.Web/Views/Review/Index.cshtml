@@ -1,0 +1,17 @@
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Reviews - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = false;
+    ViewData["IncludeCheckout"] = false;
+}
+
+<main>
+    @await Html.PartialAsync("Partials/_ReviewsSection")
+</main>
+
+@await Html.PartialAsync("Partials/_ReviewsModals")
+
+@section Scripts {
+    @await Html.PartialAsync("Partials/_ReviewsScripts")
+}

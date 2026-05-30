@@ -1,0 +1,272 @@
+:root {
+    --admin-sidebar-bg: #2C2630;
+    --admin-sidebar-text: #B4A9C0;
+    --admin-sidebar-active: #E3597D;
+    --admin-bg: #F5F5F5;
+    --admin-card-bg: #FFFFFF;
+    --admin-text-main: #333333;
+    --admin-border: #E0E0E0;
+}
+
+body.admin-mode {
+    background-color: var(--admin-bg);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    color: var(--admin-text-main);
+}
+
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.admin-sidebar {
+    width: 250px;
+    background-color: var(--admin-sidebar-bg);
+    color: var(--admin-sidebar-text);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-sidebar .sidebar-brand {
+    padding: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar .sidebar-brand img {
+    width: 30px;
+    height: 30px;
+}
+
+.admin-sidebar .sidebar-menu {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.admin-sidebar .sidebar-menu li {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-sidebar .sidebar-menu li:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.admin-sidebar .sidebar-menu li.active {
+    background-color: rgba(227, 89, 125, 0.1);
+    color: var(--admin-sidebar-active);
+    border-left: 4px solid var(--admin-sidebar-active);
+}
+
+.admin-sidebar .sidebar-menu li i {
+    font-size: 1.2rem;
+    width: 25px;
+}
+
+/* Main Content */
+.admin-main-content {
+    flex-grow: 1;
+    margin-left: 250px;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Topbar */
+.admin-topbar {
+    height: 70px;
+    background-color: var(--admin-card-bg);
+    border-bottom: 1px solid var(--admin-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 35px;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.01);
+}
+
+.active-module-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.active-module-indicator .module-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #E3597D;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #E3597D;
+    display: inline-block;
+}
+
+.active-module-indicator .module-name {
+    font-size: 0.8rem;
+    color: #888888;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.admin-profile-premium {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 16px;
+    border-radius: 30px;
+    background: rgba(227, 89, 125, 0.05);
+    border: 1px solid rgba(227, 89, 125, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-profile-premium:hover {
+    background: rgba(227, 89, 125, 0.08);
+    border-color: rgba(227, 89, 125, 0.2);
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 15px rgba(227, 89, 125, 0.08);
+}
+
+.admin-profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-profile-info .greeting {
+    font-size: 0.72rem;
+    color: #888888;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 1px;
+}
+
+.admin-profile-info .name {
+    font-size: 0.88rem;
+    color: #2C2630;
+    font-weight: 700;
+}
+
+.admin-avatar-wrapper {
+    position: relative;
+    display: flex;
+}
+
+.admin-avatar-wrapper .admin-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-avatar-wrapper .online-pulse {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background-color: #27AE60;
+    border: 2px solid #FFFFFF;
+    border-radius: 50%;
+    animation: onlineGlow 2s infinite ease-in-out;
+}
+
+@keyframes onlineGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(39, 174, 96, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+    }
+}
+
+/* Topbar Left Container Alignment */
+.topbar-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+/* Sidebar Toggle Button Styles - Premium Hover Reveal */
+.sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--admin-sidebar-bg);
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    outline: none;
+    
+    /* Initially hidden & collapsed */
+    opacity: 0;
+    transform: translateX(-15px);
+    width: 0;
+    padding: 0;
+    margin-right: 0;
+    overflow: hidden;
+    
+    /* Smooth timing function transitions */
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s,
+                color 0.2s;
+}
+
+/* Hovering on the top-left corner region reveals the button */
+.topbar-left:hover .sidebar-toggle-btn {
+    opacity: 1;
+    transform: translateX(0);
+    width: 42px;
+    padding: 8px;
+    margin-right: 15px;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: rgba(227, 89, 125, 0.05);
+    color: var(--admin-sidebar-active);
+}
+
+.sidebar-toggle-btn:active {
+    transform: scale(0.92);
+}
+
+/* Sidebar Collapsed State Rules */
+.admin-wrapper.sidebar-collapsed .admin-sidebar {
+    transform: translateX(-250px);
+}
+
+.admin-wrapper.sidebar-collapsed .admin-main-content {
+    margin-left: 0;
+}

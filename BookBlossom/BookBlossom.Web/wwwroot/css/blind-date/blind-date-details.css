@@ -1,0 +1,588 @@
+/* =========================
+   BLIND DATE DETAILS PAGE
+   ========================= */
+
+#blind-date-details-section {
+    display: none;
+    padding: 100px 0 50px;
+    background: #fffdfb;
+    min-height: 100vh;
+}
+
+#blind-date-details-section .detail-navigation {
+    margin-bottom: 30px;
+}
+
+#blind-date-details-section .btn-back-to-blind {
+    background: none;
+    border: none;
+    color: #a291b5;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+#blind-date-details-section .btn-back-to-blind:hover {
+    color: #6a4f8c;
+    transform: translateX(-4px);
+}
+
+#blind-date-details-section .blind-detail-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+#blind-date-details-section .blind-visual-col,
+#blind-date-details-section .blind-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    min-width: 0;
+}
+
+/* Gallery */
+#blind-date-details-section .blind-main-image-card {
+    background: #FAF8F5;
+    border: 1px solid #EAE3D8;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(106, 79, 140, 0.06);
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 460px;
+}
+
+#blind-date-details-section #blind-detail-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+    transition: transform 0.3s ease;
+    cursor: zoom-in;
+}
+
+#blind-date-details-section .blind-main-image-card:hover #blind-detail-main-img {
+    transform: scale(1.025);
+}
+
+#blind-date-details-section .blind-gallery-prev,
+#blind-date-details-section .blind-gallery-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.88);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#blind-date-details-section .blind-gallery-prev {
+    left: 20px;
+}
+
+#blind-date-details-section .blind-gallery-next {
+    right: 20px;
+}
+
+#blind-date-details-section .blind-main-image-card:hover .blind-gallery-prev,
+#blind-date-details-section .blind-main-image-card:hover .blind-gallery-next {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+#blind-date-details-section .blind-gallery-prev:hover,
+#blind-date-details-section .blind-gallery-next:hover {
+    background: #6a4f8c;
+    color: #fff;
+}
+
+#blind-date-details-section .blind-gallery-prev:hover i,
+#blind-date-details-section .blind-gallery-next:hover i {
+    color: #fff !important;
+}
+
+#blind-date-details-section .blind-condition-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#blind-date-details-section .blind-thumb-wrapper {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.025);
+    height: 120px;
+}
+
+#blind-date-details-section .blind-thumb-wrapper:hover,
+#blind-date-details-section .blind-thumb-wrapper.active {
+    border-color: #6a4f8c !important;
+    box-shadow: 0 6px 16px rgba(106, 79, 140, 0.13);
+    transform: translateY(-2px);
+}
+
+#blind-date-details-section .blind-thumb-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Cards */
+#blind-date-details-section .blind-chat-box,
+#blind-date-details-section .how-this-works-box,
+#blind-date-details-section .transaction-box,
+#blind-date-details-section .blind-vouchers-box,
+#blind-date-details-section .blind-shipping-info-box,
+#blind-date-details-section .blind-ratings-section {
+    background: #fff;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05);
+    border: 1px solid #f1edf5;
+    text-align: left;
+}
+
+#blind-date-details-section .mock-chat-container {
+    background: #faf8fc;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#blind-date-details-section .chat-bubble-buyer {
+    align-self: flex-end;
+    background: #6a4f8c;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 14px 14px 2px 14px;
+    max-width: 85%;
+    line-height: 1.4;
+}
+
+#blind-date-details-section .chat-bubble-seller {
+    align-self: flex-start;
+    background: #e8e3f0;
+    color: #333;
+    padding: 10px 14px;
+    border-radius: 14px 14px 14px 2px;
+    max-width: 85%;
+    line-height: 1.4;
+}
+
+#blind-date-details-section .btn-chat-owner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1.5px solid #a291b5;
+    border-radius: 30px;
+    padding: 10px 20px;
+    color: #6a4f8c;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    margin-bottom: 15px;
+    background: transparent;
+}
+
+#blind-date-details-section .btn-chat-owner:hover {
+    background: #6a4f8c !important;
+    color: #fff !important;
+}
+
+/* Clues */
+#blind-date-details-section .clues-box {
+    background: #F4F1F8;
+    border: 1px solid #E6DFED;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05);
+    text-align: left;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+#blind-date-details-section .clues-box>div,
+#blind-date-details-section .clue-item,
+#blind-date-details-section #blind-clue-hook,
+#blind-date-details-section #blind-clue-keywords,
+#blind-date-details-section #blind-clue-quote,
+#blind-date-details-section #blind-clue-hashtags {
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+#blind-date-details-section #blind-clue-hashtags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+#blind-date-details-section #blind-clue-hashtags span {
+    max-width: 100%;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+/* Transaction */
+#blind-date-details-section #blind-detail-price {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #6a4f8c;
+    font-family: 'Lora', serif;
+}
+
+#blind-date-details-section #blind-detail-original-price {
+    font-size: 1rem;
+    color: #aaa;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+#blind-date-details-section #blind-detail-discount {
+    background: #C2185B;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    display: inline-block;
+}
+
+#blind-date-details-section .btn-wishlist-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+#blind-date-details-section .btn-wishlist-circle:hover {
+    border-color: #ff4444;
+    color: #ff4444;
+    background: #fff5f5;
+}
+
+#blind-date-details-section .detail-actions-row {
+    display: grid;
+    grid-template-columns: 130px 1.2fr 1fr;
+    gap: 15px;
+    width: 100%;
+}
+
+#blind-date-details-section .quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    background: #fdfcf9;
+    overflow: hidden;
+    height: 48px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+#blind-date-details-section .quantity-selector button {
+    border: none;
+    background: none;
+    width: 40px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #555;
+    transition: background 0.2s ease;
+}
+
+#blind-date-details-section .quantity-selector button:hover {
+    background: #f0edf4;
+}
+
+#blind-date-details-section #input-blind-qty {
+    border: none;
+    background: none;
+    width: 50px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #111;
+    outline: none;
+}
+
+#blind-date-details-section .btn-buy-blind {
+    background: #ee7c8b;
+    color: #fff;
+    border: none;
+    height: 48px;
+    border-radius: 30px;
+    font-weight: 800;
+    font-size: 1.02rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(238, 124, 139, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#blind-date-details-section .btn-buy-blind:hover {
+    background: #dc6072 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 7px 18px rgba(238, 124, 139, 0.32);
+}
+
+#blind-date-details-section .btn-cart-blind {
+    background: #fff;
+    color: #111;
+    border: 1.5px solid #111;
+    height: 48px;
+    border-radius: 30px;
+    font-weight: 800;
+    font-size: 1.02rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#blind-date-details-section .btn-cart-blind:hover {
+    background: #111 !important;
+    color: #fff !important;
+}
+
+/* Vouchers */
+#blind-date-details-section .blind-coupons-container {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px 8px;
+    scrollbar-width: thin;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#blind-date-details-section .blind-coupon-card {
+    flex: 0 0 170px;
+    background: #faf8fc;
+    border: 1.5px dashed #a291b5;
+    border-radius: 12px;
+    padding: 12px;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: left;
+}
+
+#blind-date-details-section .blind-coupon-card:hover {
+    transform: translateY(-2px);
+    border-color: #6a4f8c !important;
+}
+
+#blind-date-details-section .blind-coupon-card.selected {
+    border: 2px solid #6a4f8c !important;
+    background: #f4effa !important;
+    box-shadow: 0 6px 18px rgba(106, 79, 140, 0.16) !important;
+}
+
+#blind-date-details-section .checkmark-badge-blind,
+#blind-date-details-section .checkmark-badge {
+    background: #6a4f8c !important;
+    color: #fff !important;
+}
+
+/* Shipping and rating */
+#blind-date-details-section .blind-ratings-section {
+    margin-top: 50px;
+}
+
+#blind-date-details-section .blind-ratings-section h3 {
+    font-family: 'Lora', serif;
+}
+
+/* Lightbox */
+#blind-lightbox-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+}
+
+#blind-lightbox-modal .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.76);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+#blind-lightbox-wrapper {
+    position: relative;
+    z-index: 10010;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 70px 40px;
+}
+
+#blind-lightbox-main-img {
+    max-width: min(92vw, 1000px);
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.blind-lightbox-close {
+    position: fixed;
+    top: 22px;
+    right: 28px;
+    z-index: 10060;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.13);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.blind-lightbox-close:hover {
+    background: #6a4f8c;
+}
+
+.blind-lightbox-prev,
+.blind-lightbox-next {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10050;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    cursor: pointer;
+}
+
+.blind-lightbox-prev {
+    left: 30px;
+}
+
+.blind-lightbox-next {
+    right: 30px;
+}
+
+.blind-lightbox-prev:hover,
+.blind-lightbox-next:hover {
+    background: #6a4f8c;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    #blind-date-details-section .blind-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    #blind-date-details-section .detail-actions-row {
+        grid-template-columns: 1fr;
+    }
+
+    #blind-date-details-section .blind-main-image-card {
+        height: 420px;
+    }
+}
+
+@media (max-width: 768px) {
+    #blind-date-details-section {
+        padding-top: 90px;
+    }
+
+    #blind-date-details-section .clues-box>div {
+        grid-template-columns: 1fr !important;
+    }
+
+    #blind-date-details-section .clues-box>div>div:nth-child(2) {
+        border-left: none !important;
+        padding-left: 0 !important;
+    }
+
+    #blind-date-details-section .blind-condition-gallery {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    #blind-date-details-section .blind-ratings-section>div {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #blind-date-details-section .blind-main-image-card {
+        height: 340px;
+        padding: 16px;
+    }
+
+    #blind-date-details-section #blind-detail-price {
+        font-size: 1.75rem;
+    }
+
+    #blind-date-details-section .blind-condition-gallery {
+        gap: 10px;
+    }
+
+    #blind-date-details-section .blind-thumb-wrapper {
+        height: 90px;
+    }
+}

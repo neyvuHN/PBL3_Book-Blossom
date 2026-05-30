@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesStyles.cshtml")
+    <link rel="stylesheet" href="~/css/admin/admin-messages.css" asp-append-version="true" />
+    <style>
+        body.admin-mode {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .admin-wrapper {
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .admin-main-content {
+            height: 100vh !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .admin-topbar {
+            flex-shrink: 0;
+        }
+
+        .admin-main-content > main[role="main"] {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow: hidden;
+        }
+    </style>
+}
+
+<!-- Admin messaging UI -->
+@await Html.PartialAsync("~/Views/Admin/Partials/_AdminMessagesWorkspace.cshtml")
+
+@await Html.PartialAsync("~/Views/Messages/Partials/_MessagesModals.cshtml")
+@await Html.PartialAsync("~/Views/Messages/Partials/_MessagesToast.cshtml")
+
+@section Scripts {
+    <script src="~/js/admin/admin-messages.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,219 @@
+<!-- Dedicated Community Section (Hidden by default) -->
+    <section id="dedicated-community" class="explore-section community-page-section">
+        <div class="container community-thread-container">
+            <!-- Left Sidebar -->
+            <div class="thread-left-sidebar" id="thread-left-sidebar">
+                <ul class="sidebar-nav">
+                    <li class="active"><a href="#"><i class="fas fa-rss"></i> <span>Feed</span></a></li>
+                    <li><a href="#"><i class="fas fa-search"></i> <span>Explore</span></a></li>
+                    <li><a href="#"><i class="fas fa-user-circle"></i> <span>Profile</span></a></li>
+                    <li><a href="#" class="notification-item"><i class="fas fa-bell"></i> <span>Notifications</span> <span class="nav-dot"></span></a></li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="thread-main">
+                <div class="thread-header">
+                    <button id="btn-toggle-sidebar" class="btn-toggle-sidebar-action"><i class="fas fa-bars"></i></button>
+                    <h1 class="thread-title">Community Thread Feed</h1>
+                </div>
+                
+                <!-- Filters -->
+                <div class="thread-filters">
+                    <span class="filter-tag active">All</span>
+                    <span class="filter-tag">Following</span>
+                    <span class="filter-tag">For Sale</span>
+                    <span class="filter-tag">Book Clubs</span>
+                </div>
+                
+                <!-- Create Post -->
+                <div id="create-thread-post-card" class="create-post-card">
+                    <h3>Create Post</h3>
+                    <textarea placeholder="What's on your shelf?"></textarea>
+                    <div class="create-post-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <button class="btn-tag-book"><i class="fas fa-book"></i> Tag Book</button>
+                        <button class="btn-cta btn-submit-thread-post">Submit Post</button>
+                    </div>
+                </div>
+                
+                <!-- Post 1 -->
+                <div class="thread-post">
+                    <div class="hidden-post-overlay" style="display: none;">
+                        <span>Post hidden.</span>
+                        <button class="btn-undo-hide">Undo</button>
+                        <div class="hide-progress"></div>
+                    </div>
+                    <div class="post-header">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="post-avatar">
+                        <div class="post-user-info">
+                            <div class="user-name-badge">
+                                <span class="user-name">Sarah J.</span>
+                            </div>
+                            <span class="post-time">2h ago</span>
+                        </div>
+                        <div class="post-menu-btn">
+                            <i class="fas fa-ellipsis-h"></i>
+                            <div class="post-dropdown-menu" style="display: none;">
+                                <a href="#" class="dropdown-item btn-report-post"><i class="far fa-flag"></i> Report Post</a>
+                                <a href="#" class="dropdown-item btn-hide-post"><i class="far fa-eye-slash"></i> Hide Post</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <h3>Healing and Nature in The Secret Garden</h3>
+                        <p>Just finished reading "The Secret Garden" again. It's even better as an adult The themes of healing and nature are so beautiful. #ClassicLit #ComfortRead</p>
+                        
+                        <!-- Book Tagged -->
+                        <div class="tagged-book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book Cover" class="tagged-book-img">
+                            <div class="tagged-book-info">
+                                <h4>The Secret Garden</h4>
+                                <p>Frances Hodgson Burnett</p>
+                            </div>
+                            <button class="btn-view-book">View Book</button>
+                        </div>
+                    </div>
+                    <div class="post-footer">
+                        <button class="post-action btn-like"><i class="far fa-heart"></i> <span class="like-count">2</span></button>
+                        <button class="post-action btn-comment"><i class="far fa-comment"></i> <span class="comment-count">1</span></button>
+                        <button class="post-action btn-share"><i class="far fa-share-square"></i> Share</button>
+                    </div>
+                    
+                    <!-- Comment Section -->
+                    <div class="comment-section" style="display: none;">
+                        <div class="comment-list">
+                            <div class="comment-item">
+                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                                <div class="comment-content">
+                                    <span class="comment-user">Alice M.</span>
+                                    <p>I love this book too! The atmosphere is so magical.</p>
+                                    <span class="comment-time">1h ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comment-input-area">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                            <input type="text" placeholder="Write a comment...">
+                            <button class="btn-send-comment"><i class="far fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Post 2 -->
+                <div class="thread-post">
+                    <div class="hidden-post-overlay" style="display: none;">
+                        <span>Post hidden.</span>
+                        <button class="btn-undo-hide">Undo</button>
+                        <div class="hide-progress"></div>
+                    </div>
+                    <div class="post-header">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="post-avatar">
+                        <div class="post-user-info">
+                            <div class="user-name-badge">
+                                <span class="user-name">Mike B.</span>
+                            </div>
+                            <span class="post-time">Just now</span>
+                        </div>
+                        <div class="post-menu-btn">
+                            <i class="fas fa-ellipsis-h"></i>
+                            <div class="post-dropdown-menu" style="display: none;">
+                                <a href="#" class="dropdown-item btn-report-post"><i class="far fa-flag"></i> Report Post</a>
+                                <a href="#" class="dropdown-item btn-hide-post"><i class="far fa-eye-slash"></i> Hide Post</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <h3>The Rich Sci-Fi Classic: Dune</h3>
+                        <p>Dune is a rich sci-fi classic about power, destiny, and survival—complex, slow-burn, and unforgettable. #Dune #SciFiClassic</p>
+                        
+                        <!-- Book Tagged -->
+                        <div class="tagged-book-card">
+                            <img src="/images/Book/book1.jpg" alt="Book Cover" class="tagged-book-img">
+                            <div class="tagged-book-info">
+                                <h4>DUNE</h4>
+                                <p>Frank Herbert</p>
+                            </div>
+                            <button class="btn-view-book">View Book</button>
+                        </div>
+                    </div>
+                    <div class="post-footer">
+                        <button class="post-action btn-like"><i class="far fa-heart"></i> <span class="like-count">0</span></button>
+                        <button class="post-action btn-comment"><i class="far fa-comment"></i> <span class="comment-count">0</span></button>
+                        <button class="post-action btn-share"><i class="far fa-share-square"></i> Share</button>
+                    </div>
+                    
+                    <!-- Comment Section -->
+                    <div class="comment-section" style="display: none;">
+                        <div class="comment-list">
+                            <!-- No comments yet -->
+                        </div>
+                        <div class="comment-input-area">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                            <input type="text" placeholder="Write a comment...">
+                            <button class="btn-send-comment"><i class="far fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Spoiler Post -->
+                <div class="thread-post spoiler-post">
+                    <div class="post-header">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="post-avatar">
+                        <div class="post-user-info">
+                            <div class="user-name-badge">
+                                <span class="user-name">Spoiler User</span>
+                            </div>
+                            <span class="post-time">5h ago</span>
+                        </div>
+                    </div>
+                    <div class="post-content blurred-content">
+                        <p>This content is hidden because it contains spoilers.</p>
+                    </div>
+                    <div class="spoiler-overlay">
+                        <h3>Spoiler Tag</h3>
+                        <button class="btn-reveal">Contains Spoilers. Click to Reveal</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Sidebar -->
+            <div class="thread-sidebar">
+                <!-- Trending Hashtags -->
+                <div class="sidebar-card">
+                    <h3>Trending Hashtags</h3>
+                    <div class="hashtag-list">
+                        <span class="hashtag">#Accent Coral</span>
+                        <span class="hashtag">#TrendingHashtags</span>
+                        <span class="hashtag">#BookClubs</span>
+                    </div>
+                </div>
+                
+                <!-- Top Reviewers -->
+                <div class="sidebar-card">
+                    <h3>Top Reviewers</h3>
+                    <div class="reviewer-list">
+                        <div class="reviewer-item">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="reviewer-avatar">
+                            <span>Sarah J.</span>
+                        </div>
+                        <div class="reviewer-item">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="reviewer-avatar">
+                            <span>Mike B.</span>
+                        </div>
+                        <div class="reviewer-item">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="reviewer-avatar">
+                            <span>David D.</span>
+                        </div>
+                        <div class="reviewer-item">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="reviewer-avatar">
+                            <span>Kelvin E.</span>
+                        </div>
+                        <div class="reviewer-item">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="reviewer-avatar">
+                            <span>Lora F.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>

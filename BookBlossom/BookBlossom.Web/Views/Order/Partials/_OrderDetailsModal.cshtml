@@ -1,0 +1,81 @@
+<!-- Full Screen Order Details Modal -->
+<div class="modal fade order-details-modal" id="orderDetailsModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-lg-down" role="document">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h4 class="modal-title font-weight-bold" id="orderDetailsModalLabel">Order Details <span class="text-muted small ml-2" id="detail-order-id"></span></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <!-- Left Column: Shipping & Payment Info -->
+                    <div class="col-lg-7 mb-4 mb-lg-0">
+                        <div class="card border-0 bg-light mb-4 rounded-lg">
+                            <div class="card-body">
+                                <h6 class="font-weight-bold mb-3"><i class="fas fa-map-marker-alt text-primary mr-2"></i> Shipping Information</h6>
+                                <p class="mb-1"><strong>Receiver:</strong> <span id="detail-receiver"></span></p>
+                                <p class="mb-1"><strong>Phone:</strong> <span id="detail-phone"></span></p>
+                                <p class="mb-0"><strong>Address:</strong> <span id="detail-address"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 bg-light mb-4 rounded-lg">
+                            <div class="card-body">
+                                <h6 class="font-weight-bold mb-3"><i class="fas fa-credit-card text-primary mr-2"></i> Payment Details</h6>
+                                <p class="mb-1"><strong>Method:</strong> <span id="detail-payment-method"></span></p>
+                                <p class="mb-0"><strong>Note:</strong> <span id="detail-note" class="text-muted font-italic"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="card border-0 bg-light rounded-lg">
+                            <div class="card-body">
+                                <h6 class="font-weight-bold mb-3"><i class="fas fa-history text-primary mr-2"></i> Timeline</h6>
+                                <ul class="list-unstyled mb-0" id="detail-timeline">
+                                    <!-- Timeline items will be injected here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Order Summary -->
+                    <div class="col-lg-5">
+                        <div class="card border-0 shadow-sm rounded-lg h-100">
+                            <div class="card-body p-4">
+                                <h6 class="font-weight-bold mb-4">Order Summary</h6>
+                                
+                                <div class="order-items-list mb-4" id="detail-items-list" style="max-height: 250px; overflow-y: auto;">
+                                    <!-- Items injected here -->
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Subtotal (before voucher)</span>
+                                    <span class="font-weight-medium" id="detail-subtotal"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Shipping Fee</span>
+                                    <span class="font-weight-medium" id="detail-shipping-fee"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3 text-success">
+                                    <span>Discount (Voucher)</span>
+                                    <span class="font-weight-medium" id="detail-discount">-<span id="detail-discount-val"></span></span>
+                                </div>
+                                
+                                <hr>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <h5 class="font-weight-bold mb-0">Total Amount</h5>
+                                    <h4 class="font-weight-bold text-primary mb-0" id="detail-total"></h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Blind Date Books - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    ViewData["IncludeCheckout"] = true;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/blind-date/blind-date.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/blind-date/blind-date-details.css" asp-append-version="true" />
+}
+
+<main>
+    @await Html.PartialAsync("Partials/_BlindDateBooksSection")
+    @await Html.PartialAsync("Partials/_BlindDateDetailsSection")
+</main>
+
+@section Scripts {
+    @await Html.PartialAsync("Partials/_BlindDateScripts")
+}

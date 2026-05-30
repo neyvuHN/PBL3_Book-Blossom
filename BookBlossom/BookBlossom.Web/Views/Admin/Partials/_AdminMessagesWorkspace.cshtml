@@ -1,0 +1,282 @@
+<!-- Admin Messages Workspace -->
+<div class="admin-messages-wrapper">
+
+    <!-- Left Sidebar: Conversations & Support Requests -->
+    <div class="admin-chat-sidebar">
+        <div class="sidebar-tabs">
+            <button class="tab-btn active" data-target="#conversations-tab">Conversations</button>
+            <button class="tab-btn" data-target="#support-requests-tab">Support Requests</button>
+        </div>
+
+        <!-- Conversations Tab -->
+        <div class="tab-content active" id="conversations-tab">
+            <div class="search-box-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search buyers..." id="admin-convo-search">
+            </div>
+            <div class="conversation-list" id="admin-convo-list">
+                <!-- Sample Buyer Conversation -->
+                <div class="convo-item active" data-buyer-id="1">
+                    <div class="convo-avatar-wrapper">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="convo-avatar" onerror="this.src='/images/Avatar/default.png'">
+                        <span class="online-dot"></span>
+                    </div>
+                    <div class="convo-info">
+                        <div class="convo-name-time">
+                            <span class="convo-name">Anna Smith</span>
+                            <span class="convo-time">10:45 AM</span>
+                        </div>
+                        <div class="convo-preview">Can you explain how Blind Date Books work?</div>
+                    </div>
+                </div>
+                <div class="convo-item" data-buyer-id="2">
+                    <div class="convo-avatar-wrapper">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="convo-avatar" onerror="this.src='/images/Avatar/default.png'">
+                    </div>
+                    <div class="convo-info">
+                        <div class="convo-name-time">
+                            <span class="convo-name">John Doe</span>
+                            <span class="convo-time">Yesterday</span>
+                        </div>
+                        <div class="convo-preview">Thank you! I received the package.</div>
+                    </div>
+                </div>
+                <div class="convo-item" data-buyer-id="3">
+                    <div class="convo-avatar-wrapper">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="convo-avatar" onerror="this.src='/images/Avatar/default.png'">
+                    </div>
+                    <div class="convo-info">
+                        <div class="convo-name-time">
+                            <span class="convo-name">Michael Brown</span>
+                            <span class="convo-time">Yesterday</span>
+                        </div>
+                        <div class="convo-preview">Where is my order? It has been 5 days.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Requests Tab -->
+        <div class="tab-content" id="support-requests-tab" style="display: none;">
+            <div class="request-list">
+                <!-- Sample Support Request -->
+                <div class="request-item" data-req-id="101">
+                    <div class="req-header">
+                        <span class="req-type"><i class="fas fa-box-open"></i> Product / Book</span>
+                        <span class="req-date">Today, 09:30 AM</span>
+                    </div>
+                    <div class="req-buyer">Anna Smith</div>
+                    <div class="req-preview">I'd like to know more about this Blind Date Book...</div>
+                    <span class="req-status status-pending">Pending</span>
+                </div>
+                <div class="request-item" data-req-id="102">
+                    <div class="req-header">
+                        <span class="req-type"><i class="fas fa-truck"></i> Shipping</span>
+                        <span class="req-date">Yesterday</span>
+                    </div>
+                    <div class="req-buyer">Michael Brown</div>
+                    <div class="req-preview">Where is my order? It has been 5 days.</div>
+                    <span class="req-status status-resolved">Resolved</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center: Main Chat Area -->
+    <div class="admin-chat-main chat-panel" id="admin-chat-main-area">
+        <div class="chat-header">
+            <div class="chat-header-user">
+                <div class="convo-avatar-wrapper">
+                    <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="convo-avatar" id="current-chat-avatar" onerror="this.src='/images/Avatar/default.png'">
+                    <span class="online-dot" id="current-chat-online"></span>
+                </div>
+                <div>
+                    <div class="chat-header-title" id="current-chat-name">Anna Smith</div>
+                    <div class="chat-header-status" id="current-chat-status">
+                        <i class="fas fa-circle" style="color: #2e7d32; font-size: 0.6rem;"></i> Active now
+                    </div>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button class="header-action-btn" id="btn-admin-toggle-chat-search" title="Search messages"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <!-- Admin Chat Search Bar (Slides down under header) -->
+        <div id="admin-chat-search-bar" style="display: none; background: #fff; border-bottom: 1.5px solid #F4E1E2; padding: 10px 20px; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.03); transition: all 0.2s ease;">
+            <div style="position: relative; flex-grow: 1; max-width: 400px; display: flex; align-items: center;">
+                <i class="fas fa-search" style="position: absolute; left: 12px; color: #C2185B; font-size: 0.85rem;"></i>
+                <input type="text" id="admin-chat-search-input" placeholder="Search messages..." style="width: 100%; border: 1.5px solid #EEC7C9; border-radius: 20px; padding: 6px 15px 6px 34px; font-size: 0.85rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#C2185B'" onblur="this.style.borderColor='#EEC7C9'">
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.82rem; font-weight: 600; color: #666;">
+                <span id="admin-chat-search-results-count" style="background: #fdf5f6; color: #C2185B; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(194, 24, 91, 0.1);">0 matches</span>
+                <div style="display: flex; gap: 4px;">
+                    <button id="btn-admin-chat-search-prev" style="border: none; background: #fbf8f9; color: #888; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#F4E1E2'; this.style.color='#C2185B';" onmouseout="this.style.background='#fbf8f9'; this.style.color='#888';"><i class="fas fa-chevron-up" style="font-size: 0.75rem;"></i></button>
+                    <button id="btn-admin-chat-search-next" style="border: none; background: #fbf8f9; color: #888; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#F4E1E2'; this.style.color='#C2185B';" onmouseout="this.style.background='#fbf8f9'; this.style.color='#888';"><i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i></button>
+                </div>
+                <button id="btn-admin-close-chat-search" style="border: none; background: none; color: #aaa; cursor: pointer; font-size: 1.1rem; transition: color 0.2s; padding: 0;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <div class="chat-messages-container" id="admin-chat-stream">
+            <div class="chat-date-separator">
+                <span>Today</span>
+            </div>
+
+            <!-- Buyer incoming message -->
+            <div class="msg-bubble-group incoming">
+                <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="msg-avatar" onerror="this.src='/images/Avatar/default.png'">
+                <div class="msg-bubble-content">
+                    <div class="msg-text-bubble">
+                        Can you explain how Blind Date Books work?
+                    </div>
+                    <div class="msg-meta">10:45 AM</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <!-- Tagged Books Preview Bar -->
+            <div class="tagged-books-preview-bar" id="admin-tagged-books-preview" style="display: none; padding: 10px 15px; background: #fffcfd; border-top: 1px dashed rgba(194, 24, 91, 0.15); gap: 8px; flex-wrap: wrap; align-items: center; border-bottom: 1px dashed rgba(194, 24, 91, 0.15);">
+            </div>
+
+            <!-- Media Attachment Preview Bar -->
+            <div class="media-attachment-preview-bar" id="admin-media-attachment-preview" style="display: none; padding: 10px 15px; background: #fffcfd; border-top: 1px dashed rgba(194, 24, 91, 0.15); gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px dashed rgba(194, 24, 91, 0.15);">
+            </div>
+
+            <div class="input-bar-wrapper">
+                <button class="btn-input-attachment" id="btn-admin-media-trigger" title="Attach picture/video"><i class="far fa-image"></i></button>
+                <input type="file" id="admin-media-attachment-input" accept="image/*,video/*" multiple style="display: none;">
+                <button class="btn-input-attachment" id="btn-admin-tag-book-trigger" title="Tag a Product"><i class="fas fa-link"></i></button>
+                <input type="text" class="chat-main-input" placeholder="Type a message to Anna Smith..." id="admin-message-input">
+                <button class="btn-send-message" id="admin-btn-send"><i class="far fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center Alternate: Support Request Detail View -->
+    <div class="admin-chat-main chat-panel" id="admin-req-detail-area" style="display: none; padding: 30px; overflow-y: auto;">
+        <button class="btn-back-to-chat" id="btn-back-from-req"><i class="fas fa-arrow-left"></i> Back to Chat</button>
+        <div class="support-request-details-card">
+            <div class="sr-header">
+                <h2><i class="fas fa-headset" style="color: #C2185B;"></i> Support Request Details</h2>
+                <span class="req-status status-pending" id="detail-req-status">Pending</span>
+            </div>
+            
+            <div class="sr-field-group">
+                <label>Requested by:</label>
+                <div class="sr-value" id="detail-req-buyer">Anna Smith</div>
+            </div>
+
+            <div class="sr-field-group">
+                <label>Help Category:</label>
+                <div class="sr-value"><strong id="detail-req-category">Product / Book</strong></div>
+            </div>
+
+            <div class="sr-field-group">
+                <label>Phone Number for Callback:</label>
+                <div class="sr-value" id="detail-req-phone">09xxxxxxxx</div>
+            </div>
+
+            <div class="sr-field-group">
+                <label>Additional Notes:</label>
+                <div class="sr-value note-box" id="detail-req-note">I'd like to know more about this Blind Date Book...</div>
+            </div>
+
+            <div class="sr-actions">
+                <button class="btn-sr-action btn-sr-resolve">Mark as Resolved</button>
+                <button class="btn-sr-action btn-sr-message" id="btn-sr-chat">Message Buyer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Buyer Profile Information -->
+    <div class="admin-buyer-sidebar">
+        <div class="buyer-profile-card">
+            <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="buyer-profile-avatar" id="sidebar-buyer-avatar" onerror="this.src='/images/Avatar/default.png'">
+            <div class="buyer-profile-name" id="sidebar-buyer-name">Anna Smith</div>
+            <div class="buyer-profile-joined" id="sidebar-buyer-joined">Joined: 6 months ago</div>
+            
+            <div class="buyer-metrics-grid">
+                <div class="metric-item">
+                    <span class="metric-label">Total Orders</span>
+                    <span class="metric-value" id="sidebar-buyer-orders">12</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Total Spent</span>
+                    <span class="metric-value" id="sidebar-buyer-spent" style="color: #C2185B;">1.5M VND</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="buyer-info-card">
+            <div class="info-section">
+                <div class="info-header"><i class="fas fa-map-marker-alt" style="color: #C2185B;"></i> Default Address</div>
+                <div class="info-content" id="sidebar-buyer-address">123 Book St, District 1, Ho Chi Minh City</div>
+            </div>
+            <div class="info-section">
+                <div class="info-header"><i class="fas fa-phone" style="color: #C2185B;"></i> Phone Number</div>
+                <div class="info-content" id="sidebar-buyer-phone">0987 654 321</div>
+            </div>
+            <div class="info-section">
+                <div class="info-header"><i class="fas fa-envelope" style="color: #C2185B;"></i> Email</div>
+                <div class="info-content" id="sidebar-buyer-email">anna.smith@example.com</div>
+            </div>
+        </div>
+
+        <!-- Shared Materials Card -->
+        <div class="buyer-info-card" style="text-align: left;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #111; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-folder-open" style="color: #C2185B;"></i> Shared Materials
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Pictures Button -->
+                <div id="btn-admin-view-shared-pictures" style="padding: 15px; border: 1px solid rgba(194, 24, 91, 0.1); display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 12px; background: #fffafb; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#C2185B';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(194, 24, 91, 0.1)';">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #F4E1E2; display: flex; align-items: center; justify-content: center; color: #C2185B;">
+                            <i class="far fa-images" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.88rem; color: #333; text-align: left;">Shared Pictures</div>
+                            <div style="font-size: 0.72rem; color: #777; text-align: left;">View photos & documents</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: #C2185B; font-size: 0.85rem;"></i>
+                </div>
+
+                <!-- Book Links Button -->
+                <div id="btn-admin-view-shared-links" style="padding: 15px; border: 1px solid rgba(194, 24, 91, 0.1); display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 12px; background: #fffafb; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#C2185B';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(194, 24, 91, 0.1)';">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #F4E1E2; display: flex; align-items: center; justify-content: center; color: #C2185B;">
+                            <i class="fas fa-link" style="font-size: 1.1rem;"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.88rem; color: #333; text-align: left;">Shared Book Links</div>
+                            <div style="font-size: 0.72rem; color: #777; text-align: left;">View books exchanged</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: #C2185B; font-size: 0.85rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Confirm Resolve Modal -->
+    <div class="custom-modal" id="admin-confirm-resolve-modal" style="display: none; z-index: 10000;">
+        <div class="modal-backdrop" style="background: rgba(10, 4, 6, 0.6); backdrop-filter: blur(5px);"></div>
+        <div class="modal-box" style="max-width: 400px; text-align: center; background: #fff; border-radius: 20px; padding: 30px;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #e8f5e9; color: #2e7d32; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 15px;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 style="font-family: 'Lora', serif; font-size: 1.35rem; font-weight: 700; color: #111; margin-bottom: 10px; text-align: center;">Confirm Resolution</h3>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 25px; line-height: 1.5;">Are you sure you want to mark this support request as resolved? This will update the ticket status.</p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button class="btn-modal-cancel" id="btn-admin-cancel-resolve" style="flex: 1; padding: 10px; border-radius: 25px; border: none; font-weight: 600; cursor: pointer; background: #f5f5f5; color: #666;">Cancel</button>
+                <button class="btn-modal-confirm" id="btn-admin-confirm-resolve" style="flex: 1; padding: 10px; border-radius: 25px; border: none; background: #C2185B; color: #fff; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.2);">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>

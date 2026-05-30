@@ -4,13 +4,14 @@ using BookBlossom.Core.Interfaces;
 using BookBlossom.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using System;
 
-namespace BookBlossom.API.Controllers
+namespace BookBlossom.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    // Không dùng [Authorize] ở đây - mỗi endpoint sẽ tự kiểm soát quyền truy cập
-    public class TindbookController : ControllerBase
+    public class TindbookController : Controller
     {
         private readonly ITindbookService _tindbookService;
 
@@ -18,6 +19,15 @@ namespace BookBlossom.API.Controllers
         {
             _tindbookService = tindbookService;
         }
+
+        // --- MVC VIEW ---
+        [HttpGet("/Tindbook")]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // --- API ENDPOINTS ---
 
         /// <summary>Lấy UserId từ JWT nếu đã đăng nhập. Trả về null nếu chưa.</summary>
         private long? GetUserId()

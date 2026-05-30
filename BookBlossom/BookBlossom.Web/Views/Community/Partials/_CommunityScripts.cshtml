@@ -1,0 +1,440 @@
+<script>
+    $(document).ready(function () {
+        function showToast(message, onUndo, undoText = 'Undo') {
+            const $toast = $(`
+                <div class="toast-notification">
+                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                    <span>${message}</span>
+                    <button class="btn-undo-share" style="${onUndo ? '' : 'display: none;'} background: none; border: none; color: #C2185B; font-weight: bold; cursor: pointer; text-decoration: underline; margin-left: 10px; font-size: 0.85rem; padding: 0;">${undoText}</button>
+                    <div class="toast-progress"></div>
+                </div>
+            `);
+
+            $('body').append($toast);
+            $toast.fadeIn(300);
+
+            const timeoutId = setTimeout(function () {
+                $toast.fadeOut(300, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+
+            $toast.find('.btn-undo-share').on('click', function () {
+                clearTimeout(timeoutId);
+                $toast.fadeOut(200, function () {
+                    $(this).remove();
+
+                    if (typeof onUndo === 'function') {
+                        onUndo();
+                    }
+                });
+            });
+        }
+
+        function showErrorToast(message) {
+            const $toast = $(`
+                <div class="toast-notification" style="border-left-color: #ff4444;">
+                    <i class="fas fa-exclamation-circle" style="color: #ff4444;"></i>
+                    <span>${message}</span>
+                    <div class="toast-progress" style="background-color: #ff4444;"></div>
+                </div>
+            `);
+
+            $('body').append($toast);
+            $toast.fadeIn(300);
+
+            setTimeout(function () {
+                $toast.fadeOut(300, function () {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+
+        // Toggle left sidebar
+        $('#btn-toggle-sidebar').on('click', function () {
+            $('#thread-left-sidebar').toggleClass('collapsed');
+            $('.community-thread-container').toggleClass('sidebar-collapsed');
+        });
+
+        // Spoiler reveal
+        $('.btn-reveal').on('click', function () {
+            const $post = $(this).closest('.thread-post');
+            $post.find('.blurred-content').removeClass('blurred-content');
+            $post.find('.spoiler-overlay').fadeOut(300);
+        });
+
+        // Like button
+        $(document).on('click', '.btn-like', function () {
+            const $icon = $(this).find('i');
+            const $count = $(this).find('.like-count');
+            let count = parseInt($count.text()) || 0;
+
+            if ($icon.hasClass('far')) {
+                $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
+                $count.text(count + 1);
+            } else {
+                $icon.removeClass('fas').addClass('far').css('color', '');
+                $count.text(count - 1);
+            }
+        });
+
+        // Toggle comments
+        $(document).on('click', '.btn-comment', function () {
+            const $post = $(this).closest('.thread-post');
+            $post.find('.comment-section').slideToggle(300);
+        });
+
+        // Send comment
+        $(document).on('click', '.btn-send-comment', function () {
+            const $input = $(this).siblings('input');
+            const text = $input.val().trim();
+
+            if (text !== '') {
+                const $list = $(this).closest('.comment-section').find('.comment-list');
+
+                const newComment = `
+                    <div class="comment-item">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                        <div class="comment-content">
+                            <span class="comment-user">You</span>
+                            <p>${text}</p>
+                            <span class="comment-time">Just now</span>
+                        </div>
+                    </div>
+                `;
+
+                $list.append(newComment);
+                $input.val('');
+
+                const $post = $(this).closest('.thread-post');
+                const $count = $post.find('.comment-count');
+                $count.text((parseInt($count.text()) || 0) + 1);
+            }
+        });
+
+        // Share modal
+        $(document).on('click', '.btn-share', function () {
+            $('#share-modal').fadeIn(200);
+        });
+
+        $('#btn-cancel-share').on('click', function () {
+            $('#share-modal').fadeOut(200);
+        });
+
+        $('#btn-confirm-share').on('click', function () {
+            $('#share-modal').fadeOut(200);
+            showToast('Post shared successfully to your profile!');
+        });
+
+        // Post menu
+        $(document).on('click', '.post-menu-btn', function (e) {
+            e.stopPropagation();
+            $(this).find('.post-dropdown-menu').toggle();
+        });
+
+        $(document).on('click', function () {
+            $('.post-dropdown-menu').hide();
+        });
+
+        // Hide post
+        $(document).on('click', '.btn-hide-post', function (e) {
+            e.preventDefault();
+
+            const $post = $(this).closest('.thread-post');
+            $post.find('.hidden-post-overlay').fadeIn(200);
+
+            const hideTimeout = setTimeout(function () {
+                $post.slideUp(300, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+
+            $post.data('hideTimeout', hideTimeout);
+        });
+
+        $(document).on('click', '.btn-undo-hide', function () {
+            const $post = $(this).closest('.thread-post');
+            const hideTimeout = $post.data('hideTimeout');
+
+            if (hideTimeout) {
+                clearTimeout(hideTimeout);
+            }
+
+            $post.find('.hidden-post-overlay').fadeOut(200);
+        });
+
+        // Report post modal
+        $(document).on('click', '.btn-report-post', function (e) {
+            e.preventDefault();
+            $('#report-modal').fadeIn(200);
+        });
+
+        $('#btn-cancel-report').on('click', function () {
+            $('#report-modal').fadeOut(200);
+        });
+
+        $('input[name="report-reason"]').on('change', function () {
+            if ($(this).val() === 'other') {
+                $('.other-reason-container').slideDown(200);
+            } else {
+                $('.other-reason-container').slideUp(200);
+            }
+        });
+
+        $('#btn-submit-report').on('click', function () {
+            const reason = $('input[name="report-reason"]:checked').val();
+
+            if (!reason) {
+                alert('Please select a reason for reporting.');
+                return;
+            }
+
+            if (reason === 'other') {
+                const otherText = $('#other-reason-text').val().trim();
+
+                if (otherText === '') {
+                    alert('Please enter your reason.');
+                    return;
+                }
+            }
+
+            $('#report-modal').fadeOut(200);
+
+            showToast('Thank you for reporting. We will review this post.', function () {
+                showToast('Report cancelled successfully.');
+            }, 'Undo report');
+
+            setTimeout(function () {
+                $('input[name="report-reason"]').prop('checked', false);
+                $('#other-reason-text').val('');
+                $('.other-reason-container').hide();
+            }, 200);
+        });
+
+        // Submit thread post
+        $(document).on('click', '.btn-submit-thread-post', function () {
+            const $card = $(this).closest('#create-thread-post-card');
+            const text = $card.find('textarea').val().trim();
+            const $taggedBook = $card.find('.tagged-book-card');
+
+            if (text === '' && $taggedBook.length === 0) {
+                showErrorToast('Please enter your post content or tag a book.');
+                return;
+            }
+
+            let taggedBookHtml = '';
+
+            if ($taggedBook.length > 0) {
+                taggedBookHtml = `
+                    <div class="tagged-book-card" style="margin-top: 10px; display: flex; gap: 10px; align-items: center; background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                        <img src="${$taggedBook.data('img')}" alt="Book" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;">
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0;">${$taggedBook.data('title')}</h4>
+                            <p style="font-size: 0.8rem; color: #666; margin: 0;">${$taggedBook.data('author')}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const newPost = `
+                <div class="thread-post user-own-post">
+                    <div class="hidden-post-overlay" style="display: none;">
+                        <span>Post hidden.</span>
+                        <button class="btn-undo-hide">Undo</button>
+                        <div class="hide-progress"></div>
+                    </div>
+
+                    <div class="post-header">
+                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="post-avatar">
+                        <div class="post-user-info">
+                            <div class="user-name-badge">
+                                <span class="user-name">You</span>
+                            </div>
+                            <span class="post-time">Just now</span>
+                        </div>
+
+                        <div class="post-menu-btn">
+                            <i class="fas fa-ellipsis-h"></i>
+                            <div class="post-dropdown-menu" style="display: none;">
+                                <a href="#" class="dropdown-item btn-report-post"><i class="far fa-flag"></i> Report Post</a>
+                                <a href="#" class="dropdown-item btn-hide-post"><i class="far fa-eye-slash"></i> Hide Post</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="post-content">
+                        <p class="post-text">${text}</p>
+                        ${taggedBookHtml}
+                    </div>
+
+                    <div class="post-footer">
+                        <button class="post-action btn-like"><i class="far fa-heart"></i> <span class="like-count">0</span></button>
+                        <button class="post-action btn-comment"><i class="far fa-comment"></i> <span class="comment-count">0</span></button>
+                        <button class="post-action btn-share"><i class="far fa-share-square"></i> Share</button>
+
+                        <div class="ms-auto" style="display: flex; gap: 10px;">
+                            <button class="btn-edit-thread-post" style="background: none; border: none; color: #666; cursor: pointer;">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn-delete-thread-post" style="background: none; border: none; color: #ff4444; cursor: pointer;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="comment-section" style="display: none;">
+                        <div class="comment-list"></div>
+                        <div class="comment-input-area">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                            <input type="text" placeholder="Write a comment...">
+                            <button class="btn-send-comment"><i class="far fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            showToast('Post created successfully!');
+            $card.after(newPost);
+            $card.find('textarea').val('');
+            $card.find('.tagged-book-card').remove();
+        });
+
+        // Edit thread post
+        $(document).on('click', '.btn-edit-thread-post', function () {
+            const $post = $(this).closest('.thread-post');
+            const text = $post.find('.post-text').text();
+
+            $('#create-thread-post-card textarea').val(text);
+            $post.remove();
+
+            document.getElementById('dedicated-community').scrollIntoView({ behavior: 'auto' });
+        });
+
+        // Delete thread post
+        let postToDelete = null;
+
+        $(document).on('click', '.btn-delete-thread-post', function () {
+            postToDelete = $(this).closest('.thread-post');
+            $('#delete-post-modal').fadeIn(200);
+        });
+
+        $('#btn-cancel-delete-post, #delete-post-modal .modal-backdrop').on('click', function () {
+            $('#delete-post-modal').fadeOut(200);
+            postToDelete = null;
+        });
+
+        $('#btn-confirm-delete-post').on('click', function () {
+            if (postToDelete) {
+                postToDelete.fadeOut(300, function () {
+                    $(this).remove();
+                });
+
+                $('#delete-post-modal').fadeOut(200);
+                showToast('Post deleted successfully!');
+                postToDelete = null;
+            }
+        });
+
+        // Tag book modal
+        $(document).on('click', '.btn-tag-book', function () {
+            $('#tag-book-modal').fadeIn(200);
+        });
+
+        $('#btn-cancel-tag-book').on('click', function () {
+            $('#tag-book-modal').fadeOut(200);
+            $('#tag-book-link').val('');
+            $('.book-select-item').removeClass('selected');
+            $('#link-error').hide();
+        });
+
+        $('.btn-modal-tab').on('click', function () {
+            $('.btn-modal-tab').removeClass('active');
+            $(this).addClass('active');
+
+            const target = $(this).data('target');
+            $('.modal-tab-content').hide();
+            $('#' + target).show();
+        });
+
+        $(document).on('click', '.book-select-item', function () {
+            $('.book-select-item').removeClass('selected');
+            $(this).addClass('selected');
+        });
+
+        $('#btn-confirm-tag-book').on('click', function () {
+            const activeTab = $('.btn-modal-tab.active').data('target');
+            let selectedBook = null;
+
+            if (activeTab === 'tab-link') {
+                const link = $('#tag-book-link').val().trim();
+
+                if (link === '') {
+                    showErrorToast('Please enter a book link.');
+                    return;
+                }
+
+                if (!link.includes('bookblossom.com') && !link.startsWith('/')) {
+                    $('#link-error').show();
+                    return;
+                }
+
+                $('#link-error').hide();
+
+                selectedBook = {
+                    title: 'Linked Book (From URL)',
+                    author: 'Author Name',
+                    img: '/images/Book/book1.jpg'
+                };
+            } else {
+                const $selected = $('.book-select-item.selected');
+
+                if ($selected.length === 0) {
+                    showErrorToast('Please select a book.');
+                    return;
+                }
+
+                selectedBook = {
+                    title: $selected.data('title'),
+                    author: $selected.data('author'),
+                    img: $selected.data('img')
+                };
+            }
+
+            const $card = $('#create-thread-post-card');
+            $card.find('.tagged-book-card').remove();
+
+            const tagHtml = `
+                <div class="tagged-book-card" style="margin-top: 10px; display: flex; gap: 10px; align-items: center; background: #f5f5f5; padding: 10px; border-radius: 8px;" data-title="${selectedBook.title}" data-author="${selectedBook.author}" data-img="${selectedBook.img}">
+                    <img src="${selectedBook.img}" alt="Book" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;">
+                    <div style="flex: 1;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0;">${selectedBook.title}</h4>
+                        <p style="font-size: 0.8rem; color: #666; margin: 0;">${selectedBook.author}</p>
+                    </div>
+                    <button class="btn-remove-tag" style="background: none; border: none; color: #ff4444; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            $card.find('textarea').after(tagHtml);
+
+            $('#tag-book-modal').fadeOut(200);
+            $('#tag-book-link').val('');
+            $('.book-select-item').removeClass('selected');
+        });
+
+        $(document).on('click', '.btn-remove-tag', function () {
+            $(this).closest('.tagged-book-card').remove();
+        });
+
+        // View tagged book temporary behavior
+        $(document).on('click', '.tagged-book-card .btn-view-book', function (e) {
+            e.preventDefault();
+
+            const title = $(this).closest('.tagged-book-card').find('h4').text().trim();
+
+            // Vì Book Details chưa tách MVC riêng, tạm quay về Home hash cũ
+            window.location.href = '/#book-details-' + encodeURIComponent(title);
+        });
+    });
+</script>

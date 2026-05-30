@@ -1,0 +1,47 @@
+<!-- Rate Order Modal -->
+<div class="modal fade" id="rateOrderModal" tabindex="-1" aria-labelledby="rateOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header" style="position: relative; background: linear-gradient(90deg, #d8456b, #f76b8a); color: white; border-bottom: none; padding: 20px 24px;">
+                <h5 class="modal-title font-weight-bold" id="rateOrderModalLabel">
+                    <i class="fas fa-star mr-2"></i> Rate Product
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; right: 20px; top: 20px; opacity: 0.8; outline: none; box-shadow: none; background: transparent; border: none; font-size: 1.5rem; line-height: 1; margin: 0; padding: 0; cursor: pointer; transition: opacity 0.2s;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #fdfcf9;">
+                <div class="text-center mb-4">
+                    <h6 class="font-weight-bold text-dark mb-1">How was your product?</h6>
+                    <p class="text-muted small">Please rate your experience with <span id="rate-modal-book-title" class="font-weight-bold text-dark">Book Title</span></p>
+                </div>
+                
+                <div class="rating-stars-selection text-center mb-4">
+                    <div class="d-inline-flex" id="rate-modal-stars" style="gap: 8px; font-size: 2rem; color: #e2e8f0; cursor: pointer;">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                    <div id="rate-modal-rating-text" class="mt-2 font-weight-bold" style="color: #d8456b; min-height: 24px;"></div>
+                </div>
+
+                <div class="form-group mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="rate-modal-review-text" class="font-weight-bold text-dark small mb-0">Write a Review</label>
+                        <span id="rate-modal-word-count" class="font-weight-bold small text-danger" style="transition: color 0.3s; font-size: 0.8rem;">0 / 60 words</span>
+                    </div>
+                    <textarea class="form-control" id="rate-modal-review-text" rows="4" placeholder="Share your thoughts about the book... (Minimum 60 words required for 2 reputation points)" style="border-radius: 12px; border: 1px solid #cbd5e1; resize: none; box-shadow: none; font-size: 0.9rem; padding: 10px 12px;"></textarea>
+                    <div id="rate-modal-validation-warning" class="text-danger small mt-1 font-weight-bold" style="display: block; font-size: 0.75rem; opacity: 0.85;">
+                        * Minimum 60 words and a star rating are required to submit.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top-0 px-4 py-3" style="justify-content: center; gap: 10px;">
+                <button type="button" class="btn btn-light rounded-pill px-4 font-weight-bold" data-bs-dismiss="modal" style="color: #64748b; background: #f1f5f9; min-width: 120px;">Cancel</button>
+                <button type="button" class="btn rounded-pill px-4 font-weight-bold" id="btn-submit-rate-order" style="background: #cbd5e1; color: #94a3b8; min-width: 120px; cursor: not-allowed;" disabled>Submit</button>
+            </div>
+        </div>
+    </div>
+</div>

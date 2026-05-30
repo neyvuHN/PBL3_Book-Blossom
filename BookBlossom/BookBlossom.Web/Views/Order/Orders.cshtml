@@ -1,0 +1,25 @@
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "My Orders - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    // [UPDATED] Include Secure Checkout Modal so Buy Again can open it
+    ViewData["IncludeCheckout"] = true;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/order/orders.css" asp-append-version="true" />
+}
+
+<main>
+    @await Html.PartialAsync("Partials/_OrdersSection")
+    @await Html.PartialAsync("Partials/_OrderDetailsModal")
+    @await Html.PartialAsync("Partials/_ConfirmActionModal")
+    @await Html.PartialAsync("Partials/_OrderTrackingModal")
+    @await Html.PartialAsync("Partials/_ReturnRefundModal")
+    @await Html.PartialAsync("Partials/_RateOrderModal")
+</main>
+
+@section Scripts {
+    @await Html.PartialAsync("Partials/_OrdersScripts")
+}

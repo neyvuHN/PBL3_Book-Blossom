@@ -1,0 +1,12 @@
+<script src="~/js/order/orders-model.js" asp-append-version="true"></script>
+<script src="~/js/order/orders-view.js" asp-append-version="true"></script>
+<script src="~/js/order/orders-controller.js" asp-append-version="true"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const ordersModel = new OrdersModel();
+        const ordersView = new OrdersView();
+        const ordersController = new OrdersController(ordersModel, ordersView);
+        ordersController.init();
+    });
+</script>

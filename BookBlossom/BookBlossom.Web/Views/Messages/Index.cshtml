@@ -1,0 +1,28 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages - BookBlossom</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    @await Html.PartialAsync("Partials/_MessagesStyles")
+</head>
+<body class="homepage-container">
+
+    @await Html.PartialAsync("Partials/_MessagesNavbar")
+
+    @await Html.PartialAsync("Partials/_MessagesWorkspace")
+
+    @await Html.PartialAsync("Partials/_MessagesToast")
+
+    @await Html.PartialAsync("Partials/_MessagesScripts")
+
+    @await Html.PartialAsync("Partials/_MessagesModals")
+</body>
+</html>

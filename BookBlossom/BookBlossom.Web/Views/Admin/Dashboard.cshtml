@@ -1,0 +1,87 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h2>Admin Dashboard (System Overview)</h2>
+        <div class="dashboard-actions">
+            <div class="date-range-picker">
+                <span>Data Range Picker</span>
+                <span class="active">Last 24h</span>
+                <span>Week</span>
+                <span>Month</span>
+            </div>
+            <button class="btn-export">Export Data</button>
+        </div>
+    </div>
+
+    <!-- Top Statistic Cards -->
+    @await Html.PartialAsync("Partials/_StatCards")
+
+    <!-- Charts -->
+    @await Html.PartialAsync("Partials/_Charts")
+
+    <!-- Alerts, Disputes, and Configurations -->
+    @await Html.PartialAsync("Partials/_AlertsAndConfig")
+
+    <!-- System Logs -->
+    @await Html.PartialAsync("Partials/_SystemLogs")
+</div>
+
+@section Scripts {
+    <script>
+        // Dummy data for Growth Chart
+        const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+        new Chart(ctxGrowth, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [
+                    {
+                        label: 'New User Signups',
+                        data: [40, 55, 75, 110, 85, 135, 125, 145, 165, 195, 185, 210],
+                        backgroundColor: '#E3597D',
+                        order: 2
+                    },
+                    {
+                        label: 'GMV (Gross Merchandise Value)',
+                        data: [25, 45, 55, 85, 60, 80, 95, 120, 135, 175, 155, 215],
+                        type: 'line',
+                        borderColor: '#27AE60',
+                        tension: 0.4,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Dummy data for Pie Chart
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Circulating', 'Locked', 'Burned'],
+                datasets: [{
+                    data: [60, 25, 15],
+                    backgroundColor: ['#E3597D', '#F2C94C', '#27AE60']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%'
+            }
+        });
+    </script>
+}

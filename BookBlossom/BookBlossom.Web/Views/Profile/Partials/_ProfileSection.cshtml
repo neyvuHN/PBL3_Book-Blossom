@@ -1,0 +1,824 @@
+@model BookBlossom.Web.ViewModels.Profile.ProfileViewModel
+
+<!-- Core SVG Definitions for Badge Medals (Common Gradient & DropShadow Definitions) -->
+<svg style="position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;">
+    <defs>
+        <!-- Ribbons Gradients -->
+        <linearGradient id="ribbonLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E53935" />
+            <stop offset="100%" stop-color="#B71C1C" />
+        </linearGradient>
+        <linearGradient id="ribbonRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF5252" />
+            <stop offset="100%" stop-color="#C62828" />
+        </linearGradient>
+
+        <!-- Gold Medallion Gradient -->
+        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE082" />
+            <stop offset="30%" stop-color="#FFB300" />
+            <stop offset="70%" stop-color="#FFA000" />
+            <stop offset="100%" stop-color="#FF6F00" />
+        </linearGradient>
+        <linearGradient id="goldInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFF9C4" />
+            <stop offset="40%" stop-color="#FBC02D" />
+            <stop offset="100%" stop-color="#F57F17" />
+        </linearGradient>
+
+        <!-- Silver Medallion Gradient -->
+        <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E0E0E0" />
+            <stop offset="30%" stop-color="#BDBDBD" />
+            <stop offset="70%" stop-color="#9E9E9E" />
+            <stop offset="100%" stop-color="#757575" />
+        </linearGradient>
+        <linearGradient id="silverInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F5F5F5" />
+            <stop offset="40%" stop-color="#CFD8DC" />
+            <stop offset="100%" stop-color="#90A4AE" />
+        </linearGradient>
+
+        <!-- Bronze Medallion Gradient -->
+        <linearGradient id="bronzeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFCCBC" />
+            <stop offset="40%" stop-color="#D84315" />
+            <stop offset="100%" stop-color="#BF360C" />
+        </linearGradient>
+        <linearGradient id="bronzeInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE0B2" />
+            <stop offset="40%" stop-color="#FFB74D" />
+            <stop offset="100%" stop-color="#E65100" />
+        </linearGradient>
+
+        <!-- Blue Gradient -->
+        <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#B3E5FC" />
+            <stop offset="40%" stop-color="#0288D1" />
+            <stop offset="100%" stop-color="#01579B" />
+        </linearGradient>
+        <linearGradient id="blueInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E1F5FE" />
+            <stop offset="40%" stop-color="#29B6F6" />
+            <stop offset="100%" stop-color="#0288D1" />
+        </linearGradient>
+
+        <!-- Purple Gradient -->
+        <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E1BEE7" />
+            <stop offset="40%" stop-color="#7B1FA2" />
+            <stop offset="100%" stop-color="#4A148C" />
+        </linearGradient>
+        <linearGradient id="purpleInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F3E5F5" />
+            <stop offset="40%" stop-color="#BA68C8" />
+            <stop offset="100%" stop-color="#7B1FA2" />
+        </linearGradient>
+
+        <!-- Green Gradient -->
+        <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C8E6C9" />
+            <stop offset="40%" stop-color="#388E3C" />
+            <stop offset="100%" stop-color="#1B5E20" />
+        </linearGradient>
+        <linearGradient id="greenInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E8F5E9" />
+            <stop offset="40%" stop-color="#81C784" />
+            <stop offset="100%" stop-color="#388E3C" />
+        </linearGradient>
+
+        <!-- Teal Gradient -->
+        <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#B2DFDB" />
+            <stop offset="40%" stop-color="#00796B" />
+            <stop offset="100%" stop-color="#004D40" />
+        </linearGradient>
+        <linearGradient id="tealInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E0F2F1" />
+            <stop offset="40%" stop-color="#4DB6AC" />
+            <stop offset="100%" stop-color="#00796B" />
+        </linearGradient>
+
+        <!-- Crimson Gradient -->
+        <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFCDD2" />
+            <stop offset="40%" stop-color="#D32F2F" />
+            <stop offset="100%" stop-color="#B71C1C" />
+        </linearGradient>
+        <linearGradient id="crimsonInner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFEBEE" />
+            <stop offset="40%" stop-color="#E57373" />
+            <stop offset="100%" stop-color="#C62828" />
+        </linearGradient>
+    </defs>
+</svg>
+
+<!-- My Account Profile Section -->
+<section class="profile-page-section">
+    <div class="container profile-container animate__animated animate__fadeIn">
+        
+        <!-- Header Top Greeting Banner -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom">
+                    <div>
+                        <h1 style="font-family: 'Lora', serif; font-size: 2.2rem; font-weight: 700; color: #111; margin-bottom: 5px;">My Account</h1>
+                        <p class="text-muted mb-0" style="font-size: 0.95rem;">Manage your public identity, track your privileges, and monitor your membership status.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button id="btn-edit-profile-toggle" class="btn btn-profile-outline">
+                            <i class="fas fa-user-edit me-1"></i> Edit Profile
+                        </button>
+                        <button id="btn-upgrade-pkg" class="btn btn-profile-theme">
+                            <i class="fas fa-rocket me-1"></i> Upgrade Package
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <!-- LEFT COLUMN: Profile Header & Details -->
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-4">
+                    
+                    <!-- Card 1: Avatar & Bio (Public Identity) -->
+                    <div class="profile-card profile-header-card">
+                        <div class="profile-header-banner"></div>
+                        @{
+                            var hasMysticAura = Model.Badges.Contains("Blind Date Adventurer - Destiny");
+                            var mysticClass = hasMysticAura ? "mystic-aura" : "";
+                        }
+                        <div class="profile-avatar-wrapper @mysticClass">
+                            <img src="@Model.Avatar" alt="Avatar" class="profile-avatar" id="display-avatar-img">
+                            <div class="avatar-edit-badge" title="Change Avatar" id="btn-change-avatar">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                        </div>
+                        
+                        <h3 id="display-fullname" style="font-family: 'Lora', serif; font-weight: 700; color: #111; margin-bottom: 2px;">@Model.FullName</h3>
+                        <span id="display-username" style="color: #C2185B; font-weight: 600; font-size: 0.92rem; display: block; margin-bottom: 12px;">@@@Model.Username</span>
+                        
+                        <div class="badge-row mb-3">
+                            <span class="sub-tier-@Model.SubscriptionPackage" id="display-sub-badge">@Model.SubscriptionPackage Package</span>
+                        </div>
+
+                        <p id="display-bio" class="text-muted px-2" style="font-size: 0.9rem; line-height: 1.6; font-style: italic; margin-bottom: 20px;">
+                            "@Model.Bio"
+                        </p>
+                        
+                        <div class="text-muted pt-3" style="font-size: 0.82rem; border-top: 1px solid #f6f5f2; font-weight: 500;">
+                            <i class="far fa-calendar-alt me-1"></i> Member since @Model.MemberSince.ToString("MMMM dd, yyyy")
+                        </div>
+
+                        <!-- Embedded Edit Profile Inline Form (Toggles dynamically) -->
+                        <form id="edit-profile-form">
+                            <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.1rem; color: #111; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">Edit Profile</h4>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-fullname">Full Name</label>
+                                <input type="text" id="input-fullname" class="form-input-custom" value="@Model.FullName">
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-username">Username</label>
+                                <input type="text" id="input-username" class="form-input-custom" value="@Model.Username">
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-bio">Biography (Bio)</label>
+                                <textarea id="input-bio" class="form-input-custom" rows="3" style="resize: none;">@Model.Bio</textarea>
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-phone">Phone Number</label>
+                                <input type="text" id="input-phone" class="form-input-custom" value="@Model.PhoneNumber">
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-email">Email Address</label>
+                                <input type="email" id="input-email" class="form-input-custom" value="@Model.Email">
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="input-gender">Gender</label>
+                                <select id="input-gender" class="form-input-custom">
+                                    <option value="Female" selected="@(Model.Gender == "Female")">Female</option>
+                                    <option value="Male" selected="@(Model.Gender == "Male")">Male</option>
+                                    <option value="Other" selected="@(Model.Gender == "Other")">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group-custom">
+                                <label for="input-birthdate">Birthdate</label>
+                                <input type="date" id="input-birthdate" class="form-input-custom" value="@Model.Birthdate.ToString("yyyy-MM-dd")">
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3 justify-content-end">
+                                <button type="button" id="btn-edit-profile-cancel" class="btn btn-profile-secondary btn-sm">Cancel</button>
+                                <button type="submit" id="btn-edit-profile-save" class="btn btn-profile-theme btn-sm">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Card 2: Contact & Personal Info -->
+                    <div class="profile-card">
+                        <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 20px; border-bottom: 1px solid #f6f5f2; padding-bottom: 12px;">Contact & Personal Info</h4>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Phone Number</span>
+                            <span class="profile-info-value" id="display-phone">@Model.PhoneNumber</span>
+                        </div>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Email Address</span>
+                            <span class="profile-info-value" id="display-email">@Model.Email</span>
+                        </div>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Gender</span>
+                            <span class="profile-info-value" id="display-gender">@Model.Gender</span>
+                        </div>
+                        
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Birthdate</span>
+                            <span class="profile-info-value" id="display-birthdate">@Model.Birthdate.ToString("MMMM dd, yyyy")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Account Status & Progression metrics -->
+            <div class="col-lg-8">
+                <div class="d-flex flex-column gap-4">
+                    
+                    <!-- Row 1: Membership Tier & Reputation Metrics -->
+                    <div class="row g-4">
+                        
+                        <!-- Col 1.1: Membership Level Card -->
+                        <div class="col-md-6">
+                            <div class="profile-card d-flex flex-column justify-content-between">
+                                <div>
+                                    <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 10px;">Membership Tier</h4>
+                                    
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <span class="tier-badge tier-@Model.MembershipTier" id="display-tier-badge">
+                                            <i class="fas fa-crown"></i> <span id="display-tier-text">@Model.MembershipTier</span> Tier
+                                        </span>
+                                    </div>
+                                    
+                                    <p class="text-muted" style="font-size: 0.88rem; line-height: 1.5;">
+                                        Maintain Diamond status to receive priority customer care, early access to Blind Date Books events, and free monthly delivery!
+                                    </p>
+                                </div>
+                                
+                                <div class="premium-progress-container pt-3" style="border-top: 1px solid #f6f5f2;">
+                                    <div class="progress-label-row">
+                                        <span>Spending Progress</span>
+                                        <span id="display-spending-text">@Model.TotalSpending.ToString("N0") / @Model.NextTierThreshold.ToString("N0") VND</span>
+                                    </div>
+                                    <div class="premium-progress-bg">
+                                        @{
+                                            var spendingPercent = (Model.TotalSpending / Model.NextTierThreshold) * 100;
+                                        }
+                                        <div class="premium-progress-fill" id="display-spending-progress" style="width: @spendingPercent.ToString("0")%;"></div>
+                                    </div>
+                                    <span class="text-muted" style="font-size: 0.78rem; display: block; font-style: italic;" id="display-spending-hint">
+                                        Spend <strong>@((Model.NextTierThreshold - Model.TotalSpending).ToString("N0")) VND</strong> more to reach Diamond Tier!
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 1.2: Reputation System Card -->
+                        <div class="col-md-6">
+                            <div class="profile-card text-center">
+                                <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 15px; text-align: left;">Reputation Score</h4>
+                                
+                                <div class="reputation-circle-container">
+                                    <!-- Embedded dynamic custom indicator element -->
+                                    <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                              fill="none" stroke="#f0ebe1" stroke-width="2.5" />
+                                        @{
+                                            var repPercent = ((double)Model.ReputationScore / Model.MaxReputationScore) * 100;
+                                        }
+                                        <path id="reputation-svg-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                              fill="none" stroke="#C2185B" stroke-width="2.5" stroke-dasharray="@repPercent.ToString("0"), 100" />
+                                    </svg>
+                                    <div class="reputation-value-box">
+                                        <span class="reputation-score-big" id="display-rep-score">@Model.ReputationScore</span>
+                                        <span class="reputation-score-max">/ @Model.MaxReputationScore pts</span>
+                                    </div>
+                                </div>
+
+                                <!-- Privilege warnings -->
+                                @{
+                                    var warningClass = "warning-safe";
+                                    var warningIcon = "fa-check-circle";
+                                    var warningMessage = "Your reputation score is stellar! You have full commenting, posting privileges and COD checkout active.";
+                                    
+                                    if (Model.ReputationScore < 60)
+                                    {
+                                        warningClass = "warning-danger";
+                                        warningIcon = "fa-exclamation-triangle";
+                                        warningMessage = "Warning: Reputation score too low (< 60). Commenting & Thread posting is BANNED, and Cash on Delivery (COD) method is DISABLED.";
+                                    }
+                                    else if (Model.ReputationScore < 80)
+                                    {
+                                        warningClass = "warning-warning";
+                                        warningIcon = "fa-exclamation-circle";
+                                        warningMessage = "Warning: Reputation score low (< 80). Thread posting & Commenting are BANNED. Keep score above 80 to restore community privileges.";
+                                    }
+                                }
+                                <div class="reputation-warning-card @warningClass" id="reputation-warning-box">
+                                    <i class="fas @warningIcon" style="margin-top: 3px; font-size: 1.1rem;"></i>
+                                    <span id="reputation-warning-message">@warningMessage</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Row 2: Order Streak & Limits Progression -->
+                    <div class="row g-4">
+                        
+                        <!-- Col 2.1: Order Streak Progress -->
+                        <div class="col-md-5">
+                            <div class="profile-card d-flex flex-column justify-content-between">
+                                <div>
+                                    <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 8px;">Order Streak</h4>
+                                    <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+                                        Deliver 3 successful consecutive orders to secure a <strong>+10 Reputation points bonus!</strong>
+                                    </p>
+                                </div>
+                                
+                                <div class="streak-box py-3">
+                                    <div class="streak-steps-container">
+                                        <div class="streak-line-bg"></div>
+                                        @{
+                                            var totalStreak = 3;
+                                            var currentStreak = Math.Clamp(Model.CurrentOrderStreak, 1, totalStreak);
+
+                                            var streakProgress = (currentStreak - 1) * 1.0 / (totalStreak - 1);
+                                        }
+
+                                        <div class="streak-line-fill"
+                                            id="display-streak-line"
+                                            style="--streak-progress: @streakProgress.ToString(System.Globalization.CultureInfo.InvariantCulture);">
+                                        </div>
+                                        
+                                        <div class="streak-step @(Model.CurrentOrderStreak >= 1 ? "completed" : "active")" id="streak-step-1">
+                                            @if (Model.CurrentOrderStreak >= 1)
+                                            {
+                                                <i class="fas fa-check"></i>
+                                            }
+                                            else
+                                            {
+                                                <span>1</span>
+                                            }
+                                        </div>
+                                        <div class="streak-step @(Model.CurrentOrderStreak >= 2 ? "completed" : (Model.CurrentOrderStreak == 1 ? "active" : ""))" id="streak-step-2">
+                                            @if (Model.CurrentOrderStreak >= 2)
+                                            {
+                                                <i class="fas fa-check"></i>
+                                            }
+                                            else
+                                            {
+                                                <span>2</span>
+                                            }
+                                        </div>
+                                        <div class="streak-step @(Model.CurrentOrderStreak >= 3 ? "completed" : (Model.CurrentOrderStreak == 2 ? "active" : ""))" id="streak-step-3">
+                                            @if (Model.CurrentOrderStreak >= 3)
+                                            {
+                                                <i class="fas fa-trophy"></i>
+                                            }
+                                            else
+                                            {
+                                                <span>3</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mt-3">
+                                        <span class="text-muted" style="font-size: 0.8rem; font-weight: 600;" id="display-streak-status">
+                                            @if (Model.CurrentOrderStreak >= 3)
+                                            {
+                                                <span>🎉 Streak Goal Achieved! Bonus claimed.</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Current Streak: <strong>@Model.CurrentOrderStreak/3 successful orders</strong></span>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 2.2: Limits Display Card (Threads & Undos) -->
+                        <div class="col-md-7">
+                            <div class="profile-card">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 0;">Subscription Limits</h4>
+                                    <span style="font-size: 0.78rem; background: #eef7fc; color: #2b6cb0; border-radius: 12px; padding: 3px 10px; font-weight: 600; border: 1px solid #bee3f8;">
+                                        <i class="fas fa-info-circle me-1"></i> Based on @Model.SubscriptionPackage
+                                    </span>
+                                </div>
+
+                                <!-- Thread Posting Limit -->
+                                <div class="limit-item-box">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="limit-icon-header">
+                                            <i class="fas fa-comments"></i> Monthly Thread Limit
+                                        </span>
+                                        @{
+                                            var isProPlan = Model.SubscriptionPackage == "Pro";
+                                            var threadLabelText = isProPlan ? $"{Model.CurrentMonthThreadCount} / Unlimited" : $"{Model.CurrentMonthThreadCount} / {Model.MaxMonthlyThreadLimit} posts";
+                                            var threadFillPercent = isProPlan ? 100.0 : Math.Min(100.0, ((double)Model.CurrentMonthThreadCount / Model.MaxMonthlyThreadLimit) * 100);
+                                        }
+                                        <span id="display-thread-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@threadLabelText</span>
+                                    </div>
+                                    <div class="premium-progress-bg" style="height: 6px;">
+                                        <div class="premium-progress-fill" id="display-thread-progress" style="width: @threadFillPercent.ToString("0")%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between" style="font-size: 0.72rem; color: #888;">
+                                        <span>Usage: @(isProPlan ? "0" : threadFillPercent.ToString("0"))%</span>
+                                        <span id="display-thread-reset">Resets: @Model.LastThreadResetDate.AddMonths(1).ToString("MM/dd/yyyy")</span>
+                                    </div>
+                                </div>
+
+                                <!-- Daily Undo Tindbook Limit -->
+                                <div class="limit-item-box mb-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="limit-icon-header">
+                                            <i class="fas fa-undo"></i> Daily Tindbook Undo Limit
+                                        </span>
+                                        @{
+                                            var undoLabelText = isProPlan ? $"{Model.DailyUndoCount} / Unlimited" : $"{Model.DailyUndoCount} / {Model.MaxDailyUndoLimit} undos";
+                                            var undoFillPercent = isProPlan ? 100.0 : Math.Min(100.0, ((double)Model.DailyUndoCount / Model.MaxDailyUndoLimit) * 100);
+                                        }
+                                        <span id="display-undo-counter" style="font-size: 0.85rem; font-weight: 700; color: #333;">@undoLabelText</span>
+                                    </div>
+                                    <div class="premium-progress-bg" style="height: 6px;">
+                                        <div class="premium-progress-fill" id="display-undo-progress" style="width: @undoFillPercent.ToString("0")%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between" style="font-size: 0.72rem; color: #888;">
+                                        <span>Usage: @(isProPlan ? "0" : undoFillPercent.ToString("0"))%</span>
+                                        <span id="display-undo-reset">Resets: Tonight at 12:00 AM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Row 3: Badges Showcase Cabinet -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="profile-card">
+                                <h4 style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.25rem; color: #111; margin-bottom: 8px;">Badge Cabinet Collection</h4>
+                                <p class="text-muted" style="font-size: 0.88rem; margin-bottom: 15px;">
+                                    Stand out in the community! Collect badges by contributing quality reviews, shopping blind dates, or keeping high streaks.
+                                </p>
+                                
+                                <div class="badges-grid" id="display-badges-cabinet">
+                                    @{
+                                        var displayCount = 0;
+                                        var maxDisplay = 4;
+                                        foreach (var badge in Model.Badges)
+                                        {
+                                            if (displayCount >= maxDisplay) break;
+                                            @Html.Raw(GetMedalHtml(badge, "small"))
+                                            displayCount++;
+                                        }
+                                    }
+                                    
+                                    @if (Model.Badges.Count >= 1)
+                                    {
+                                        <div class="badge-medal-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
+                                            <div class="view-all-circle">
+                                                @if (Model.Badges.Count > maxDisplay)
+                                                {
+                                                    <i class="fas fa-plus" style="font-size: 0.8rem; margin-bottom: 2px;"></i>
+                                                    <span>@(Model.Badges.Count - maxDisplay)</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-eye" style="font-size: 1.15rem; margin-bottom: 0;"></i>
+                                                }
+                                            </div>
+                                            <span class="view-all-label">View All</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- Modal for All Badges -->
+<div class="modal fade" id="allBadgesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content custom-modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12);">
+            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 10px;">
+                <h5 class="modal-title" style="font-family: 'Lora', serif; font-weight: 700; color: #111; font-size: 1.5rem;">All Earned Badges</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 10px 24px 24px;">
+                <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 20px;">A showcase of all the honors and achievements you have unlocked in the BookBlossom community.</p>
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var badge in Model.Badges)
+                    {
+                        @Html.Raw(GetMedalHtml(badge, "large"))
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Premium Subscriptions Upgrade Plan (Full Screen dark-dimmed backdrop popup) -->
+<div id="subscription-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.76); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.3s ease;">
+    <div id="subscription-modal-content" style="background: #fff; border-radius: 24px; width: 95%; max-width: 920px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden;">
+        <!-- Header -->
+        <div style="padding: 24px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+            <div>
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 800; color: #0f172a;">Upgrade Your Package</h3>
+                <p style="margin: 4px 0 0; color: #64748b; font-size: 0.9rem;">Choose the perfect plan to unlock premium privileges on BookBlossom.</p>
+            </div>
+            <button id="btn-close-subscription" style="background: #f1f5f9; border: none; font-size: 1.1rem; color: #475569; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Body: Three Plans Grid -->
+        <div style="padding: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; background: #f8fafc; max-height: 70vh; overflow-y: auto;">
+            <!-- Free Plan -->
+            <div class="sub-plan-card" data-plan-card="Free" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; position: relative;">
+                <div>
+                    <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Standard</span>
+                    <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Free Plan</h4>
+                    <div style="margin: 15px 0 20px;">
+                        <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">0 VND</span>
+                        <span style="color: #64748b; font-size: 0.85rem;">/month</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 3 threads / month</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 2 Tindbook undos / day</li>
+                        <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Critic Badge & sharing honors</li>
+                        <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Mystic Destiny glow aura</li>
+                    </ul>
+                </div>
+                <button class="btn-select-plan" data-plan="Free" data-price="0" style="margin-top: 30px; width: 100%; background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">Active Plan</button>
+            </div>
+
+            <!-- Basic Plan -->
+            <div class="sub-plan-card" data-plan-card="Basic" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; position: relative;">
+                <div>
+                    <span style="background: #fdf2f8; color: #c2185b; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Most Popular</span>
+                    <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Basic Plan</h4>
+                    <div style="margin: 15px 0 20px;">
+                        <span style="font-size: 1.8rem; font-weight: 800; color: #c2185b;">50,000 VND</span>
+                        <span style="color: #64748b; font-size: 0.85rem;">/month</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 20 threads / month</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 5 Tindbook undos / day</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Critic Badge & sharing honors</li>
+                        <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Mystic Destiny glow aura</li>
+                    </ul>
+                </div>
+                <button class="btn-select-plan select-premium" data-plan="Basic" data-price="50000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #c2185b 0%, #ec4899 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.25);">Upgrade Now</button>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="sub-plan-card" data-plan-card="Pro" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; position: relative;">
+                <div class="pro-tag" style="display: none; position: absolute; top: -12px; right: 24px; background: #7b1fa2; color: #fff; font-size: 0.65rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; z-index: 2;">Ultimate Experience</div>
+                <div>
+                    <span style="background: #f3e5f5; color: #7b1fa2; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Best Value</span>
+                    <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Pro Plan</h4>
+                    <div style="margin: 15px 0 20px;">
+                        <span style="font-size: 1.8rem; font-weight: 800; color: #7b1fa2;">200,000 VND</span>
+                        <span style="color: #64748b; font-size: 0.85rem;">/month</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Unlimited monthly threads</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Unlimited Tindbook undos</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Sage Badge & sharing honors</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Mystic Destiny glow aura active</li>
+                    </ul>
+                </div>
+                <button class="btn-select-plan select-premium" data-plan="Pro" data-price="200000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #7b1fa2 0%, #c084fc 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(123, 31, 162, 0.25);">Upgrade Now</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Changing Avatar (Fullscreen Overlay) -->
+<div id="avatar-cropper-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px); transition: all 0.3s ease;">
+    <div id="avatar-cropper-content" style="background: #ffffff; border-radius: 24px; width: 90%; max-width: 600px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden;">
+        <!-- Header -->
+        <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 800; color: #0f172a;">Update Profile Avatar</h3>
+                <p style="margin: 4px 0 0; color: #64748b; font-size: 0.85rem;">Upload and crop your avatar image to fit perfectly.</p>
+            </div>
+            <button id="btn-close-cropper" style="background: #f1f5f9; border: none; font-size: 1rem; color: #475569; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; background: #f8fafc;">
+            <!-- Hidden File Input -->
+            <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+            
+            <!-- Upload Placeholder (shown when no image selected) -->
+            <div id="cropper-upload-placeholder" style="width: 100%; height: 300px; border: 2px dashed #cbd5e1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #ffffff; transition: all 0.2s ease;">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #C2185B; margin-bottom: 12px;"></i>
+                <span style="font-weight: 700; color: #0f172a; font-size: 1rem;">Click to upload an image</span>
+                <span style="color: #64748b; font-size: 0.8rem; margin-top: 4px;">Supports PNG, JPG, JPEG</span>
+            </div>
+            
+            <!-- Crop Container (shown when image is loaded) -->
+            <div id="cropper-workspace" style="display: none; width: 100%; height: 300px; background: #0f172a; border-radius: 16px; position: relative; overflow: hidden; justify-content: center; align-items: center;">
+                <!-- Target Image -->
+                <img id="cropper-image" src="" style="position: absolute; cursor: move; user-select: none; max-width: none; max-height: none; transform-origin: center center;" alt="Avatar Cropper">
+                
+                <!-- Crop Grid Overlay -->
+                <div id="cropper-grid" style="position: absolute; width: 200px; height: 200px; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.7); pointer-events: none; display: flex; align-items: center; justify-content: center;">
+                    <!-- Grid Lines inside the crop circle -->
+                    <div style="position: absolute; top: 0; bottom: 0; left: 33.33%; width: 1px; border-left: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                    <div style="position: absolute; top: 0; bottom: 0; left: 66.66%; width: 1px; border-left: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                    <div style="position: absolute; left: 0; right: 0; top: 33.33%; height: 1px; border-top: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                    <div style="position: absolute; left: 0; right: 0; top: 66.66%; height: 1px; border-top: 1px dashed rgba(255, 255, 255, 0.45);"></div>
+                </div>
+            </div>
+            
+            <!-- Controls (Zoom Slider & Re-upload) -->
+            <div id="cropper-controls" style="display: none; width: 100%; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" id="btn-zoom-out" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #475569;"><i class="fas fa-minus"></i></button>
+                    <input type="range" id="zoom-range" min="0.1" max="3" step="0.05" value="1" style="flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; outline: none; accent-color: #C2185B;">
+                    <button type="button" id="btn-zoom-in" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #475569;"><i class="fas fa-plus"></i></button>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.8rem; color: #64748b;"><i class="fas fa-info-circle me-1"></i> Drag the image to reposition it</span>
+                    <button type="button" id="btn-reupload" style="background: transparent; border: none; color: #C2185B; font-weight: 700; font-size: 0.85rem; cursor: pointer;"><i class="fas fa-redo me-1"></i> Choose another photo</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Actions -->
+        <div style="padding: 20px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" id="btn-cancel-cropper" class="btn btn-profile-secondary btn-sm" style="padding: 10px 24px; border-radius: 30px;">Cancel</button>
+            <button type="button" id="btn-save-cropper" class="btn btn-profile-theme btn-sm" style="padding: 10px 24px; border-radius: 30px;" disabled>Apply Changes</button>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetMedalHtml(string badgeName, string sizeClass) {
+        string scallopGrad = "goldGrad";
+        string innerGrad = "goldInner";
+        string iconClass = "fa-medal";
+        string desc = "A well-deserved badge of honor.";
+        string themeClass = "theme-gold";
+        string levelClass = "";
+
+        // Define mapping for earned dates
+        var earnedDates = new Dictionary<string, string> {
+            { "Review Champion - Explorer", "February 14, 2025" },
+            { "Review Champion - Critic", "April 18, 2025" },
+            { "Review Champion - Sage", "May 12, 2026" },
+            { "Knowledge Ambassador", "March 05, 2025" },
+            { "Blind Date Adventurer - Curious", "January 20, 2025" },
+            { "Blind Date Adventurer - Seeker", "March 22, 2025" },
+            { "Blind Date Adventurer - Destiny", "November 15, 2025" },
+            { "True Bookworm", "February 01, 2025" },
+            { "Exemplary User", "August 10, 2025" },
+            { "Moderator Assistant", "December 05, 2025" }
+        };
+
+        string earnedDate = earnedDates.ContainsKey(badgeName) ? earnedDates[badgeName] : "May 29, 2026";
+
+        if (badgeName == "Review Champion - Explorer") {
+            scallopGrad = "bronzeGrad";
+            innerGrad = "bronzeInner";
+            iconClass = "fa-star";
+            desc = "Write 5 book reviews with photos.";
+            themeClass = "theme-bronze";
+            levelClass = "medal-lvl1";
+        } else if (badgeName == "Review Champion - Critic") {
+            scallopGrad = "silverGrad";
+            innerGrad = "silverInner";
+            iconClass = "fa-star";
+            desc = "Write 20 high-quality reviews (with >= 5 likes).";
+            themeClass = "theme-silver";
+            levelClass = "medal-lvl2";
+        } else if (badgeName == "Review Champion - Sage") {
+            scallopGrad = "goldGrad";
+            innerGrad = "goldInner";
+            iconClass = "fa-star";
+            desc = "Write 50 high-quality reviews and rank in the Top 'Reviews of the Month'.";
+            themeClass = "theme-gold";
+            levelClass = "medal-lvl3";
+        } else if (badgeName == "Knowledge Ambassador") {
+            scallopGrad = "blueGrad";
+            innerGrad = "blueInner";
+            iconClass = "fa-share-nodes";
+            desc = "Actively share book links or posts to Facebook or Instagram from Web.";
+            themeClass = "theme-blue";
+        } else if (badgeName == "Blind Date Adventurer - Curious") {
+            scallopGrad = "purpleGrad";
+            innerGrad = "purpleInner";
+            iconClass = "fa-mask";
+            desc = "Purchase 3 Blind Date book orders.";
+            themeClass = "theme-purple";
+            levelClass = "medal-lvl1";
+        } else if (badgeName == "Blind Date Adventurer - Seeker") {
+            scallopGrad = "purpleGrad";
+            innerGrad = "purpleInner";
+            iconClass = "fa-mask";
+            desc = "Purchase 10 Blind Date book orders.";
+            themeClass = "theme-purple";
+            levelClass = "medal-lvl2";
+        } else if (badgeName == "Blind Date Adventurer - Destiny") {
+            scallopGrad = "purpleGrad";
+            innerGrad = "purpleInner";
+            iconClass = "fa-mask";
+            desc = "Purchase 25 Blind Date book orders to unlock a mysterious purple avatar glow.";
+            themeClass = "theme-purple theme-destiny";
+            levelClass = "medal-lvl3";
+        } else if (badgeName == "True Bookworm") {
+            scallopGrad = "greenGrad";
+            innerGrad = "greenInner";
+            iconClass = "fa-book-open";
+            desc = "Purchase books across 5 diverse genres (e.g. Psychology, Novel, Horror).";
+            themeClass = "theme-green";
+        } else if (badgeName == "Exemplary User") {
+            scallopGrad = "tealGrad";
+            innerGrad = "tealInner";
+            iconClass = "fa-shield-halved";
+            desc = "Maintain the maximum reputation score of 150 points for 3 consecutive months.";
+            themeClass = "theme-teal";
+        } else if (badgeName == "Moderator Assistant") {
+            scallopGrad = "crimsonGrad";
+            innerGrad = "crimsonInner";
+            iconClass = "fa-hands-helping";
+            desc = "Submit more than 10 accurate violation reports to help keep the community clean.";
+            themeClass = "theme-crimson";
+        }
+
+        if (sizeClass == "small") {
+            return $@"
+                <div class=""badge-medal {themeClass} {levelClass}"" title=""{badgeName}: {desc}"">
+                    <div class=""medal-container"">
+                        <svg class=""medal-svg"" viewBox=""0 0 100 100"">
+                            <path class=""ribbon-tail-left"" d=""M 36 50 L 15 92 L 32 83 L 45 92 Z"" fill=""url(#ribbonLeftGrad)"" />
+                            <path class=""ribbon-tail-right"" d=""M 64 50 L 85 92 L 68 83 L 55 92 Z"" fill=""url(#ribbonRightGrad)"" />
+                            <polygon class=""medal-scallop-base"" fill=""url(#{scallopGrad})"" points=""
+                                50,5 53.5,10 58.7,6.3 60.9,12.1 67.2,10.2 68.1,16.7 75,16.4 74.4,22.9 81.3,24.1 79.2,30.3 85.7,32.7 82.2,38.4 87.7,41.9 83,47.1 87.2,51.5 81.5,55.9 84.4,61.4 78,64.8 79.5,70.9 72.8,73.1 73.1,79.5 66.2,80.5 65.1,86.9 58.5,86.4 56.4,92.5 50,90.5 43.6,92.5 41.5,86.4 34.9,86.9 33.8,80.5 26.9,79.5 27.2,73.1 20.5,70.9 22,64.8 15.6,61.4 18.5,55.9 12.8,51.5 17,47.1 12.3,41.9 17.8,38.4 14.3,32.7 20.8,30.3 18.7,24.1 25.6,22.9 25,16.4 31.9,16.7 32.8,10.2 39.1,12.1 41.3,6.3 46.5,10
+                            "" />
+                            <circle class=""medal-center"" cx=""50"" cy=""50"" r=""31.5"" fill=""url(#{innerGrad})"" />
+                            <circle cx=""50"" cy=""50"" r=""28"" fill=""none"" stroke=""#FFFFFF"" stroke-opacity=""0.4"" stroke-width=""0.75"" />
+                            <path class=""medal-gloss"" d=""M 23 35 A 31.5 31.5 0 0 1 77 35 A 31.5 28 0 0 0 23 35 Z"" fill=""rgba(255,255,255,0.18)"" />
+                        </svg>
+                        <div class=""medal-icon-container"">
+                            <i class=""fas {iconClass}""></i>
+                        </div>
+                    </div>
+                    <span class=""medal-title"">{badgeName}</span>
+                </div>";
+        } else {
+            return $@"
+                <div class=""badge-modal-medal-row {themeClass} {levelClass}"">
+                    <div class=""medal-container"" style=""width: 70px; height: 80px;"">
+                        <svg class=""medal-svg"" viewBox=""0 0 100 100"">
+                            <path class=""ribbon-tail-left"" d=""M 36 50 L 15 92 L 32 83 L 45 92 Z"" fill=""url(#ribbonLeftGrad)"" />
+                            <path class=""ribbon-tail-right"" d=""M 64 50 L 85 92 L 68 83 L 55 92 Z"" fill=""url(#ribbonRightGrad)"" />
+                            <polygon class=""medal-scallop-base"" fill=""url(#{scallopGrad})"" points=""
+                                50,5 53.5,10 58.7,6.3 60.9,12.1 67.2,10.2 68.1,16.7 75,16.4 74.4,22.9 81.3,24.1 79.2,30.3 85.7,32.7 82.2,38.4 87.7,41.9 83,47.1 87.2,51.5 81.5,55.9 84.4,61.4 78,64.8 79.5,70.9 72.8,73.1 73.1,79.5 66.2,80.5 65.1,86.9 58.5,86.4 56.4,92.5 50,90.5 43.6,92.5 41.5,86.4 34.9,86.9 33.8,80.5 26.9,79.5 27.2,73.1 20.5,70.9 22,64.8 15.6,61.4 18.5,55.9 12.8,51.5 17,47.1 12.3,41.9 17.8,38.4 14.3,32.7 20.8,30.3 18.7,24.1 25.6,22.9 25,16.4 31.9,16.7 32.8,10.2 39.1,12.1 41.3,6.3 46.5,10
+                            "" />
+                            <circle class=""medal-center"" cx=""50"" cy=""50"" r=""31.5"" fill=""url(#{innerGrad})"" />
+                            <circle cx=""50"" cy=""50"" r=""28"" fill=""none"" stroke=""#FFFFFF"" stroke-opacity=""0.4"" stroke-width=""0.75"" />
+                            <path class=""medal-gloss"" d=""M 23 35 A 31.5 31.5 0 0 1 77 35 A 31.5 28 0 0 0 23 35 Z"" fill=""rgba(255,255,255,0.18)"" />
+                        </svg>
+                        <div class=""medal-icon-container"" style=""font-size: 1.15rem; transform: translate(-50%, -50%) translateY(-4px);"">
+                            <i class=""fas {iconClass}""></i>
+                        </div>
+                    </div>
+                    <div class=""badge-modal-info"">
+                        <h6>{badgeName}</h6>
+                        <p>{desc}</p>
+                        <span class=""badge-earned-date""><i class=""far fa-calendar-alt""></i> Earned on: {earnedDate}</span>
+                    </div>
+                </div>";
+        }
+    }
+}

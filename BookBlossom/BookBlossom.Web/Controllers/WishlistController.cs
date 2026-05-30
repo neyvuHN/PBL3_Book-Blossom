@@ -10,7 +10,7 @@ namespace BookBlossom.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WishlistController : ControllerBase
+    public class WishlistController : Controller
     {
         private readonly IWishlistService _wishlistService;
 
@@ -18,6 +18,15 @@ namespace BookBlossom.Web.Controllers
         {
             _wishlistService = wishlistService;
         }
+
+        // --- MVC VIEW ---
+        [HttpGet("/Wishlist")]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // --- API ENDPOINTS ---
 
         private (long? userId, Guid? guestId) GetUserOrGuestId()
         {
