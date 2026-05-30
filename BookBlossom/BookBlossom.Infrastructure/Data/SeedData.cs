@@ -109,6 +109,68 @@ namespace BookBlossom.Infrastructure.Data
             }
 
             await context.SaveChangesAsync();
+
+            // 3. Seed dữ liệu mẫu cho module Threads nếu chưa có
+            var testCustomer = await context.Users.FirstOrDefaultAsync(u => u.UserName == "customer_test");
+            if (testCustomer != null)
+            {
+                if (!await context.ThreadPosts.AnyAsync())
+                {
+                    var post1 = new ThreadPost
+                    {
+                        CustomerID = testCustomer.UserID,
+                        Title = "Kinh nghiệm đọc sách hiệu quả mỗi ngày",
+                        Content = "Xin chào mọi người! Mình muốn chia sẻ một vài kinh nghiệm nhỏ để duy trì thói quen đọc sách 30 phút mỗi ngày. Các bạn có tips nào hay hơn không?",
+                        Hashtags = "#docsach #kienthuc #習慣",
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        IsHidden = false,
+                        ReportCount = 0
+                    };
+
+                    var post2 = new ThreadPost
+                    {
+                        CustomerID = testCustomer.UserID,
+                        Title = "Gợi ý sách tiểu thuyết trinh thám hay nhất 2026",
+                        Content = "Mình vừa hoàn thành một vài cuốn trinh thám rất hồi hộp và muốn giới thiệu cho mọi người. Nội dung cực kỳ lôi cuốn, không thể rời mắt!",
+                        Hashtags = "#trinhtham #review #sachhay",
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        IsHidden = false,
+                        ReportCount = 0
+                    };
+
+                    await context.ThreadPosts.AddRangeAsync(post1, post2);
+                    await context.SaveChangesAsync();
+
+                    var image1 = new ThreadImage
+                    {
+                        PostID = post1.PostID,
+                        ImagePath = "/uploads/threads/sample_book1.jpg"
+                    };
+                    var image2 = new ThreadImage
+                    {
+                        PostID = post2.PostID,
+                        ImagePath = "/uploads/threads/sample_book2.jpg"
+                    };
+                    await context.ThreadImages.AddRangeAsync(image1, image2);
+
+                    var comment1 = new ThreadComment
+                    {
+                        PostID = post1.PostID,
+                        CustomerID = testCustomer.UserID,
+                        Content = "Bài viết hữu ích quá, mình cũng đang áp dụng phương pháp quả cà chua Pomodoro để đọc sách tập trung hơn.",
+                        CreatedAt = DateTime.UtcNow.AddHours(-12)
+                    };
+                    var comment2 = new ThreadComment
+                    {
+                        PostID = post2.PostID,
+                        CustomerID = testCustomer.UserID,
+                        Content = "Hóng tên các tựa sách bạn giới thiệu cụ thể nhé!",
+                        CreatedAt = DateTime.UtcNow.AddHours(-6)
+                    };
+                    await context.ThreadComments.AddRangeAsync(comment1, comment2);
+                    await context.SaveChangesAsync();
+                }
+            }
         }
     }
 }

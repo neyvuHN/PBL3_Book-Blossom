@@ -69,6 +69,8 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 // Đăng ký IReturnService
 builder.Services.AddScoped<IReturnService, ReturnService>(); 
 
+// Đăng ký IThreadService
+builder.Services.AddScoped<IThreadService, ThreadService>(); 
 
 
 // Cấu hình JWT Authentication
@@ -212,7 +214,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Lỗi khi seed dữ liệu người dùng.");
+        logger.LogError(ex, "Lỗi khi seed dữ liệu.");
     }
 }
 
