@@ -73,142 +73,22 @@
         </div>
     </div>
 
-    <!-- Script for password visibility toggle and AJAX login -->
+    <!-- Script for password visibility toggle -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Reusable Toast Helper function
-            function showToast(message, type = 'success', title = '') {
-                let container = document.getElementById('toastContainer');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'toastContainer';
-                    container.className = 'toast-container';
-                    document.body.appendChild(container);
-                }
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#Password');
 
-                const toast = document.createElement('div');
-                toast.className = `custom-toast ${type}`;
-
-                let iconSvg = '';
-                if (type === 'success') {
-                    iconSvg = `
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EBBAB9" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>`;
-                    if (!title) title = 'Success';
-                } else if (type === 'error') {
-                    iconSvg = `
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EA4335" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>`;
-                    if (!title) title = 'Error';
-                } else {
-                    iconSvg = `
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#4285F4" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>`;
-                    if (!title) title = 'Info';
-                }
-
-                toast.innerHTML = `
-                    <div class="toast-icon">${iconSvg}</div>
-                    <div class="toast-content">
-                        <div class="toast-title">${title}</div>
-                        <div class="toast-message">${message}</div>
-                    </div>
-                    <button class="toast-close" type="button">&times;</button>
-                    <div class="toast-timer-bar">
-                        <div class="toast-timer-fill"></div>
-                    </div>
-                `;
-
-                container.appendChild(toast);
-
-                // Trigger transition
-                setTimeout(() => {
-                    toast.classList.add('active');
-                    const fill = toast.querySelector('.toast-timer-fill');
-                    if (fill) fill.style.width = '0%';
-                }, 10);
-
-                // Close logic
-                const closeBtn = toast.querySelector('.toast-close');
-                const dismissToast = () => {
-                    toast.classList.remove('active');
-                    setTimeout(() => toast.remove(), 400);
-                };
-
-                closeBtn.addEventListener('click', dismissToast);
-
-                // Auto remove after 4 seconds
-                setTimeout(dismissToast, 4000);
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // Toggle icon (optional but good for UX)
+            const icon = this.querySelector('svg');
+            if (type === 'text') {
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            } else {
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.12 10.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
             }
-
-            const togglePassword = document.querySelector('#togglePassword');
-            const password = document.querySelector('#Password');
-
-            togglePassword.addEventListener('click', function (e) {
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-                
-                // Toggle icon
-                const icon = this.querySelector('svg');
-                if (type === 'text') {
-                    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-                } else {
-                    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.12 10.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
-                }
-            });
-
-            const form = document.querySelector('form');
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const phoneNumberInput = document.getElementById('PhoneNumber');
-                const passwordInput = document.getElementById('Password');
-
-                const submitBtn = form.querySelector('.btn-submit');
-                const originalText = submitBtn.textContent;
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Logging in...';
-
-                try {
-                    const response = await fetch('/api/Auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            phoneNumber: phoneNumberInput.value,
-                            password: passwordInput.value
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(data.message || 'Mật khẩu hoặc tài khoản không chính xác.');
-                    }
-
-                    // Save token to LocalStorage
-                    localStorage.setItem('accessToken', data.token);
-                    localStorage.setItem('refreshToken', data.refreshToken);
-                    localStorage.setItem('userId', data.userId);
-                    localStorage.setItem('userName', data.userName);
-                    localStorage.setItem('roleId', data.roleID);
-
-                    showToast('Đăng nhập thành công! Đang chuyển hướng...', 'success', 'Thành Công');
-
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
-
-                } catch (error) {
-                    showToast(error.message, 'error', 'Đăng Nhập Thất Bại');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
-                }
-            });
         });
     </script>
 </body>
