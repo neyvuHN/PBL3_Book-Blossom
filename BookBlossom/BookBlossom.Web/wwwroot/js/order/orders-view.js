@@ -137,7 +137,7 @@ class OrdersView {
                 // [UPDATED] Buy Again opens the Secure Checkout popup
                 actionsHtml = `
                     <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
-                    ${!order.isRated ? '<button class="btn btn-outline-secondary">Rate</button>' : ''}
+                    ${!order.isRated ? `<button class="btn btn-outline-secondary" data-action="rate-order" data-id="${order.id}">Rate</button>` : `<button class="btn btn-outline-secondary" data-action="view-review" data-id="${order.id}" data-book-title="${order.items[0].title}" data-blind="${order.items[0].isBlind || false}">View Review</button>`}
                 `;
                 break;
             case 'cancelled':
@@ -226,6 +226,30 @@ class OrdersView {
             if (btn) {
                 const orderId = btn.getAttribute('data-id');
                 handler(orderId);
+            }
+        });
+    }
+
+    // [NEW] Delegate Rate Order clicks to the controller handler
+    bindRateOrder(handler) {
+        this.ordersListContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action="rate-order"]');
+            if (btn) {
+                const orderId = btn.getAttribute('data-id');
+                handler(orderId);
+            }
+        });
+    }
+
+    // [NEW] Delegate View Review clicks to the controller handler
+    bindViewReview(handler) {
+        this.ordersListContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action="view-review"]');
+            if (btn) {
+                const orderId = btn.getAttribute('data-id');
+                const title = btn.getAttribute('data-book-title');
+                const isBlind = btn.getAttribute('data-blind') === 'true';
+                handler(orderId, title, isBlind);
             }
         });
     }
@@ -910,6 +934,204 @@ class OrdersView {
             submitBtn.setAttribute('disabled', 'true');
             submitBtn.style.cursor = 'not-allowed';
             submitBtn.style.opacity = '0.6';
+        }
+    }
+
+    // [NEW] Show modal for rating an order
+    showRateOrderModal(order, onSubmit) {
+        document.getElementById('rate-modal-book-title').textContent = order.items[0].title;
+        const reviewInput = document.getElementById('rate-modal-review-text');
+        if (reviewInput) reviewInput.value = '';
+        
+        let selectedRating = 0;
+        const stars = document.querySelectorAll('#rate-modal-stars i');
+        const ratingText = document.getElementById('rate-modal-rating-text');
+        const wordCounter = document.getElementById('rate-modal-word-count');
+        const validationWarning = document.getElementById('rate-modal-validation-warning');
+        let submitBtn = document.getElementById('btn-submit-rate-order');
+        
+        // Reset UI
+        if (stars.length > 0) {
+            stars.forEach(s => {
+                s.style.color = '#e2e8f0';
+            });
+        }
+        if (ratingText) ratingText.textContent = '';
+        if (wordCounter) {
+            wordCounter.textContent = '0 / 60 words';
+            wordCounter.className = 'font-weight-bold small text-danger';
+        }
+        if (validationWarning) {
+            validationWarning.style.display = 'block';
+            validationWarning.textContent = '* Minimum 60 words and a star rating are required to submit.';
+        }
+        
+        // Helper to count words
+        const getWordCount = (text) => {
+            const cleanText = text.trim();
+            if (!cleanText) return 0;
+            return cleanText.split(/\s+/).filter(word => word.length > 0).length;
+        };
+
+        // Helper to check for spam/unhelpful duplicate text
+        const checkSpamText = (text) => {
+            const cleanText = text.toLowerCase().trim();
+            if (!cleanText) return { isSpam: false };
+
+            const words = cleanText.split(/\s+/).filter(word => word.length > 0);
+            if (words.length === 0) return { isSpam: false };
+
+            // 1. Check for consecutive word repetition (e.g. 3 times in a row like "và và và")
+            let consecutiveCount = 1;
+            for (let i = 1; i < words.length; i++) {
+                if (words[i] === words[i - 1]) {
+                    consecutiveCount++;
+                    if (consecutiveCount >= 3) {
+                        return { isSpam: true, reason: "Too many consecutive repeated words (e.g., repeating '" + words[i] + "' consecutively)." };
+                    }
+                } else {
+                    consecutiveCount = 1;
+                }
+            }
+
+            // 2. Check for unique word ratio (diversity of words)
+            const uniqueWords = new Set(words);
+            const uniqueRatio = uniqueWords.size / words.length;
+            
+            // If they write a long text but keep repeating a tiny set of words (e.g., under 35% unique words)
+            if (words.length >= 10 && uniqueRatio < 0.35) {
+                return { isSpam: true, reason: "Highly repetitive text. Please provide an organic, descriptive review." };
+            }
+
+            // 3. Check if any single word takes up more than 25% of the entire review
+            const frequencies = {};
+            for (const w of words) {
+                frequencies[w] = (frequencies[w] || 0) + 1;
+            }
+            for (const w in frequencies) {
+                const ratio = frequencies[w] / words.length;
+                if (words.length >= 15 && ratio > 0.25) {
+                    return { isSpam: true, reason: "The word '" + w + "' is repeated excessively (" + Math.round(ratio * 100) + "% of the text)." };
+                }
+            }
+
+            return { isSpam: false };
+        };
+
+        // Helper to update button state & live validation style
+        const updateValidationState = () => {
+            const text = reviewInput ? reviewInput.value : '';
+            const wordCount = getWordCount(text);
+            const spamCheck = checkSpamText(text);
+            
+            // Update word counter element
+            if (wordCounter) {
+                wordCounter.textContent = `${wordCount} / 60 words`;
+                if (wordCount >= 60 && !spamCheck.isSpam) {
+                    wordCounter.className = 'font-weight-bold small text-success';
+                } else {
+                    wordCounter.className = 'font-weight-bold small text-danger';
+                }
+            }
+
+            const isRatingValid = selectedRating > 0;
+            const isTextValid = wordCount >= 60 && !spamCheck.isSpam;
+            const isValid = isRatingValid && isTextValid;
+
+            if (submitBtn) {
+                if (isValid) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#d8456b';
+                    submitBtn.style.color = 'white';
+                    submitBtn.style.cursor = 'pointer';
+                    submitBtn.style.opacity = '1';
+                    if (validationWarning) {
+                        validationWarning.style.display = 'none';
+                    }
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#cbd5e1';
+                    submitBtn.style.color = '#94a3b8';
+                    submitBtn.style.cursor = 'not-allowed';
+                    submitBtn.style.opacity = '1';
+                    
+                    if (validationWarning) {
+                        validationWarning.style.display = 'block';
+                        if (spamCheck.isSpam) {
+                            validationWarning.textContent = `* Spam detected: ${spamCheck.reason}`;
+                        } else if (!isRatingValid && wordCount < 60) {
+                            validationWarning.textContent = '* Minimum 60 words and a star rating are required to submit.';
+                        } else if (!isRatingValid) {
+                            validationWarning.textContent = '* Please select a star rating.';
+                        } else {
+                            validationWarning.textContent = `* Review is too short. You need ${60 - wordCount} more word(s).`;
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Bind star hover & click
+        const ratingLabels = { 1: "Poor", 2: "Fair", 3: "Good", 4: "Very Good", 5: "Excellent" };
+        
+        stars.forEach(star => {
+            star.onmouseover = function() {
+                const val = parseInt(this.getAttribute('data-value'));
+                stars.forEach(s => {
+                    if (parseInt(s.getAttribute('data-value')) <= val) {
+                        s.style.color = '#fbbf24';
+                    } else {
+                        s.style.color = '#e2e8f0';
+                    }
+                });
+                if (ratingText) ratingText.textContent = ratingLabels[val];
+            };
+            
+            star.onmouseout = function() {
+                stars.forEach(s => {
+                    if (parseInt(s.getAttribute('data-value')) <= selectedRating) {
+                        s.style.color = '#fbbf24';
+                    } else {
+                        s.style.color = '#e2e8f0';
+                    }
+                });
+                if (ratingText) ratingText.textContent = selectedRating > 0 ? ratingLabels[selectedRating] : '';
+            };
+            
+            star.onclick = function() {
+                selectedRating = parseInt(this.getAttribute('data-value'));
+                updateValidationState();
+            };
+        });
+
+        // Bind input event to textarea
+        if (reviewInput) {
+            reviewInput.addEventListener('input', updateValidationState);
+        }
+        
+        // Clone button to remove old listeners and refer to active DOM element
+        if (submitBtn) {
+            const freshBtn = submitBtn.cloneNode(true);
+            submitBtn.parentNode.replaceChild(freshBtn, submitBtn);
+            submitBtn = freshBtn;
+            
+            submitBtn.addEventListener('click', () => {
+                const reviewText = reviewInput ? reviewInput.value.trim() : '';
+                const modalEl = document.getElementById('rateOrderModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                if (modalInstance) modalInstance.hide();
+                onSubmit(order.id, selectedRating, reviewText);
+            });
+        }
+
+        // Set initial validation state
+        updateValidationState();
+
+        // Show Modal
+        const modalEl = document.getElementById('rateOrderModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
         }
     }
 }

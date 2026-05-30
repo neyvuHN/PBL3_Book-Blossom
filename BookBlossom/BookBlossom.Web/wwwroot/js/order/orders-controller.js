@@ -18,6 +18,9 @@ class OrdersController {
         this.view.bindTrackOrder(this.handleTrackOrder.bind(this));
         // [UPDATED] Bind Buy Again to open Secure Checkout popup
         this.view.bindBuyAgain(this.handleBuyAgain.bind(this));
+        // [NEW] Bind Rate and View Review
+        this.view.bindRateOrder(this.handleRateOrder.bind(this));
+        this.view.bindViewReview(this.handleViewReview.bind(this));
         // [UPDATED] Bind clicking on book items to navigate to book details / blind book details
         this.view.bindViewBook(this.handleViewBook.bind(this));
         // [NEW] Bind Return/Refund click and submit handlers
@@ -129,6 +132,79 @@ class OrdersController {
 
         // Open the Secure Checkout popup
         window.openCheckout();
+    }
+
+    // [NEW] Handle clicking Rate
+    handleRateOrder(orderId) {
+        const order = this.model.orders.find(o => o.id === orderId);
+        if (order && !order.isRated) {
+            this.view.showRateOrderModal(order, (id, rating, reviewText) => {
+                order.isRated = true;
+                order.userRating = rating;
+                order.userReviewText = reviewText;
+                
+                this.updateView();
+
+                // [NEW] Award +2 Reputation Score points in LocalStorage
+                let reputationAwarded = false;
+                try {
+                    const userKey = 'BookBlossomUser';
+                    let userData = localStorage.getItem(userKey);
+                    if (userData) {
+                        const user = JSON.parse(userData);
+                        const oldScore = Number(user.reputationScore) || 110;
+                        const maxScore = Number(user.maxReputationScore) || 150;
+                        user.reputationScore = Math.min(maxScore, oldScore + 2);
+                        localStorage.setItem(userKey, JSON.stringify(user));
+                        reputationAwarded = true;
+                        console.log(`[Reputation Update] Score increased from ${oldScore} to ${user.reputationScore} (+2 points)`);
+                    } else {
+                        // Fallback default state if user has not loaded profile yet
+                        const defaultUser = {
+                            fullName: "Jane Doe",
+                            username: "janedoe_bookworm",
+                            reputationScore: 112,
+                            maxReputationScore: 150
+                        };
+                        localStorage.setItem(userKey, JSON.stringify(defaultUser));
+                        reputationAwarded = true;
+                    }
+                } catch (e) {
+                    console.error("Error updating reputation score in localStorage:", e);
+                }
+                
+                const pointsMessage = reputationAwarded 
+                    ? `Thank you! Your review has been submitted successfully. <strong>You have earned +2 Reputation Score points!</strong>` 
+                    : `Thank you! Your review has been submitted successfully.`;
+
+                this.view.showConfirmModal({
+                    icon: 'fas fa-check-circle',
+                    iconColor: '#38a169',
+                    accentColor: 'linear-gradient(90deg, #38a169, #68d391)',
+                    title: 'Review Submitted',
+                    message: pointsMessage,
+                    confirmText: 'Great',
+                    confirmBtnClass: 'btn-success',
+                    onConfirm: () => {}
+                });
+            });
+        }
+    }
+
+    // [NEW] Handle clicking View Review
+    handleViewReview(orderId, title, isBlind) {
+        const order = this.model.orders.find(o => o.id === orderId);
+        
+        // Set a flag in sessionStorage so the book detail page knows to show user's review first
+        sessionStorage.setItem('show-my-review-first', 'true');
+        sessionStorage.setItem('my-review-text', order?.userReviewText || 'Great book, very satisfied with my purchase!');
+        sessionStorage.setItem('my-review-rating', order?.userRating || '5');
+        
+        if (isBlind) {
+            window.location.href = `/BlindDate#blind-details-${encodeURIComponent(title)}?tab=reviews`;
+        } else {
+            window.location.href = `/Explore#book-details-${encodeURIComponent(title)}?tab=reviews`;
+        }
     }
 
     // [UPDATED] handleViewBook – redirects to either Explore (normal book) or BlindDate page with hash key

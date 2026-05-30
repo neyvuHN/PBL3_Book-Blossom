@@ -292,9 +292,16 @@
 
     function initFromHash() {
         const initialHash = window.location.hash;
+        let targetTab = null;
+        let bookTitleDecoded = '';
 
         if (initialHash && initialHash.startsWith('#book-details-')) {
-            const bookTitleDecoded = decodeURIComponent(initialHash.substring('#book-details-'.length));
+            let hashStr = initialHash.substring('#book-details-'.length);
+            if (hashStr.includes('?tab=reviews')) {
+                targetTab = 'tab-rev';
+                hashStr = hashStr.replace('?tab=reviews', '');
+            }
+            bookTitleDecoded = decodeURIComponent(hashStr);
 
             const mockBook = {
                 title: bookTitleDecoded,
@@ -303,6 +310,44 @@
             };
 
             showProductDetails(mockBook, false);
+            
+            if (targetTab === 'tab-rev') {
+                setTimeout(() => {
+                    $('[data-tab="tab-rev"]').trigger('click');
+                    
+                    if (sessionStorage.getItem('show-my-review-first') === 'true') {
+                        sessionStorage.removeItem('show-my-review-first');
+                        
+                        const userReviewText = sessionStorage.getItem('my-review-text') || 'Great book, very satisfied with my purchase!';
+                        const userRating = parseInt(sessionStorage.getItem('my-review-rating') || '5');
+                        sessionStorage.removeItem('my-review-text');
+                        sessionStorage.removeItem('my-review-rating');
+                        
+                        let starsHtml = '';
+                        for(let i=0; i<5; i++) {
+                            starsHtml += i < userRating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+                        }
+                        
+                        // [NEW] prepend a mock review of the current buyer to the reviews list
+                        const mockReviewHtml = `
+                            <div class="prod-review-item" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 20px; background: #fffaf0; border-radius: 8px; padding: 15px;" data-rating="${userRating}" data-likes="0" data-index="0">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                                    <div>
+                                        <h5 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #333;">You (Buyer)</h5>
+                                        <span style="font-size: 0.8rem; color: #999;">Just now</span>
+                                    </div>
+                                    <div style="margin-left: auto; color: #ffc107;">
+                                        ${starsHtml}
+                                    </div>
+                                </div>
+                                <p style="font-size: 0.9rem; color: #555; line-height: 1.5; margin: 0; padding-left: 52px;">"${userReviewText}"</p>
+                            </div>
+                        `;
+                        $('.product-reviews-list').prepend(mockReviewHtml);
+                    }
+                }, 100);
+            }
 
             history.replaceState(
                 {
