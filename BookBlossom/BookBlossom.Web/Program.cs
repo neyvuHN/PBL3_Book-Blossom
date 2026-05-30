@@ -101,6 +101,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
+    // 1. Cấu hình cho USER (Dùng JWT Token - GIỮ NGUYÊN CODE CŨ CỦA BẠN)
     var securityScheme = new OpenApiModels.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -115,12 +116,43 @@ builder.Services.AddSwaggerGen(c =>
             Type = OpenApiModels.ReferenceType.SecurityScheme
         }
     };
-
     c.AddSecurityDefinition("Bearer", securityScheme);
-
     c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
     {
         { securityScheme, Array.Empty<string>() }
+    });
+
+    // 2. 🟢 CHỖ THÊM MỚI: Cấu hình cho GUEST (Dùng X-Guest-Id và X-Guest-Token)
+    var guestIdScheme = new OpenApiModels.OpenApiSecurityScheme
+    {
+        Name = "X-Guest-Id",
+        In = OpenApiModels.ParameterLocation.Header,
+        Type = OpenApiModels.SecuritySchemeType.ApiKey,
+        Reference = new OpenApiModels.OpenApiReference
+        {
+            Id = "GuestId",
+            Type = OpenApiModels.ReferenceType.SecurityScheme
+        }
+    };
+    c.AddSecurityDefinition("GuestId", guestIdScheme);
+
+    var guestTokenScheme = new OpenApiModels.OpenApiSecurityScheme
+    {
+        Name = "X-Guest-Token",
+        In = OpenApiModels.ParameterLocation.Header,
+        Type = OpenApiModels.SecuritySchemeType.ApiKey,
+        Reference = new OpenApiModels.OpenApiReference
+        {
+            Id = "GuestToken",
+            Type = OpenApiModels.ReferenceType.SecurityScheme
+        }
+    };
+    c.AddSecurityDefinition("GuestToken", guestTokenScheme);
+
+    c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
+    {
+        { guestIdScheme, Array.Empty<string>() },
+        { guestTokenScheme, Array.Empty<string>() }
     });
 });
 

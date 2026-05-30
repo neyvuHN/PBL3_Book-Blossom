@@ -123,6 +123,14 @@ namespace BookBlossom.API.Controllers
             }
             else if (guestId.HasValue)
             {
+                var canGuestUndo = await _tindbookService.CanUndoGuestAsync(guestId.Value);
+                if (!canGuestUndo)
+                {
+                    return BadRequest(new { 
+                        message = "Bạn đã hết lượt Hoàn tác miễn phí trong ngày! Vui lòng đăng ký tài khoản để nhận thêm đặc quyền." 
+                    });
+                }
+
                 var result = await _tindbookService.UndoLastGuestSwipeAsync(guestId.Value);
                 if (!result) return NotFound("Không có hành động nào để hoàn tác.");
                 return Ok(new { message = "Đã hoàn tác hành động gần nhất." });

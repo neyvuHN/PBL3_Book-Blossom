@@ -19,6 +19,21 @@ namespace BookBlossom.Infrastructure.Services
             _packageService = packageService;
         }
 
+        public async Task<IEnumerable<BookResponseDTO>> GetSwipeRecommendationsAsync(long? userId, List<long>? categoryIds, int count = 10)
+        {
+            if (!userId.HasValue && (categoryIds == null || !categoryIds.Any()))
+                categoryIds = await _context.Categories.OrderBy(c => Guid.NewGuid()).Take(3).Select(c => c.CategoryID).ToListAsync();
+
+            return await _context.RealBooks.Include(b => b.Category)
+                .Where(b => categoryIds != null && categoryIds.Contains(b.CategoryID))
+                .OrderBy(b => Guid.NewGuid()).Take(count)
+                .Select(b => new BookResponseDTO {
+                    BookID = b.BookID, CategoryID = b.CategoryID,
+                    CategoryName = b.Category != null ? b.Category.CategoryName : "",
+                    Title = b.Title, Description = b.Description, Price = b.Price
+                }).ToListAsync();
+        }
+        
         // ======================== CUSTOMER ========================
 
         public async Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForTindbookAsync(long userId, int limit = 20)
@@ -265,11 +280,25 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<bool> UndoLastGuestSwipeAsync(Guid guestId)
         {
+            var guest = await _context.GuestDetails.FirstOrDefaultAsync(g => g.GuestID == guestId);
+            if (guest == null) return false;
+
+            var today = DateTime.UtcNow.Date;
+            
+            // 🟢 Chỗ sửa 1: Reset lượt nếu sang ngày mới
+            if (guest.LastUndoDate?.Date != today)
+            {
+                guest.DailyUndoCount = 0;
+                guest.LastUndoDate = today;
+            }
+
+            // 🟢 Chỗ sửa 2: Chặn nếu quá 3 lượt
+            if (guest.DailyUndoCount >= 3) return false;
+
             var lastSwipe = await _context.SwipeLogs.Where(l => l.GuestID == guestId)
                 .OrderByDescending(l => l.CreatedAt).FirstOrDefaultAsync();
             if (lastSwipe == null) return false;
 
-            // Đảo ngược Wishlist nếu cần
             if (lastSwipe.ActionType == SwipeIntent.Wishlist.ToString() && lastSwipe.BookID.HasValue)
             {
                 var wishlist = await _context.Wishlists.FirstOrDefaultAsync(w => w.GuestID == guestId && w.BookID == lastSwipe.BookID.Value);
@@ -277,23 +306,23 @@ namespace BookBlossom.Infrastructure.Services
             }
 
             _context.SwipeLogs.Remove(lastSwipe);
+
+            // 🟢 Chỗ sửa 3: Tăng lượt đã dùng lên 1
+            guest.DailyUndoCount += 1;
+
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<IEnumerable<BookResponseDTO>> GetSwipeRecommendationsAsync(long? userId, List<long>? categoryIds, int count = 10)
+        public async Task<bool> CanUndoGuestAsync(Guid guestId)
         {
-            if (!userId.HasValue && (categoryIds == null || !categoryIds.Any()))
-                categoryIds = await _context.Categories.OrderBy(c => Guid.NewGuid()).Take(3).Select(c => c.CategoryID).ToListAsync();
+            var guest = await _context.GuestDetails.FirstOrDefaultAsync(g => g.GuestID == guestId);
+            if (guest == null) return false;
 
-            return await _context.RealBooks.Include(b => b.Category)
-                .Where(b => categoryIds != null && categoryIds.Contains(b.CategoryID))
-                .OrderBy(b => Guid.NewGuid()).Take(count)
-                .Select(b => new BookResponseDTO {
-                    BookID = b.BookID, CategoryID = b.CategoryID,
-                    CategoryName = b.Category != null ? b.Category.CategoryName : "",
-                    Title = b.Title, Description = b.Description, Price = b.Price
-                }).ToListAsync();
+            var today = DateTime.UtcNow.Date;
+            if (guest.LastUndoDate?.Date != today) return true;
+
+            return guest.DailyUndoCount < 3; // Quy định cứng tối đa 3 lần/ngày
         }
     }
 }
