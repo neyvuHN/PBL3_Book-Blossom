@@ -10,6 +10,6 @@ namespace BookBlossom.Core.Entities
         public DateTime? EndDate { get; set; }
 
         public virtual User User { get; set; } = null!;
-        public virtual ServicePackage ServicePackage { get; set; } = null!;
+        public virtual ServicePackage? ServicePackage { get; set; }
     }
 }

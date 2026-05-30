@@ -14,6 +14,7 @@ namespace BookBlossom.Core.Interfaces
         // Swipe cho Customer
         Task<bool> RecordSwipeActionAsync(long? userId, SwipeActionDTO dto);
         Task<bool> UndoLastSwipeAsync(long userId);
+        Task<bool> CanUndoTindbookAsync(long userId);
         // Swipe cho Guest (trả về RequiresLogin=true nếu Guest cố AddToCart)
         Task<(bool Success, bool RequiresLogin)> RecordGuestSwipeActionAsync(Guid guestId, SwipeActionDTO dto);
         Task<bool> UndoLastGuestSwipeAsync(Guid guestId);

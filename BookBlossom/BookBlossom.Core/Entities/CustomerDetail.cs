@@ -13,8 +13,12 @@ namespace BookBlossom.Core.Entities
         public int CurrentMonthThreadCount { get; set; }
         public DateTime? LastThreadResetDate { get; set; }
         public int CurrentOrderStreak { get; set; }
-
         public virtual User User { get; set; }
+
+        public virtual MembershipRank? MembershipRank { get; set; }
+        public virtual ServicePackage? ServicePackage { get; set; }
+        public virtual CustomerService? CustomerService { get; set; }
+        public ICollection<CustomerReputation> CustomerReputations {get; set; } = new List<CustomerReputation>();
         public ICollection<CustomerPreference> CustomerPreferences {get; set; } = new List<CustomerPreference>();
     }
 }

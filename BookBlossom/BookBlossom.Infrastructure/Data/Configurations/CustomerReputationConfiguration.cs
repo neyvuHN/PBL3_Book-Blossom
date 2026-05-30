@@ -24,6 +24,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                    .WithMany()
                    .HasForeignKey(cr => cr.RankID)
                    .OnDelete(DeleteBehavior.SetNull);
+            
 
             // Lưu ý: Mối quan hệ ngoại với [UserSystem].[CustomerDetail] nếu thực thể CustomerDetail 
             // chưa nằm trong DbContext này thì EF sẽ tự nhận biết qua trường CustomerID khi query.

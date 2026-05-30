@@ -149,6 +149,45 @@ namespace BookBlossom.Infrastructure.Services
             return true;
         }
 
+        // Tính toán số lượt undo của người dùng theo gói subscription + membership rank
+        public async Task<bool> CanUndoTindbookAsync(long userId)
+        {
+            // Lấy thông tin customer bao gồm Subscription và Rank
+            var customer = await _context.CustomerDetails
+                .Include(c => c.MembershipRank)
+                .Include(c => c.ServicePackage)
+                .FirstOrDefaultAsync(c => c.CustomerID == userId);
+
+            if (customer == null) return false;
+
+            // 1. Xác định RankType
+            int rankType = customer.MembershipRank?.RankType ?? 1; // Mặc định là 1 nếu null
+
+            // 2. Logic kiểm tra Unlimited (Pro hoặc Rank Vàng/Kim Cương)
+            bool isPro = customer.ServicePackage?.UndoLimit >= 999999;
+            bool isHighRank = (rankType == 3 || rankType == 4);
+
+            if (isPro || isHighRank) return true;
+
+            // 3. Tính toán tổng lượt Undo cho phép: (Subscription Limit) + (Rank Bonus)
+            // Subscription Limit: Free=2, Basic=5
+            int packageLimit = customer.ServicePackage?.UndoLimit ?? 0;
+            
+            // Rank Bonus: Rank 2 (Bạc) = 3, Rank 1 (Đồng) = 0
+            int rankBonus = (rankType == 2) ? 3 : 0;
+            
+            int totalLimit = packageLimit + rankBonus;
+
+            // 4. Đếm số lượt đã Undo trong ngày (Sử dụng SwipeLogs với ActionType="Undo")
+            var today = DateTime.UtcNow.Date;
+            int usedUndoCount = await _context.SwipeLogs
+                .CountAsync(log => log.CustomerID == userId 
+                                && log.ActionType == "Undo" 
+                                && log.CreatedAt.Date == today);
+
+            return usedUndoCount < totalLimit;
+        }
+
         // ======================== GUEST ========================
 
         public async Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForGuestAsync(Guid guestId, int limit = 20)

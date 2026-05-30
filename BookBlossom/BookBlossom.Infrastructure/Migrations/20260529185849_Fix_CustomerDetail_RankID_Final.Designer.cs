@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260529090700_UpdateServicePackageData")]
-    partial class UpdateServicePackageData
+    [Migration("20260529185849_Fix_CustomerDetail_RankID_Final")]
+    partial class Fix_CustomerDetail_RankID_Final
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -213,6 +213,9 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<int>("CurrentOrderStreak")
                         .HasColumnType("int");
 
+                    b.Property<long?>("CurrentPackageID")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("DailyUndoCount")
                         .HasColumnType("int");
 
@@ -225,10 +228,17 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<DateTime?>("LastUndoDate")
                         .HasColumnType("date");
 
+                    b.Property<long?>("RankID")
+                        .HasColumnType("bigint");
+
                     b.Property<decimal>("TotalSpending")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("CustomerID");
+
+                    b.HasIndex("CurrentPackageID");
+
+                    b.HasIndex("RankID");
 
                     b.ToTable("CustomerDetail", "UserSystem");
                 });
@@ -256,6 +266,9 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<long>("CustomerID")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("CustomerDetailCustomerID")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("RankID")
                         .HasColumnType("bigint");
 
@@ -265,6 +278,8 @@ namespace BookBlossom.Infrastructure.Migrations
                         .HasDefaultValue(100);
 
                     b.HasKey("CustomerID");
+
+                    b.HasIndex("CustomerDetailCustomerID");
 
                     b.HasIndex("RankID");
 
@@ -865,10 +880,7 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.ServicePackage", b =>
                 {
                     b.Property<long>("PackageID")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("PackageID"));
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -1160,11 +1172,24 @@ namespace BookBlossom.Infrastructure.Migrations
 
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>
                 {
+                    b.HasOne("BookBlossom.Core.Entities.ServicePackage", "ServicePackage")
+                        .WithMany("CustomerDetails")
+                        .HasForeignKey("CurrentPackageID");
+
                     b.HasOne("BookBlossom.Core.Entities.User", "User")
                         .WithOne("CustomerDetail")
                         .HasForeignKey("BookBlossom.Core.Entities.CustomerDetail", "CustomerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("BookBlossom.Core.Entities.MembershipRank", "MembershipRank")
+                        .WithMany("CustomerDetails")
+                        .HasForeignKey("RankID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("MembershipRank");
+
+                    b.Navigation("ServicePackage");
 
                     b.Navigation("User");
                 });
@@ -1190,6 +1215,10 @@ namespace BookBlossom.Infrastructure.Migrations
 
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerReputation", b =>
                 {
+                    b.HasOne("BookBlossom.Core.Entities.CustomerDetail", null)
+                        .WithMany("CustomerReputations")
+                        .HasForeignKey("CustomerDetailCustomerID");
+
                     b.HasOne("BookBlossom.Core.Entities.MembershipRank", "MembershipRank")
                         .WithMany()
                         .HasForeignKey("RankID")
@@ -1203,6 +1232,12 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasOne("BookBlossom.Core.Entities.ServicePackage", "ServicePackage")
                         .WithMany("CustomerServices")
                         .HasForeignKey("CurrentPackageID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BookBlossom.Core.Entities.CustomerDetail", null)
+                        .WithOne("CustomerService")
+                        .HasForeignKey("BookBlossom.Core.Entities.CustomerService", "CustomerID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1406,11 +1441,20 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>
                 {
                     b.Navigation("CustomerPreferences");
+
+                    b.Navigation("CustomerReputations");
+
+                    b.Navigation("CustomerService");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
                 {
                     b.Navigation("ImportingDetails");
+                });
+
+            modelBuilder.Entity("BookBlossom.Core.Entities.MembershipRank", b =>
+                {
+                    b.Navigation("CustomerDetails");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Order", b =>
@@ -1430,6 +1474,8 @@ namespace BookBlossom.Infrastructure.Migrations
 
             modelBuilder.Entity("BookBlossom.Core.Entities.ServicePackage", b =>
                 {
+                    b.Navigation("CustomerDetails");
+
                     b.Navigation("CustomerServices");
                 });
 

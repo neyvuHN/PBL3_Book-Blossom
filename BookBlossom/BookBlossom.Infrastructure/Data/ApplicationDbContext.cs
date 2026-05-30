@@ -32,6 +32,8 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<CustomerReputation> CustomerReputations { get; set; }
         public DbSet<SwipeLog> SwipeLogs { get; set; } 
         public DbSet<ReturnRequest> ReturnRequests { get; set; }
+        
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
