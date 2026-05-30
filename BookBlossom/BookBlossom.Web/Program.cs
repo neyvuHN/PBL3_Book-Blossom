@@ -72,6 +72,9 @@ builder.Services.AddScoped<IReturnService, ReturnService>();
 // Đăng ký IThreadService
 builder.Services.AddScoped<IThreadService, ThreadService>(); 
 
+// Đăng ký IReviewService
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

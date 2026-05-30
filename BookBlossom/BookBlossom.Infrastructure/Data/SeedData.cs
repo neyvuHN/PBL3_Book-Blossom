@@ -171,6 +171,40 @@ namespace BookBlossom.Infrastructure.Data
                     await context.SaveChangesAsync();
                 }
             }
+
+            // 4. Seed Membership Ranks nếu chưa có
+            if (!await context.MembershipRanks.AnyAsync())
+            {
+                var ranks = new[]
+                {
+                    new MembershipRank { RankType = 1, MinSpending = 0m, DiscountRate = 0m },
+                    new MembershipRank { RankType = 2, MinSpending = 1000000m, DiscountRate = 0.02m },
+                    new MembershipRank { RankType = 3, MinSpending = 5000000m, DiscountRate = 0.05m },
+                    new MembershipRank { RankType = 4, MinSpending = 10000000m, DiscountRate = 0.10m }
+                };
+                await context.MembershipRanks.AddRangeAsync(ranks);
+                await context.SaveChangesAsync();
+            }
+
+            // 5. Seed Badges nếu chưa có
+            if (!await context.Badges.AnyAsync())
+            {
+                var badges = new[]
+                {
+                    new Badge { BadgeID = 1, BadgeName = "Review Champion - Explorer", Description = "Viết bài đánh giá sách đầu tiên của bạn" },
+                    new Badge { BadgeID = 2, BadgeName = "Review Champion - Critic", Description = "Viết 5 bài đánh giá sách" },
+                    new Badge { BadgeID = 3, BadgeName = "Review Champion - Sage", Description = "Viết 15 bài đánh giá sách" },
+                    new Badge { BadgeID = 4, BadgeName = "Knowledge Ambassador", Description = "Đạt 5 lượt thích cho một bài đánh giá sách" },
+                    new Badge { BadgeID = 5, BadgeName = "Blind Date Adventurer - Curious", Description = "Trải nghiệm Sách Mù 1 lần" },
+                    new Badge { BadgeID = 6, BadgeName = "Blind Date Adventurer - Seeker", Description = "Trải nghiệm Sách Mù 5 lần" },
+                    new Badge { BadgeID = 7, BadgeName = "Blind Date Adventurer - Destiny", Description = "Trải nghiệm Sách Mù 10 lần" },
+                    new Badge { BadgeID = 8, BadgeName = "True Bookworm", Description = "Đọc/mua tổng cộng 10 cuốn sách" },
+                    new Badge { BadgeID = 9, BadgeName = "Exemplary User", Description = "Điểm uy tín đạt 100/100 tối đa" },
+                    new Badge { BadgeID = 10, BadgeName = "Moderator Assistant", Description = "Báo cáo thành công 5 bài viết vi phạm hoặc điểm uy tín đạt 120" }
+                };
+                await context.Badges.AddRangeAsync(badges);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }
