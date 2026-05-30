@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.DTOs.Thread;
 using BookBlossom.Core.Interfaces.Services;
@@ -17,10 +18,12 @@ namespace BookBlossom.Web.Controllers
     public class ThreadController : ControllerBase
     {
         private readonly IThreadService _service;
+        private readonly IMemoryCache _cache;
 
-        public ThreadController(IThreadService service)
+        public ThreadController(IThreadService service, IMemoryCache cache)
         {
             _service = service;
+            _cache = cache;
         }
 
         // 1. GET ALL (Feed) - Cho phép xem công khai không cần đăng nhập
@@ -29,8 +32,22 @@ namespace BookBlossom.Web.Controllers
         {
             try
             {
-                if (page < 1) page = 1;
-                if (pageSize < 1 || pageSize > 50) pageSize = 10;
+                var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+                if (!isAuthenticated)
+                {
+                    // Guest chỉ được xem tối đa 3 bài mới nhất (trang 1, size 3)
+                    if (page > 1)
+                    {
+                        return Ok(Array.Empty<ThreadPostDTO>());
+                    }
+                    page = 1;
+                    pageSize = 3;
+                }
+                else
+                {
+                    if (page < 1) page = 1;
+                    if (pageSize < 1 || pageSize > 50) pageSize = 10;
+                }
 
                 var result = await _service.GetFeedAsync(page, pageSize);
                 return Ok(result);
@@ -47,6 +64,27 @@ namespace BookBlossom.Web.Controllers
         {
             try
             {
+                // Kiểm tra giới hạn xem 3 bài/ngày đối với Guest
+                var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+                if (!isAuthenticated)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
+                    var cacheKey = $"Guest_ViewedThreads_{ipAddress}_{todayStr}";
+
+                    var viewedThreadIds = _cache.Get<HashSet<long>>(cacheKey) ?? new HashSet<long>();
+
+                    if (!viewedThreadIds.Contains(postId))
+                    {
+                        if (viewedThreadIds.Count >= 3)
+                        {
+                            return BadRequest(new { message = "Bạn đã đạt giới hạn xem 3 bài viết mỗi ngày dành cho Guest. Vui lòng đăng nhập để xem tiếp." });
+                        }
+                        viewedThreadIds.Add(postId);
+                        _cache.Set(cacheKey, viewedThreadIds, TimeSpan.FromDays(1));
+                    }
+                }
+
                 var post = await _service.GetPostByIdAsync(postId);
                 if (post == null)
                 {
