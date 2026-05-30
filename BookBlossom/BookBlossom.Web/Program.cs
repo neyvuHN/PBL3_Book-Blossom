@@ -1,11 +1,18 @@
+using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Core.Interfaces;
+using BookBlossom.Infrastructure.BackgroundJobs;
 using BookBlossom.Infrastructure.Data;
 using BookBlossom.Infrastructure.Services;
-using BookBlossom.Core.Interfaces.Services;
-using Microsoft.EntityFrameworkCore;
+using BookBlossom.Web.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
+
 using System.Text;
-using BookBlossom.Infrastructure.BackgroundJobs;
+using System.Security.Claims;
+using BookBlossom.Core.Enums;
+using OpenApiModels = Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +31,48 @@ builder.Services.AddHostedService<OtpCleanupJob>();
 // Đăng ký AuthService
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Đăng ký GuestService
+builder.Services.AddScoped<IGuestService, GuestService>();
+
+// Đăng ký Service Module
+builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
+builder.Services.AddHostedService<SubscriptionExpiryJob>();
+
+// Đăng ký Background Job tự động hủy đơn sau 48h chưa xác nhận
+builder.Services.AddHostedService<OrderAutoCancelService>();
+
+// Đăng ký IOnboardingService
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
+
+// Đăng ký ICategoryService
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+// Đăng ký IInventoryService
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+
+// Đăng ký ITindbookService
+builder.Services.AddScoped<ITindbookService, TindbookService>();
+
+// Đăng ký IRealBookService
+builder.Services.AddScoped<IRealBookService, RealBookService>();
+
+// Đăng ký ICartService & IWishlistService
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+
+// Đăng ký IBlindBookService
+builder.Services.AddScoped<IBlindBookService, BlindBookService>();
+
+// Đăng ký IOrderService
+builder.Services.AddScoped<IOrderService, OrderService>(); 
+
+// Đăng ký IReturnService
+builder.Services.AddScoped<IReturnService, ReturnService>(); 
+
+// Đăng ký IThreadService
+builder.Services.AddScoped<IThreadService, ThreadService>(); 
+
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -36,17 +85,138 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "ChuoiBiMatMacDinhSieuDaiCuaBan123!"))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "Nuocmatemroitrochoiketthuc_BookBlossom_Security_Key_2026")),
+
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiModels.OpenApiInfo
+    {
+        Title = "BookBlossom API",
+        Version = "v1"
+    });
+
+    var securityScheme = new OpenApiModels.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Nhập token JWT của bạn",
+        In = OpenApiModels.ParameterLocation.Header,
+        Type = OpenApiModels.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiModels.OpenApiReference
+        {
+            Id = "Bearer",
+            Type = OpenApiModels.ReferenceType.SecurityScheme
+        }
+    };
+
+    c.AddSecurityDefinition("Bearer", securityScheme);
+
+    c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
+    {
+        { securityScheme, Array.Empty<string>() }
+    });
+});
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Hằng số cho AccountStatus.Active
+    var activeStatus = ((int)AccountStatus.Active).ToString();
 
+    // 1. Policy cho Admin (Toàn quyền) - Chấp nhận cả số enum lẫn chữ cứng
+    options.AddPolicy("AdminOnly", policy => 
+    {
+        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+
+    // 2. Policy cho tất cả Staff (Admin, Moderator, Marketing, Store)
+    options.AddPolicy("StaffOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.Moderator).ToString(), "Moderator",
+            ((int)UserRole.MarketingManager).ToString(), "MarketingManager",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+
+    // 3. Policy riêng cho Marketing
+    options.AddPolicy("MarketingManagerOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.MarketingManager).ToString(), "MarketingManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+
+    // 4. Policy riêng cho Moderator
+    options.AddPolicy("ModeratorOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.Moderator).ToString(), "Moderator");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+
+    // 5. Policy riêng cho Store Manager (Áp dụng cho RealBookController của bạn)
+    options.AddPolicy("StoreManagerOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+
+    options.AddPolicy("RequireStoreManager", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+            
+    // 6. Policy cho Khách hàng đã định danh
+    options.AddPolicy("CustomerOnly", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.Customer).ToString(), "Customer");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+
+    // 7. Policy RequireStaff
+    options.AddPolicy("RequireStaff", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, 
+            ((int)UserRole.SystemAdmin).ToString(), "SystemAdmin", "Admin",
+            ((int)UserRole.MarketingManager).ToString(), "MarketingManager",
+            ((int)UserRole.StoreManager).ToString(), "StoreManager");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+});
 var app = builder.Build();
+
+// Seed dữ liệu mặc định hệ thống
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<BookBlossom.Infrastructure.Data.ApplicationDbContext>();
+        await BookBlossom.Infrastructure.Data.SeedData.InitializeAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Lỗi khi seed dữ liệu.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -62,6 +232,8 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseMiddleware<GuestSessionMiddleware>();
 
 app.UseAuthentication(); // Thêm dòng này trước UseAuthorization
 app.UseAuthorization();

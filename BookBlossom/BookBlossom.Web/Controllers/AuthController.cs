@@ -20,15 +20,17 @@ namespace BookBlossom.Web.Controllers
         private readonly IMemoryCache _cache;
         private readonly ApplicationDbContext _context;
         private readonly IAuthService _authService;
+        private readonly IGuestService _guestService;
 
         // Khai báo và tiêm các dependency cần thiết
-        public AuthController(IOTPService otpService, ISMSService smsService, IMemoryCache cache, ApplicationDbContext context, IAuthService authService)
+        public AuthController(IOTPService otpService, ISMSService smsService, IMemoryCache cache, ApplicationDbContext context, IAuthService authService, IGuestService guestService)
         {
             _otpService = otpService;
             _smsService = smsService;
             _cache = cache;
             _context = context;
             _authService = authService;
+            _guestService = guestService;
         }
 
         // ==================== MVC Razor Views ====================
@@ -76,6 +78,25 @@ namespace BookBlossom.Web.Controllers
             try
             {
                 var result = await _authService.LoginAsync(request);
+
+                // Migrate Guest Cart and Wishlist if GuestID is present
+                if (Request.Headers.TryGetValue("X-Guest-ID", out var guestIdHeader) && Guid.TryParse(guestIdHeader.ToString(), out var guestId))
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
+                    if (user != null)
+                    {
+                        await _guestService.MigrateGuestDataToUserAsync(guestId, user.UserID);
+                    }
+                }
+                else if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid guestIdFromItems)
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
+                    if (user != null)
+                    {
+                        await _guestService.MigrateGuestDataToUserAsync(guestIdFromItems, user.UserID);
+                    }
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -95,6 +116,12 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
+                // Nếu FE không gửi GuestID trong body, thử lấy từ Middleware (Header X-Guest-Id)
+                if (!request.GuestID.HasValue && HttpContext.Items.TryGetValue("GuestID", out var gid) && gid is Guid guestGuid)
+                {
+                    request.GuestID = guestGuid;
+                }
+
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                 var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber, ipAddress);
 
@@ -119,7 +146,10 @@ namespace BookBlossom.Web.Controllers
         }
 
         [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDTO request)
+        public async Task<IActionResult> VerifyOtp(
+            [FromBody] VerifyOtpRequestDTO request,
+            [FromHeader(Name = "X-Guest-Id")] string? guestIdHeader,
+            [FromHeader(Name = "X-Guest-Token")] string? guestTokenHeader)
         {
             try
             {
@@ -137,7 +167,24 @@ namespace BookBlossom.Web.Controllers
                 await _authService.CompleteRegistrationAsync(cachedRequest);
                 _cache.Remove(request.PhoneNumber);
 
-                return Ok(new { Message = "Đăng ký tài khoản thành công!" });
+                if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid guestId)
+                {
+                    var newUserObj = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == cachedRequest.PhoneNumber);
+                    if (newUserObj != null)
+                    {
+                        await _guestService.MigrateGuestDataToUserAsync(guestId, newUserObj.UserID);
+                    }
+                }
+
+                // Tự động đăng nhập sau khi đăng ký thành công
+                var loginRequest = new LoginRequestDTO
+                {
+                    PhoneNumber = cachedRequest.PhoneNumber,
+                    Password = cachedRequest.Password
+                };
+                var authResponse = await _authService.LoginAsync(loginRequest);
+
+                return Ok(authResponse);
             }
             catch (Exception ex)
             {

@@ -22,25 +22,33 @@ namespace BookBlossom.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IGuestService _guestService;
 
-        public AuthService(ApplicationDbContext context, IConfiguration configuration)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration, IGuestService guestService)
         {
             _context = context;
             _configuration = configuration;
+            _guestService = guestService;
         }
 
         public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName || u.PhoneNumber == request.UserName);
+            var user = await _context.Users
+                .Include(u => u.CustomerDetail)
+                .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
             
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
-                throw new UnauthorizedActionException("Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác.");
+                throw new UnauthorizedActionException("Số điện thoại hoặc mật khẩu không chính xác.");
+
+            if (user.AccountStatus != AccountStatus.Active)
+                throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa hoặc chưa được xác thực.");
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, user.RoleID.ToString())
+                new Claim(ClaimTypes.Role, user.RoleID.ToString()),
+                new Claim("AccountStatus", ((int)user.AccountStatus).ToString())
             };
 
             var token = CreateJwtToken(claims);
@@ -50,13 +58,35 @@ namespace BookBlossom.Infrastructure.Services
             user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
             await _context.SaveChangesAsync();
 
+            bool isOnboarding = true; 
+            if (user.RoleID == UserRole.Customer)
+            {
+                if (user.CustomerDetail == null)
+                {
+                    var customerDetail = new CustomerDetail
+                    {
+                        CustomerID = user.UserID,
+                        IsOnboardingCompleted = false,
+                        TotalSpending = 0,
+                        DailyUndoCount = 0,
+                        CurrentMonthThreadCount = 0,
+                        CurrentOrderStreak = 0
+                    };
+                    _context.CustomerDetails.Add(customerDetail);
+                    await _context.SaveChangesAsync();
+                    user.CustomerDetail = customerDetail;
+                }
+                isOnboarding = user.CustomerDetail.IsOnboardingCompleted;
+            }
+
             return new AuthResponseDTO 
             { 
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 RefreshToken = refreshToken,
                 UserId = user.UserID,
                 UserName = user.UserName, 
-                RoleID = user.RoleID 
+                RoleID = user.RoleID,
+                IsOnboardingCompleted = isOnboarding
             };
         }
 
@@ -100,6 +130,13 @@ namespace BookBlossom.Infrastructure.Services
             _context.CustomerDetails.Add(customerDetail);
 
             await _context.SaveChangesAsync();
+
+            // Nếu có GuestID, thực hiện migrate dữ liệu sang User mới
+            if (request.GuestID.HasValue)
+            {
+                await _guestService.MigrateGuestDataToUserAsync(request.GuestID.Value, newUser.UserID);
+            }
+
             return true;
         }
 
@@ -140,7 +177,8 @@ namespace BookBlossom.Infrastructure.Services
 
         private JwtSecurityToken CreateJwtToken(List<Claim> claims)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var keyStr = _configuration["Jwt:Key"] ?? "Nuocmatemroitrochoiketthuc_BookBlossom_Security_Key_2026";
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyStr));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             return new JwtSecurityToken(

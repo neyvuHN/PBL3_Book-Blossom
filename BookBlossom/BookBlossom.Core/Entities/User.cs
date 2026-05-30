@@ -7,6 +7,8 @@ namespace BookBlossom.Core.Entities
     {
         public long UserID { get; set; }
         public UserRole RoleID { get; set; }
+        public virtual Role Role { get; set; }
+
         
         public string UserName { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
@@ -25,6 +27,7 @@ namespace BookBlossom.Core.Entities
 
         public virtual StaffDetail StaffDetail { get; set; }
         public virtual CustomerDetail CustomerDetail { get; set; }
+        public virtual CustomerService CustomerService { get; set; }
         public virtual ICollection<GuestDetail> GuestDetails { get; set; } = new List<GuestDetail>();
     }
 }

@@ -9,5 +9,6 @@ namespace BookBlossom.Core.DTOs.Auth
         public long UserId { get; set; }
         public string UserName { get; set; }
         public UserRole RoleID { get; set; }
+        public bool IsOnboardingCompleted { get; set; }
     }
 }

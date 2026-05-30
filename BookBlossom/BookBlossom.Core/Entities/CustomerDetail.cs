@@ -15,5 +15,6 @@ namespace BookBlossom.Core.Entities
         public int CurrentOrderStreak { get; set; }
 
         public virtual User User { get; set; }
+        public ICollection<CustomerPreference> CustomerPreferences {get; set; } = new List<CustomerPreference>();
     }
 }
