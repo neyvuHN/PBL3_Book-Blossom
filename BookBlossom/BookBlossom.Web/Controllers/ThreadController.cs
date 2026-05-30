@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.DTOs.Thread;
 using BookBlossom.Core.Interfaces.Services;
@@ -17,10 +18,12 @@ namespace BookBlossom.Web.Controllers
     public class ThreadController : ControllerBase
     {
         private readonly IThreadService _service;
+        private readonly IMemoryCache _cache;
 
-        public ThreadController(IThreadService service)
+        public ThreadController(IThreadService service, IMemoryCache cache)
         {
             _service = service;
+            _cache = cache;
         }
 
         // 1. GET ALL (Feed) - Cho phép xem công khai không cần đăng nhập
@@ -29,8 +32,22 @@ namespace BookBlossom.Web.Controllers
         {
             try
             {
-                if (page < 1) page = 1;
-                if (pageSize < 1 || pageSize > 50) pageSize = 10;
+                var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+                if (!isAuthenticated)
+                {
+                    // Guest chỉ được xem tối đa 3 bài mới nhất (trang 1, size 3)
+                    if (page > 1)
+                    {
+                        return Ok(Array.Empty<ThreadPostDTO>());
+                    }
+                    page = 1;
+                    pageSize = 3;
+                }
+                else
+                {
+                    if (page < 1) page = 1;
+                    if (pageSize < 1 || pageSize > 50) pageSize = 10;
+                }
 
                 var result = await _service.GetFeedAsync(page, pageSize);
                 return Ok(result);
@@ -47,6 +64,27 @@ namespace BookBlossom.Web.Controllers
         {
             try
             {
+                // Kiểm tra giới hạn xem 3 bài/ngày đối với Guest
+                var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+                if (!isAuthenticated)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
+                    var cacheKey = $"Guest_ViewedThreads_{ipAddress}_{todayStr}";
+
+                    var viewedThreadIds = _cache.Get<HashSet<long>>(cacheKey) ?? new HashSet<long>();
+
+                    if (!viewedThreadIds.Contains(postId))
+                    {
+                        if (viewedThreadIds.Count >= 3)
+                        {
+                            return BadRequest(new { message = "Bạn đã đạt giới hạn xem 3 bài viết mỗi ngày dành cho Guest. Vui lòng đăng nhập để xem tiếp." });
+                        }
+                        viewedThreadIds.Add(postId);
+                        _cache.Set(cacheKey, viewedThreadIds, TimeSpan.FromDays(1));
+                    }
+                }
+
                 var post = await _service.GetPostByIdAsync(postId);
                 if (post == null)
                 {
@@ -201,16 +239,28 @@ namespace BookBlossom.Web.Controllers
         // 7. REPORT POST - Bất kỳ khách hàng nào đăng nhập (CustomerOnly)
         [HttpPost("{postId}/report")]
         [Authorize(Policy = "CustomerOnly")]
-        public async Task<IActionResult> ReportPost(long postId)
+        public async Task<IActionResult> ReportPost(long postId, [FromBody] CreateReportDTO dto)
         {
+            if (dto == null) return BadRequest(new { message = "Dữ liệu báo cáo trống." });
+
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc đã hết hạn." });
+            }
+
             try
             {
-                var count = await _service.ReportPostAsync(postId);
+                var count = await _service.ReportPostAsync(customerId, postId, dto);
                 return Ok(new { message = "Báo cáo bài viết thành công.", reportCount = count });
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {

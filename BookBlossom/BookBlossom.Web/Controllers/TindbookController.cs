@@ -37,26 +37,25 @@ namespace BookBlossom.API.Controllers
         // ─────────────────────────────────────────────────
         [HttpGet("recommendations")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetRecommendations([FromQuery] int limit = 20)
+        public async Task<IActionResult> GetRecommendations()
         {
             var userId = GetUserId();
             var guestId = GetGuestId();
 
             if (userId.HasValue)
             {
-                // Customer đã đăng nhập: gợi ý dựa trên CustomerPreference
-                var books = await _tindbookService.GetRecommendedBooksForTindbookAsync(userId.Value, limit);
+                // Customer: Load liên tục không chặn, Service tự động bốc 10 cuốn chưa quẹt
+                var books = await _tindbookService.GetRecommendedBooksForTindbookAsync(userId.Value);
                 return Ok(books);
             }
             else if (guestId.HasValue)
             {
-                // Guest có session hợp lệ: gợi ý dựa trên GuestPreference
-                var books = await _tindbookService.GetRecommendedBooksForGuestAsync(guestId.Value, limit);
+                // Guest: Service tự check nếu quẹt đủ 1 batch (10 cuốn) sẽ trả về mảng rỗng hoặc chặn
+                var books = await _tindbookService.GetRecommendedBooksForGuestAsync(guestId.Value);
                 return Ok(books);
             }
             else
             {
-                // Không có session nào -> yêu cầu tạo Guest Session
                 return Unauthorized(new { message = "Vui lòng tạo phiên Guest hoặc đăng nhập để sử dụng Tindbook." });
             }
         }
@@ -123,6 +122,14 @@ namespace BookBlossom.API.Controllers
             }
             else if (guestId.HasValue)
             {
+                var canGuestUndo = await _tindbookService.CanUndoGuestAsync(guestId.Value);
+                if (!canGuestUndo)
+                {
+                    return BadRequest(new { 
+                        message = "Bạn đã hết lượt Hoàn tác miễn phí trong ngày! Vui lòng đăng ký tài khoản để nhận thêm đặc quyền." 
+                    });
+                }
+
                 var result = await _tindbookService.UndoLastGuestSwipeAsync(guestId.Value);
                 if (!result) return NotFound("Không có hành động nào để hoàn tác.");
                 return Ok(new { message = "Đã hoàn tác hành động gần nhất." });

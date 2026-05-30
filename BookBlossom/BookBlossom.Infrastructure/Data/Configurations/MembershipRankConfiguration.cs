@@ -22,6 +22,10 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.Property(m => m.DiscountRate)
                    .HasColumnType("decimal(18,2)")
                    .HasDefaultValue(0m);
+
+       //      builder.HasMany(m => m.CustomerDetails)
+       //             .WithOne(c => c.MembershipRank)
+       //             .HasForeignKey("RankID");
         }
     }
 }

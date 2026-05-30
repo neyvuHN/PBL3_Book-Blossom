@@ -199,19 +199,25 @@ namespace BookBlossom.Tests.Services
             };
             var postDto = await service.CreatePostAsync(101L, dto, null);
 
+            var reportDto = new CreateReportDTO
+            {
+                Reason = ReportType.Spam,
+                Description = "Báo cáo thử nghiệm spam bài viết."
+            };
+
             // Report the post 4 times
             for (int i = 1; i <= 4; i++)
             {
-                var newReportCount = await service.ReportPostAsync(postDto.PostID);
+                var newReportCount = await service.ReportPostAsync(101L, postDto.PostID, reportDto);
                 Assert.Equal(i, newReportCount);
-
+ 
                 var tempPost = await context.ThreadPosts.FindAsync(postDto.PostID);
                 Assert.NotNull(tempPost);
                 Assert.False(tempPost.IsHidden);
             }
-
+ 
             // The 5th report should trigger auto-hiding
-            var finalReportCount = await service.ReportPostAsync(postDto.PostID);
+            var finalReportCount = await service.ReportPostAsync(101L, postDto.PostID, reportDto);
             Assert.Equal(5, finalReportCount);
 
             // Verify in DB

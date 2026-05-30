@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529190222_AddRankID_To_CustomerDetail_Final")]
+    partial class AddRankID_To_CustomerDetail_Final
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -355,9 +358,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime");
 
-                    b.Property<int>("DailyUndoCount")
-                        .HasColumnType("int");
-
                     b.Property<string>("DeviceInfo")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -369,9 +369,6 @@ namespace BookBlossom.Infrastructure.Migrations
 
                     b.Property<DateTime?>("LastActiveAt")
                         .HasColumnType("datetime");
-
-                    b.Property<DateTime?>("LastUndoDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("SessionToken")
                         .IsRequired()
@@ -726,40 +723,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.ToTable("RealBook", "Book");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.Report", b =>
-                {
-                    b.Property<long>("ReportID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ReportID"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("CustomerID")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<long>("PostID")
-                        .HasColumnType("bigint");
-
-                    b.Property<byte>("Reason")
-                        .HasColumnType("tinyint");
-
-                    b.HasKey("ReportID");
-
-                    b.HasIndex("CustomerID");
-
-                    b.HasIndex("PostID");
-
-                    b.ToTable("Report", "Thread");
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.ReturnRequest", b =>
                 {
                     b.Property<long>("ReturnRequestID")
@@ -918,10 +881,7 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.ServicePackage", b =>
                 {
                     b.Property<long>("PackageID")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("PackageID"));
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -1056,103 +1016,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasKey("SwipeLogID");
 
                     b.ToTable("SwipeLogs");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ThreadComment", b =>
-                {
-                    b.Property<long>("CommentID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CommentID"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("CustomerID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("PostID")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CommentID");
-
-                    b.HasIndex("CustomerID");
-
-                    b.HasIndex("PostID");
-
-                    b.ToTable("ThreadComment", "Thread");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ThreadImage", b =>
-                {
-                    b.Property<long>("ImageID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ImageID"));
-
-                    b.Property<string>("ImagePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<long>("PostID")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ImageID");
-
-                    b.HasIndex("PostID");
-
-                    b.ToTable("ThreadImage", "Thread");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ThreadPost", b =>
-                {
-                    b.Property<long>("PostID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("PostID"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("CustomerID")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Hashtags")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsHidden")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ReportCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("PostID");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CustomerID");
-
-                    b.HasIndex("ReportCount");
-
-                    b.ToTable("ThreadPost", "Thread");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.User", b =>
@@ -1486,25 +1349,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.Report", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.ThreadPost", "Post")
-                        .WithMany()
-                        .HasForeignKey("PostID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.ReturnRequest", b =>
                 {
                     b.HasOne("BookBlossom.Core.Entities.RealBook", "RealBook")
@@ -1548,47 +1392,6 @@ namespace BookBlossom.Infrastructure.Migrations
                         .WithOne("StaffDetail")
                         .HasForeignKey("BookBlossom.Core.Entities.StaffDetail", "StaffID")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ThreadComment", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.ThreadPost", "Post")
-                        .WithMany("Comments")
-                        .HasForeignKey("PostID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ThreadImage", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.ThreadPost", "Post")
-                        .WithMany("Images")
-                        .HasForeignKey("PostID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ThreadPost", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1675,13 +1478,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("CustomerDetails");
 
                     b.Navigation("CustomerServices");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.ThreadPost", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.User", b =>

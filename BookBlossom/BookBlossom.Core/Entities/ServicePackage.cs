@@ -13,5 +13,6 @@ namespace BookBlossom.Core.Entities
         public string? Description { get; set; }
 
         public virtual ICollection<CustomerService> CustomerServices { get; set; } = new List<CustomerService>();
+        public virtual ICollection<CustomerDetail> CustomerDetails { get; set; } = new List<CustomerDetail>();
     }
 }

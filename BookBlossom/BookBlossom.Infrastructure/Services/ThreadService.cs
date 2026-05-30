@@ -298,14 +298,37 @@ namespace BookBlossom.Infrastructure.Services
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<int> ReportPostAsync(long postId)
+        public async Task<int> ReportPostAsync(long customerId, long postId, CreateReportDTO dto)
         {
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+
             var post = await _context.ThreadPosts.FindAsync(postId);
             if (post == null)
             {
                 throw new KeyNotFoundException("Không tìm thấy bài viết để báo cáo.");
             }
 
+            // Kiểm tra mô tả tối đa 500 từ
+            if (!string.IsNullOrWhiteSpace(dto.Description))
+            {
+                var wordCount = dto.Description.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                if (wordCount > 500)
+                {
+                    throw new ArgumentException("Nội dung mô tả báo cáo không được vượt quá 500 từ.");
+                }
+            }
+
+            // Tạo bản ghi báo cáo vi phạm mới
+            var report = new Report
+            {
+                PostID = postId,
+                CustomerID = customerId,
+                Reason = dto.Reason,
+                Description = dto.Description ?? string.Empty,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Reports.Add(report);
             post.ReportCount += 1;
 
             if (post.ReportCount >= 5)

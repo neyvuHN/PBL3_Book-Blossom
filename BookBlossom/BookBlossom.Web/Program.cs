@@ -89,6 +89,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
             RoleClaimType = ClaimTypes.Role
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(new { message = "Hãy đăng nhập để thực hiện chức năng" });
+            },
+            OnForbidden = async context =>
+            {
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(new { message = "Bạn không có quyền thực hiện chức năng này" });
+            }
+        };
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -101,6 +117,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
+    // 1. Cấu hình cho USER (Dùng JWT Token - GIỮ NGUYÊN CODE CŨ CỦA BẠN)
     var securityScheme = new OpenApiModels.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -115,12 +132,28 @@ builder.Services.AddSwaggerGen(c =>
             Type = OpenApiModels.ReferenceType.SecurityScheme
         }
     };
-
     c.AddSecurityDefinition("Bearer", securityScheme);
-
     c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
     {
         { securityScheme, Array.Empty<string>() }
+    });
+    // X-Guest-Id
+    var guestIdScheme = new OpenApiModels.OpenApiSecurityScheme
+    {
+        Name = "X-Guest-Id",
+        In = OpenApiModels.ParameterLocation.Header,
+        Type = OpenApiModels.SecuritySchemeType.ApiKey,
+        Reference = new OpenApiModels.OpenApiReference
+        {
+            Id = "GuestId",
+            Type = OpenApiModels.ReferenceType.SecurityScheme
+        }
+    };
+    c.AddSecurityDefinition("GuestId", guestIdScheme);
+
+    c.AddSecurityRequirement(new OpenApiModels.OpenApiSecurityRequirement
+    {
+        { guestIdScheme, Array.Empty<string>() }
     });
 });
 

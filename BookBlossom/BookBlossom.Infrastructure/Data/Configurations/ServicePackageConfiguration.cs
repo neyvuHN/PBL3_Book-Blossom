@@ -11,6 +11,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.ToTable("ServicePackage", "Service");
 
             builder.HasKey(s => s.PackageID);
+            // builder.Property(s => s.PackageID).ValueGeneratedNever();
 
             builder.Property(s => s.PackageName)
                 .IsRequired()
@@ -18,6 +19,15 @@ namespace BookBlossom.Infrastructure.Data.Configurations
 
             builder.Property(s => s.Price)
                 .HasColumnType("decimal(18,2)");
+
+            builder.HasMany(s => s.CustomerServices)
+                   .WithOne(sc => sc.ServicePackage)
+                   .HasForeignKey(sc => sc.CurrentPackageID)
+                   .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.HasMany(s => s.CustomerDetails)
+                   .WithOne(cd => cd.ServicePackage)
+                   .HasForeignKey("CurrentPackageID");
 
             builder.HasData(
                 new ServicePackage 

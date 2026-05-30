@@ -19,6 +19,8 @@ namespace BookBlossom.Infrastructure.Services
             _context = context;
         }
 
+        // ── Đọc ──────────────────────────────────────────────────────────────
+
         public async Task<IEnumerable<ServicePackage>> GetAllPackagesAsync()
         {
             return await _context.ServicePackages.ToListAsync();
@@ -31,19 +33,18 @@ namespace BookBlossom.Infrastructure.Services
                 .FirstOrDefaultAsync(cs => cs.CustomerID == userId);
         }
 
+        // ── Đăng ký / Mua gói ────────────────────────────────────────────────
+
         public async Task<bool> SubscribeToPackageAsync(long userId, long packageID, byte paymentMethod)
         {
             var package = await _context.ServicePackages.FindAsync(packageID);
             if (package == null) return false;
 
-            // Logic thanh toán giả lập (Momo/VNPay Sandbox sẽ triển khai ở bước sau)
-            // Giả định thanh toán thành công:
-
             var userRequest = await _context.Users.FindAsync(userId);
             if (userRequest == null) return false;
 
             var existingService = await _context.CustomerServices.FindAsync(userId);
-            
+
             var startDate = DateTime.UtcNow;
             var endDate = package.DurationDay > 0 ? startDate.AddDays(package.DurationDay) : (DateTime?)null;
 
@@ -55,18 +56,17 @@ namespace BookBlossom.Infrastructure.Services
             }
             else
             {
-                var newService = new CustomerService
+                _context.CustomerServices.Add(new CustomerService
                 {
                     CustomerID = userId,
                     CurrentPackageID = packageID,
                     StartDate = startDate,
                     EndDate = endDate
-                };
-                _context.CustomerServices.Add(newService);
+                });
             }
 
-            // Ghi lại lịch sử
-            var history = new ServiceHistory
+            // Ghi lịch sử thanh toán
+            _context.ServiceHistories.Add(new ServiceHistory
             {
                 CustomerID = userId,
                 Price = package.Price,
@@ -75,12 +75,84 @@ namespace BookBlossom.Infrastructure.Services
                 Description = $"Đăng ký gói {package.PackageName}",
                 CreateAt = DateTime.UtcNow,
                 IsAutoRenew = false
-            };
-            _context.ServiceHistories.Add(history);
+            });
 
             await _context.SaveChangesAsync();
             return true;
         }
+
+        // ── Staff CRUD ────────────────────────────────────────────────────────
+
+        public async Task<bool> CreatePackageAsync(ServicePackage package)
+        {
+            _context.ServicePackages.Add(package);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdatePackageAsync(ServicePackage package)
+        {
+            var existing = await _context.ServicePackages.FindAsync(package.PackageID);
+            if (existing == null) return false;
+
+            existing.PackageName  = package.PackageName;
+            existing.Price        = package.Price;
+            existing.DurationDay  = package.DurationDay;
+            existing.ThreadLimit  = package.ThreadLimit;
+            existing.UndoLimit    = package.UndoLimit;
+            existing.Description  = package.Description;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeletePackageAsync(long packageId)
+        {
+            // Không cho xóa nếu đang có customer đang dùng gói này
+            bool inUse = await _context.CustomerServices.AnyAsync(cs => cs.CurrentPackageID == packageId);
+            if (inUse) return false;
+
+            var package = await _context.ServicePackages.FindAsync(packageId);
+            if (package == null) return false;
+
+            _context.ServicePackages.Remove(package);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // ── Guard: kiểm tra giới hạn tính năng ───────────────────────────────
+
+        /// <summary>
+        /// Trả về true nếu user còn đủ lượt undo Tindbook trong tháng hiện tại.
+        /// Đếm số lần undo (SwipeLogs bị xóa → dùng ServiceHistory hoặc SwipeLogs riêng).
+        /// Cách đơn giản: đếm số UndoTindbook action từ đầu tháng.
+        /// </summary>
+        public async Task<bool> CanUndoTindbookAsync(long userId)
+        {
+            var customerService = await _context.CustomerServices
+                .Include(cs => cs.ServicePackage)
+                .FirstOrDefaultAsync(cs => cs.CustomerID == userId);
+
+            // Nếu chưa có gói → mặc định Free (UndoLimit = 2)
+            int undoLimit = customerService?.ServicePackage?.UndoLimit ?? 2;
+
+            // Pro: 999999 → không giới hạn
+            if (undoLimit >= 999999) return true;
+
+            // Đếm số lần undo trong tháng hiện tại qua ServiceHistory có Description chứa "Undo"
+            var now = DateTime.UtcNow;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            int undoCount = await _context.ServiceHistories
+                .CountAsync(h => h.CustomerID == userId
+                              && h.CreateAt >= startOfMonth
+                              && h.Description != null
+                              && h.Description.Contains("Undo Tindbook"));
+
+            return undoCount < undoLimit;
+        }
+
+        // ── Background Job ────────────────────────────────────────────────────
 
         public async Task CheckAndDowngradeExpiredSubscriptionsAsync()
         {
@@ -91,16 +163,13 @@ namespace BookBlossom.Infrastructure.Services
 
             foreach (var service in expiredServices)
             {
-                // Hạ cấp về gói Free (ID = 1)
-                service.CurrentPackageID = 1;
+                service.CurrentPackageID = 1; // Hạ cấp về Free
                 service.StartDate = now;
                 service.EndDate = null;
             }
 
             if (expiredServices.Any())
-            {
                 await _context.SaveChangesAsync();
-            }
         }
     }
 }

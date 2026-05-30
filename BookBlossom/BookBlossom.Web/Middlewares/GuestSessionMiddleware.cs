@@ -17,21 +17,24 @@ namespace BookBlossom.Web.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
-            // Lấy ID và Token từ header
+            // 1. Chỉ cần lấy duy nhất X-Guest-Id từ Header
             var guestIdHeader = context.Request.Headers["X-Guest-Id"].ToString();
-            var guestTokenHeader = context.Request.Headers["X-Guest-Token"].ToString();
 
-            if (!string.IsNullOrEmpty(guestIdHeader) && Guid.TryParse(guestIdHeader, out var guestId) && !string.IsNullOrEmpty(guestTokenHeader))
+            if (!string.IsNullOrEmpty(guestIdHeader) && Guid.TryParse(guestIdHeader, out var guestId))
             {
-                // Dùng service scope để lấy service (vì middleware là singleton, IGuestService là scoped)
                 using (var scope = context.RequestServices.CreateScope())
                 {
                     var guestService = scope.ServiceProvider.GetRequiredService<IGuestService>();
-                    var isValid = await guestService.ValidateGuestSessionAsync(guestId, guestTokenHeader);
+                    
+                    // 2. 🟢 THAY ĐỔI: Sử dụng một hàm check tồn tại của Id, không check kèm Token nữa.
+                    // Nếu trong IGuestService của bạn CHƯA CÓ hàm IsGuestExistsAsync(guestId),
+                    // bạn có thể tạm thời đổi thành: var isValid = true; (để test nhanh trên Swagger).
+                    // Hoặc triển khai hàm kiểm tra sự tồn tại của GuestId trong DB như dưới đây:
+                    var isValid = await guestService.IsGuestExistsAsync(guestId); 
 
                     if (isValid)
                     {
-                        // Lưu thông tin Guest vào Items để Controller có thể lấy dùng nhanh
+                        // Lưu thông tin Guest vào Items để TindbookController bốc ra xài
                         context.Items["GuestID"] = guestId;
                     }
                 }

@@ -51,8 +51,15 @@ namespace BookBlossom.Infrastructure.BackgroundJobs
                     _logger.LogError(ex, "Đã xảy ra lỗi khi chạy OtpCleanupJob.");
                 }
 
-                // Chạy mỗi 24 giờ
-                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                try
+                {
+                    // Chạy mỗi 24 giờ
+                    await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Clean shutdown during cancellation
+                }
             }
         }
     }

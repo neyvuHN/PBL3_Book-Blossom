@@ -18,5 +18,8 @@ namespace BookBlossom.Core.Entities
 
         // Navigation property trỏ tới User
         public virtual User? ConvertedUser { get; set; }
+
+        public DateTime? LastUndoDate { get; set; }
+        public int DailyUndoCount { get; set; } = 0;
     }
 }

@@ -9,5 +9,6 @@ namespace BookBlossom.Core.Interfaces.Services
         Task<GuestSessionResponseDTO> CreateGuestSessionAsync(string? ipAddress, string? deviceInfo);
         Task<bool> ValidateGuestSessionAsync(Guid guestId, string sessionToken);
         Task MigrateGuestDataToUserAsync(Guid guestId, long newUserId);
+        Task<bool> IsGuestExistsAsync(Guid guestId);
     }
 }
