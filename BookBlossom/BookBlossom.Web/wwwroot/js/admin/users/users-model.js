@@ -164,4 +164,88 @@ class UsersModel {
         }
         return true;
     }
+
+    /**
+     * Creates and adds a new staff member to the model.
+     * Generates standard internal values: Join Date = Today, Internal Score = 100, Status = Active.
+     */
+    addStaffMember(staffData) {
+        const today = new Date();
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const formattedDate = `${months[today.getMonth()]} ${String(today.getDate()).padStart(2, '0')}, ${today.getFullYear()}`;
+
+        const newStaff = {
+            id: `staff_${Date.now()}`,
+            username: staffData.username,
+            email: staffData.email,
+            role: staffData.role,
+            plan: 'Pro', // Default for staff
+            internalScore: 100, // Automatically 100 KPI score (KPIScore in DB)
+            joinDate: formattedDate, // Automatically saves current date (HireDate in DB)
+            status: 'Active', // Active on creation
+            avatarUrl: staffData.avatarUrl || 'https://i.pravatar.cc/150?img=1',
+            
+            // New database columns mapped from schema
+            lastName: staffData.lastName,
+            firstName: staffData.firstName,
+            phoneNumber: staffData.phoneNumber,
+            gender: staffData.gender,
+            birthday: staffData.birthday,
+            department: staffData.department,
+            position: staffData.position,
+            contractType: staffData.contractType,
+            salary: staffData.salary,
+            bankAccount: staffData.bankAccount,
+
+            // Automatically initialized system states
+            isOnboardingCompleted: false, // Guide will trigger upon first logon
+            isActive: true, // Account active state (IsActive in DB)
+            accountStatus: 'Active', // AccountStatus in DB
+
+            qualifications: staffData.qualifications || '' // Experience in DB
+        };
+
+        this.staff.push(newStaff);
+        return newStaff;
+    }
+
+    /**
+     * Updates a buyer's administrative notes.
+     */
+    updateBuyerNote(userId, noteText) {
+        const user = this.findUserById(userId);
+        if (!user) return false;
+        
+        user.note = noteText;
+        return true;
+    }
+
+    /**
+     * Updates an existing staff member's administrative records.
+     * Preserves un-editable systems values (such as id, joinDate, internalScore).
+     */
+    updateStaffMember(userId, updatedData) {
+        const staffObj = this.findUserById(userId);
+        if (!staffObj) return null;
+
+        // Update fields
+        staffObj.username = updatedData.username;
+        staffObj.email = updatedData.email;
+        staffObj.role = updatedData.role;
+        staffObj.avatarUrl = updatedData.avatarUrl;
+        
+        staffObj.lastName = updatedData.lastName;
+        staffObj.firstName = updatedData.firstName;
+        staffObj.phoneNumber = updatedData.phoneNumber;
+        staffObj.gender = updatedData.gender;
+        staffObj.birthday = updatedData.birthday;
+        staffObj.department = updatedData.department;
+        staffObj.position = updatedData.position;
+        staffObj.contractType = updatedData.contractType;
+        staffObj.salary = updatedData.salary;
+        staffObj.bankAccount = updatedData.bankAccount;
+        staffObj.qualifications = updatedData.qualifications;
+
+        return staffObj;
+    }
 }

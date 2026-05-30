@@ -6,6 +6,11 @@ class UsersController {
     constructor(model, view) {
         this.model = model;
         this.view = view;
+
+        // Custom operational states for Buyer Notes and Staff Editing
+        this.isUpdateMode = false;
+        this.selectedStaffId = null;
+        this.selectedBuyerId = null;
     }
 
     /**
@@ -17,6 +22,8 @@ class UsersController {
         this.registerTableEvents();
         this.registerPopoverEvents();
         this.registerGlobalEvents();
+        this.registerAddStaffEvents();
+        this.registerBuyerNoteEvents();
 
         // Initialize dynamic filters for default tab ('buyers')
         this.view.updateFiltersForTab(this.model.activeTab);
@@ -115,35 +122,23 @@ class UsersController {
                 return;
             }
 
-            // 2. Check if they clicked the Actions Dots Trigger Button
-            const dotsBtn = e.target.closest('.btn-dots-action');
-            if (dotsBtn) {
+            // 2. Check if they clicked the Buyer Note Button
+            const noteBtn = e.target.closest('.btn-buyer-note');
+            if (noteBtn) {
                 e.stopPropagation();
+                this.selectedBuyerId = userId;
+                this.view.openBuyerNoteModal(user.username, user.note || '');
+                return;
+            }
 
-                // Requirement check: "nếu là staff thì có thêm edit role nữa"
-                // If active tab is staff (or user has Admin/Moderator staff role), open edit role panel
-                const isStaff = user.role === 'Admin' || user.role === 'Moderator';
-                
-                if (isStaff) {
-                    this.model.selectedUserId = userId;
-                    this.model.selectedUserRole = user.role;
-                    this.view.openEditRolePopover(user.username, user.role, dotsBtn);
-                } else {
-                    // Regular Buyer actions (e.g. view orders, adjust scores)
-                    const actionMenuHtml = `
-                        <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#2C2630; color:#FFF; padding:12px 24px; border-radius:8px; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-size:0.9rem;">
-                            ℹ️ Buyer @${user.username} doesn't have Staff privileges. Only Staff can have their Role adjusted.
-                        </div>
-                    `;
-                    const existingToast = document.querySelector('.buyer-actions-toast');
-                    if (existingToast) existingToast.remove();
-                    
-                    document.body.insertAdjacentHTML('beforeend', actionMenuHtml);
-                    setTimeout(() => {
-                        const toast = document.querySelector('.buyer-actions-toast');
-                        if (toast) toast.remove();
-                    }, 3500);
-                }
+            // 3. Check if they clicked the Update Staff Button
+            const updateStaffBtn = e.target.closest('.btn-update-staff');
+            if (updateStaffBtn) {
+                e.stopPropagation();
+                this.isUpdateMode = true;
+                this.selectedStaffId = userId;
+                this.view.openEditStaffModal(user);
+                return;
             }
         };
 
@@ -242,20 +237,329 @@ class UsersController {
             }
         });
 
-        // Top Add Staff button trigger
+        // Top Add Staff button trigger - Show custom full-screen popup modal
         this.view.btnAddStaff.addEventListener('click', () => {
-            const staffName = prompt("Enter username of the Buyer to promote to Staff/Moderator:");
-            if (!staffName) return;
+            this.isUpdateMode = false;
+            this.view.openAddStaffModal();
+        });
+    }
 
-            // Search if user exists under active Buyers
-            const userObj = this.model.buyers.find(b => b.username.toLowerCase() === staffName.toLowerCase());
-            if (userObj) {
-                // Promote to Moderator standard
-                this.model.updateUserRole(userObj.id, "Moderator");
-                this.redrawActiveTable();
-                alert(`Successfully promoted @${staffName} to Moderator! Check the Staff tab.`);
+    /**
+     * Binds all input changes, presets, cancellations, and submissions inside the Add Staff modal.
+     */
+    registerAddStaffEvents() {
+        // Modal Cancellations
+        const closeModal = () => this.view.closeAddStaffModal();
+        this.view.btnCloseAddStaffModal.addEventListener('click', closeModal);
+        this.view.btnCancelAddStaff.addEventListener('click', closeModal);
+
+        // Escape key to dismiss
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.view.addStaffModal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Form Validation Utility
+        const validateField = (inputEl, isValid) => {
+            const formGroup = inputEl.closest('.form-group');
+            if (!formGroup) return;
+
+            const value = inputEl.value.trim();
+            if (value.length === 0) {
+                formGroup.classList.remove('field-valid', 'field-invalid');
+            } else if (isValid) {
+                formGroup.classList.remove('field-invalid');
+                formGroup.classList.add('field-valid');
             } else {
-                alert(`Could not find active Buyer with username "${staffName}". Please verify and try again.`);
+                formGroup.classList.remove('field-valid');
+                formGroup.classList.add('field-invalid');
+            }
+        };
+
+        const validateForm = () => {
+            const username = this.view.newStaffUsername.value.trim();
+            const email = this.view.newStaffEmail.value.trim();
+            const password = this.view.newStaffPassword.value.trim();
+            const lastName = this.view.newStaffLastName.value.trim();
+            const firstName = this.view.newStaffFirstName.value.trim();
+            const phone = this.view.newStaffPhone.value.trim();
+            const birthday = this.view.newStaffBirthday.value;
+            const position = this.view.newStaffPosition.value.trim();
+            const salary = this.view.newStaffSalary.value.trim();
+            const bankAccount = this.view.newStaffBankAccount.value.trim();
+            const qualifications = this.view.newStaffQualifications.value.trim();
+
+            const isUsernameValid = username.length >= 3;
+            
+            // Strict email validation regex check
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const isEmailValid = emailRegex.test(email);
+            
+            const isPasswordValid = password.length >= 6;
+            const isLastNameValid = lastName.length > 0;
+            const isFirstNameValid = firstName.length > 0;
+
+            // Numeric 9 to 11 digit check for phone number
+            const phoneRegex = /^\d{9,11}$/;
+            const isPhoneValid = phoneRegex.test(phone);
+
+            // Birthday selected and in the past
+            const isBirthdayValid = birthday !== "" && new Date(birthday) < new Date();
+
+            const isPositionValid = position.length > 0;
+            const isSalaryValid = salary !== "" && parseFloat(salary) > 0;
+
+            // Numeric bank account check (at least 6 digits)
+            const bankRegex = /^\d{6,20}$/;
+            const isBankValid = bankRegex.test(bankAccount);
+
+            const isQualificationsValid = qualifications.length > 0;
+
+            // Apply real-time visual feedback styles
+            validateField(this.view.newStaffUsername, isUsernameValid);
+            validateField(this.view.newStaffEmail, isEmailValid);
+            validateField(this.view.newStaffPassword, isPasswordValid);
+            validateField(this.view.newStaffLastName, isLastNameValid);
+            validateField(this.view.newStaffFirstName, isFirstNameValid);
+            validateField(this.view.newStaffPhone, isPhoneValid);
+            validateField(this.view.newStaffBirthday, isBirthdayValid);
+            validateField(this.view.newStaffPosition, isPositionValid);
+            validateField(this.view.newStaffSalary, isSalaryValid);
+            validateField(this.view.newStaffBankAccount, isBankValid);
+            validateField(this.view.newStaffQualifications, isQualificationsValid);
+
+            const isValid = isUsernameValid && isEmailValid && isPasswordValid && 
+                            isLastNameValid && isFirstNameValid && isPhoneValid && 
+                            isBirthdayValid && isPositionValid && isSalaryValid && 
+                            isBankValid && isQualificationsValid;
+
+            this.view.toggleSaveStaffButton(isValid);
+        };
+
+        // Bind input keystrokes and changes for real-time validation
+        this.view.newStaffUsername.addEventListener('input', validateForm);
+        this.view.newStaffEmail.addEventListener('input', validateForm);
+        this.view.newStaffPassword.addEventListener('input', validateForm);
+        this.view.newStaffLastName.addEventListener('input', validateForm);
+        this.view.newStaffFirstName.addEventListener('input', validateForm);
+        this.view.newStaffPhone.addEventListener('input', validateForm);
+        this.view.newStaffGender.addEventListener('change', validateForm);
+        this.view.newStaffBirthday.addEventListener('change', validateForm);
+        this.view.newStaffDepartment.addEventListener('change', validateForm);
+        this.view.newStaffPosition.addEventListener('input', validateForm);
+        this.view.newStaffContractType.addEventListener('change', validateForm);
+        this.view.newStaffSalary.addEventListener('input', validateForm);
+        this.view.newStaffBankAccount.addEventListener('input', validateForm);
+        this.view.newStaffQualifications.addEventListener('input', validateForm);
+
+        // Bind Preset Avatar options
+        this.view.avatarPresetOpts.forEach(preset => {
+            preset.addEventListener('click', () => {
+                // Clear custom URL
+                this.view.newStaffCustomAvatar.value = '';
+                
+                // Toggle active class
+                this.view.avatarPresetOpts.forEach(o => o.classList.remove('active'));
+                preset.classList.add('active');
+
+                // Update Preview Image
+                this.view.updateAvatarPreview(preset.getAttribute('data-url'));
+                validateForm();
+            });
+        });
+
+        // Custom Avatar URL Input
+        this.view.newStaffCustomAvatar.addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url.length > 0) {
+                // Deactivate presets
+                this.view.avatarPresetOpts.forEach(o => o.classList.remove('active'));
+            } else {
+                // Re-activate first preset if URL is empty
+                this.view.avatarPresetOpts[0].classList.add('active');
+            }
+            this.view.updateAvatarPreview(url);
+            validateForm();
+        });
+
+        // Role Card Selections
+        this.view.staffRoleCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // Deselect other cards
+                this.view.staffRoleCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+                
+                validateForm();
+            });
+        });
+
+        // Submit Action
+        this.view.btnSaveNewStaff.addEventListener('click', () => {
+            const formData = this.view.getAddStaffFormData();
+            
+            if (this.isUpdateMode) {
+                // STAFF UPDATE FLOW
+                const staffId = this.selectedStaffId;
+                if (staffId) {
+                    const updatedStaffObj = this.model.updateStaffMember(staffId, formData);
+                    if (updatedStaffObj) {
+                        this.redrawActiveTable();
+                        this.view.closeAddStaffModal();
+
+                        // Premium update notification toast
+                        const toastHtml = `
+                            <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#2F80ED; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(47,128,237,0.25); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                                <i class="ph ph-note-pencil" style="font-size:1.3rem;"></i>
+                                <div>
+                                    <div style="font-weight:700; margin-bottom:2px;">Staff Profile Updated!</div>
+                                    <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
+                                        Records for @${updatedStaffObj.username} successfully modified.
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        const styleId = 'success-toast-animation';
+                        if (!document.getElementById(styleId)) {
+                            const style = document.createElement('style');
+                            style.id = styleId;
+                            style.innerHTML = `
+                                @keyframes slideInUp {
+                                    from { transform: translateY(100%) scale(0.9); opacity: 0; }
+                                    to { transform: translateY(0) scale(1); opacity: 1; }
+                                }
+                            `;
+                            document.head.appendChild(style);
+                        }
+
+                        document.body.insertAdjacentHTML('beforeend', toastHtml);
+                        setTimeout(() => {
+                            const toast = document.querySelector('.buyer-actions-toast');
+                            if (toast) {
+                                toast.style.transition = 'all 0.4s ease';
+                                toast.style.opacity = '0';
+                                toast.style.transform = 'translateY(20px)';
+                                setTimeout(() => toast.remove(), 400);
+                            }
+                        }, 4000);
+                    }
+                }
+            } else {
+                // STAFF CREATE FLOW
+                const newStaffObj = this.model.addStaffMember(formData);
+
+                if (newStaffObj) {
+                    // Switch model tab & redraw
+                    this.model.activeTab = 'staff';
+                    this.view.updateFiltersForTab('staff');
+                    this.view.showTab('staff');
+                    this.redrawActiveTable();
+
+                    // Close Modal
+                    this.view.closeAddStaffModal();
+
+                    // Gorgeous Premium Success Toast
+                    const successToastHtml = `
+                        <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(39,174,96,0.3); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                            <i class="ph ph-check-circle" style="font-size:1.3rem;"></i>
+                            <div>
+                                <div style="font-weight:700; margin-bottom:2px;">Staff Profile Created!</div>
+                                <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
+                                    Account @${newStaffObj.username} initialized with 100 KPI Score.
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const styleId = 'success-toast-animation';
+                    if (!document.getElementById(styleId)) {
+                        const style = document.createElement('style');
+                        style.id = styleId;
+                        style.innerHTML = `
+                            @keyframes slideInUp {
+                                from { transform: translateY(100%) scale(0.9); opacity: 0; }
+                                to { transform: translateY(0) scale(1); opacity: 1; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    document.body.insertAdjacentHTML('beforeend', successToastHtml);
+                    setTimeout(() => {
+                        const toast = document.querySelector('.buyer-actions-toast');
+                        if (toast) {
+                            toast.style.transition = 'all 0.4s ease';
+                            toast.style.opacity = '0';
+                            toast.style.transform = 'translateY(20px)';
+                            setTimeout(() => toast.remove(), 400);
+                        }
+                    }, 4500);
+                }
+            }
+        });
+    }
+
+    /**
+     * Binds all event listeners for the Buyer Log Note modal dialog.
+     */
+    registerBuyerNoteEvents() {
+        const closeNoteModal = () => this.view.closeBuyerNoteModal();
+        this.view.btnCloseBuyerNoteModal.addEventListener('click', closeNoteModal);
+        this.view.btnCancelBuyerNote.addEventListener('click', closeNoteModal);
+
+        // Escape key press to dismiss
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.view.buyerNoteModal.classList.contains('active')) {
+                closeNoteModal();
+            }
+        });
+
+        // Click outside the card to close
+        this.view.buyerNoteModal.addEventListener('click', (e) => {
+            if (e.target === this.view.buyerNoteModal) {
+                closeNoteModal();
+            }
+        });
+
+        // Save note event
+        this.view.btnSaveBuyerNote.addEventListener('click', () => {
+            const noteText = this.view.buyerNoteText.value.trim();
+            const buyerId = this.selectedBuyerId;
+
+            if (buyerId) {
+                const success = this.model.updateBuyerNote(buyerId, noteText);
+                if (success) {
+                    const buyerObj = this.model.findUserById(buyerId);
+                    this.redrawActiveTable();
+                    closeNoteModal();
+
+                    // Beautiful premium notification toast
+                    const toastHtml = `
+                        <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(39,174,96,0.25); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                            <i class="ph ph-check-circle" style="font-size:1.3rem;"></i>
+                            <div>
+                                <div style="font-weight:700; margin-bottom:2px;">Notes Saved Successfully!</div>
+                                <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
+                                    Observations for @${buyerObj.username} have been committed.
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.insertAdjacentHTML('beforeend', toastHtml);
+                    setTimeout(() => {
+                        const toast = document.querySelector('.buyer-actions-toast');
+                        if (toast) {
+                            toast.style.transition = 'all 0.4s ease';
+                            toast.style.opacity = '0';
+                            toast.style.transform = 'translateY(20px)';
+                            setTimeout(() => toast.remove(), 400);
+                        }
+                    }, 4000);
+                }
             }
         });
     }
