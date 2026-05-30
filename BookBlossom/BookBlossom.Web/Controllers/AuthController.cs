@@ -67,6 +67,7 @@ namespace BookBlossom.Web.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult Logout()
         {
+            Response.Cookies.Delete("jwt");
             return RedirectToAction("Login");
         }
 
@@ -97,7 +98,32 @@ namespace BookBlossom.Web.Controllers
                     }
                 }
 
-                return Ok(result);
+                // Set jwt cookie
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // In production, require HTTPS
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                };
+                Response.Cookies.Append("jwt", result.Token, cookieOptions);
+
+                // Determine redirect url based on role
+                string redirectUrl = "/";
+                if (result.RoleID == BookBlossom.Core.Enums.UserRole.SystemAdmin || 
+                    result.RoleID == BookBlossom.Core.Enums.UserRole.Moderator || 
+                    result.RoleID == BookBlossom.Core.Enums.UserRole.MarketingManager || 
+                    result.RoleID == BookBlossom.Core.Enums.UserRole.StoreManager)
+                {
+                    redirectUrl = "/Admin/Dashboard";
+                }
+
+                return Ok(new { 
+                    Token = result.Token, 
+                    RoleID = result.RoleID,
+                    RedirectUrl = redirectUrl,
+                    Message = "Đăng nhập thành công" 
+                });
             }
             catch (Exception ex)
             {
@@ -184,7 +210,30 @@ namespace BookBlossom.Web.Controllers
                 };
                 var authResponse = await _authService.LoginAsync(loginRequest);
 
-                return Ok(authResponse);
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // In production, require HTTPS
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                };
+                Response.Cookies.Append("jwt", authResponse.Token, cookieOptions);
+
+                string redirectUrl = "/";
+                if (authResponse.RoleID == BookBlossom.Core.Enums.UserRole.SystemAdmin || 
+                    authResponse.RoleID == BookBlossom.Core.Enums.UserRole.Moderator || 
+                    authResponse.RoleID == BookBlossom.Core.Enums.UserRole.MarketingManager || 
+                    authResponse.RoleID == BookBlossom.Core.Enums.UserRole.StoreManager)
+                {
+                    redirectUrl = "/Admin/Dashboard";
+                }
+
+                return Ok(new { 
+                    Token = authResponse.Token, 
+                    RoleID = authResponse.RoleID,
+                    RedirectUrl = redirectUrl,
+                    Message = "Đăng ký và đăng nhập thành công" 
+                });
             }
             catch (Exception ex)
             {

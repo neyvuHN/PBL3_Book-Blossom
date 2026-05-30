@@ -43,6 +43,12 @@
                     <input type="text" id="UserName" name="UserName" placeholder="johndoe123" required />
                 </div>
 
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="Email">Email</label>
+                    <input type="email" id="Email" name="Email" placeholder="johndoe@email.com" required />
+                </div>
+
                 <!-- Phone Number -->
                 <div class="form-group">
                     <label for="PhoneNumber">Phone Number</label>
@@ -207,7 +213,7 @@
             let isOtpVerified = false;
 
             // Form Submit handler
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', async function(e) {
                 if (!isOtpVerified) {
                     e.preventDefault(); // Stop normal form submit
 
@@ -226,16 +232,57 @@
                         return;
                     }
 
-                    // Display user phone number inside the modal
-                    displayPhone.textContent = phoneInput.value;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Sending...';
 
-                    // Open OTP Modal
-                    otpModal.classList.add('active');
-                    resetOtpInputs();
-                    startResendTimer();
-                    
-                    // Focus on first input
-                    setTimeout(() => otpDigits[0].focus(), 100);
+                    // Gather data
+                    const payload = {
+                        FirstName: document.getElementById('FirstName').value,
+                        LastName: document.getElementById('LastName').value,
+                        UserName: document.getElementById('UserName').value,
+                        Email: document.getElementById('Email').value,
+                        PhoneNumber: document.getElementById('PhoneNumber').value,
+                        Password: password.value,
+                        Birthday: document.getElementById('Birthday').value || null,
+                        Gender: document.getElementById('Gender').value || null
+                    };
+
+                    try {
+                        const response = await fetch('/api/auth/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            console.log("====== MÃ OTP TEST ======");
+                            console.log("OTP của bạn là: ", result.otpCode);
+                            console.log("=========================");
+                            
+                            showToast(result.message || 'Mã OTP đã được gửi!', 'success', 'Success');
+                            // Display user phone number inside the modal
+                            displayPhone.textContent = phoneInput.value;
+
+                            // Open OTP Modal
+                            otpModal.classList.add('active');
+                            resetOtpInputs();
+                            startResendTimer();
+                            
+                            // Focus on first input
+                            setTimeout(() => otpDigits[0].focus(), 100);
+                        } else {
+                            showToast(result.message || 'Có lỗi xảy ra', 'error', 'Error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showToast('Lỗi kết nối máy chủ.', 'error', 'Error');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Sign Up';
+                    }
                 }
             });
 
@@ -265,11 +312,43 @@
             }
 
             // Resend Button Click
-            resendOtpBtn.addEventListener('click', function() {
-                showToast('A new OTP has been sent to ' + phoneInput.value, 'success', 'OTP Sent');
-                startResendTimer();
-                resetOtpInputs();
-                otpDigits[0].focus();
+            resendOtpBtn.addEventListener('click', async function() {
+                try {
+                    // Cần gửi lại thông tin đăng ký để tạo OTP mới, nhưng API hiện tại chỉ có /register
+                    // Ta gửi lại form đăng ký để lấy mã OTP mới.
+                    const payload = {
+                        FirstName: document.getElementById('FirstName').value,
+                        LastName: document.getElementById('LastName').value,
+                        UserName: document.getElementById('UserName').value,
+                        Email: document.getElementById('Email').value,
+                        PhoneNumber: document.getElementById('PhoneNumber').value,
+                        Password: document.getElementById('Password').value,
+                        Birthday: document.getElementById('Birthday').value || null,
+                        Gender: document.getElementById('Gender').value || null
+                    };
+
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.json();
+                    if (response.ok) {
+                        console.log("====== MÃ OTP TEST ======");
+                        console.log("OTP mới của bạn là: ", result.otpCode);
+                        console.log("=========================");
+
+                        showToast('A new OTP has been sent to ' + phoneInput.value, 'success', 'OTP Sent');
+                        startResendTimer();
+                        resetOtpInputs();
+                        otpDigits[0].focus();
+                    } else {
+                        showToast(result.message || 'Lỗi gửi lại OTP', 'error', 'Error');
+                    }
+                } catch (error) {
+                    showToast('Lỗi kết nối', 'error', 'Error');
+                }
             });
 
             // Reset Digit Inputs
@@ -314,7 +393,7 @@
             });
 
             // Verify OTP Button Action
-            verifyOtpBtn.addEventListener('click', function() {
+            verifyOtpBtn.addEventListener('click', async function() {
                 let enteredOtp = '';
                 otpDigits.forEach(input => enteredOtp += input.value);
 
@@ -323,15 +402,45 @@
                     return;
                 }
 
-                // Simulate validation
-                showToast('Phone number verified successfully!', 'success', 'Verified');
-                isOtpVerified = true;
-                otpModal.classList.remove('active');
-                
-                // Submit form now that verification is complete with small delay to let toast show
-                setTimeout(() => {
-                    form.submit();
-                }, 1500);
+                verifyOtpBtn.disabled = true;
+                verifyOtpBtn.textContent = 'Verifying...';
+
+                try {
+                    const response = await fetch('/api/auth/verify-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            phoneNumber: phoneInput.value, 
+                            otpCode: enteredOtp 
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        showToast('Phone number verified successfully!', 'success', 'Verified');
+                        isOtpVerified = true;
+                        otpModal.classList.remove('active');
+                        
+                        localStorage.setItem('token', result.token);
+
+                        setTimeout(() => {
+                            if (result.redirectUrl) {
+                                window.location.href = result.redirectUrl;
+                            } else {
+                                window.location.href = '/Auth/InterestSelection';
+                            }
+                        }, 1500);
+                    } else {
+                        showToast(result.message || 'Xác thực OTP thất bại', 'error', 'Error');
+                        verifyOtpBtn.disabled = false;
+                        verifyOtpBtn.textContent = 'Verify & Sign Up';
+                    }
+                } catch (error) {
+                    showToast('Lỗi kết nối máy chủ.', 'error', 'Error');
+                    verifyOtpBtn.disabled = false;
+                    verifyOtpBtn.textContent = 'Verify & Sign Up';
+                }
             });
         });
     </script>
