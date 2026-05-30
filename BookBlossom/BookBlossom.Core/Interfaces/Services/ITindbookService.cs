@@ -7,9 +7,9 @@ namespace BookBlossom.Core.Interfaces
     public interface ITindbookService
     {
         // Gợi ý dành cho Customer đã đăng nhập
-        Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForTindbookAsync(long userId, int limit);
+        Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForTindbookAsync(long userId);
         // Gợi ý dành cho Guest (dựa trên GuestPreference)
-        Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForGuestAsync(Guid guestId, int limit);
+        Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForGuestAsync(Guid guestId);
         Task<IEnumerable<BookResponseDTO>> GetSwipeRecommendationsAsync(long? userId, List<long>? categoryIds, int count = 10);
         // Swipe cho Customer
         Task<bool> RecordSwipeActionAsync(long? userId, SwipeActionDTO dto);

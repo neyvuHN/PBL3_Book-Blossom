@@ -5,6 +5,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.Entities;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BookBlossom.Infrastructure.Services
 {
@@ -12,11 +13,13 @@ namespace BookBlossom.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IServicePackageService _packageService;
+        private readonly IMemoryCache _cache;
 
-        public TindbookService(ApplicationDbContext context, IServicePackageService packageService)
+        public TindbookService(ApplicationDbContext context, IServicePackageService packageService, IMemoryCache cache)
         {
             _context = context;
             _packageService = packageService;
+            _cache = cache;
         }
 
         public async Task<IEnumerable<BookResponseDTO>> GetSwipeRecommendationsAsync(long? userId, List<long>? categoryIds, int count = 10)
@@ -28,40 +31,94 @@ namespace BookBlossom.Infrastructure.Services
                 .Where(b => categoryIds != null && categoryIds.Contains(b.CategoryID))
                 .OrderBy(b => Guid.NewGuid()).Take(count)
                 .Select(b => new BookResponseDTO {
-                    BookID = b.BookID, CategoryID = b.CategoryID,
+                    BookID = b.BookID, 
+                    CategoryID = b.CategoryID,
                     CategoryName = b.Category != null ? b.Category.CategoryName : "",
-                    Title = b.Title, Description = b.Description, Price = b.Price
+                    Title = b.Title, 
+                    Description = b.Description, 
+                    Price = b.Price
                 }).ToListAsync();
         }
-        
+
         // ======================== CUSTOMER ========================
 
-        public async Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForTindbookAsync(long userId, int limit = 20)
+        public async Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForTindbookAsync(long userId)
         {
-            // Lấy sách mà Customer đã quẹt (để loại ra khỏi gợi ý)
-            var swipedBookIds = await _context.SwipeLogs
-                .Where(l => l.CustomerID == userId)
-                .Select(l => l.BookID)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToListAsync();
+            // 1. KIỂM TRA: Chặn nếu gói Free đạt giới hạn 50 lượt quẹt/ngày
+            var today = DateTime.UtcNow.Date;
+            var swipeCountToday = await _context.SwipeLogs
+                .CountAsync(l => l.CustomerID == userId && l.CreatedAt.Date == today);
 
+            var customerDetails = await _context.CustomerDetails
+                .Include(c => c.ServicePackage)
+                .FirstOrDefaultAsync(c => c.CustomerID == userId);
+
+            if ((customerDetails?.ServicePackage == null || customerDetails.ServicePackage.PackageName == "Free") && swipeCountToday >= 50)
+            {
+                throw new InvalidOperationException("FREE_LIMIT_REACHED");
+            }
+
+            // 2. Lấy danh sách ID đã quẹt để lọc trùng (tách biệt RealBook và BlindBook)
+            var swipedBookIds = await _context.SwipeLogs
+                .Where(l => l.CustomerID == userId && l.BookID.HasValue)
+                .Select(l => l.BookID!.Value).ToListAsync();
+
+            var swipedBlindBookIds = await _context.SwipeLogs
+                .Where(l => l.CustomerID == userId && l.BlindBookID.HasValue)
+                .Select(l => l.BlindBookID!.Value).ToListAsync();
+
+            // Lấy danh sách danh mục yêu thích
             var userPreferenceCategoryIds = await _context.CustomerPreferences
                 .Where(cp => cp.CustomerID == userId).Select(cp => cp.CategoryID).ToListAsync();
 
-            return await _context.RealBooks.Include(b => b.Category)
-                .Where(b => !swipedBookIds.Contains(b.BookID)) // Loại sách đã quẹt
+            // 3. Luồng 1: Lấy RealBooks thường (loại trừ các RealBook đã được cấu hình làm BlindBook)
+            var realBooksQuery = _context.RealBooks.Include(b => b.Category)
+                .Where(b => !swipedBookIds.Contains(b.BookID) && b.BlindBook == null)
                 .Select(b => new {
-                    Book = b,
+                    BookID = (long?)b.BookID,
+                    BlindBookID = (long?)null,
+                    CategoryID = b.CategoryID,
+                    CategoryName = b.Category != null ? b.Category.CategoryName : "",
+                    Title = b.Title,
+                    Publisher = b.Publisher,
+                    Price = b.Price,
+                    Description = b.Description,
                     Priority = userPreferenceCategoryIds.Contains(b.CategoryID) ? 1 : 2
-                })
-                .OrderBy(x => x.Priority).ThenBy(x => Guid.NewGuid())
-                .Take(limit)
-                .Select(x => new BookResponseDTO {
-                    BookID = x.Book.BookID, CategoryID = x.Book.CategoryID,
-                    CategoryName = x.Book.Category.CategoryName, Title = x.Book.Title,
-                    Publisher = x.Book.Publisher, Price = x.Book.Price
-                }).ToListAsync();
+                });
+
+            // 4. Luồng 2: Lấy BlindBooks (chỉ lấy những yêu cầu đã được DUYỆT - Approved)
+            var blindBooksQuery = _context.BlindBooks.Include(b => b.RealBook).ThenInclude(rb => rb!.Category)
+                .Where(b => !swipedBlindBookIds.Contains(b.BlindBookID) && b.BlindBookRequestStatus == BlindBookRequestStatus.Approved)
+                .Select(b => new {
+                    BookID = (long?)null, // Ẩn RealBookID gốc để chống lộ thông tin
+                    BlindBookID = (long?)b.BlindBookID,
+                    CategoryID = b.RealBook != null ? b.RealBook.CategoryID : 0,
+                    CategoryName = (b.RealBook != null && b.RealBook.Category != null) ? b.RealBook.Category.CategoryName : "",
+                    Title = "Sách Bí Ẩn (Blind Book)", // Tên giả lập bí ẩn
+                    Publisher = "Nhà xuất bản Bí Ẩn",
+                    Price = b.Price, // Lấy giá của chiến dịch BlindBook
+                    Description = "💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\"", // Đưa Keywords và Quotes lên thay mô tả thực
+                    Priority = (b.RealBook != null && userPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
+                });
+
+            // 5. Trộn (Concat), sắp xếp theo độ ưu tiên sở thích rồi xáo trộn ngẫu nhiên
+            var combinedBooks = await realBooksQuery.Concat(blindBooksQuery)
+                .OrderBy(x => x.Priority)
+                .ThenBy(x => Guid.NewGuid())
+                .Take(10)
+                .ToListAsync();
+
+            // 6. Trả về định dạng DTO mong muốn
+            return combinedBooks.Select(x => new BookResponseDTO {
+                BookID = x.BookID,
+                BlindBookID = x.BlindBookID,
+                CategoryID = x.CategoryID,
+                CategoryName = x.CategoryName,
+                Title = x.Title,
+                Publisher = x.Publisher,
+                Price = x.Price,
+                Description = x.Description
+            });
         }
 
         public async Task<bool> RecordSwipeActionAsync(long? userId, SwipeActionDTO dto)
@@ -82,13 +139,21 @@ namespace BookBlossom.Infrastructure.Services
             {
                 // Phải -> Wishlist
                 case SwipeIntent.Wishlist:
-                    if (dto.BookID.HasValue)
+                    // Lưu Wishlist cho RealBook thường hoặc BlindBook
+                    bool exists = await _context.Wishlists.AnyAsync(w => w.UserID == userId.Value 
+                        && w.BookID == dto.BookID 
+                        && w.BlindBookID == dto.BlindBookID); // Cần có trường BlindBookID trong thực thể Wishlist của bạn
+                    
+                    if (!exists)
                     {
-                        bool exists = await _context.Wishlists.AnyAsync(w => w.UserID == userId.Value && w.BookID == dto.BookID.Value);
-                        if (!exists)
-                            _context.Wishlists.Add(new Wishlist { UserID = userId.Value, BookID = dto.BookID.Value, AddedAt = DateTime.UtcNow });
-                        success = true;
+                        _context.Wishlists.Add(new Wishlist { 
+                            UserID = userId.Value, 
+                            BookID = dto.BookID, 
+                            BlindBookID = dto.BlindBookID, 
+                            AddedAt = DateTime.UtcNow 
+                        });
                     }
+                    success = true;
                     break;
 
                 // Trái -> Ẩn
@@ -98,15 +163,40 @@ namespace BookBlossom.Infrastructure.Services
 
                 // Lên -> Add to Cart
                 case SwipeIntent.AddToCart:
-                    var book = await _context.RealBooks.FirstOrDefaultAsync(b => b.BookID == dto.BookID && b.UnitsInStock > 0);
-                    if (book != null) {
-                        var cartExists = await _context.Carts.AnyAsync(c => c.UserID == userId.Value && c.BookID == dto.BookID.Value);
-                        if (!cartExists)
+                    if (dto.BlindBookID.HasValue)
+                    {
+                        // Xử lý AddToCart cho BlindBook
+                        var blindBook = await _context.BlindBooks.FirstOrDefaultAsync(b => b.BlindBookID == dto.BlindBookID && b.StockQuantity > 0);
+                        if (blindBook != null)
                         {
-                            _context.Carts.Add(new Cart { UserID = userId.Value, BookID = dto.BookID.Value, Quantity = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
-                            book.UnitsInStock -= 1;
+                            var cartExists = await _context.Carts.AnyAsync(c => c.UserID == userId.Value && c.BlindBookID == dto.BlindBookID.Value);
+                            if (!cartExists)
+                            {
+                                _context.Carts.Add(new Cart { 
+                                    UserID = userId.Value, 
+                                    BlindBookID = dto.BlindBookID.Value, 
+                                    Quantity = 1, 
+                                    CreatedAt = DateTime.UtcNow, 
+                                    UpdatedAt = DateTime.UtcNow 
+                                });
+                                blindBook.StockQuantity -= 1;
+                            }
+                            success = true;
                         }
-                        success = true;
+                    }
+                    else if (dto.BookID.HasValue)
+                    {
+                        // Xử lý AddToCart cho RealBook thường
+                        var book = await _context.RealBooks.FirstOrDefaultAsync(b => b.BookID == dto.BookID && b.UnitsInStock > 0);
+                        if (book != null) {
+                            var cartExists = await _context.Carts.AnyAsync(c => c.UserID == userId.Value && c.BookID == dto.BookID.Value);
+                            if (!cartExists)
+                            {
+                                _context.Carts.Add(new Cart { UserID = userId.Value, BookID = dto.BookID.Value, Quantity = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
+                                book.UnitsInStock -= 1;
+                            }
+                            success = true;
+                        }
                     }
                     break;
 
@@ -122,52 +212,57 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<bool> UndoLastSwipeAsync(long userId)
         {
-            // Kiểm tra giới hạn undo theo gói dịch vụ
             bool canUndo = await _packageService.CanUndoTindbookAsync(userId);
-            if (!canUndo) return false; // Hết lượt undo trong tháng
+            if (!canUndo) return false;
 
             var lastSwipe = await _context.SwipeLogs.Where(l => l.CustomerID == userId)
                 .OrderByDescending(l => l.CreatedAt).FirstOrDefaultAsync();
             if (lastSwipe == null) return false;
 
-            // Logic đảo ngược nếu là AddToCart
-            if (lastSwipe.ActionType == SwipeIntent.AddToCart.ToString() && lastSwipe.BookID.HasValue)
+            // Xử lý hoàn tác cho AddToCart
+            if (lastSwipe.ActionType == SwipeIntent.AddToCart.ToString())
             {
-                var book = await _context.RealBooks.FindAsync(lastSwipe.BookID.Value);
-                if (book != null) book.UnitsInStock += 1;
+                if (lastSwipe.BlindBookID.HasValue)
+                {
+                    var blindBook = await _context.BlindBooks.FindAsync(lastSwipe.BlindBookID.Value);
+                    if (blindBook != null) blindBook.StockQuantity += 1;
 
-                var cart = await _context.Carts.FirstOrDefaultAsync(c => c.UserID == userId && c.BookID == lastSwipe.BookID.Value);
-                if (cart != null) _context.Carts.Remove(cart);
+                    var cart = await _context.Carts.FirstOrDefaultAsync(c => c.UserID == userId && c.BlindBookID == lastSwipe.BlindBookID.Value);
+                    if (cart != null) _context.Carts.Remove(cart);
+                }
+                else if (lastSwipe.BookID.HasValue)
+                {
+                    var book = await _context.RealBooks.FindAsync(lastSwipe.BookID.Value);
+                    if (book != null) book.UnitsInStock += 1;
+
+                    var cart = await _context.Carts.FirstOrDefaultAsync(c => c.UserID == userId && c.BookID == lastSwipe.BookID.Value);
+                    if (cart != null) _context.Carts.Remove(cart);
+                }
             }
-            // Logic đảo ngược nếu là Wishlist
-            else if (lastSwipe.ActionType == SwipeIntent.Wishlist.ToString() && lastSwipe.BookID.HasValue)
+            // Xử lý hoàn tác cho Wishlist
+            else if (lastSwipe.ActionType == SwipeIntent.Wishlist.ToString())
             {
-                var wishlist = await _context.Wishlists.FirstOrDefaultAsync(w => w.UserID == userId && w.BookID == lastSwipe.BookID.Value);
+                var wishlist = await _context.Wishlists.FirstOrDefaultAsync(w => w.UserID == userId 
+                    && w.BookID == lastSwipe.BookID 
+                    && w.BlindBookID == lastSwipe.BlindBookID);
                 if (wishlist != null) _context.Wishlists.Remove(wishlist);
             }
 
             _context.SwipeLogs.Remove(lastSwipe);
 
-            // Ghi nhận lượt undo vào ServiceHistory để đếm giới hạn tháng
-            _context.ServiceHistories.Add(new ServiceHistory
-            {
-                CustomerID = userId,
-                Price = 0,
-                PaymentMethod = PaymentMethod.VNPay,
-                PaymentStatus = PaymentStatus.Completed,
-                Description = "Undo Tindbook",
-                CreateAt = DateTime.UtcNow,
-                IsAutoRenew = false
+            // Ghi nhận lịch sử dịch vụ
+            _context.ServiceHistories.Add(new ServiceHistory {
+                CustomerID = userId, Price = 0,
+                PaymentMethod = PaymentMethod.VNPay, PaymentStatus = PaymentStatus.Completed,
+                Description = "Undo Tindbook", CreateAt = DateTime.UtcNow, IsAutoRenew = false
             });
 
             await _context.SaveChangesAsync();
             return true;
         }
 
-        // Tính toán số lượt undo của người dùng theo gói subscription + membership rank
         public async Task<bool> CanUndoTindbookAsync(long userId)
         {
-            // Lấy thông tin customer bao gồm Subscription và Rank
             var customer = await _context.CustomerDetails
                 .Include(c => c.MembershipRank)
                 .Include(c => c.ServicePackage)
@@ -175,25 +270,16 @@ namespace BookBlossom.Infrastructure.Services
 
             if (customer == null) return false;
 
-            // 1. Xác định RankType
-            int rankType = customer.MembershipRank?.RankType ?? 1; // Mặc định là 1 nếu null
-
-            // 2. Logic kiểm tra Unlimited (Pro hoặc Rank Vàng/Kim Cương)
+            int rankType = customer.MembershipRank?.RankType ?? 1;
             bool isPro = customer.ServicePackage?.UndoLimit >= 999999;
             bool isHighRank = (rankType == 3 || rankType == 4);
 
             if (isPro || isHighRank) return true;
 
-            // 3. Tính toán tổng lượt Undo cho phép: (Subscription Limit) + (Rank Bonus)
-            // Subscription Limit: Free=2, Basic=5
             int packageLimit = customer.ServicePackage?.UndoLimit ?? 0;
-            
-            // Rank Bonus: Rank 2 (Bạc) = 3, Rank 1 (Đồng) = 0
             int rankBonus = (rankType == 2) ? 3 : 0;
-            
             int totalLimit = packageLimit + rankBonus;
 
-            // 4. Đếm số lượt đã Undo trong ngày (Sử dụng SwipeLogs với ActionType="Undo")
             var today = DateTime.UtcNow.Date;
             int usedUndoCount = await _context.SwipeLogs
                 .CountAsync(log => log.CustomerID == userId 
@@ -205,46 +291,82 @@ namespace BookBlossom.Infrastructure.Services
 
         // ======================== GUEST ========================
 
-        public async Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForGuestAsync(Guid guestId, int limit = 20)
+        public async Task<IEnumerable<BookResponseDTO>> GetRecommendedBooksForGuestAsync(Guid guestId)
         {
-            // Lấy sách mà Guest đã quẹt (để loại ra khỏi gợi ý)
-            var swipedBookIds = await _context.SwipeLogs
-                .Where(l => l.GuestID == guestId)
-                .Select(l => l.BookID)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToListAsync();
+            // Kiểm tra số lượng đã quẹt của Guest
+            var totalSwipedCount = await _context.SwipeLogs.CountAsync(l => l.GuestID == guestId);
+            if (totalSwipedCount >= 10)
+            {
+                return Enumerable.Empty<BookResponseDTO>();
+            }
 
-            // Lấy sở thích Guest đã chọn lúc onboarding
+            var swipedBookIds = await _context.SwipeLogs
+                .Where(l => l.GuestID == guestId && l.BookID.HasValue)
+                .Select(l => l.BookID!.Value).ToListAsync();
+
+            var swipedBlindBookIds = await _context.SwipeLogs
+                .Where(l => l.GuestID == guestId && l.BlindBookID.HasValue)
+                .Select(l => l.BlindBookID!.Value).ToListAsync();
+
             var guestPreferenceCategoryIds = await _context.GuestPreferences
                 .Where(gp => gp.GuestID == guestId).Select(gp => gp.CategoryID).ToListAsync();
 
-            return await _context.RealBooks.Include(b => b.Category)
-                .Where(b => !swipedBookIds.Contains(b.BookID)) // Loại sách đã quẹt
+            // Luồng RealBooks cho Guest
+            var realBooksQuery = _context.RealBooks.Include(b => b.Category)
+                .Where(b => !swipedBookIds.Contains(b.BookID) && b.BlindBook == null)
                 .Select(b => new {
-                    Book = b,
+                    BookID = (long?)b.BookID,
+                    BlindBookID = (long?)null,
+                    CategoryID = b.CategoryID,
+                    CategoryName = b.Category != null ? b.Category.CategoryName : "",
+                    Title = b.Title,
+                    Publisher = b.Publisher,
+                    Price = b.Price,
+                    Description = b.Description,
                     Priority = guestPreferenceCategoryIds.Contains(b.CategoryID) ? 1 : 2
-                })
+                });
+
+            // Luồng BlindBooks cho Guest
+            var blindBooksQuery = _context.BlindBooks.Include(b => b.RealBook).ThenInclude(rb => rb!.Category)
+                .Where(b => !swipedBlindBookIds.Contains(b.BlindBookID) && b.BlindBookRequestStatus == BlindBookRequestStatus.Approved)
+                .Select(b => new {
+                    BookID = (long?)null,
+                    BlindBookID = (long?)b.BlindBookID,
+                    CategoryID = b.RealBook != null ? b.RealBook.CategoryID : 0,
+                    CategoryName = (b.RealBook != null && b.RealBook.Category != null) ? b.RealBook.Category.CategoryName : "",
+                    Title = "Sách Bí Ẩn (Blind Book)",
+                    Publisher = "Nhà xuất bản Bí Ẩn",
+                    Price = b.Price,
+                    Description = "💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\"",
+                    Priority = (b.RealBook != null && guestPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
+                });
+
+            var combinedBooks = await realBooksQuery.Concat(blindBooksQuery)
                 .OrderBy(x => x.Priority).ThenBy(x => Guid.NewGuid())
-                .Take(limit)
-                .Select(x => new BookResponseDTO {
-                    BookID = x.Book.BookID, CategoryID = x.Book.CategoryID,
-                    CategoryName = x.Book.Category.CategoryName, Title = x.Book.Title,
-                    Publisher = x.Book.Publisher, Price = x.Book.Price
-                }).ToListAsync();
+                .Take(10)
+                .ToListAsync();
+
+            return combinedBooks.Select(x => new BookResponseDTO {
+                BookID = x.BookID,
+                BlindBookID = x.BlindBookID,
+                CategoryID = x.CategoryID,
+                CategoryName = x.CategoryName,
+                Title = x.Title,
+                Publisher = x.Publisher,
+                Price = x.Price,
+                Description = x.Description
+            });
         }
 
         public async Task<(bool Success, bool RequiresLogin)> RecordGuestSwipeActionAsync(Guid guestId, SwipeActionDTO dto)
         {
             if (!dto.BookID.HasValue && !dto.BlindBookID.HasValue) return (false, false);
 
-            // NGHIỆP VỤ QUAN TRỌNG: Guest KHÔNG được phép AddToCart
             if (dto.Intent == SwipeIntent.AddToCart)
             {
-                return (false, true); // RequiresLogin = true -> frontend hiện popup đăng nhập
+                return (false, true); // Guest không được AddToCart -> Yêu cầu đăng nhập
             }
 
-            // Lưu log quẹt theo GuestID
             _context.SwipeLogs.Add(new SwipeLog {
                 GuestID = guestId,
                 BookID = dto.BookID,
@@ -256,18 +378,22 @@ namespace BookBlossom.Infrastructure.Services
             bool success = false;
             switch (dto.Intent)
             {
-                // Phải -> Wishlist (theo GuestID)
                 case SwipeIntent.Wishlist:
-                    if (dto.BookID.HasValue)
+                    bool exists = await _context.Wishlists.AnyAsync(w => w.GuestID == guestId 
+                        && w.BookID == dto.BookID 
+                        && w.BlindBookID == dto.BlindBookID);
+                    if (!exists)
                     {
-                        bool exists = await _context.Wishlists.AnyAsync(w => w.GuestID == guestId && w.BookID == dto.BookID.Value);
-                        if (!exists)
-                            _context.Wishlists.Add(new Wishlist { GuestID = guestId, BookID = dto.BookID.Value, AddedAt = DateTime.UtcNow });
-                        success = true;
+                        _context.Wishlists.Add(new Wishlist { 
+                            GuestID = guestId, 
+                            BookID = dto.BookID, 
+                            BlindBookID = dto.BlindBookID, 
+                            AddedAt = DateTime.UtcNow 
+                        });
                     }
+                    success = true;
                     break;
 
-                // Trái/Xuống -> Ẩn/Bỏ qua (chỉ log, không cần làm gì thêm)
                 case SwipeIntent.Hide:
                 case SwipeIntent.Skip:
                     success = true;
@@ -284,30 +410,27 @@ namespace BookBlossom.Infrastructure.Services
             if (guest == null) return false;
 
             var today = DateTime.UtcNow.Date;
-            
-            // 🟢 Chỗ sửa 1: Reset lượt nếu sang ngày mới
             if (guest.LastUndoDate?.Date != today)
             {
                 guest.DailyUndoCount = 0;
                 guest.LastUndoDate = today;
             }
 
-            // 🟢 Chỗ sửa 2: Chặn nếu quá 3 lượt
             if (guest.DailyUndoCount >= 3) return false;
 
             var lastSwipe = await _context.SwipeLogs.Where(l => l.GuestID == guestId)
                 .OrderByDescending(l => l.CreatedAt).FirstOrDefaultAsync();
             if (lastSwipe == null) return false;
 
-            if (lastSwipe.ActionType == SwipeIntent.Wishlist.ToString() && lastSwipe.BookID.HasValue)
+            if (lastSwipe.ActionType == SwipeIntent.Wishlist.ToString())
             {
-                var wishlist = await _context.Wishlists.FirstOrDefaultAsync(w => w.GuestID == guestId && w.BookID == lastSwipe.BookID.Value);
+                var wishlist = await _context.Wishlists.FirstOrDefaultAsync(w => w.GuestID == guestId 
+                    && w.BookID == lastSwipe.BookID 
+                    && w.BlindBookID == lastSwipe.BlindBookID);
                 if (wishlist != null) _context.Wishlists.Remove(wishlist);
             }
 
             _context.SwipeLogs.Remove(lastSwipe);
-
-            // 🟢 Chỗ sửa 3: Tăng lượt đã dùng lên 1
             guest.DailyUndoCount += 1;
 
             await _context.SaveChangesAsync();
@@ -322,7 +445,7 @@ namespace BookBlossom.Infrastructure.Services
             var today = DateTime.UtcNow.Date;
             if (guest.LastUndoDate?.Date != today) return true;
 
-            return guest.DailyUndoCount < 3; // Quy định cứng tối đa 3 lần/ngày
+            return guest.DailyUndoCount < 3;
         }
     }
 }
