@@ -24,6 +24,18 @@ $(document).ready(function() {
             address: "456 Flower Ave, District 3, Ho Chi Minh City",
             phone: "0912 345 678",
             email: "john.doe@example.com"
+        },
+        "3": {
+            name: "Michael Brown",
+            avatar: "/images/Avatar/avatar1.jpg",
+            status: "Offline",
+            isOnline: false,
+            joined: "Joined: 1 year ago",
+            orders: "5",
+            spent: "620K VND",
+            address: "789 Pine Rd, District 5, Ho Chi Minh City",
+            phone: "0933 445 566",
+            email: "michael.brown@example.com"
         }
     };
 
@@ -119,6 +131,9 @@ $(document).ready(function() {
 
     // 3. Handle Support Request Selection
     $('.request-item').on('click', function() {
+        const reqId = $(this).data('req-id');
+        $('#admin-req-detail-area').data('active-req-id', reqId);
+
         // Extract Data from clicked item
         const reqCategory = $(this).find('.req-type').text().trim();
         const reqBuyer = $(this).find('.req-buyer').text().trim();
@@ -150,7 +165,7 @@ $(document).ready(function() {
 
     // 5. Message Buyer from Support Request Detail
     $('#btn-sr-chat').on('click', function() {
-        const buyerName = $('#detail-req-buyer').text();
+        const buyerName = $('#detail-req-buyer').text().trim();
         
         // Switch back to chat
         $('#admin-req-detail-area').hide();
@@ -159,8 +174,17 @@ $(document).ready(function() {
         // Switch left tab to Conversations
         $('.tab-btn[data-target="#conversations-tab"]').click();
 
-        // Sync Profile Data
-        syncBuyerProfile(buyerName);
+        // Find the convo-item with this name and click it
+        const $convoItem = $('.convo-item').filter(function() {
+            return $(this).find('.convo-name').text().trim().toLowerCase() === buyerName.toLowerCase();
+        });
+
+        if ($convoItem.length > 0) {
+            $convoItem.click();
+        } else {
+            // Fallback Sync Profile Data
+            syncBuyerProfile(buyerName);
+        }
         
         // Add context message into chat
         $('#admin-chat-stream').append(`
@@ -787,5 +811,63 @@ $(document).ready(function() {
                 $link.first().click();
             }
         }
+    });
+
+    // ==========================================
+    // Support Request Resolve Modal Actions
+    // ==========================================
+
+    // 1. Mark as Resolved button click -> Show Confirm Modal
+    $('.btn-sr-resolve').on('click', function(e) {
+        e.preventDefault();
+        const activeReqId = $('#admin-req-detail-area').data('active-req-id');
+        if (activeReqId) {
+            $('#admin-confirm-resolve-modal').fadeIn(200).addClass('active').css('display', 'flex');
+        }
+    });
+
+    // 2. Dismiss Resolve Modal
+    $('#btn-admin-cancel-resolve, #admin-confirm-resolve-modal .modal-backdrop').on('click', function(e) {
+        e.preventDefault();
+        $('#admin-confirm-resolve-modal').fadeOut(200).removeClass('active');
+    });
+
+    // 3. Confirm Resolve Modal button click -> Perform Resolution
+    $('#btn-admin-confirm-resolve').on('click', function(e) {
+        e.preventDefault();
+        const activeReqId = $('#admin-req-detail-area').data('active-req-id');
+        
+        if (activeReqId) {
+            // Find support request list item in sidebar and update its status badge
+            const $reqItem = $(`.request-item[data-req-id="${activeReqId}"]`);
+            if ($reqItem.length > 0) {
+                const $badge = $reqItem.find('.req-status');
+                $badge.removeClass('status-pending').addClass('status-resolved').text('Resolved');
+            }
+
+            // Update details view status badge
+            $('#detail-req-status').removeClass('status-pending').addClass('status-resolved').text('Resolved');
+        }
+        
+        // Hide Modal
+        $('#admin-confirm-resolve-modal').fadeOut(200).removeClass('active');
+    });
+
+    // ==========================================
+    // Search & Filter Conversation List Sidebar
+    // ==========================================
+    $('#admin-convo-search').on('input', function() {
+        const query = $(this).val().toLowerCase().trim();
+        
+        $('#admin-convo-list .convo-item').each(function() {
+            const name = $(this).find('.convo-name').text().toLowerCase();
+            const preview = $(this).find('.convo-preview').text().toLowerCase();
+            
+            if (name.includes(query) || preview.includes(query)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
     });
 });
