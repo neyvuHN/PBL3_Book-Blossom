@@ -104,7 +104,9 @@ class UsersView {
      */
     _createUserRowHtml(user) {
         const roleClass = user.role === 'Admin' ? 'role-admin' :
-            user.role === 'Moderator' ? 'role-moderator' : 'role-user';
+            user.role === 'Moderator' ? 'role-moderator' :
+            user.role === 'Marketing Manager' ? 'role-marketing' :
+            user.role === 'Store Manager' ? 'role-store' : 'role-user';
 
         const planClass = user.plan === 'Basic' ? 'plan-basic' :
             user.plan === 'Pro' ? 'plan-pro' : 'plan-free';
@@ -185,7 +187,9 @@ class UsersView {
      */
     _createStaffRowHtml(user) {
         const roleClass = user.role === 'Admin' ? 'role-admin' :
-            user.role === 'Moderator' ? 'role-moderator' : 'role-user';
+            user.role === 'Moderator' ? 'role-moderator' :
+            user.role === 'Marketing Manager' ? 'role-marketing' :
+            user.role === 'Store Manager' ? 'role-store' : 'role-user';
 
         const scoreHtml = user.internalScore < 50
             ? `<span class="score-value caution" title="Critical low internal score!">${user.internalScore} <i class="ph ph-warning-octagon"></i></span>`

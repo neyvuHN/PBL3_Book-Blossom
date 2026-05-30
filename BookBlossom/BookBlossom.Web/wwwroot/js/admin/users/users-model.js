@@ -118,7 +118,7 @@ class UsersModel {
             this.banned = this.banned.filter(u => u.id !== userId);
             
             // Re-allocate based on Role
-            const isStaffRole = user.role === 'Admin' || user.role === 'Moderator';
+            const isStaffRole = user.role !== 'User';
             if (isStaffRole) {
                 if (!this.staff.some(u => u.id === userId)) {
                     this.staff.push(user);
@@ -143,8 +143,8 @@ class UsersModel {
         const oldRole = user.role;
         user.role = newRole;
 
-        const wasStaff = oldRole === 'Admin' || oldRole === 'Moderator';
-        const isStaff = newRole === 'Admin' || newRole === 'Moderator';
+        const wasStaff = oldRole !== 'User';
+        const isStaff = newRole !== 'User';
 
         // Check if user is active (not currently banned)
         if (user.status === 'Active') {

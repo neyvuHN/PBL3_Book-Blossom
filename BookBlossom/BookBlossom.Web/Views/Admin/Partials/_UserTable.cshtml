@@ -41,6 +41,8 @@
                             var roleClass = "role-user";
                             if (user.Role == "Admin") roleClass = "role-admin";
                             else if (user.Role == "Moderator") roleClass = "role-moderator";
+                            else if (user.Role == "Marketing Manager") roleClass = "role-marketing";
+                            else if (user.Role == "Store Manager") roleClass = "role-store";
                         }
                         <span class="role-badge @roleClass">@user.Role</span>
                     </td>
