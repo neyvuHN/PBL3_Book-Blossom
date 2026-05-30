@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesStyles.cshtml")
+    <style>
+        .messages-wrapper {
+            height: calc(100vh - 120px) !important; /* Adapt to admin layout padding */
+            margin-top: 0 !important;
+            box-shadow: none !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+            border: 1px solid #F3EFF5;
+        }
+        .admin-main-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+    </style>
+}
+
+<!-- The buyer-side messaging UI reused for Admin -->
+@await Html.PartialAsync("~/Views/Messages/Partials/_MessagesWorkspace.cshtml")
+
+@await Html.PartialAsync("~/Views/Messages/Partials/_MessagesModals.cshtml")
+@await Html.PartialAsync("~/Views/Messages/Partials/_MessagesToast.cshtml")
+
+@section Scripts {
+    @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesScripts.cshtml")
+}

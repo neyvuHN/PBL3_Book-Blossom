@@ -145,6 +145,148 @@
     </div>
 </div>
 
+<!-- Premium Notification Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Premium Custom Confirmation Dialog Modal -->
+<div class="confirm-overlay" id="confirmDialogOverlay">
+    <div class="confirm-card">
+        <div class="confirm-body">
+            <div class="confirm-alert-icon" id="confirmAlertIcon">
+                <i class="ph ph-warning"></i>
+            </div>
+            <h4 class="confirm-title" id="confirmTitle">Cancel Order?</h4>
+            <p class="confirm-message" id="confirmMessage">Are you sure you want to cancel this order? This action cannot be undone.</p>
+        </div>
+        <div class="confirm-footer">
+            <button class="btn-confirm-action-no" id="btnConfirmNo">Keep Order</button>
+            <button class="btn-confirm-action-yes" id="btnConfirmYes">Yes, Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Chat Modal -->
+<div class="modal-overlay" id="chatModal">
+    <div class="modal-card chat-modal-card">
+        <div class="chat-layout">
+            <!-- Left: Main Chat Area -->
+            <div class="chat-main">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <img src="" alt="Avatar" class="chat-avatar" id="chatHeaderAvatar">
+                        <div class="chat-user-details">
+                            <h4 id="chatHeaderName">Customer Name</h4>
+                            <span class="chat-status online"><i class="ph-fill ph-circle"></i> Online</span>
+                        </div>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button class="btn-icon-soft"><i class="ph ph-phone"></i></button>
+                        <button class="btn-icon-soft"><i class="ph ph-magnifying-glass"></i></button>
+                        <button class="btn-close-modal" id="btnCloseChatModal">&times;</button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessagesArea">
+                    <div class="chat-date-divider"><span>Today</span></div>
+                    <!-- Sample Messages -->
+                    <div class="chat-message received">
+                        <img src="" alt="Avatar" class="msg-avatar" id="chatMsgAvatar1">
+                        <div class="msg-content">
+                            <div class="msg-bubble">Hello, I have a question about my order.</div>
+                            <span class="msg-time">09:41 AM</span>
+                        </div>
+                    </div>
+                    <div class="chat-message sent">
+                        <div class="msg-content">
+                            <div class="msg-bubble">Welcome to BookBlossom support! How can we help you today?</div>
+                            <span class="msg-time">09:45 AM</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <div class="chat-quick-replies">
+                        <button class="quick-reply-pill">Order Status</button>
+                        <button class="quick-reply-pill">Return Policy</button>
+                        <button class="quick-reply-pill">Shipping Info</button>
+                    </div>
+                    <div class="chat-input-wrapper">
+                        <button class="btn-icon-soft"><i class="ph ph-plus-circle"></i></button>
+                        <button class="btn-icon-soft"><i class="ph ph-image"></i></button>
+                        <button class="btn-icon-soft"><i class="ph ph-link"></i></button>
+                        <input type="text" class="chat-input" placeholder="Type your message here...">
+                        <button class="btn-icon-soft chat-send-btn"><i class="ph-fill ph-paper-plane-right"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Sidebar Profile & Requests -->
+            <div class="chat-sidebar">
+                <div class="chat-sidebar-profile">
+                    <img src="" alt="Avatar" class="sidebar-avatar" id="chatSidebarAvatar">
+                    <h4 id="chatSidebarName">Customer Name</h4>
+                    <p class="sidebar-role">Customer</p>
+                    <div class="sidebar-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="chatSidebarOrders">5</span>
+                            <span class="stat-label">Orders</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">1 yr</span>
+                            <span class="stat-label">Member</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-sidebar-section">
+                    <h5>Call Requests</h5>
+                    <div class="call-request-card pending">
+                        <div class="call-info">
+                            <i class="ph ph-phone-call"></i>
+                            <div>
+                                <h6>Support Request</h6>
+                                <span>Requested 10m ago</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary-action btn-sm">Accept</button>
+                    </div>
+                </div>
+                
+                <div class="chat-sidebar-section">
+                    <h5>Shared Materials</h5>
+                    <div class="shared-material-item">
+                        <i class="ph ph-image"></i>
+                        <span>Shared Pictures (2)</span>
+                        <i class="ph ph-caret-right ml-auto"></i>
+                    </div>
+                    <div class="shared-material-item">
+                        <i class="ph ph-link"></i>
+                        <span>Shared Book Links (1)</span>
+                        <i class="ph ph-caret-right ml-auto"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Gallery Modal for Shared Materials -->
+<div class="modal-overlay" id="galleryModal">
+    <div class="modal-card" style="max-width: 800px; background: transparent; box-shadow: none;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button class="btn-close-modal" id="btnCloseGallery" style="color: white; font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">&times;</button>
+        </div>
+        <div style="background-color: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <img src="" id="galleryPreviewImage" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; display: none;" />
+            <div id="galleryPreviewVideo" style="max-width: 100%; max-height: 70vh; border-radius: 8px; display: none; background: #000; width: 100%; text-align: center; color: white; padding: 100px 0;">
+                <i class="ph ph-play-circle" style="font-size: 4rem;"></i>
+                <p>Video Placeholder</p>
+            </div>
+            <div style="margin-top: 20px; font-weight: 600; color: #2C2630;" id="galleryCaption">Shared Media</div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <!-- Import Frontend Modular MVC Components for Order Management -->
     <script src="~/js/admin/orders/orders-model.js" asp-append-version="true"></script>

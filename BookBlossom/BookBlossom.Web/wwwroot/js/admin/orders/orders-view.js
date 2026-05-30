@@ -55,6 +55,34 @@ class OrdersView {
         // Top Actions
         this.btnExportPdfList = document.getElementById('btnExportPdfList');
         this.btnBatchConfirmHeader = document.getElementById('btnBatchConfirm');
+
+        // Premium Custom Notifications & Confirmation Selectors
+        this.toastContainer = document.getElementById('toastContainer');
+        this.confirmOverlay = document.getElementById('confirmDialogOverlay');
+        this.confirmAlertIcon = document.getElementById('confirmAlertIcon');
+        this.confirmTitle = document.getElementById('confirmTitle');
+        this.confirmMessage = document.getElementById('confirmMessage');
+        this.btnConfirmNo = document.getElementById('btnConfirmNo');
+        this.btnConfirmYes = document.getElementById('btnConfirmYes');
+
+        // Modal Selectors (Chat Modal)
+        this.chatModal = document.getElementById('chatModal');
+        this.btnCloseChatModal = document.getElementById('btnCloseChatModal');
+        this.chatHeaderAvatar = document.getElementById('chatHeaderAvatar');
+        this.chatHeaderName = document.getElementById('chatHeaderName');
+        this.chatSidebarAvatar = document.getElementById('chatSidebarAvatar');
+        this.chatSidebarName = document.getElementById('chatSidebarName');
+        this.chatSidebarOrders = document.getElementById('chatSidebarOrders');
+        this.chatMessagesArea = document.getElementById('chatMessagesArea');
+        
+        // Chats Tab Selectors - REMOVED
+        
+        // Gallery Modal
+        this.galleryModal = document.getElementById('galleryModal');
+        this.btnCloseGallery = document.getElementById('btnCloseGallery');
+        this.galleryPreviewImage = document.getElementById('galleryPreviewImage');
+        this.galleryPreviewVideo = document.getElementById('galleryPreviewVideo');
+        this.galleryCaption = document.getElementById('galleryCaption');
     }
 
     /**
@@ -333,6 +361,7 @@ class OrdersView {
                         <div class="buyer-profile">
                             <img src="${order.buyerAvatarUrl}" alt="${order.buyerName}" class="buyer-avatar" onerror="this.src='https://i.pravatar.cc/150?img=9'" />
                             <span class="buyer-name">${order.buyerName}</span>
+                            <button class="btn-icon-soft btn-chat-buyer" data-id="${order.id}" data-name="${order.buyerName}" data-avatar="${order.buyerAvatarUrl}" title="Chat with Buyer" style="margin-left: auto; width: 28px; height: 28px; font-size: 1rem;"><i class="ph ph-chat-circle-dots"></i></button>
                         </div>
                         ${noteBoxHtml}
                     </div>
@@ -784,5 +813,170 @@ class OrdersView {
     closeExportPdfModal() {
         this.exportListModal.style.display = 'none';
         this.exportPdfPreviewArea.innerHTML = '';
+    }
+
+    /**
+     * Triggers a highly aesthetic, premium toast notification that auto-decays in 4 seconds.
+     * @param {string} title Toast headline.
+     * @param {string} desc Toast description text.
+     * @param {string} type Notification type: 'success', 'info', 'warning', 'error'.
+     */
+    showToast(title, desc, type = 'success') {
+        if (!this.toastContainer) return;
+
+        // Select correct Phosphor Icon based on category
+        let iconHtml = '<i class="ph-fill ph-check-circle"></i>';
+        if (type === 'info') iconHtml = '<i class="ph-fill ph-info"></i>';
+        if (type === 'warning') iconHtml = '<i class="ph-fill ph-warning"></i>';
+        if (type === 'error') iconHtml = '<i class="ph-fill ph-x-circle"></i>';
+
+        // Build premium toast DOM structure
+        const toast = document.createElement('div');
+        toast.className = `premium-toast ${type}`;
+        toast.innerHTML = `
+            <div class="toast-wrapper">
+                <div class="toast-icon">${iconHtml}</div>
+                <div class="toast-message-block">
+                    <span class="toast-title">${title}</span>
+                    <span class="toast-desc">${desc}</span>
+                </div>
+                <button class="btn-close-toast">&times;</button>
+            </div>
+            <div class="toast-progress">
+                <div class="toast-progress-bar">
+                    <div class="toast-progress-bar-fill"></div>
+                </div>
+            </div>
+        `;
+
+        this.toastContainer.appendChild(toast);
+
+        // Bind close button click for immediate removal
+        const btnClose = toast.querySelector('.btn-close-toast');
+        const dismissToast = () => {
+            toast.classList.add('fade-out');
+            setTimeout(() => {
+                if (toast.parentNode === this.toastContainer) {
+                    this.toastContainer.removeChild(toast);
+                }
+            }, 300);
+        };
+
+        if (btnClose) {
+            btnClose.addEventListener('click', dismissToast);
+        }
+
+        // Automatic dismissal after 4s (matching decay progress line animation)
+        setTimeout(dismissToast, 4000);
+    }
+
+    /**
+     * Opens a gorgeous, glassmorphic modal for visual confirmations.
+     * @param {string} title Confirmation title.
+     * @param {string} message Confirmation warning details.
+     * @param {string} type Alert visual flavor: 'warning', 'info', 'success', 'error'.
+     * @param {function} onYes Success callback trigger.
+     * @param {function} onNo Cancel callback trigger.
+     */
+    showConfirmDialog(title, message, type = 'warning', onYes = null, onNo = null) {
+        if (!this.confirmOverlay) return;
+
+        // Customize overlay details dynamically
+        this.confirmTitle.textContent = title;
+        this.confirmMessage.textContent = message;
+
+        // Customise icon based on warning severity
+        let iconHtml = '<i class="ph-fill ph-warning"></i>';
+        if (type === 'info') iconHtml = '<i class="ph-fill ph-info"></i>';
+        if (type === 'success') iconHtml = '<i class="ph-fill ph-check-circle"></i>';
+        if (type === 'error') iconHtml = '<i class="ph-fill ph-x-circle"></i>';
+
+        this.confirmAlertIcon.className = `confirm-alert-icon ${type}`;
+        this.confirmAlertIcon.innerHTML = iconHtml;
+
+        // Clean any old event listeners by cloning button targets
+        const newBtnNo = this.btnConfirmNo.cloneNode(true);
+        const newBtnYes = this.btnConfirmYes.cloneNode(true);
+        this.btnConfirmNo.parentNode.replaceChild(newBtnNo, this.btnConfirmNo);
+        this.btnConfirmYes.parentNode.replaceChild(newBtnYes, this.btnConfirmYes);
+        this.btnConfirmNo = newBtnNo;
+        this.btnConfirmYes = newBtnYes;
+
+        // Adjust text and styling for the confirmation button
+        if (type === 'warning' || type === 'error') {
+            this.btnConfirmYes.style.backgroundColor = '#EB5757';
+        } else if (type === 'success') {
+            this.btnConfirmYes.style.backgroundColor = '#27AE60';
+        } else {
+            this.btnConfirmYes.style.backgroundColor = '#2F80ED';
+        }
+
+        // Show Dialog
+        this.confirmOverlay.style.display = 'flex';
+
+        // Close functions
+        const closeDialog = () => {
+            this.confirmOverlay.style.display = 'none';
+        };
+
+        this.btnConfirmNo.addEventListener('click', () => {
+            closeDialog();
+            if (onNo) onNo();
+        });
+
+        this.btnConfirmYes.addEventListener('click', () => {
+            closeDialog();
+            if (onYes) onYes();
+        });
+    }
+
+    /**
+     * Opens the Chat Modal and populates buyer info.
+     */
+    openChatModal(buyerName, buyerAvatarUrl) {
+        if (!this.chatModal) return;
+
+        // Populate header and sidebar details
+        this.chatHeaderName.textContent = buyerName || 'Customer';
+        this.chatSidebarName.textContent = buyerName || 'Customer';
+        
+        const avatar = buyerAvatarUrl || 'https://i.pravatar.cc/150?img=9';
+        this.chatHeaderAvatar.src = avatar;
+        this.chatSidebarAvatar.src = avatar;
+        
+        // Randomize order stats for visual flavor
+        this.chatSidebarOrders.textContent = Math.floor(Math.random() * 10) + 1;
+
+        // Open Modal
+        this.chatModal.style.display = 'flex';
+        
+        // Ensure scroll to bottom
+        setTimeout(() => {
+            if (this.chatMessagesArea) {
+                this.chatMessagesArea.scrollTop = this.chatMessagesArea.scrollHeight;
+            }
+        }, 50);
+    }
+
+    /**
+     * Closes the Chat Modal.
+     */
+    closeChatModal() {
+        if (this.chatModal) {
+            this.chatModal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Updates badge counts on the tab navigation.
+     */
+    updateTabBadges(counts) {
+        if (this.badges.all) this.badges.all.textContent = counts.all;
+        if (this.badges.pending) this.badges.pending.textContent = counts.pending;
+        if (this.badges.toship) this.badges.toship.textContent = counts.toship;
+        if (this.badges.intransit) this.badges.intransit.textContent = counts.intransit;
+        if (this.badges.completed) this.badges.completed.textContent = counts.completed;
+        if (this.badges.returns) this.badges.returns.textContent = counts.returns;
+        if (this.badges.complaints) this.badges.complaints.textContent = counts.complaints;
     }
 }

@@ -118,6 +118,14 @@ class OrdersController {
                 const btnPrintLabel = e.target.closest('.btn-print-label');
                 const btnMarkDelivered = e.target.closest('.btn-mark-delivered');
                 const chkSelect = e.target.closest('.order-select-chk');
+                const btnChatBuyer = e.target.closest('.btn-chat-buyer');
+
+                if (btnChatBuyer) {
+                    const buyerName = btnChatBuyer.getAttribute('data-name');
+                    const buyerAvatarUrl = btnChatBuyer.getAttribute('data-avatar');
+                    this.view.openChatModal(buyerName, buyerAvatarUrl);
+                    return;
+                }
 
                 // A. Checkbox Selection Toggle
                 if (chkSelect) {
@@ -131,20 +139,30 @@ class OrdersController {
                 if (btnConfirm) {
                     const orderId = btnConfirm.getAttribute('data-id');
                     if (this.model.confirmOrder(orderId)) {
-                        alert(`🎉 Order #${orderId} confirmed successfully! Action logged within 48h to prevent KPI penalties. This order has moved to "To Ship" status.`);
+                        this.view.showToast(
+                            'Order Confirmed', 
+                            `Order #${orderId} has been successfully approved within the 48h SLA window to preserve shop KPI. Moved to 'To Ship'.`, 
+                            'success'
+                        );
                         this.renderCurrentView();
                     }
                     return;
                 }
 
-                // C. Cancel Pending Order
+                // C. Cancel Pending Order (With Custom Dialog)
                 if (btnCancel) {
                     const orderId = btnCancel.getAttribute('data-id');
-                    const confirmation = confirm(`Are you sure you want to cancel Order #${orderId}? Funds will be automatically refunded from escrow.`);
-                    if (confirmation && this.model.cancelOrder(orderId)) {
-                        alert(`Order #${orderId} was cancelled. Status updated to Refunded.`);
-                        this.renderCurrentView();
-                    }
+                    this.view.showConfirmDialog(
+                        'Cancel Order?',
+                        `Are you sure you want to cancel Order #${orderId}? Escrow funds will be automatically returned to the buyer's balance.`,
+                        'error',
+                        () => {
+                            if (this.model.cancelOrder(orderId)) {
+                                this.view.showToast('Order Cancelled', `Order #${orderId} was successfully cancelled and buyer refunded.`, 'error');
+                                this.renderCurrentView();
+                            }
+                        }
+                    );
                     return;
                 }
 
@@ -152,7 +170,11 @@ class OrdersController {
                 if (btnStartShip) {
                     const orderId = btnStartShip.getAttribute('data-id');
                     if (this.model.startShippingOrder(orderId)) {
-                        alert(`🚚 Logistics carrier notified! Order #${orderId} status changed to "In Transit". Live tracking commenced.`);
+                        this.view.showToast(
+                            'Shipping Initiated', 
+                            `Order #${orderId} handed over to logistics. Courier notified and tracking links activated!`, 
+                            'info'
+                        );
                         this.renderCurrentView();
                     }
                     return;
@@ -171,10 +193,21 @@ class OrdersController {
                 // F. Fast Mark Delivered
                 if (btnMarkDelivered) {
                     const orderId = btnMarkDelivered.getAttribute('data-id');
-                    if (this.model.updateMockStatus(orderId, 'Delivered')) {
-                        alert(`✓ Order #${orderId} marked as DELIVERED. Customer notified, review period activated, escrow funds released.`);
-                        this.renderCurrentView();
-                    }
+                    this.view.showConfirmDialog(
+                        'Mark as Delivered?',
+                        `Mark Order #${orderId} as Delivered? This will clear transit states, trigger customer notification, and release escrow funds.`,
+                        'success',
+                        () => {
+                            if (this.model.updateMockStatus(orderId, 'Delivered')) {
+                                this.view.showToast(
+                                    'Order Delivered', 
+                                    `Order #${orderId} marked as Delivered. Escrow payout finalized!`, 
+                                    'success'
+                                );
+                                this.renderCurrentView();
+                            }
+                        }
+                    );
                     return;
                 }
             });
@@ -185,9 +218,28 @@ class OrdersController {
                 if (selectLogistic) {
                     const orderId = selectLogistic.getAttribute('data-id');
                     const newSub = selectLogistic.value;
-                    if (this.model.updateMockStatus(orderId, newSub)) {
-                        alert(`Logistic simulator: Order #${orderId} status set to [${newSub}].`);
-                        this.renderCurrentView();
+                    
+                    if (newSub === 'Delivered') {
+                        // Forward to custom confirm
+                        this.view.showConfirmDialog(
+                            'Mark as Delivered?',
+                            `Mark Order #${orderId} as Delivered? This will release escrow funds.`,
+                            'success',
+                            () => {
+                                if (this.model.updateMockStatus(orderId, 'Delivered')) {
+                                    this.view.showToast('Order Delivered', `Order #${orderId} marked as Delivered. Escrow payout finalized!`, 'success');
+                                    this.renderCurrentView();
+                                }
+                            },
+                            () => {
+                                this.renderCurrentView(); // Revert select value visually
+                            }
+                        );
+                    } else {
+                        if (this.model.updateMockStatus(orderId, newSub)) {
+                            this.view.showToast('Status Updated', `Logistics status for Order #${orderId} set to [${newSub}].`, 'info');
+                            this.renderCurrentView();
+                        }
                     }
                 }
             });
@@ -200,9 +252,22 @@ class OrdersController {
                 if (btnRestock) {
                     const id = btnRestock.getAttribute('data-id');
                     const item = this.model.findReturnedItemById(id);
-                    if (item && this.model.restockItem(id)) {
-                        alert(`📥 Stocking complete! ${item.quantity} unit(s) of "${item.bookTitle}" returned to stock. Inventory count incremented by ${item.quantity}.`);
-                        this.renderCurrentView();
+                    if (item) {
+                        this.view.showConfirmDialog(
+                            'Process Return & Restock?',
+                            `Confirm warehouse restocking for returned item "${item.bookTitle}" (Qty: ${item.quantity})? Stock levels will adjust automatically.`,
+                            'info',
+                            () => {
+                                if (this.model.restockItem(id)) {
+                                    this.view.showToast(
+                                        'Inventory Restocked', 
+                                        `Stocking complete! Inflowed ${item.quantity} unit(s) of "${item.bookTitle}" back to warehouse stock.`, 
+                                        'success'
+                                    );
+                                    this.renderCurrentView();
+                                }
+                            }
+                        );
                     }
                 }
             });
@@ -217,20 +282,36 @@ class OrdersController {
                 if (btnContact) {
                     const email = btnContact.getAttribute('data-email');
                     const ticketId = btnContact.getAttribute('data-id');
-                    alert(`📧 Opening support portal to contact buyer at [${email}]. Supporting Ticket ref: #${ticketId}`);
+                    
+                    const row = btnContact.closest('tr');
+                    const buyerNameElement = row.querySelector('div[style*="font-weight:600; color:#2C2630;"]');
+                    const buyerName = buyerNameElement ? buyerNameElement.textContent : 'Customer';
+                    
+                    this.view.openChatModal(buyerName, null);
                 }
 
                 if (btnResolve) {
                     const id = btnResolve.getAttribute('data-id');
-                    if (this.model.resolveComplaint(id)) {
-                        alert(`💬 Support ticket #${id} marked as RESOLVED. Resolution notes logged and archived.`);
-                        this.renderCurrentView();
-                    }
+                    this.view.showConfirmDialog(
+                        'Resolve Complaint?',
+                        `Mark support ticket #${id} as resolved and closed? Escalation records will be archived.`,
+                        'success',
+                        () => {
+                            if (this.model.resolveComplaint(id)) {
+                                this.view.showToast('Ticket Resolved', `Support Ticket #${id} marked as Resolved and closed.`, 'success');
+                                this.renderCurrentView();
+                            }
+                        }
+                    );
                 }
             });
         }
 
         // --- 7. Modal Control Interactions ---
+        if (this.view.btnCloseChatModal) {
+            this.view.btnCloseChatModal.addEventListener('click', () => this.view.closeChatModal());
+        }
+
         // A. Print invoice modal closes
         if (this.view.btnClosePrintModal) {
             this.view.btnClosePrintModal.addEventListener('click', () => this.view.closePrintLabelModal());
@@ -244,7 +325,7 @@ class OrdersController {
             this.view.btnExportPdfList.addEventListener('click', () => {
                 const activeOrders = this.model.getFilteredOrders();
                 if (activeOrders.length === 0) {
-                    alert("No active orders found in the current view to export!");
+                    this.view.showToast('Export Failed', 'There are no active orders in the current view to export.', 'error');
                     return;
                 }
                 this.view.openExportPdfModal(activeOrders);
@@ -260,7 +341,11 @@ class OrdersController {
 
         if (this.view.btnTriggerPdfDownload) {
             this.view.btnTriggerPdfDownload.addEventListener('click', () => {
-                alert("📥 Simulating PDF download... 'Book_Blossom_Order_Manifest.pdf' downloaded successfully to your local machine.");
+                this.view.showToast(
+                    'Download Started', 
+                    "Generating PDF manifest... 'Book_Blossom_Order_Manifest.pdf' downloaded successfully.", 
+                    'success'
+                );
                 this.view.closeExportPdfModal();
             });
         }
@@ -274,22 +359,45 @@ class OrdersController {
                 if (selectedIds.length === 0) return;
 
                 if (activeTab === 'pending') {
-                    const confirmedCount = this.model.batchConfirmOrders(selectedIds);
-                    alert(`✅ Batch operations processed: Approved & confirmed ${confirmedCount} pending orders! Checked items transitioned to 'To Ship'.`);
+                    this.view.showConfirmDialog(
+                        'Batch Confirm Orders?',
+                        `Approve and confirm all ${selectedIds.length} selected orders in bulk? Checked items will transition to 'To Ship'.`,
+                        'success',
+                        () => {
+                            const confirmedCount = this.model.batchConfirmOrders(selectedIds);
+                            this.view.showToast('Batch Confirmed', `Successfully approved and confirmed ${confirmedCount} orders!`, 'success');
+                            this.renderCurrentView();
+                        }
+                    );
                 } else if (activeTab === 'toship') {
-                    const shippedCount = this.model.batchStartShippingOrders(selectedIds);
-                    alert(`🚚 Batch operations processed: Started shipping ${shippedCount} orders! Handover documents issued to courier.`);
+                    this.view.showConfirmDialog(
+                        'Batch Start Shipping?',
+                        `Issue shipping labels and start carrier delivery for all ${selectedIds.length} selected orders?`,
+                        'info',
+                        () => {
+                            const shippedCount = this.model.batchStartShippingOrders(selectedIds);
+                            this.view.showToast('Batch Shipped', `Successfully handed over ${shippedCount} orders to logistics courier!`, 'info');
+                            this.renderCurrentView();
+                        }
+                    );
                 } else if (activeTab === 'intransit') {
-                    const deliveredCount = this.model.batchUpdateMockStatus(selectedIds, 'Delivered');
-                    alert(`✓ Batch operations processed: Marked ${deliveredCount} orders as DELIVERED! Escrow release scheduled.`);
+                    this.view.showConfirmDialog(
+                        'Batch Mark Delivered?',
+                        `Mark all ${selectedIds.length} selected transit orders as Delivered? This releases escrow funds.`,
+                        'success',
+                        () => {
+                            const deliveredCount = this.model.batchUpdateMockStatus(selectedIds, 'Delivered');
+                            this.view.showToast('Batch Delivered', `Successfully completed delivery and released funds for ${deliveredCount} orders!`, 'success');
+                            this.renderCurrentView();
+                        }
+                    );
                 } else {
                     // Export select orders
                     const ordersToExport = this.model.orders.filter(o => selectedIds.includes(o.id));
                     this.view.openExportPdfModal(ordersToExport);
                     this.model.clearOrderSelection();
+                    this.renderCurrentView();
                 }
-
-                this.renderCurrentView();
             });
         }
 
@@ -303,15 +411,20 @@ class OrdersController {
         // Header Auto-Confirm Click Shortcut
         if (this.view.btnBatchConfirmHeader) {
             this.view.btnBatchConfirmHeader.addEventListener('click', () => {
-                const pendingIds = this.model.orders
-                    .filter(o => o.status === 'Pending Confirmation')
-                    .map(o => o.id);
-                
-                if (pendingIds.length === 0) return;
+                const pendingOrders = this.model.orders.filter(o => o.status === 'Pending Confirmation');
+                if (pendingOrders.length === 0) return;
 
-                const confirmedCount = this.model.batchConfirmOrders(pendingIds);
-                alert(`⚡ Express KPI Protection Triggered! Automatically confirmed all ${confirmedCount} pending orders before the SLA threshold.`);
-                this.renderCurrentView();
+                this.view.showConfirmDialog(
+                    'Auto-Confirm All Pending?',
+                    `Instantly approve all ${pendingOrders.length} pending orders?`,
+                    'success',
+                    () => {
+                        const ids = pendingOrders.map(o => o.id);
+                        const confirmedCount = this.model.batchConfirmOrders(ids);
+                        this.view.showToast('Auto-Confirm Complete', `Successfully approved ${confirmedCount} orders!`, 'success');
+                        this.renderCurrentView();
+                    }
+                );
             });
         }
     }
