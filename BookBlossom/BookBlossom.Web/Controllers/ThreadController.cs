@@ -239,16 +239,28 @@ namespace BookBlossom.Web.Controllers
         // 7. REPORT POST - Bất kỳ khách hàng nào đăng nhập (CustomerOnly)
         [HttpPost("{postId}/report")]
         [Authorize(Policy = "CustomerOnly")]
-        public async Task<IActionResult> ReportPost(long postId)
+        public async Task<IActionResult> ReportPost(long postId, [FromBody] CreateReportDTO dto)
         {
+            if (dto == null) return BadRequest(new { message = "Dữ liệu báo cáo trống." });
+
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc đã hết hạn." });
+            }
+
             try
             {
-                var count = await _service.ReportPostAsync(postId);
+                var count = await _service.ReportPostAsync(customerId, postId, dto);
                 return Ok(new { message = "Báo cáo bài viết thành công.", reportCount = count });
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
