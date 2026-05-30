@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,15 +11,6 @@ namespace BookBlossom.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<long>(
-                name: "PackageID",
-                schema: "Service",
-                table: "ServicePackage",
-                type: "bigint",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "bigint")
-                .OldAnnotation("SqlServer:Identity", "1, 1");
 
             migrationBuilder.AddColumn<long>(
                 name: "CustomerDetailCustomerID",
@@ -221,15 +212,6 @@ namespace BookBlossom.Infrastructure.Migrations
                 schema: "UserSystem",
                 table: "CustomerDetail");
 
-            migrationBuilder.AlterColumn<long>(
-                name: "PackageID",
-                schema: "Service",
-                table: "ServicePackage",
-                type: "bigint",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "bigint")
-                .Annotation("SqlServer:Identity", "1, 1");
         }
     }
 }

@@ -39,8 +39,15 @@ namespace BookBlossom.Infrastructure.BackgroundJobs
                     _logger.LogError(ex, "Error occurred executing subscription expiry check.");
                 }
 
-                // Chạy mỗi ngày một lần (24 giờ)
-                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                try
+                {
+                    // Chạy mỗi ngày một lần (24 giờ)
+                    await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Clean shutdown during cancellation
+                }
             }
 
             _logger.LogInformation("Subscription Expiry Job is stopping.");

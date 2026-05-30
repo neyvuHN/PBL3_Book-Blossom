@@ -11,7 +11,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.ToTable("ServicePackage", "Service");
 
             builder.HasKey(s => s.PackageID);
-            builder.Property(s => s.PackageID).ValueGeneratedNever();
+            // builder.Property(s => s.PackageID).ValueGeneratedNever();
 
             builder.Property(s => s.PackageName)
                 .IsRequired()

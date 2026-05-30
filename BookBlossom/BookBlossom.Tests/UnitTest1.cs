@@ -1,7 +1,5 @@
 using Xunit;
-using Microsoft.Data.SqlClient;
 using System;
-using System.Text;
 
 namespace BookBlossom.Tests
 {

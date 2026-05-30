@@ -42,8 +42,15 @@ namespace BookBlossom.Infrastructure.BackgroundJobs
                     _logger.LogError(ex, "Error occurred while executing order auto-cancel job.");
                 }
 
-                // Chạy quét lại sau mỗi 10 phút
-                await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                try
+                {
+                    // Chạy quét lại sau mỗi 10 phút
+                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Clean shutdown during cancellation
+                }
             }
 
             _logger.LogInformation("Order Auto-Cancel Background Job is stopping.");
