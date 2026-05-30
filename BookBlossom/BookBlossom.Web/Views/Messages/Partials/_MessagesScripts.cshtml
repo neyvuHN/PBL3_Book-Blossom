@@ -1083,5 +1083,42 @@
                 // Close Modal
                 $('#tag-book-modal').fadeOut(200).removeClass('active');
             });
+
+            // ==========================================
+            // SPA Book Details Navigation Interceptors
+            // ==========================================
+
+            // 1. Intercept clicks on links pointing to book details
+            $(document).on('click', 'a[href*="#book-details-"], a[href*="#blind-details-"]', function(e) {
+                e.preventDefault();
+                const href = $(this).attr('href');
+                if (!href) return;
+                
+                let title = "";
+                if (href.includes('#book-details-')) {
+                    title = href.split('#book-details-')[1];
+                } else if (href.includes('#blind-details-')) {
+                    title = href.split('#blind-details-')[1];
+                }
+                
+                title = decodeURIComponent(title);
+                window.location.href = `/Explore#book-details-${encodeURIComponent(title)}`;
+            });
+
+            // 2. Make the entire book card clickable in the chat stream
+            $(document).on('click', '#chat-stream div', function(e) {
+                const $card = $(this);
+                // Check if this div is a book card by seeing if it has a border and contains a book details link
+                if ($card.css('border-style') === 'solid' || $card.find('a[href*="#book-details-"], a[href*="#blind-details-"]').length > 0) {
+                    const $link = $card.find('a[href*="#book-details-"], a[href*="#blind-details-"]');
+                    if ($link.length > 0) {
+                        // If the user clicked the link directly, let the link's click handler handle it
+                        if ($(e.target).closest('a').length > 0) return;
+                        
+                        e.preventDefault();
+                        $link.first().click();
+                    }
+                }
+            });
         });
     </script>

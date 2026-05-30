@@ -6,30 +6,47 @@
 @section Styles {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesStyles.cshtml")
+    <link rel="stylesheet" href="~/css/admin/admin-messages.css" asp-append-version="true" />
     <style>
-        .messages-wrapper {
-            height: calc(100vh - 120px) !important; /* Adapt to admin layout padding */
-            margin-top: 0 !important;
-            box-shadow: none !important;
-            border-radius: 12px !important;
+        body.admin-mode {
+            height: 100vh;
             overflow: hidden;
-            border: 1px solid #F3EFF5;
         }
+        
+        .admin-wrapper {
+            height: 100vh;
+            overflow: hidden;
+        }
+
         .admin-main-content {
-            padding: 20px;
+            height: 100vh !important;
+            overflow: hidden !important;
+            padding: 0 !important;
             display: flex;
             flex-direction: column;
+        }
+        
+        .admin-topbar {
+            flex-shrink: 0;
+        }
+
+        .admin-main-content > main[role="main"] {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
             overflow: hidden;
         }
     </style>
 }
 
-<!-- The buyer-side messaging UI reused for Admin -->
-@await Html.PartialAsync("~/Views/Messages/Partials/_MessagesWorkspace.cshtml")
+<!-- Admin messaging UI -->
+@await Html.PartialAsync("~/Views/Admin/Partials/_AdminMessagesWorkspace.cshtml")
 
 @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesModals.cshtml")
 @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesToast.cshtml")
 
 @section Scripts {
-    @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesScripts.cshtml")
+    <script src="~/js/admin/admin-messages.js" asp-append-version="true"></script>
 }
