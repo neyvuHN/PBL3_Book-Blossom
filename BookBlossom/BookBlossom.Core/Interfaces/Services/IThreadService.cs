@@ -16,6 +16,6 @@ namespace BookBlossom.Core.Interfaces.Services
         Task<ThreadPostDTO?> GetPostByIdAsync(long postId);
         Task<ThreadCommentDTO> AddCommentAsync(long customerId, long postId, CreateThreadCommentDTO dto);
         Task<bool> DeleteCommentAsync(long userId, UserRole role, long commentId);
-        Task<int> ReportPostAsync(long postId);
+        Task<int> ReportPostAsync(long customerId, long postId, CreateReportDTO dto);
     }
 }

@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260530061412_AddReportEntity")]
+    partial class AddReportEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -210,9 +213,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<int>("CurrentOrderStreak")
                         .HasColumnType("int");
 
-                    b.Property<long?>("CurrentPackageID")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("DailyUndoCount")
                         .HasColumnType("int");
 
@@ -225,18 +225,10 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<DateTime?>("LastUndoDate")
                         .HasColumnType("date");
 
-                    b.Property<long?>("RankID")
-                        .HasColumnType("bigint")
-                        .HasColumnName("RankID");
-
                     b.Property<decimal>("TotalSpending")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("CustomerID");
-
-                    b.HasIndex("CurrentPackageID");
-
-                    b.HasIndex("RankID");
 
                     b.ToTable("CustomerDetail", "UserSystem");
                 });
@@ -264,9 +256,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<long>("CustomerID")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("CustomerDetailCustomerID")
-                        .HasColumnType("bigint");
-
                     b.Property<long?>("RankID")
                         .HasColumnType("bigint");
 
@@ -276,8 +265,6 @@ namespace BookBlossom.Infrastructure.Migrations
                         .HasDefaultValue(100);
 
                     b.HasKey("CustomerID");
-
-                    b.HasIndex("CustomerDetailCustomerID");
 
                     b.HasIndex("RankID");
 
@@ -355,9 +342,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime");
 
-                    b.Property<int>("DailyUndoCount")
-                        .HasColumnType("int");
-
                     b.Property<string>("DeviceInfo")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -370,9 +354,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<DateTime?>("LastActiveAt")
                         .HasColumnType("datetime");
 
-                    b.Property<DateTime?>("LastUndoDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("SessionToken")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -384,24 +365,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasIndex("ConvertedUserID");
 
                     b.ToTable("GuestDetail", "UserSystem");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.GuestPreference", b =>
-                {
-                    b.Property<Guid>("GuestID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long>("CategoryID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("GuestID", "CategoryID");
-
-                    b.HasIndex("CategoryID");
-
-                    b.ToTable("GuestPreference", "Preference");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
@@ -1026,38 +989,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.ToTable("StaffDetail", "UserSystem");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.SwipeLog", b =>
-                {
-                    b.Property<long>("SwipeLogID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SwipeLogID"));
-
-                    b.Property<string>("ActionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("BlindBookID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("BookID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("CustomerID")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid?>("GuestID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("SwipeLogID");
-
-                    b.ToTable("SwipeLogs");
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.ThreadComment", b =>
                 {
                     b.Property<long>("CommentID")
@@ -1310,24 +1241,11 @@ namespace BookBlossom.Infrastructure.Migrations
 
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>
                 {
-                    b.HasOne("BookBlossom.Core.Entities.ServicePackage", "ServicePackage")
-                        .WithMany("CustomerDetails")
-                        .HasForeignKey("CurrentPackageID");
-
                     b.HasOne("BookBlossom.Core.Entities.User", "User")
                         .WithOne("CustomerDetail")
                         .HasForeignKey("BookBlossom.Core.Entities.CustomerDetail", "CustomerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.MembershipRank", "MembershipRank")
-                        .WithMany("CustomerDetails")
-                        .HasForeignKey("RankID")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("MembershipRank");
-
-                    b.Navigation("ServicePackage");
 
                     b.Navigation("User");
                 });
@@ -1353,10 +1271,6 @@ namespace BookBlossom.Infrastructure.Migrations
 
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerReputation", b =>
                 {
-                    b.HasOne("BookBlossom.Core.Entities.CustomerDetail", null)
-                        .WithMany("CustomerReputations")
-                        .HasForeignKey("CustomerDetailCustomerID");
-
                     b.HasOne("BookBlossom.Core.Entities.MembershipRank", "MembershipRank")
                         .WithMany()
                         .HasForeignKey("RankID")
@@ -1370,12 +1284,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasOne("BookBlossom.Core.Entities.ServicePackage", "ServicePackage")
                         .WithMany("CustomerServices")
                         .HasForeignKey("CurrentPackageID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.CustomerDetail", null)
-                        .WithOne("CustomerService")
-                        .HasForeignKey("BookBlossom.Core.Entities.CustomerService", "CustomerID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1398,25 +1306,6 @@ namespace BookBlossom.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ConvertedUser");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.GuestPreference", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.GuestDetail", "GuestDetail")
-                        .WithMany()
-                        .HasForeignKey("GuestID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("GuestDetail");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
@@ -1639,20 +1528,11 @@ namespace BookBlossom.Infrastructure.Migrations
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>
                 {
                     b.Navigation("CustomerPreferences");
-
-                    b.Navigation("CustomerReputations");
-
-                    b.Navigation("CustomerService");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Importing", b =>
                 {
                     b.Navigation("ImportingDetails");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.MembershipRank", b =>
-                {
-                    b.Navigation("CustomerDetails");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Order", b =>
@@ -1672,8 +1552,6 @@ namespace BookBlossom.Infrastructure.Migrations
 
             modelBuilder.Entity("BookBlossom.Core.Entities.ServicePackage", b =>
                 {
-                    b.Navigation("CustomerDetails");
-
                     b.Navigation("CustomerServices");
                 });
 
