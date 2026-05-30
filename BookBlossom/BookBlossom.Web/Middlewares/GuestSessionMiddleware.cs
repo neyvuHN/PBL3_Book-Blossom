@@ -20,16 +20,18 @@ namespace BookBlossom.Web.Middlewares
             // 1. Chỉ cần lấy duy nhất X-Guest-Id từ Header
             var guestIdHeader = context.Request.Headers["X-Guest-Id"].ToString();
 
+            // 2. Nếu không có ở Header, thử lấy từ Cookie
+            if (string.IsNullOrEmpty(guestIdHeader))
+            {
+                guestIdHeader = context.Request.Cookies["X-Guest-Id"];
+            }
+
             if (!string.IsNullOrEmpty(guestIdHeader) && Guid.TryParse(guestIdHeader, out var guestId))
             {
                 using (var scope = context.RequestServices.CreateScope())
                 {
                     var guestService = scope.ServiceProvider.GetRequiredService<IGuestService>();
                     
-                    // 2. 🟢 THAY ĐỔI: Sử dụng một hàm check tồn tại của Id, không check kèm Token nữa.
-                    // Nếu trong IGuestService của bạn CHƯA CÓ hàm IsGuestExistsAsync(guestId),
-                    // bạn có thể tạm thời đổi thành: var isValid = true; (để test nhanh trên Swagger).
-                    // Hoặc triển khai hàm kiểm tra sự tồn tại của GuestId trong DB như dưới đây:
                     var isValid = await guestService.IsGuestExistsAsync(guestId); 
 
                     if (isValid)
