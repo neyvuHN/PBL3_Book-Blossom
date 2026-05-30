@@ -6,7 +6,7 @@
             <th>User Info</th>
             <th>Role</th>
             <th>Subscription</th>
-            <th>Internal Score</th>
+            <th>Reputation Score</th>
             <th>Join Date</th>
             <th>Status</th>
             <th>Actions</th>
@@ -53,15 +53,31 @@
                         <span class="plan-badge @planClass">@user.Plan</span>
                     </td>
                     <td>
-                        @if (user.InternalScore < 50)
+                        @if (user.InternalScore < 30)
                         {
-                            <span class="score-value caution" title="Critical low internal score!">
-                                @user.InternalScore <i class="ph ph-warning-octagon"></i>
+                            <span class="score-value caution" title="Threshold C: Permanently blacklisted">
+                                @user.InternalScore / 150 <i class="ph ph-x-circle"></i>
                             </span>
+                            <div style="font-size: 0.72rem; color: #EB5757; font-weight: 600; margin-top: 2px;">⚠️ Banned / Blacklist</div>
+                        }
+                        else if (user.InternalScore < 60)
+                        {
+                            <span class="score-value caution" title="Threshold B: COD disabled, comments muted">
+                                @user.InternalScore / 150 <i class="ph ph-warning-octagon"></i>
+                            </span>
+                            <div style="font-size: 0.72rem; color: #EB5757; font-weight: 600; margin-top: 2px;">⚠️ COD Disabled & Muted</div>
+                        }
+                        else if (user.InternalScore < 80)
+                        {
+                            <span class="score-value caution" style="color: #F2994A;" title="Threshold A: Posts & Comments muted">
+                                @user.InternalScore / 150 <i class="ph ph-chat-slash"></i>
+                            </span>
+                            <div style="font-size: 0.72rem; color: #F2994A; font-weight: 600; margin-top: 2px;">⚠️ Posts & Comments Muted</div>
                         }
                         else
                         {
-                            <span class="score-value high">@user.InternalScore</span>
+                            <span class="score-value high">@user.InternalScore / 150</span>
+                            <div style="font-size: 0.72rem; color: #27AE60; font-weight: 500; margin-top: 2px;">Active / Excellent</div>
                         }
                     </td>
                     <td>@user.JoinDate</td>

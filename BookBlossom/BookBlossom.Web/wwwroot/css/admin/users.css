@@ -296,6 +296,18 @@
     color: #555555;
 }
 
+.role-marketing {
+    background-color: #EFEBE9;
+    color: #5D4037;
+    border: 1px solid #D7CCC8;
+}
+
+.role-store {
+    background-color: #FFF3E0;
+    color: #E65100;
+    border: 1px solid #FFE0B2;
+}
+
 /* Score Indicators (Internal Score) */
 .score-value {
     font-size: 1rem;

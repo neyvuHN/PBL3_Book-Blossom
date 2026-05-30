@@ -70,9 +70,34 @@ class UsersView {
         const planClass = user.plan === 'Basic' ? 'plan-basic' :
             user.plan === 'Pro' ? 'plan-pro' : 'plan-free';
 
-        const scoreHtml = user.internalScore < 50
-            ? `<span class="score-value caution" title="Critical low internal score!">${user.internalScore} <i class="ph ph-warning-octagon"></i></span>`
-            : `<span class="score-value high">${user.internalScore}</span>`;
+        let scoreHtml = '';
+        if (user.internalScore < 30) {
+            scoreHtml = `
+                <span class="score-value caution" title="Threshold C: Permanently blacklisted">
+                    ${user.internalScore} / 150 <i class="ph ph-x-circle"></i>
+                </span>
+                <div style="font-size: 0.72rem; color: #EB5757; font-weight: 600; margin-top: 2px;">⚠️ Banned / Blacklist</div>
+            `;
+        } else if (user.internalScore < 60) {
+            scoreHtml = `
+                <span class="score-value caution" title="Threshold B: COD disabled, comments muted">
+                    ${user.internalScore} / 150 <i class="ph ph-warning-octagon"></i>
+                </span>
+                <div style="font-size: 0.72rem; color: #EB5757; font-weight: 600; margin-top: 2px;">⚠️ COD Disabled & Muted</div>
+            `;
+        } else if (user.internalScore < 80) {
+            scoreHtml = `
+                <span class="score-value caution" style="color: #F2994A;" title="Threshold A: Posts & Comments muted">
+                    ${user.internalScore} / 150 <i class="ph ph-chat-slash"></i>
+                </span>
+                <div style="font-size: 0.72rem; color: #F2994A; font-weight: 600; margin-top: 2px;">⚠️ Posts & Comments Muted</div>
+            `;
+        } else {
+            scoreHtml = `
+                <span class="score-value high">${user.internalScore} / 150</span>
+                <div style="font-size: 0.72rem; color: #27AE60; font-weight: 500; margin-top: 2px;">Active / Excellent</div>
+            `;
+        }
 
         const isChecked = user.status === 'Active' ? 'checked' : '';
         const statusClass = user.status === 'Active' ? 'active' : 'banned';
@@ -298,5 +323,52 @@ class UsersView {
      */
     toggleSaveRoleButton(enabled) {
         this.btnSaveRole.disabled = !enabled;
+    }
+
+    /**
+     * Dynamically swaps filter dropdown selections based on active tab requirements.
+     */
+    updateFiltersForTab(tabName) {
+        if (tabName === 'buyers') {
+            this.roleFilter.innerHTML = `<option value="">Role: Buyer</option>`;
+            this.roleFilter.disabled = true; // No alternative roles for buyers tab
+            
+            this.scoreFilter.innerHTML = `
+                <option value="">Reputation Score</option>
+                <option value="A">Under 80 (Muted)</option>
+                <option value="B">Under 60 (No COD)</option>
+                <option value="C">Under 30 (Banned)</option>
+            `;
+        } else if (tabName === 'staff') {
+            this.roleFilter.disabled = false;
+            this.roleFilter.innerHTML = `
+                <option value="">Role: All Staff</option>
+                <option value="Admin">Admin</option>
+                <option value="Moderator">Moderator</option>
+                <option value="Marketing Manager">Marketing Manager</option>
+                <option value="Store Manager">Store Manager</option>
+            `;
+            
+            this.scoreFilter.innerHTML = `
+                <option value="">Internal Score</option>
+                <option value="high">High (>80)</option>
+                <option value="caution">Critical (<50)</option>
+            `;
+        } else if (tabName === 'banned') {
+            this.roleFilter.disabled = false;
+            this.roleFilter.innerHTML = `
+                <option value="">Role: All Banned</option>
+                <option value="Admin">Admin</option>
+                <option value="Moderator">Moderator</option>
+                <option value="User">User</option>
+            `;
+            
+            this.scoreFilter.innerHTML = `
+                <option value="">Reputation Score</option>
+                <option value="A">Under 80 (Muted)</option>
+                <option value="B">Under 60 (No COD)</option>
+                <option value="C">Under 30 (Banned)</option>
+            `;
+        }
     }
 }

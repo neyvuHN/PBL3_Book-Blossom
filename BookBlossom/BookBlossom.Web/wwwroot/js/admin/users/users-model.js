@@ -56,11 +56,15 @@ class UsersModel {
             // 3. Score Filter Dropdown
             if (this.filterScore) {
                 const score = item.internalScore;
-                if (this.filterScore === 'high' && score <= 80) {
-                    return false;
-                }
-                if (this.filterScore === 'caution' && score >= 50) {
-                    return false;
+                if (this.activeTab === 'buyers' || this.activeTab === 'banned') {
+                    // Reputation Score Thresholds: A (<80), B (<60), C (<30)
+                    if (this.filterScore === 'A' && score >= 80) return false;
+                    if (this.filterScore === 'B' && score >= 60) return false;
+                    if (this.filterScore === 'C' && score >= 30) return false;
+                } else if (this.activeTab === 'staff') {
+                    // Internal Score: high (>80) or caution (<50)
+                    if (this.filterScore === 'high' && score <= 80) return false;
+                    if (this.filterScore === 'caution' && score >= 50) return false;
                 }
             }
 

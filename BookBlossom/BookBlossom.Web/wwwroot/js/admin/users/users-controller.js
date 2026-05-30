@@ -18,6 +18,9 @@ class UsersController {
         this.registerPopoverEvents();
         this.registerGlobalEvents();
 
+        // Initialize dynamic filters for default tab ('buyers')
+        this.view.updateFiltersForTab(this.model.activeTab);
+
         // Initial paint
         this.redrawActiveTable();
     }
@@ -44,15 +47,14 @@ class UsersController {
                 const tabName = tab.getAttribute('data-tab');
                 this.model.activeTab = tabName;
                 
-                // Ensure filter elements are active across tabs
-                this.view.searchInput.disabled = false;
-                this.view.roleFilter.disabled = false;
-                this.view.scoreFilter.disabled = false;
+                // Clear query and filter selections in Model to avoid crossing criteria
+                this.model.filterRole = '';
+                this.model.filterScore = '';
+                this.view.roleFilter.value = '';
+                this.view.scoreFilter.value = '';
 
-                // If Banned tab, restrict Role filter options to relevant categories
-                if (tabName === 'staff') {
-                    // Pre-select or filter by staff roles is possible, but let's keep all
-                }
+                // Dynamically load correct options for this tab
+                this.view.updateFiltersForTab(tabName);
 
                 this.view.showTab(tabName);
                 this.redrawActiveTable();
