@@ -1,0 +1,78 @@
+@model IEnumerable<BookBlossom.Web.ViewModels.Admin.AdminUserItemViewModel>
+
+<table class="admin-table">
+    <thead>
+        <tr>
+            <th>User Info</th>
+            <th>Role</th>
+            <th>Internal Score</th>
+            <th>Join Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 30px; color: #888;">
+                    No records found matching this list.
+                </td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var user in Model)
+            {
+                <tr data-user-id="@user.Id">
+                    <td>
+                        <div class="user-info-cell">
+                            <!-- Staff Avatar -->
+                            <img src="@user.AvatarUrl" alt="@user.Username" class="user-avatar" onerror="this.src='https://i.pravatar.cc/150?img=1'" />
+                            <div class="user-meta-text">
+                                <span class="username">@user.Username</span>
+                                <span class="email">@user.Email</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        @{
+                            var roleClass = "role-user";
+                            if (user.Role == "Admin") roleClass = "role-admin";
+                            else if (user.Role == "Moderator") roleClass = "role-moderator";
+                        }
+                        <span class="role-badge @roleClass">@user.Role</span>
+                    </td>
+                    <td>
+                        @if (user.InternalScore < 50)
+                        {
+                            <span class="score-value caution" title="Critical low internal score!">
+                                @user.InternalScore <i class="ph ph-warning-octagon"></i>
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="score-value high">@user.InternalScore</span>
+                        }
+                    </td>
+                    <td>@user.JoinDate</td>
+                    <td>
+                        <div class="status-switch @(user.Status == "Active" ? "active" : "banned")">
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-status-chk" @(user.Status == "Active" ? "checked" : "") />
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="status-text">@user.Status</span>
+                        </div>
+                    </td>
+                    <td style="position: relative;">
+                        <!-- Staff Actions Dots -->
+                        <button class="action-trigger-btn btn-dots-action" title="View Options">
+                            <i class="ph ph-dots-three-outline-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
