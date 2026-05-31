@@ -99,33 +99,49 @@
         initPreviewButton();
     });
 
-    function showProductDetails(bookData, push = true) {
+    async function showProductById(bookId, push = true) {
+        try {
+            const bookData = await apiClient.apiGet(`/api/realbook/${bookId}`);
+            if (bookData) {
+                showProductDetails(bookData, push, true);
+            }
+        } catch (error) {
+            console.error('Failed to load book details', error);
+            showToast('Failed to load book details.');
+        }
+    }
+
+    function showProductDetails(bookData, push = true, isRealData = false) {
         if (!bookData) return;
 
         $('#explore-section').hide();
         $('#product-details-section').show();
 
-        populateProductDetails(bookData);
-        resetProductDetailsUi();
+        populateProductDetails(bookData, isRealData);
+        resetProductDetailsUi(bookData, isRealData);
 
         window.scrollTo(0, 0);
 
         if (push) {
+            const idToPush = isRealData ? bookData.bookID : encodeURIComponent(bookData.title);
             history.pushState(
                 {
                     view: 'product-details',
-                    bookData: bookData
+                    bookData: bookData,
+                    isRealData: isRealData
                 },
                 '',
-                `/Explore#book-details-${encodeURIComponent(bookData.title)}`
+                `/Explore#book-details-${idToPush}`
             );
         }
     }
 
-    function populateProductDetails(bookData) {
+    function populateProductDetails(bookData, isRealData) {
         $('#detail-title').text(bookData.title);
         $('#breadcrumb-title').text(bookData.title);
-        $('#detail-author').text(bookData.author || 'Unknown Author');
+        
+        const authorDisplay = isRealData ? (bookData.publisher || 'Unknown') : (bookData.author || 'Unknown Author');
+        $('#detail-author').text(authorDisplay);
 
         currentDetailImageIndex = 0;
 
@@ -138,7 +154,7 @@
             '/images/Book/book6.webp'
         ];
 
-        const mainImage = bookData.imgSrc || '/images/Book/book1.jpg';
+        const mainImage = isRealData ? `/images/Book/book${(bookData.bookID % 6) + 1}.jpg` : (bookData.imgSrc || '/images/Book/book1.jpg');
         const otherImages = demoImages.filter(img => img !== mainImage);
 
         detailImagesArray = [mainImage, ...otherImages.slice(0, 3)];
@@ -161,7 +177,6 @@
 
         const baseRating = 4.2 + ((hash % 8) / 10);
         const ratingString = baseRating.toFixed(1);
-
         renderRatingStars(baseRating, ratingString);
 
         const reviewsCount = (hash % 120) + 18;
@@ -171,69 +186,89 @@
         const soldCount = (hash % 1800) + 140;
         $('#detail-sold-count').html(`<i class="fas fa-shopping-bag"></i> ${soldCount.toLocaleString()} Sold`);
 
-        let discountPercent = (hash % 4) * 10;
-        if (discountPercent === 0) discountPercent = 20;
+        if (isRealData) {
+            $('#detail-price').text(bookData.price.toLocaleString('vi-VN') + ' VND');
+            $('#detail-original-price').text(Math.round(bookData.price * 1.2).toLocaleString('vi-VN') + ' VND');
+            $('#detail-discount').text(`-20%`);
+            $('#breadcrumb-genre').text(bookData.categoryName || 'General');
+            $('#spec-publisher').text(bookData.publisher || 'Unknown');
+            $('#meta-publisher').text(bookData.publisher || 'Unknown');
+            $('#meta-supplier').text(bookData.publisher || 'Unknown');
+            $('#meta-author').text(authorDisplay);
+            $('#spec-isbn').text(bookData.isbn || 'N/A');
+            $('#detail-desc-text').text(bookData.description || 'No description available.');
+            $('#btn-detail-add-cart').data('book-id', bookData.bookID);
+            $('#btn-detail-add-cart').data('book-price', bookData.price);
+            $('#btn-toggle-wishlist').data('book-id', bookData.bookID);
+            if (bookData.sampleFilePath) {
+                $('.btn-read-preview').show();
+                $('.btn-read-preview').data('sample-url', bookData.sampleFilePath);
+            } else {
+                $('.btn-read-preview').hide();
+            }
+        } else {
+            let discountPercent = (hash % 4) * 10;
+            if (discountPercent === 0) discountPercent = 20;
 
-        const numericPrice = 120000 + ((hash % 15) * 15000);
-        const discountedPrice = Math.round(numericPrice * (100 - discountPercent) / 100);
+            const numericPrice = 120000 + ((hash % 15) * 15000);
+            const discountedPrice = Math.round(numericPrice * (100 - discountPercent) / 100);
 
-        $('#detail-price').text(discountedPrice.toLocaleString('vi-VN') + ' VND');
-        $('#detail-original-price').text(numericPrice.toLocaleString('vi-VN') + ' VND');
-        $('#detail-discount').text(`-${discountPercent}%`);
+            $('#detail-price').text(discountedPrice.toLocaleString('vi-VN') + ' VND');
+            $('#detail-original-price').text(numericPrice.toLocaleString('vi-VN') + ' VND');
+            $('#detail-discount').text(`-${discountPercent}%`);
 
-        const categories = ['Fiction', 'Psychology', 'Self-Help', 'Economics', 'History'];
-        const selectedGenre = categories[hash % categories.length];
-        $('#breadcrumb-genre').text(selectedGenre);
+            const categories = ['Fiction', 'Psychology', 'Self-Help', 'Economics', 'History'];
+            const selectedGenre = categories[hash % categories.length];
+            $('#breadcrumb-genre').text(selectedGenre);
 
-        const publishers = ['Ace Books', 'NXB Trẻ', 'NXB Kim Đồng', 'Penguin Books', 'HarperCollins'];
-        const selectedPublisher = publishers[hash % publishers.length];
+            const publishers = ['Ace Books', 'NXB Trẻ', 'NXB Kim Đồng', 'Penguin Books', 'HarperCollins'];
+            const selectedPublisher = publishers[hash % publishers.length];
 
-        $('#spec-publisher').text(selectedPublisher);
-        $('#meta-publisher').text(selectedPublisher);
-        $('#meta-supplier').text(selectedPublisher);
-        $('#meta-author').text(bookData.author || 'Unknown Author');
+            $('#spec-publisher').text(selectedPublisher);
+            $('#meta-publisher').text(selectedPublisher);
+            $('#meta-supplier').text(selectedPublisher);
+            $('#meta-author').text(bookData.author || 'Unknown Author');
 
-        const coverFormats = ['Paperback', 'Hardcover', 'Deluxe Edition', 'Leatherbound'];
-        $('#meta-format').text(coverFormats[hash % coverFormats.length]);
+            const coverFormats = ['Paperback', 'Hardcover', 'Deluxe Edition', 'Leatherbound'];
+            $('#meta-format').text(coverFormats[hash % coverFormats.length]);
 
-        const isbnSeed = 9780000000000 + (hash * 1337);
-        $('#spec-isbn').text(
-            isbnSeed.toString().replace(/(\d{3})(\d{1})(\d{6})(\d{3})/, '$1-$2-$3-$4')
-        );
+            const isbnSeed = 9780000000000 + (hash * 1337);
+            $('#spec-isbn').text(
+                isbnSeed.toString().replace(/(\d{3})(\d{1})(\d{6})(\d{3})/, '$1-$2-$3-$4')
+            );
+
+            const sampleTexts = [
+                'A timeless masterpiece exploring power, legacy, and human struggle. Richly characterized and highly praised by the BookBlossom community for its depth and emotional resonance.',
+                'An insightful study of human nature, habits, and resilience. This volume offers highly practical guidance and inspiring case studies that will stay with you long after the final chapter.',
+                "A gorgeous narrative full of wonder and emotional depth. It captures the essence of self-discovery and the beauty of life's unpredictable journeys. Excellent reading choice.",
+                'A brilliant analytical overview of society, economics, and human behavior. Highly informative and detailed, it challenges conventional wisdom and provides fresh, modern perspectives.'
+            ];
+            $('#detail-desc-text').text(sampleTexts[hash % sampleTexts.length]);
+        }
 
         const estDate = new Date();
         estDate.setDate(estDate.getDate() + 3);
-
         const dateFormatted = estDate.toLocaleDateString('en-US', {
             weekday: 'long',
             day: '2-digit',
             month: '2-digit'
         });
-
         $('#shipping-est-date').text(`Estimated delivery inside 2-3 business days (by ${dateFormatted})`);
 
-        const sampleTexts = [
-            'A timeless masterpiece exploring power, legacy, and human struggle. Richly characterized and highly praised by the BookBlossom community for its depth and emotional resonance.',
-            'An insightful study of human nature, habits, and resilience. This volume offers highly practical guidance and inspiring case studies that will stay with you long after the final chapter.',
-            "A gorgeous narrative full of wonder and emotional depth. It captures the essence of self-discovery and the beauty of life's unpredictable journeys. Excellent reading choice.",
-            'A brilliant analytical overview of society, economics, and human behavior. Highly informative and detailed, it challenges conventional wisdom and provides fresh, modern perspectives.'
-        ];
-
-        $('#detail-desc-text').text(sampleTexts[hash % sampleTexts.length]);
-
-        const activeBookHash = `/Explore#book-details-${encodeURIComponent(bookData.title)}`;
+        const activeBookHash = `/Explore#book-details-${isRealData ? bookData.bookID : encodeURIComponent(bookData.title)}`;
         const fullBookLink = window.location.origin + activeBookHash;
+        const discountPriceText = $('#detail-price').text();
 
         const bookChatHref =
             `/Messages?title=${encodeURIComponent(bookData.title)}` +
-            `&price=${encodeURIComponent(discountedPrice.toLocaleString('vi-VN') + ' VND')}` +
+            `&price=${encodeURIComponent(discountPriceText)}` +
             `&img=${encodeURIComponent(mainImage)}` +
             `&link=${encodeURIComponent(fullBookLink)}`;
 
         $('#btn-detail-chat').attr('href', bookChatHref);
     }
 
-    function resetProductDetailsUi() {
+    async function resetProductDetailsUi(bookData, isRealData) {
         $('#input-qty').val(1);
 
         $('.detail-tab-header').removeClass('active');
@@ -242,20 +277,33 @@
         $('.detail-tab-pane').hide();
         $('#tab-desc').show();
 
-        const title = $('#detail-title').text().trim();
-        const id = 'book-' + getStableHash(title);
-        
-        let isInWishlist = false;
-        if (window.BookBlossomWishlist) {
-            const items = window.BookBlossomWishlist.getWishlistItems();
-            isInWishlist = items.some(item => item.id === id);
-        }
-
         const $btn = $('#btn-toggle-wishlist');
-        if (isInWishlist) {
-            setWishlistActive($btn);
+        
+        if (isRealData) {
+            try {
+                const items = await apiClient.apiGet('/api/Wishlist');
+                const isInWishlist = items.some(item => item.bookID === bookData.bookID);
+                if (isInWishlist) {
+                    setWishlistActive($btn);
+                } else {
+                    setWishlistInactive($btn);
+                }
+            } catch (err) {
+                setWishlistInactive($btn);
+            }
         } else {
-            setWishlistInactive($btn);
+            const title = $('#detail-title').text().trim();
+            const id = 'book-' + getStableHash(title);
+            let isInWishlist = false;
+            if (window.BookBlossomWishlist) {
+                const items = window.BookBlossomWishlist.getWishlistItems();
+                isInWishlist = items.some(item => String(item.id) === String(id));
+            }
+            if (isInWishlist) {
+                setWishlistActive($btn);
+            } else {
+                setWishlistInactive($btn);
+            }
         }
     }
 
@@ -301,15 +349,20 @@
                 targetTab = 'tab-rev';
                 hashStr = hashStr.replace('?tab=reviews', '');
             }
-            bookTitleDecoded = decodeURIComponent(hashStr);
+            let idStr = hashStr;
+            let isNumericId = !isNaN(idStr) && idStr.trim() !== '';
 
-            const mockBook = {
-                title: bookTitleDecoded,
-                author: getMockAuthor(bookTitleDecoded),
-                imgSrc: '/images/Book/book1.jpg'
-            };
-
-            showProductDetails(mockBook, false);
+            if (isNumericId) {
+                showProductById(idStr, false);
+            } else {
+                bookTitleDecoded = decodeURIComponent(hashStr);
+                const mockBook = {
+                    title: bookTitleDecoded,
+                    author: getMockAuthor(bookTitleDecoded),
+                    imgSrc: '/images/Book/book1.jpg'
+                };
+                showProductDetails(mockBook, false);
+            }
             
             if (targetTab === 'tab-rev') {
                 setTimeout(() => {
@@ -349,14 +402,17 @@
                 }, 100);
             }
 
-            history.replaceState(
-                {
-                    view: 'product-details',
-                    bookData: mockBook
-                },
-                '',
-                `/Explore#book-details-${encodeURIComponent(bookTitleDecoded)}`
-            );
+            if (!isNumericId) {
+                history.replaceState(
+                    {
+                        view: 'product-details',
+                        bookData: { title: bookTitleDecoded, author: getMockAuthor(bookTitleDecoded), imgSrc: '/images/Book/book1.jpg' },
+                        isRealData: false
+                    },
+                    '',
+                    `/Explore#book-details-${encodeURIComponent(bookTitleDecoded)}`
+                );
+            }
         } else {
             $('#explore-section').show();
             $('#product-details-section').hide();
@@ -395,13 +451,17 @@
             const hash = window.location.hash;
 
             if (hash && hash.startsWith('#book-details-')) {
-                const bookTitleDecoded = decodeURIComponent(hash.substring('#book-details-'.length));
+                const idOrTitle = decodeURIComponent(hash.substring('#book-details-'.length));
 
-                showProductDetails({
-                    title: bookTitleDecoded,
-                    author: getMockAuthor(bookTitleDecoded),
-                    imgSrc: '/images/Book/book1.jpg'
-                }, false);
+                if (!isNaN(idOrTitle) && idOrTitle.trim() !== '') {
+                    showProductById(idOrTitle, false);
+                } else {
+                    showProductDetails({
+                        title: idOrTitle,
+                        author: getMockAuthor(idOrTitle),
+                        imgSrc: '/images/Book/book1.jpg'
+                    }, false, false);
+                }
             } else {
                 $('#product-details-section').hide();
                 $('#explore-section').show();
@@ -653,37 +713,62 @@
     }
 
     function initWishlist() {
-        $('#btn-toggle-wishlist').off('click.productDetails').on('click.productDetails', function () {
-            const $icon = $(this).find('i');
+        $('#btn-toggle-wishlist').off('click.productDetails').on('click.productDetails', async function () {
             const $btn = $(this);
+            const $icon = $btn.find('i');
+            const bookId = $btn.data('book-id');
 
-            const title = $('#detail-title').text().trim();
-            const author = $('#detail-author').text().trim() || 'Unknown Author';
-            const priceText = $('#detail-price').text() || '0 VND';
-            const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
-            const price = unitPriceVnd;
-            const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
-            const id = 'book-' + getStableHash(title);
+            if (!bookId) {
+                const title = $('#detail-title').text().trim();
+                const author = $('#detail-author').text().trim() || 'Unknown Author';
+                const priceText = $('#detail-price').text() || '0 VND';
+                const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
+                const price = unitPriceVnd;
+                const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+                const id = 'book-' + getStableHash(title);
 
-            if ($icon.hasClass('far')) {
-                if (window.BookBlossomWishlist) {
-                    window.BookBlossomWishlist.addToWishlist({
-                        id: id,
-                        title: title,
-                        author: author,
-                        price: price,
-                        imageUrl: img,
-                        isBlindDate: false
-                    });
+                if ($icon.hasClass('far')) {
+                    if (window.BookBlossomWishlist) {
+                        window.BookBlossomWishlist.addToWishlist({
+                            id: id,
+                            title: title,
+                            author: author,
+                            price: price,
+                            imageUrl: img,
+                            isBlindDate: false
+                        });
+                    }
+                    setWishlistActive($btn);
+                    showToast('Book added to your wishlist!');
+                } else {
+                    if (window.BookBlossomWishlist) {
+                        window.BookBlossomWishlist.removeItem(id);
+                    }
+                    setWishlistInactive($btn);
+                    showToast('Book removed from your wishlist.');
                 }
-                setWishlistActive($btn);
-                showToast('Book added to your wishlist!');
             } else {
-                if (window.BookBlossomWishlist) {
-                    window.BookBlossomWishlist.removeItem(id);
+                if ($icon.hasClass('far')) {
+                    try {
+                        await apiClient.apiPost('/api/Wishlist', { bookID: parseInt(bookId) });
+                        setWishlistActive($btn);
+                        showToast('Book added to your wishlist!');
+                    } catch (error) {
+                        console.error('Failed to add to wishlist', error);
+                    }
+                } else {
+                    try {
+                        const items = await apiClient.apiGet('/api/Wishlist');
+                        const item = items.find(i => i.bookID === parseInt(bookId));
+                        if (item) {
+                            await apiClient.apiDelete(`/api/Wishlist/${item.wishlistID}`);
+                            setWishlistInactive($btn);
+                            showToast('Book removed from your wishlist.');
+                        }
+                    } catch (error) {
+                        console.error('Failed to remove from wishlist', error);
+                    }
                 }
-                setWishlistInactive($btn);
-                showToast('Book removed from your wishlist.');
             }
         });
     }
@@ -735,34 +820,52 @@
     }
 
     function initAddToCart() {
-        $('#btn-detail-add-cart').off('click.productDetails').on('click.productDetails', function () {
-            const title = $('#detail-title').text().trim();
+        $('#btn-detail-add-cart').off('click.productDetails').on('click.productDetails', async function () {
+            const $btn = $(this);
             const qty = parseInt($('#input-qty').val()) || 1;
-            const priceText = $('#detail-price').text() || '0 VND';
-            const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
-            const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+            const bookId = $btn.data('book-id');
 
-            if (!window.BookBlossomCart) {
-                showToast('Cart is not ready.');
+            if (!bookId) {
+                const title = $('#detail-title').text().trim();
+                const priceText = $('#detail-price').text() || '0 VND';
+                const unitPriceVnd = parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
+                const img = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+
+                if (!window.BookBlossomCart) {
+                    showToast('Cart is not ready.');
+                    return;
+                }
+
+                window.BookBlossomCart.addToCart({
+                    id: 'cart-' + Date.now(),
+                    title: title,
+                    shop: 'Normal Books',
+                    price: unitPriceVnd / 20000,
+                    priceVnd: unitPriceVnd,
+                    qty: qty,
+                    condition: 'Like New',
+                    img: img,
+                    selected: true,
+                    isBlind: false
+                });
+
+                animateAddToCart($(this), qty);
+                showToast(`Added ${qty}x "${title}" to your cart!`);
                 return;
             }
 
-            window.BookBlossomCart.addToCart({
-                id: 'cart-' + Date.now(),
-                title: title,
-                shop: 'Normal Books',
-                price: unitPriceVnd / 20000,
-                priceVnd: unitPriceVnd,
-                qty: qty,
-                condition: 'Like New',
-                img: img,
-                selected: true,
-                isBlind: false
-            });
-
-            animateAddToCart($(this), qty);
-
-            showToast(`Added ${qty}x "${title}" to your cart!`);
+            try {
+                await apiClient.apiPost('/api/Cart', { bookID: parseInt(bookId), quantity: qty });
+                animateAddToCart($btn, qty);
+                showToast(`Added ${qty}x item(s) to your cart!`);
+                
+                if (window.BookBlossomLayout) {
+                    // Slight delay to allow backend logic
+                    setTimeout(() => window.BookBlossomLayout.refreshCartBadge(), 500);
+                }
+            } catch (error) {
+                console.error('Failed to add to cart', error);
+            }
         });
     }
 
@@ -1132,6 +1235,7 @@
     }
 
     window.BookBlossomProductDetails = {
-        show: showProductDetails
+        show: showProductDetails,
+        showProductById: showProductById
     };
 })(window, document, window.jQuery);

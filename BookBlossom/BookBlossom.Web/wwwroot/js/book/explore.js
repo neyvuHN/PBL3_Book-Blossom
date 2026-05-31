@@ -4,14 +4,19 @@
         return;
     }
 
+    let currentSearchTerm = '';
+    let currentCategory = '';
+    let currentSortOrder = 'Ascending'; // Default
+
     $(document).ready(function () {
         initExplorePage();
         initExploreFilterToggle();
-        initExploreCategoryTags();
+        loadCategories();
         initExploreSearch();
         initExplorePriceSlider();
         initExploreCustomDropdowns();
         initExploreBookCards();
+        loadBooks();
     });
 
     function initExplorePage() {
@@ -28,9 +33,7 @@
             e.preventDefault();
 
             const $layout = $('#explore-layout');
-
             $layout.toggleClass('filters-hidden');
-
             const isHidden = $layout.hasClass('filters-hidden');
 
             $(this).html(
@@ -41,65 +44,96 @@
         });
     }
 
-    function initExploreCategoryTags() {
-        $('.category-tags .tag').off('click.explore').on('click.explore', function () {
-            $('.category-tags .tag').removeClass('active');
+    async function loadCategories() {
+        try {
+            const categories = await apiClient.apiGet('/api/category?status=Active');
+            renderCategoryTags(categories);
+        } catch (error) {
+            console.error('Failed to load categories', error);
+        }
+    }
+
+    function renderCategoryTags(categories) {
+        const $container = $('.category-tags');
+        $container.empty();
+        
+        $container.append('<span class="tag active" data-name="All">All</span>');
+        
+        if (categories && categories.length > 0) {
+            categories.forEach(c => {
+                $container.append(`<span class="tag" data-name="${c.categoryName}">${c.categoryName}</span>`);
+            });
+        }
+
+        $container.find('.tag').off('click.explore').on('click.explore', function () {
+            $container.find('.tag').removeClass('active');
             $(this).addClass('active');
 
-            const category = $(this).text().trim().toLowerCase();
-
-            filterBooksByCategory(category);
+            const categoryName = $(this).attr('data-name');
+            currentCategory = categoryName === 'All' ? '' : categoryName;
+            
+            loadBooks();
         });
     }
 
     function initExploreSearch() {
         $('#search-submit-btn').off('click.explore').on('click.explore', function (e) {
             e.preventDefault();
-            filterBooksBySearch();
+            currentSearchTerm = ($('#search-input').val() || '').trim();
+            loadBooks();
         });
 
         $('#search-input').off('keydown.explore').on('keydown.explore', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                filterBooksBySearch();
+                currentSearchTerm = ($(this).val() || '').trim();
+                loadBooks();
             }
         });
     }
 
-    function filterBooksBySearch() {
-        const keyword = ($('#search-input').val() || '').trim().toLowerCase();
-
-        $('#explore-section .book-grid .book-card').each(function () {
-            const title = $(this).find('h3').text().trim().toLowerCase();
-            const author = $(this).find('p').text().trim().toLowerCase();
-
-            if (!keyword || title.includes(keyword) || author.includes(keyword)) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
+    async function loadBooks() {
+        const url = `/api/realbook?searchTerm=${encodeURIComponent(currentSearchTerm)}&category=${encodeURIComponent(currentCategory)}&sortOrder=${currentSortOrder}`;
+        try {
+            const books = await apiClient.apiGet(url);
+            renderBooks(books);
+        } catch (error) {
+            console.error('Failed to load books', error);
+        }
     }
 
-    function filterBooksByCategory(category) {
-        if (!category || category === 'all') {
-            $('#explore-section .book-grid .book-card').show();
+    function renderBooks(books) {
+        const $grid = $('.book-grid');
+        $grid.empty();
+
+        if (!books || books.length === 0) {
+            $grid.append('<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #777;">No books found matching your criteria.</div>');
             return;
         }
 
-        /*
-            Hiện tại _ExploreSection.cshtml chưa có data-category cho từng book.
-            Nên đoạn này chỉ là mock filter nhẹ theo title/author.
-            Sau này khi render từ database, thêm data-category="Fiction" vào .book-card là chuẩn nhất.
-        */
-        $('#explore-section .book-grid .book-card').each(function () {
-            const text = $(this).text().trim().toLowerCase();
+        books.forEach((book) => {
+            if (!book.isContinued) return; // Hide discontinued books
+            
+            // Random image based on ID so it's consistent
+            const randomImg = `/images/Book/book${(book.bookID % 6) + 1}.jpg`;
+            const priceStr = book.price.toLocaleString('vi-VN');
+            const publisherDisplay = book.publisher || 'Unknown Publisher';
+            const rating = (4.0 + (book.bookID % 10) / 10).toFixed(1); // Fake rating for UI
 
-            if (text.includes(category)) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
+            const html = `
+                <div class="book-card" data-id="${book.bookID}">
+                    <img src="${randomImg}" alt="${book.title}">
+                    <div class="book-info">
+                        <h3>${book.title}</h3>
+                        <p>${publisherDisplay}</p>
+                        <div class="book-meta">
+                            <span class="rating">⭐ ${rating}</span>
+                            <span class="price">${priceStr} VND</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $grid.append(html);
         });
     }
 
@@ -217,16 +251,10 @@
                 e.preventDefault();
 
                 const $card = $(this);
-                const title = $card.find('h3').text().trim();
-                const author = $card.find('p').first().text().trim() || 'Unknown Author';
-                const imgSrc = $card.find('img').attr('src') || '/images/Book/book1.jpg';
+                const bookId = $card.attr('data-id');
 
-                if (window.BookBlossomProductDetails) {
-                    window.BookBlossomProductDetails.show({
-                        title: title,
-                        author: author,
-                        imgSrc: imgSrc
-                    });
+                if (window.BookBlossomProductDetails && bookId) {
+                    window.BookBlossomProductDetails.showProductById(bookId);
                 }
             });
     }
