@@ -147,10 +147,10 @@ namespace BookBlossom.Infrastructure.Services
             var voucher = await _context.Vouchers.FindAsync(voucherId);
             if (voucher == null) return null;
 
-            // Tổng giá trị giảm giá đã cấp = estimate từ UsedCount * DiscountValue
-            decimal totalDiscountGranted = voucher.DiscountType == VoucherDiscountType.Fixed
-                ? voucher.UsedCount * voucher.DiscountValue
-                : 0; // Percentage cần join với Order để tính chính xác
+            // Tính toán chính xác dựa trên dữ liệu thực tế từ các đơn hàng đã áp dụng
+            decimal totalDiscountGranted = await _context.Orders
+                .Where(o => o.VoucherID == voucherId)
+                .SumAsync(o => (decimal?)o.DiscountAmount) ?? 0;    
 
             // Tổng doanh thu từ đơn có voucher
             var orderWithVoucher = await _context.Orders
@@ -213,19 +213,19 @@ namespace BookBlossom.Infrastructure.Services
             if (voucher.UsedCount >= voucher.TotalLimit)
                 throw new InvalidOperationException("Voucher đã đạt giới hạn số lượng phát.");
 
-            // Kiểm tra xem customer đã có voucher này chưa
-            bool alreadyClaimed = await _context.CustomerVouchers
-                .AnyAsync(cv => cv.CustomerID == customerId && cv.VoucherID == voucher.VoucherID);
+            // 1. Kiểm tra xem trong ví ĐANG CÓ voucher này mà chưa dùng hay không
+            bool hasUnused = await _context.CustomerVouchers
+                .AnyAsync(cv => cv.CustomerID == customerId && cv.VoucherID == voucher.VoucherID && !cv.IsUsed);
 
-            if (alreadyClaimed)
-                throw new InvalidOperationException("Bạn đã sở hữu voucher này rồi.");
+            if (hasUnused)
+                throw new InvalidOperationException("Bạn đã sở hữu voucher này trong ví và chưa sử dụng.");
 
-            // Kiểm tra số lần customer đã dùng voucher này
-            int usedCount = await _context.CustomerVouchers
-                .CountAsync(cv => cv.CustomerID == customerId && cv.VoucherID == voucher.VoucherID && cv.IsUsed);
+            // 2. Kiểm tra TỔNG số lần đã thu thập/sử dụng so với giới hạn MaxUsagePerUser của Voucher
+            int totalClaimedCount = await _context.CustomerVouchers
+                .CountAsync(cv => cv.CustomerID == customerId && cv.VoucherID == voucher.VoucherID);
 
-            if (usedCount >= voucher.MaxUsagePerUser)
-                throw new InvalidOperationException($"Bạn đã sử dụng voucher này tối đa {voucher.MaxUsagePerUser} lần.");
+            if (totalClaimedCount >= voucher.MaxUsagePerUser)
+                throw new InvalidOperationException($"Bạn đã đạt giới hạn thu thập voucher này (Tối đa {voucher.MaxUsagePerUser} lần).");
 
             _context.CustomerVouchers.Add(new CustomerVoucher
             {

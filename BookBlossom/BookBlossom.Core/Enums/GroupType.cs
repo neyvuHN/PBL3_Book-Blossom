@@ -1,4 +1,3 @@
-// BookBlossom.Core/Enums/GroupType.cs
 namespace BookBlossom.Core.Enums
 {
     public enum GroupType : byte

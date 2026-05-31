@@ -178,6 +178,23 @@ namespace BookBlossom.Infrastructure.Services
                         .Distinct()
                         .ToListAsync();
 
+                    var blindBookIds = request.CartItems
+                        .Where(i => i.BlindBookID.HasValue)
+                        .Select(i => i.BlindBookID!.Value)
+                        .ToList();
+
+                    if (blindBookIds.Any())
+                    {
+                        var blindBookCategories = await _context.Set<BlindBook>()
+                            .Include(b => b.RealBook)
+                            .Where(b => blindBookIds.Contains(b.BlindBookID) && b.RealBook != null)
+                            .Select(b => b.RealBook!.CategoryID)
+                            .Distinct()
+                            .ToListAsync();
+
+                        bookCategoryIds = bookCategoryIds.Union(blindBookCategories).Distinct().ToList();
+                    }
+
                     var voucherResult = await _voucherService.ValidateAndApplyVoucherAsync(
                         customerId,
                         request.VoucherCode,
@@ -188,8 +205,11 @@ namespace BookBlossom.Infrastructure.Services
                         throw new InvalidOperationException($"Voucher không hợp lệ: {voucherResult.ErrorMessage}");
 
                     discountAmount = voucherResult.DiscountAmount;
-                    appliedVoucherId = voucherResult.VoucherID;
-                    order.VoucherID = appliedVoucherId;
+                    if (voucherResult.VoucherID.HasValue)
+                    {
+                        appliedVoucherId = voucherResult.VoucherID.Value;
+                        order.VoucherID = appliedVoucherId;
+                    }
                     order.DiscountAmount = discountAmount;
                 }
 
@@ -699,7 +719,8 @@ namespace BookBlossom.Infrastructure.Services
                 column.Item().AlignRight().Column(c =>
                 {
                     c.Spacing(3);
-                    decimal subTotal = Model.TotalAmount - Model.ShippingFee + Model.DiscountAmount;
+                    // decimal subTotal = Model.TotalAmount - Model.ShippingFee + Model.DiscountAmount;
+                    decimal subTotal = Model.OrderItems.Sum(item => item.TotalItemAmount);
                     c.Item().Text($"Tạm tính: {subTotal:N0}đ");
                     c.Item().Text($"Phí vận chuyển: {Model.ShippingFee:N0}đ");
                     if (Model.DiscountAmount > 0)
