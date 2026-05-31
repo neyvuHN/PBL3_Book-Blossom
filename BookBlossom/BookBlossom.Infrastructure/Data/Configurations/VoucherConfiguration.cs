@@ -47,7 +47,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                    .IsRequired();
 
             builder.Property(v => v.TotalLimit).IsRequired();
-            builder.Property(v => v.UsedCount).IsRequired().HasDefaultValue(0);
+            builder.Property(v => v.UsedCount).IsRequired();
 
             builder.Property(v => v.StartDate).HasColumnType("datetime").IsRequired();
             builder.Property(v => v.EndDate).HasColumnType("datetime").IsRequired();
@@ -57,12 +57,12 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                    .HasColumnType("tinyint")
                    .IsRequired();
 
-            builder.Property(v => v.MinReputationRequired).IsRequired().HasDefaultValue(0);
-            builder.Property(v => v.MembershipRankRequired).IsRequired().HasDefaultValue(0);
-            builder.Property(v => v.IsForNewUser).IsRequired().HasDefaultValue(false);
-            builder.Property(v => v.IsStackable).IsRequired().HasDefaultValue(false);
-            builder.Property(v => v.IsAutoRefundable).IsRequired().HasDefaultValue(false);
-            builder.Property(v => v.MaxUsagePerUser).IsRequired().HasDefaultValue(1);
+            builder.Property(v => v.MinReputationRequired).IsRequired();
+            builder.Property(v => v.MembershipRankRequired).IsRequired();
+            builder.Property(v => v.IsForNewUser).IsRequired();
+            builder.Property(v => v.IsStackable).IsRequired();
+            builder.Property(v => v.IsAutoRefundable).IsRequired();
+            builder.Property(v => v.MaxUsagePerUser).IsRequired();
 
             // RequiredBadgeID Nullable - không tạo FK constraint (tránh conflict với Badge schema)
             builder.Property(v => v.RequiredBadgeID);
@@ -85,13 +85,12 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             // Composite PK: {CustomerID, VoucherID}
             builder.HasKey(cv => new { cv.CustomerID, cv.VoucherID });
 
-            builder.Property(cv => cv.IsUsed).IsRequired().HasDefaultValue(false);
+            builder.Property(cv => cv.IsUsed).IsRequired();
 
             // Sentinel: 2099-12-31 khi chưa dùng
             builder.Property(cv => cv.UsedAt)
                    .HasColumnType("datetime")
-                   .IsRequired()
-                   .HasDefaultValueSql("'2099-12-31'");
+                   .IsRequired();
 
             builder.Property(cv => cv.OrderID);
 
