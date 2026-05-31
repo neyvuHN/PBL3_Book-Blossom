@@ -5,6 +5,7 @@ using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.DTOs;
 using BookBlossom.Core.DTOs.CheckoutAndCreateOrder;
+using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -21,11 +22,13 @@ namespace BookBlossom.Web.Controllers
     {
         private readonly IOrderService _service;
         private readonly ApplicationDbContext _context;
+        private readonly IReputationService _reputationService;
 
-        public OrderController(IOrderService service, ApplicationDbContext context)
+        public OrderController(IOrderService service, ApplicationDbContext context, IReputationService reputationService)
         {
             _service = service;
             _context = context;
+            _reputationService = reputationService;
         }
 
         // API 1: Khởi tạo tiến trình Đặt hàng (Checkout & Tạo đơn hàng)

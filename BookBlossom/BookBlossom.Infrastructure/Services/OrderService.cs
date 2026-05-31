@@ -20,6 +20,8 @@ namespace BookBlossom.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IGamificationService _gamificationService;
+        private readonly IReputationService _reputationService;
 
         static OrderService()
         {
@@ -27,10 +29,12 @@ namespace BookBlossom.Infrastructure.Services
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        public OrderService(ApplicationDbContext context, INotificationService notificationService)
+        public OrderService(ApplicationDbContext context, INotificationService notificationService, IGamificationService gamificationService, IReputationService reputationService)
         {
             _context = context;
             _notificationService = notificationService;
+            _gamificationService = gamificationService;
+            _reputationService = reputationService;
         }
 
         public async Task<OrderResponseDTO> CreateOrderAsync(long customerId, CheckoutRequestDTO request)
@@ -367,7 +371,16 @@ namespace BookBlossom.Infrastructure.Services
                     else if (status == OrderStatus.Completed)
                     {
                         order.CompletedDate = DateTime.UtcNow;
-                        order.PaymentStatus = 1; // Đã thanh toán khi hoàn thành đơn
+                        order.PaymentStatus = 1;
+
+                        // --- THÊM ĐOẠN NÀY ĐỂ CỘNG ĐIỂM ---
+                        var action = (order.PaymentMethod == PaymentMethod.COD) 
+                                    ? ReputationAction.CodDeliverySuccess 
+                                    : ReputationAction.OnlinePaymentSuccess;
+
+                        await _reputationService.HandleReputationChangeAsync(order.CustomerID, action, $"Hoàn tất đơn hàng #{order.OrderID}");
+                        await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+                        // ----------------------------------
                     }
                     else if (status == OrderStatus.Cancelled)
                     {
@@ -398,10 +411,33 @@ namespace BookBlossom.Infrastructure.Services
                                 }
                             }
                         }
+                        if (oldStatus != OrderStatus.Pending) 
+                        {
+                            await _reputationService.HandleReputationChangeAsync(
+                                order.CustomerID, 
+                                ReputationAction.OrderBombed, // Hoặc ShopPackedCancellation
+                                $"Đơn hàng #{order.OrderID} bị hủy sau khi đã đóng gói");
+                        }
                     }
                 }
 
                 await _context.SaveChangesAsync();
+
+                if (status == OrderStatus.Completed)
+                {
+                    var completedCustomerIds = orders.Select(o => o.CustomerID).Distinct();
+                    foreach (var cId in completedCustomerIds)
+                    {
+                        try
+                        {
+                            await _gamificationService.CheckAndGrantShoppingBadgesAsync(cId);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Suppress/log badge check errors
+                        }
+                    }
+                }
 
                 // Send notifications to customers
                 foreach (var order in orders)

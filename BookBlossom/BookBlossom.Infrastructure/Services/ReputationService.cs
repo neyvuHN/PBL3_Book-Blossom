@@ -74,6 +74,15 @@ namespace BookBlossom.Infrastructure.Services
                 CreateAt = DateTime.UtcNow
             };
             _context.ReputationHistories.Add(history);
+
+            if (newPoint < 30)
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == customerId);
+                if (user != null && user.IsActive == true) 
+                {
+                    user.IsActive = false;
+                }
+            }
     
             await _context.SaveChangesAsync();
             await EnforceReputationThresholdsAsync(customerId, newPoint);
@@ -113,6 +122,7 @@ namespace BookBlossom.Infrastructure.Services
                 await _context.SaveChangesAsync();
             }
         }
+
         private async Task EnforceReputationThresholdsAsync(long customerId, int score)
         {
             if (score < 30)

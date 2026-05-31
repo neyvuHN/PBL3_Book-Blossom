@@ -13,6 +13,7 @@ namespace BookBlossom.Core.Entities
         public int CurrentMonthThreadCount { get; set; }
         public DateTime? LastThreadResetDate { get; set; }
         public int CurrentOrderStreak { get; set; }
+        public int ShareCount { get; set; } = 0;
         public virtual User User { get; set; }
 
         public virtual MembershipRank? MembershipRank { get; set; }
@@ -20,5 +21,6 @@ namespace BookBlossom.Core.Entities
         public virtual CustomerService? CustomerService { get; set; }
         public ICollection<CustomerReputation> CustomerReputations {get; set; } = new List<CustomerReputation>();
         public ICollection<CustomerPreference> CustomerPreferences {get; set; } = new List<CustomerPreference>();
+        public virtual ICollection<BadgeCustomer> BadgeCustomers { get; set; } = new List<BadgeCustomer>();
     }
 }
