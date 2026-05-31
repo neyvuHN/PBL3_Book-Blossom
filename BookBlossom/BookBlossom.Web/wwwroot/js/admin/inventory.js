@@ -200,27 +200,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 4000);
     });
 
-    // --- Live Instant Search for Books ---
+    // --- Live Instant Filtering for Books (Search + Category + Status) ---
     const searchBooksInput = document.getElementById('searchBooksInput');
+    const filterCategory = document.getElementById('filterCategory');
+    const filterBookStatus = document.getElementById('filterBookStatus');
+    const booksNoResultsRow = document.createElement('tr');
+
     if (searchBooksInput) {
         // Create dynamic "No matching books" row
-        const noResultsRow = document.createElement('tr');
-        noResultsRow.id = 'booksNoResultsRow';
-        noResultsRow.style.display = 'none';
-        noResultsRow.innerHTML = '<td colspan="8" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No books match your search query.</td>';
+        booksNoResultsRow.id = 'booksNoResultsRow';
+        booksNoResultsRow.style.display = 'none';
+        booksNoResultsRow.innerHTML = '<td colspan="8" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No books match your filters.</td>';
         const tbody = document.querySelector('#books tbody');
-        if (tbody) tbody.appendChild(noResultsRow);
+        if (tbody) tbody.appendChild(booksNoResultsRow);
 
-        searchBooksInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
+        function filterBooks() {
+            const query = searchBooksInput.value.toLowerCase().trim();
+            const categoryFilter = filterCategory ? filterCategory.value.toLowerCase().trim() : "";
+            const statusFilter = filterBookStatus ? filterBookStatus.value.toLowerCase().trim() : "";
+
             const rows = document.querySelectorAll('#books tbody tr:not(#booksNoResultsRow)');
             let visibleCount = 0;
             let totalCount = 0;
 
             rows.forEach(row => {
-                // If it is the default backend "No books found" placeholder, hide it if query is entered
+                // If it is the default backend "No books found" placeholder, hide it if any filter is set
                 if (row.cells.length === 1 && row.cells[0].colSpan === 8 && !row.id) {
-                    row.style.display = query ? "none" : "";
+                    row.style.display = (query || categoryFilter || statusFilter) ? "none" : "";
                     return;
                 }
                 totalCount++;
@@ -229,15 +235,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 const isbnElement = row.querySelector('.text-muted.small');
                 const authorElement = row.querySelector('.book-authors-list');
                 const categoryCell = row.cells[2];
+                const statusBadge = row.querySelector('.status-badge');
                 const bookIdCell = row.cells[0];
 
                 const title = titleElement ? titleElement.textContent.toLowerCase() : "";
                 const isbn = isbnElement ? isbnElement.textContent.toLowerCase() : "";
                 const author = authorElement ? authorElement.getAttribute('title').toLowerCase() : "";
-                const category = categoryCell ? categoryCell.textContent.toLowerCase() : "";
+                const category = categoryCell ? categoryCell.textContent.toLowerCase().trim() : "";
+                const status = statusBadge ? statusBadge.textContent.toLowerCase().trim() : "";
                 const bookId = bookIdCell ? bookIdCell.textContent.toLowerCase() : "";
 
-                if (title.includes(query) || isbn.includes(query) || category.includes(query) || bookId.includes(query) || author.includes(query)) {
+                const matchesQuery = !query || title.includes(query) || isbn.includes(query) || category.includes(query) || bookId.includes(query) || author.includes(query);
+                const matchesCategory = !categoryFilter || category === categoryFilter;
+                const matchesStatus = !statusFilter || status === statusFilter;
+
+                if (matchesQuery && matchesCategory && matchesStatus) {
                     row.style.display = "";
                     visibleCount++;
                 } else {
@@ -245,35 +257,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            if (query && visibleCount === 0 && totalCount > 0) {
-                noResultsRow.style.display = '';
+            if ((query || categoryFilter || statusFilter) && visibleCount === 0 && totalCount > 0) {
+                booksNoResultsRow.style.display = '';
             } else {
-                noResultsRow.style.display = 'none';
+                booksNoResultsRow.style.display = 'none';
             }
-        });
+        }
+
+        searchBooksInput.addEventListener('input', filterBooks);
+        if (filterCategory) filterCategory.addEventListener('change', filterBooks);
+        if (filterBookStatus) filterBookStatus.addEventListener('change', filterBooks);
     }
 
-    // --- Live Instant Search for Categories ---
+    // --- Live Instant Filtering for Categories (Search + Status) ---
     const searchCategoriesInput = document.getElementById('searchCategoriesInput');
+    const filterCategoryStatus = document.getElementById('filterCategoryStatus');
+    const categoriesNoResultsRow = document.createElement('tr');
+
     if (searchCategoriesInput) {
         // Create dynamic "No matching categories" row
-        const noResultsRow = document.createElement('tr');
-        noResultsRow.id = 'categoriesNoResultsRow';
-        noResultsRow.style.display = 'none';
-        noResultsRow.innerHTML = '<td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No categories match your search query.</td>';
+        categoriesNoResultsRow.id = 'categoriesNoResultsRow';
+        categoriesNoResultsRow.style.display = 'none';
+        categoriesNoResultsRow.innerHTML = '<td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No categories match your filters.</td>';
         const tbody = document.querySelector('#categories tbody');
-        if (tbody) tbody.appendChild(noResultsRow);
+        if (tbody) tbody.appendChild(categoriesNoResultsRow);
 
-        searchCategoriesInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
+        function filterCategories() {
+            const query = searchCategoriesInput.value.toLowerCase().trim();
+            const statusFilter = filterCategoryStatus ? filterCategoryStatus.value.toLowerCase().trim() : "";
+
             const rows = document.querySelectorAll('#categories tbody tr:not(#categoriesNoResultsRow)');
             let visibleCount = 0;
             let totalCount = 0;
 
             rows.forEach(row => {
-                // If it is the default backend "No categories found" placeholder, hide it if query is entered
+                // If it is the default backend "No categories found" placeholder, hide it if any filter is set
                 if (row.cells.length === 1 && row.cells[0].colSpan === 6 && !row.id) {
-                    row.style.display = query ? "none" : "";
+                    row.style.display = (query || statusFilter) ? "none" : "";
                     return;
                 }
                 totalCount++;
@@ -281,12 +301,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 const idCell = row.cells[0];
                 const nameCell = row.cells[1];
                 const descCell = row.cells[2];
+                const statusBadge = row.querySelector('.badge'); // Active or Inactive badge
 
                 const id = idCell ? idCell.textContent.toLowerCase() : "";
                 const name = nameCell ? nameCell.textContent.toLowerCase() : "";
                 const desc = descCell ? descCell.textContent.toLowerCase() : "";
+                const status = statusBadge ? statusBadge.textContent.toLowerCase().trim() : "";
 
-                if (id.includes(query) || name.includes(query) || desc.includes(query)) {
+                const matchesQuery = !query || id.includes(query) || name.includes(query) || desc.includes(query);
+                const matchesStatus = !statusFilter || status === statusFilter;
+
+                if (matchesQuery && matchesStatus) {
                     row.style.display = "";
                     visibleCount++;
                 } else {
@@ -294,12 +319,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            if (query && visibleCount === 0 && totalCount > 0) {
-                noResultsRow.style.display = '';
+            if ((query || statusFilter) && visibleCount === 0 && totalCount > 0) {
+                categoriesNoResultsRow.style.display = '';
             } else {
-                noResultsRow.style.display = 'none';
+                categoriesNoResultsRow.style.display = 'none';
             }
-        });
+        }
+
+        searchCategoriesInput.addEventListener('input', filterCategories);
+        if (filterCategoryStatus) filterCategoryStatus.addEventListener('change', filterCategories);
     }
 });
 

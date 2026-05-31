@@ -65,10 +65,29 @@
         <div class="tab-content" id="inventoryTabsContent">
             <!-- Books Tab -->
             <div class="tab-pane fade show active" id="books" role="tabpanel" aria-labelledby="books-tab">
-                <div class="d-flex justify-content-between mb-3">
-                    <div class="search-box-wrapper" style="width: 380px;">
-                        <input type="text" id="searchBooksInput" class="form-control" placeholder="Search books by title, ISBN or author...">
-                        <i class="bi bi-search"></i>
+                <div class="d-flex justify-content-between mb-3 align-items-center">
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="search-box-wrapper" style="width: 350px;">
+                            <input type="text" id="searchBooksInput" class="form-control" placeholder="Search books by title, ISBN or author...">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <select id="filterCategory" class="form-select" style="width: 180px; border-radius: 20px; height: 42px; font-size: 0.9rem; border-color: #e2e8f0; background-color: #f8fafc; cursor: pointer;">
+                            <option value="">All Categories</option>
+                            @if(Model?.Categories != null)
+                            {
+                                foreach (var cat in Model.Categories)
+                                {
+                                    <option value="@cat.CategoryName">@cat.CategoryName</option>
+                                }
+                            }
+                        </select>
+                        <select id="filterBookStatus" class="form-select" style="width: 160px; border-radius: 20px; height: 42px; font-size: 0.9rem; border-color: #e2e8f0; background-color: #f8fafc; cursor: pointer;">
+                            <option value="">All Statuses</option>
+                            <option value="In Stock">In Stock</option>
+                            <option value="Low Stock">Low Stock</option>
+                            <option value="Out of Stock">Out of Stock</option>
+                            <option value="Discontinued">Discontinued</option>
+                        </select>
                     </div>
                     <button class="btn btn-primary action-btn" id="btn-add-book" style="background-color: #E3597D; border: none;">
                         <i class="bi bi-plus-circle me-1"></i> Add New Book
@@ -176,10 +195,17 @@
 
             <!-- Categories Tab -->
             <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
-                <div class="d-flex justify-content-between mb-3">
-                    <div class="search-box-wrapper" style="width: 300px;">
-                        <input type="text" id="searchCategoriesInput" class="form-control" placeholder="Search categories...">
-                        <i class="bi bi-search"></i>
+                <div class="d-flex justify-content-between mb-3 align-items-center">
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="search-box-wrapper" style="width: 300px;">
+                            <input type="text" id="searchCategoriesInput" class="form-control" placeholder="Search categories...">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <select id="filterCategoryStatus" class="form-select" style="width: 160px; border-radius: 20px; height: 42px; font-size: 0.9rem; border-color: #e2e8f0; background-color: #f8fafc; cursor: pointer;">
+                            <option value="">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
                     </div>
                     <button class="btn btn-primary action-btn" id="btn-add-category" style="background-color: #E3597D; border: none;">
                         <i class="bi bi-plus-circle me-1"></i> Add Category
