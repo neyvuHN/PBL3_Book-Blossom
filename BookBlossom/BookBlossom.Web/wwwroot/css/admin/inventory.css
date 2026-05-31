@@ -39,6 +39,15 @@
     font-weight: 600;
 }
 
+
+/*
+🔴 Discontinued ( Nền xám nhạt, chữ đen xám.)	!book.IsContinued	Sách đã Ngừng kinh doanh/Ngừng nhập. Cho dù số lượng tồn kho còn bao nhiêu cũng sẽ chuyển sang trạng thái này.
+⚫ Out of Stock (Nền đỏ nhạt, chữ đỏ đậm)	book.IsContinued && book.UnitsInStock == 0	Sách vẫn đang kinh doanh nhưng Hết hàng trong kho.
+🟡 Low Stock (Nền vàng nhạt, chữ vàng đậm)	book.IsContinued && 0 < book.UnitsInStock < 15	Sách đang kinh doanh và Sắp hết hàng (dưới 15 cuốn). Cảnh báo Quản trị viên chuẩn bị nhập hàng.
+🟢 In Stock (Nền xanh lá nhạt, chữ xanh đậm.)	book.IsContinued && book.UnitsInStock >= 15	Sách đang kinh doanh và Còn hàng dồi dào (từ 15 cuốn trở lên).
+*/
+
+
 .status-in-stock {
     background-color: #d1e7dd;
     color: #0f5132;
@@ -273,4 +282,42 @@
         opacity: 0;
         transform: translateY(-15px);
     }
+}
+
+/* Premium Modern Search Inputs */
+.search-box-wrapper {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.search-box-wrapper .form-control {
+    padding-left: 42px;
+    border-radius: 30px;
+    border: 1px solid #e2e8f0;
+    height: 42px;
+    font-size: 0.9rem;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.search-box-wrapper .form-control:focus {
+    background-color: #ffffff;
+    border-color: #E3597D;
+    box-shadow: 0 0 0 3px rgba(227, 89, 125, 0.15);
+    color: #2c2630;
+}
+
+.search-box-wrapper .bi-search {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.search-box-wrapper .form-control:focus+.bi-search {
+    color: #E3597D;
 }
