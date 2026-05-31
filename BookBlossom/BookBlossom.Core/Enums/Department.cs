@@ -2,9 +2,9 @@ namespace BookBlossom.Core.Enums
 {
     public enum Department : byte
     {
-        SystemAdmin = 1,
-        Moderator = 2,
-        MarketingManager = 3,
-        StoreManager = 4
+        SystemAdmin = 0,
+        Moderator = 1,
+        MarketingManager = 2,
+        StoreManager = 3
     }
 }

@@ -2,10 +2,10 @@ namespace BookBlossom.Core.Enums
 {
     public enum VoucherStatus : byte
     {
-        Draft = 1,  
-        Scheduled = 2, 
-        Active = 3,
-        Paused = 4,
-        Ended = 5
+        Draft = 0,  
+        Scheduled = 1, 
+        Active = 2,
+        Paused = 3,
+        Ended = 4
     }
 }

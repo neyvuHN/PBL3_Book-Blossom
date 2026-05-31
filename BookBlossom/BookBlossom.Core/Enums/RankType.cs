@@ -2,9 +2,9 @@ namespace BookBlossom.Core.Enums
 {
     public enum RankType : byte
     {
-        Bronze = 1,
-        Silver = 2,
-        Gold = 3,
-        Diamond = 4
+        Bronze = 0,
+        Silver = 1,
+        Gold = 2,
+        Diamond = 3
     }
 }

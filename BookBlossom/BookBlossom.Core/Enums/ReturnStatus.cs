@@ -2,8 +2,8 @@ namespace BookBlossom.Core.Enums
 {
     public enum ReturnStatus : byte
     {
-        Pending = 1,
-        Approved = 2,
-        Rejected = 3
+        Pending = 0,
+        Approved = 1,
+        Rejected = 2
     }
 }

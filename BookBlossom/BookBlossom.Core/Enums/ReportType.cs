@@ -2,8 +2,8 @@ namespace BookBlossom.Core.Enums
 {
     public enum ReportType : byte
     {
-        Spam = 1,
-        Content18Plus = 2, // 18+
-        Fraud = 3          // Lừa đảo
+        Spam = 0,
+        Content18Plus = 1, // 18+
+        Fraud = 2          // Lừa đảo
     }
 }

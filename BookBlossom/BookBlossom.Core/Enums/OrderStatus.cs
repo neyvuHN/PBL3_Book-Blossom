@@ -2,12 +2,12 @@ namespace BookBlossom.Core.Enums
 {
     public enum OrderStatus : byte
     {
-        Pending = 1,
-        AwaitingPickup = 2,
-        Shipping = 3,
-        Delivering = 4,
-        Completed = 5,
-        Cancelled = 6,
-        Returning = 7
+        Pending = 0,
+        AwaitingPickup = 1,
+        Shipping = 2,
+        Delivering = 3,
+        Completed = 4,
+        Cancelled = 5,
+        Returning = 6
     }
 }
