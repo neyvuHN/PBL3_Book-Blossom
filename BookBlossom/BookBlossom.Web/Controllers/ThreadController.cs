@@ -19,11 +19,13 @@ namespace BookBlossom.Web.Controllers
     {
         private readonly IThreadService _service;
         private readonly IMemoryCache _cache;
+        private readonly IReputationService _reputationService;
 
-        public ThreadController(IThreadService service, IMemoryCache cache)
+        public ThreadController(IThreadService service, IMemoryCache cache, IReputationService reputationService)
         {
             _service = service;
             _cache = cache;
+            _reputationService = reputationService;
         }
 
         // 1. GET ALL (Feed) - Cho phép xem công khai không cần đăng nhập
@@ -130,6 +132,12 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
+                var reputation = await _reputationService.GetReputationWithRankAsync(customerId);
+                if (reputation.ReputationPoint < 80)
+                {
+                    return BadRequest(new { message = "Hạn chế quyền lực: Điểm uy tín của bạn hiện tại dưới 80, bị cấm đăng bài viết mới trong cộng đồng." });
+                }
+                
                 var result = await _service.CreatePostAsync(customerId, dto, images);
                 return StatusCode(201, result);
             }
@@ -283,6 +291,12 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
+                var reputation = await _reputationService.GetReputationWithRankAsync(customerId);
+                if (reputation.ReputationPoint < 80)
+                {
+                    return BadRequest(new { message = "Hạn chế quyền lực: Điểm uy tín của bạn hiện tại dưới 80, bị cấm bình luận trong cộng đồng." });
+                }
+                
                 var result = await _service.AddCommentAsync(customerId, postId, dto);
                 return StatusCode(201, result);
             }

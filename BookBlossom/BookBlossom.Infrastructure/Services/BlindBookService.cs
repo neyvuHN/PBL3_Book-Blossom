@@ -82,7 +82,7 @@ namespace BookBlossom.Infrastructure.Services
                 throw new Exception($"Số lượng duyệt vượt quá lượng sách thật hiện có trong kho ({book.RealBook?.UnitsInStock ?? 0}).");
 
             // Tự động sinh mã Barcode duy nhất khi duyệt
-            book.Barcode = "BLD" + DateTime.UtcNow.Ticks.ToString().Substring(11) + new Random().Next(10, 99);
+            book.Barcode = $"BLD{DateTime.UtcNow:yyyyMMddHHmmssfff}{book.BlindBookID}";
             book.StockQuantity = book.RequestQuantity; // Chuyển số lượng yêu cầu thành số lượng trong kho
             book.RequestQuantity = 0;
             book.BlindBookRequestStatus = BlindBookRequestStatus.Approved;
