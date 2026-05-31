@@ -6,15 +6,27 @@
 <div class="dashboard-container">
     <div class="dashboard-header">
         <h2>Admin Dashboard (System Overview)</h2>
-        <div class="dashboard-actions">
-            <div class="date-range-picker">
-                <span>Data Range Picker</span>
-                <span class="active">Last 24h</span>
-                <span>Week</span>
-                <span>Month</span>
-            </div>
-            <button class="btn-export">Export Data</button>
+    </div>
+
+    <div class="dashboard-filter-section">
+        <span class="filter-label">FILTER:</span>
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" class="custom-date-input" value="2026-05-01">
         </div>
+        <div class="filter-group">
+            <label>To</label>
+            <input type="date" class="custom-date-input" value="2026-05-31">
+        </div>
+        <div class="filter-dropdown">
+            <i class="fas fa-layer-group"></i>
+            <select class="custom-select">
+                <option>All Models</option>
+                <option>Real Book</option>
+                <option>Blind Date</option>
+            </select>
+        </div>
+        <button class="btn-export-pdf"><i class="fas fa-file-pdf"></i> EXPORT PDF</button>
     </div>
 
     <!-- Top Statistic Cards -->
@@ -23,11 +35,8 @@
     <!-- Charts -->
     @await Html.PartialAsync("Partials/_Charts")
 
-    <!-- Alerts, Disputes, and Configurations -->
-    @await Html.PartialAsync("Partials/_AlertsAndConfig")
-
-    <!-- System Logs -->
-    @await Html.PartialAsync("Partials/_SystemLogs")
+    <!-- Trending Books -->
+    @await Html.PartialAsync("Partials/_TrendingBooks")
 </div>
 
 @section Scripts {
@@ -35,23 +44,28 @@
         // Dummy data for Growth Chart
         const ctxGrowth = document.getElementById('growthChart').getContext('2d');
         new Chart(ctxGrowth, {
-            type: 'bar',
+            type: 'line', // Changed to line chart
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                // The labels array represents 12 evenly divided periods based on the date filter
+                labels: ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6', 'Period 7', 'Period 8', 'Period 9', 'Period 10', 'Period 11', 'Period 12'],
                 datasets: [
                     {
-                        label: 'New User Signups',
-                        data: [40, 55, 75, 110, 85, 135, 125, 145, 165, 195, 185, 210],
-                        backgroundColor: '#E3597D',
-                        order: 2
+                        label: 'Real Book Revenue',
+                        data: [150, 230, 180, 290, 210, 310, 340, 280, 350, 420, 380, 450],
+                        borderColor: '#27AE60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
                     },
                     {
-                        label: 'GMV (Gross Merchandise Value)',
-                        data: [25, 45, 55, 85, 60, 80, 95, 120, 135, 175, 155, 215],
-                        type: 'line',
-                        borderColor: '#27AE60',
-                        tension: 0.4,
-                        order: 1
+                        label: 'Blind Date Book Revenue',
+                        data: [80, 120, 150, 140, 180, 170, 220, 240, 210, 260, 280, 320],
+                        borderColor: '#E3597D',
+                        backgroundColor: 'rgba(227, 89, 125, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
                     }
                 ]
             },

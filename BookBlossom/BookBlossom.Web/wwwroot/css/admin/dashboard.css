@@ -15,47 +15,97 @@
     font-weight: 600;
 }
 
-.dashboard-actions {
+.dashboard-filter-section {
     display: flex;
     align-items: center;
     gap: 15px;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-border, #e0e0e0);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    margin-bottom: 25px;
 }
 
-.date-range-picker {
+.filter-label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+    margin-right: 10px;
+}
+
+.filter-group {
     display: flex;
     align-items: center;
-    background: white;
-    border: 1px solid var(--admin-border);
-    border-radius: 6px;
-    padding: 5px;
+    gap: 8px;
 }
 
-.date-range-picker span {
-    padding: 5px 15px;
-    cursor: pointer;
-    font-size: 0.9rem;
+.filter-group label {
+    font-size: 0.85rem;
     color: #666;
 }
 
-.date-range-picker span.active {
-    background-color: #F0F0F0;
+.custom-date-input {
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 6px 10px;
     border-radius: 4px;
-    font-weight: 500;
+    color: #333;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.filter-dropdown {
+    display: flex;
+    align-items: center;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    border-radius: 4px;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.filter-dropdown i {
+    color: #555;
+}
+
+.custom-select {
+    background: transparent;
+    border: none;
+    color: #333;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.custom-select option {
+    background: white;
     color: #333;
 }
 
-.btn-export {
-    background-color: white;
-    border: 1px solid var(--admin-border);
-    padding: 8px 16px;
-    border-radius: 6px;
+.btn-export-pdf {
+    background: transparent;
+    border: 1px solid #ccc;
+    color: #333;
+    font-weight: bold;
+    font-size: 0.9rem;
     cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 4px;
+    margin-left: auto; /* Push to the far right */
+    transition: background 0.2s;
 }
 
-.btn-export:hover {
-    background-color: #F9F9F9;
+.btn-export-pdf:hover {
+    background: #f0f0f0;
+}
+.btn-export-pdf i {
+    color: #E3597D; /* Using theme color for PDF icon */
 }
 
 /* Stat Cards */
@@ -76,9 +126,9 @@
     border-left: 4px solid var(--card-color);
 }
 
-.stat-card.escrow { --card-color: #A3D9B5; background: #E8F5EE; }
-.stat-card.revenue { --card-color: #333333; }
-.stat-card.coin { --card-color: #F2C94C; }
+.stat-card.total-revenue { --card-color: #A3D9B5; background: #E8F5EE; }
+.stat-card.total-orders { --card-color: #333333; }
+.stat-card.return-rate { --card-color: #F2C94C; }
 .stat-card.users { --card-color: #27AE60; }
 
 .stat-card h3 {
@@ -146,126 +196,122 @@
     color: #999;
 }
 
-/* Alerts and Config Grid */
-.alerts-config-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 30px;
-}
 
-.alert-card {
+.trending-books-card {
     background: white;
     border-radius: 10px;
     padding: 20px;
     border: 1px solid var(--admin-border);
+}
+
+.trending-books-card .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
 }
 
-.alert-card .left h3 {
-    font-size: 0.9rem;
-    color: #666;
-    margin: 0 0 10px 0;
-}
-
-.alert-card .left .number {
-    font-size: 2.5rem;
-    font-weight: 700;
+.trending-books-card h3 {
+    font-size: 1rem;
     margin: 0;
-    color: #E3597D;
-}
-
-.alert-card .left .number.black {
     color: #333;
 }
 
-.alert-card .right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-}
-
-.alert-card .right .desc {
-    font-size: 0.8rem;
-    color: #666;
-    text-align: right;
-    margin: 0;
-    line-height: 1.4;
-}
-
-.btn-review {
-    background: white;
+.btn-view-all {
+    background: transparent;
     border: 1px solid #CCC;
-    padding: 5px 15px;
+    padding: 5px 12px;
     border-radius: 4px;
     font-size: 0.8rem;
     cursor: pointer;
 }
 
-.btn-review:hover {
+.btn-view-all:hover {
     background: #F0F0F0;
 }
 
-.config-card {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    border: 1px solid var(--admin-border);
+.table-responsive {
+    overflow-x: auto;
 }
 
-.config-card h3 {
-    font-size: 0.9rem;
-    color: #666;
-    margin: 0 0 20px 0;
-}
-
-.config-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* System Logs */
-.system-logs-card {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    border: 1px solid var(--admin-border);
-}
-
-.system-logs-card h3 {
-    font-size: 1rem;
-    margin: 0 0 20px 0;
-    color: #333;
-}
-
-.logs-table {
+.trending-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.logs-table th, .logs-table td {
+.trending-table th, .trending-table td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid var(--admin-border);
     font-size: 0.9rem;
+    vertical-align: middle;
 }
 
-.logs-table th {
+.trending-table th {
     color: #666;
     font-weight: 500;
     background: #F9F9F9;
 }
 
-.log-type {
+.rank {
     font-weight: bold;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-radius: 50%;
+    background: #f0f0f0;
+    color: #666;
 }
-.log-type.info { color: #2196F3; }
-.log-type.warn { color: #FF9800; }
-.log-type.error { color: #F44336; }
+.rank-1 { background: #FFD700; color: #fff; }
+.rank-2 { background: #C0C0C0; color: #fff; }
+.rank-3 { background: #CD7F32; color: #fff; }
+
+.book-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.book-cover {
+    width: 40px;
+    height: 60px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+}
+.mock-cover-1 { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+.mock-cover-2 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); }
+.mock-cover-3 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.mock-cover-4 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+.mock-cover-5 { background: linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%); }
+
+.book-details h4 {
+    margin: 0 0 5px 0;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.book-details span {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.badge-thriller { background: #e8f0fe; color: #1a73e8; }
+.badge-selfhelp { background: #e6f4ea; color: #1e8e3e; }
+.badge-scifi { background: #fce8e6; color: #d93025; }
+.badge-classic { background: #fef7e0; color: #f29900; }
+
+.trend-up { color: #27AE60; font-weight: 500; }
+.trend-down { color: #E3597D; font-weight: 500; }
+.trend-flat { color: #888; font-weight: 500; }
 
 /* Custom Switch */
 .switch {
