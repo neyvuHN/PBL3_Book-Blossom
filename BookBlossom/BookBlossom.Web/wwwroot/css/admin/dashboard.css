@@ -19,56 +19,58 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    background: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: 1px solid var(--admin-border, #e0e0e0);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
     margin-bottom: 25px;
 }
 
 .filter-label {
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: #333;
-    margin-right: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #555;
 }
 
 .filter-group {
     display: flex;
     align-items: center;
     gap: 8px;
+    background: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-border, #e0e0e0);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
 .filter-group label {
     font-size: 0.85rem;
     color: #666;
+    font-weight: 500;
 }
 
 .custom-date-input {
-    background: #f9f9f9;
-    border: 1px solid #ccc;
-    padding: 6px 10px;
-    border-radius: 4px;
+    background: transparent;
+    border: none;
     color: #333;
     font-size: 0.9rem;
     outline: none;
     cursor: pointer;
+    font-family: inherit;
 }
 
 .filter-dropdown {
     display: flex;
     align-items: center;
-    background: #f9f9f9;
-    border: 1px solid #ccc;
-    padding: 6px 12px;
-    border-radius: 4px;
-    gap: 8px;
-    margin-left: 10px;
+    background: white;
+    border: 1px solid var(--admin-border, #e0e0e0);
+    padding: 6px 16px;
+    border-radius: 8px;
+    gap: 10px;
+    margin-left: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    cursor: pointer;
 }
 
 .filter-dropdown i {
-    color: #555;
+    color: #666;
+    font-size: 0.9rem;
 }
 
 .custom-select {
@@ -78,6 +80,8 @@
     font-size: 0.9rem;
     outline: none;
     cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
 }
 
 .custom-select option {
@@ -86,26 +90,31 @@
 }
 
 .btn-export-pdf {
-    background: transparent;
-    border: 1px solid #ccc;
+    background: white;
+    border: 1px solid var(--admin-border, #e0e0e0);
     color: #333;
-    font-weight: bold;
+    font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 16px;
-    border-radius: 4px;
+    padding: 8px 18px;
+    border-radius: 8px;
     margin-left: auto; /* Push to the far right */
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
 .btn-export-pdf:hover {
-    background: #f0f0f0;
+    background: #fffafa;
+    border-color: #E3597D;
+    color: #E3597D;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(227, 89, 125, 0.1);
 }
 .btn-export-pdf i {
-    color: #E3597D; /* Using theme color for PDF icon */
+    color: #E3597D;
 }
 
 /* Stat Cards */
