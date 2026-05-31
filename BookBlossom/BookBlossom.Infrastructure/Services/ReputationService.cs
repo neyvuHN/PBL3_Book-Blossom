@@ -58,6 +58,9 @@ namespace BookBlossom.Infrastructure.Services
                 ReputationAction.ShopPackedCancellation => -5,   // Hủy đơn sau khi Shop đã đóng gói
                 ReputationAction.OrderBombed => -25,             // "Bom" hàng
                 ReputationAction.ReviewThreadDeleted => -5,      // Bị xóa bài reviews/threads
+                ReputationAction.StreakBonusLvl1 => 10,          // Đạt Streak 3 lần 1 trong tháng: +10
+                ReputationAction.StreakBonusLvl2 => 5,           // Đạt Streak 3 lần 2 trong tháng: +5
+                ReputationAction.StreakBonusLvl3 => 2,           // Đạt Streak 3 lần 3 trong tháng: +2
                 _ => 0
             };
 
@@ -74,6 +77,15 @@ namespace BookBlossom.Infrastructure.Services
                 CreateAt = DateTime.UtcNow
             };
             _context.ReputationHistories.Add(history);
+
+            if (newPoint < 30)
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == customerId);
+                if (user != null && user.IsActive == true) 
+                {
+                    user.IsActive = false;
+                }
+            }
     
             await _context.SaveChangesAsync();
             await EnforceReputationThresholdsAsync(customerId, newPoint);
@@ -113,6 +125,7 @@ namespace BookBlossom.Infrastructure.Services
                 await _context.SaveChangesAsync();
             }
         }
+
         private async Task EnforceReputationThresholdsAsync(long customerId, int score)
         {
             if (score < 30)
