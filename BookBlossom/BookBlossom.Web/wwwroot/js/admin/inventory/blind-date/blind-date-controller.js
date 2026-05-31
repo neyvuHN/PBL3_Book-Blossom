@@ -35,6 +35,45 @@ class BlindDateController {
                 }
                 return;
             }
+
+            const deleteBtn = e.target.closest('.btn-delete-blind-date');
+            if (deleteBtn) {
+                e.preventDefault();
+                const id = parseInt(deleteBtn.dataset.id, 10);
+                const name = deleteBtn.dataset.name;
+                
+                // Use global delete modal if exists
+                const deleteModalEl = document.getElementById('deleteConfirmModal');
+                if (deleteModalEl && window.bootstrap) {
+                    document.getElementById('deleteConfirmTitle').textContent = 'Delete Blind Date';
+                    document.getElementById('deleteConfirmMessage').textContent = `Are you sure you want to delete ${name}?`;
+                    const confirmBtn = document.getElementById('deleteConfirmBtn');
+                    
+                    // Remove old event listeners by replacing the button
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                    
+                    newConfirmBtn.addEventListener('click', (ev) => {
+                        ev.preventDefault();
+                        this.model.deleteBlindDate(id);
+                        this.view.renderTable(this.model.getBlindDates());
+                        bootstrap.Modal.getInstance(deleteModalEl)?.hide();
+                        if (window.showPremiumAlert) {
+                            window.showPremiumAlert('Deleted', `${name} has been removed.`, 'success');
+                        }
+                    });
+                    
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+                    bsModal.show();
+                } else if (confirm(`Are you sure you want to delete ${name}?`)) {
+                    this.model.deleteBlindDate(id);
+                    this.view.renderTable(this.model.getBlindDates());
+                    if (window.showPremiumAlert) {
+                        window.showPremiumAlert('Deleted', `${name} has been removed.`, 'success');
+                    }
+                }
+                return;
+            }
         });
 
         // Handle Form Submission for approving, creating, or editing Blind Date

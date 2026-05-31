@@ -56,4 +56,13 @@ class BlindDateModel {
     getBlindDates() {
         return this.blindDates;
     }
+
+    deleteBlindDate(id) {
+        const index = this.blindDates.findIndex(b => b.id === id);
+        if (index !== -1) {
+            this.blindDates.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
 }

@@ -267,8 +267,11 @@ class BlindDateView {
                     <button class="btn-action-edit me-1 btn-edit-blind-date" data-id="${item.id}">
                         <i class="bi bi-pencil-square me-1"></i> Edit
                     </button>
-                    <button class="btn-action-edit text-info border-info" style="background-color: rgba(13, 202, 240, 0.1);" onclick="window.showPremiumAlert('Success', 'Printing barcode: ${item.barcode}', 'success')">
+                    <button class="btn-action-edit me-1 text-info border-info" style="background-color: rgba(13, 202, 240, 0.1);" onclick="window.showPremiumAlert('Success', 'Printing barcode: ${item.barcode}', 'success')">
                         <i class="bi bi-printer me-1"></i> Print
+                    </button>
+                    <button class="btn-action-delete btn-delete-blind-date" data-id="${item.id}" data-name="Mystery Book #${item.id}">
+                        <i class="bi bi-trash me-1"></i> Delete
                     </button>
                 </td>
             `;
