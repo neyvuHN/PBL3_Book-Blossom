@@ -84,6 +84,9 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 // Đăng ký IGamificationService
 builder.Services.AddScoped<IGamificationService, GamificationService>();
 
+// Đăng ký IVoucherService
+builder.Services.AddScoped<IVoucherService, VoucherService>();
+
 // Đăng ký IReputationService
 builder.Services.AddScoped<IReputationService, ReputationService>();
 

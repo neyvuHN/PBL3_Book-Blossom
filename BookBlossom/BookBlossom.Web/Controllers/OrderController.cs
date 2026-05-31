@@ -93,6 +93,29 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
+        // API 1.1: Lấy lịch sử danh sách đơn hàng của chính Customer đăng nhập
+        [HttpGet("customer/my-orders")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> GetMyOrders([FromQuery] OrderStatus? status)
+        {
+            // Trích xuất CustomerID từ Token bảo mật
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ. Vui lòng đăng nhập lại!" });
+            }
+
+            try
+            {
+                var result = await _service.GetOrdersForCustomerAsync(customerId, status);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi hệ thống khi lấy danh sách lịch sử đơn hàng.", detail = ex.Message });
+            }
+        }
+
         // API 2: Xóa địa chỉ giao hàng không cần thiết khỏi sổ địa chỉ
         [HttpDelete("address/{addressId}")]
         [Authorize(Policy = "CustomerOnly")]
