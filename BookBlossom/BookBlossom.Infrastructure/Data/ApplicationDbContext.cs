@@ -36,6 +36,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<ThreadComment> ThreadComments { get; set; }
         public DbSet<ThreadImage> ThreadImages { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
