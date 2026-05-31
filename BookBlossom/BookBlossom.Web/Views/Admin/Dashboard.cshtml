@@ -85,16 +85,31 @@
         new Chart(ctxPie, {
             type: 'doughnut',
             data: {
-                labels: ['Circulating', 'Locked', 'Burned'],
+                labels: ['Pending', 'To Ship', 'In Transit', 'Completed', 'Cancelled', 'Returning'],
                 datasets: [{
-                    data: [60, 25, 15],
-                    backgroundColor: ['#E3597D', '#F2C94C', '#27AE60']
+                    data: [10, 15, 25, 30, 5, 15],
+                    backgroundColor: [
+                        '#F2C94C', // Pending
+                        '#9B51E0', // AwaitingPickup
+                        '#2F80ED', // Shipping
+                        '#27AE60', // Completed
+                        '#EB5757', // Cancelled
+                        '#F2994A'  // Returning
+                    ]
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '60%'
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12
+                        }
+                    }
+                }
             }
         });
     </script>
