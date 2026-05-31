@@ -14,5 +14,9 @@ namespace BookBlossom.Core.Entities
 
         // Navigation Properties
         public virtual MembershipRank? MembershipRank { get; set; }
+
+        //  quan hệ 1-nhiều
+        public virtual ICollection<ReputationHistory> Histories { get; set; } = new List<ReputationHistory>();
+        public virtual CustomerDetail? CustomerDetail { get; set; } 
     }
 }

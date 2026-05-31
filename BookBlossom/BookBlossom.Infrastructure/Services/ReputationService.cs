@@ -41,7 +41,7 @@ namespace BookBlossom.Infrastructure.Services
             return reputation;
         }
 
-        public async Task HandleReputationChangeAsync(long customerId, ReputationAction action)
+        public async Task HandleReputationChangeAsync(long customerId, ReputationAction action, string reason)
         {
             var reputation = await GetReputationWithRankAsync(customerId);
             int currentPoint = reputation.ReputationPoint ?? 100;
@@ -61,55 +61,82 @@ namespace BookBlossom.Infrastructure.Services
                 _ => 0
             };
 
-            int newPoint = currentPoint + pointChange;
-
-            // Trần điểm tối đa (Max Score) = 150
-            if (newPoint > 150) newPoint = 150;
-            if (newPoint < 0) newPoint = 0;
-
+            int newPoint = Math.Clamp(currentPoint + pointChange, 0, 150);
             reputation.ReputationPoint = newPoint;
-            await _context.SaveChangesAsync();
 
-            // 2. Kiểm tra Hệ quả từ các Ngưỡng điểm nghiêm ngặt
+            // LƯU LỊCH SỬ
+            var history = new ReputationHistory
+            {
+                CustomerID = customerId,
+                ChangeAmount = pointChange,
+                Reason = reason,
+                ReferenceType = (byte)action,
+                CreateAt = DateTime.UtcNow
+            };
+            _context.ReputationHistories.Add(history);
+    
+            await _context.SaveChangesAsync();
             await EnforceReputationThresholdsAsync(customerId, newPoint);
         }
 
+        public async Task UpdateCustomerRankAsync(long customerId)
+        {
+            // 1. Lấy thông tin uy tín hiện tại
+            var reputation = await GetReputationWithRankAsync(customerId);
+
+            // 2. Tính tổng chi tiêu từ các đơn hàng "Completed"
+            var totalSpent = await _context.Orders
+                .Where(o => o.CustomerID == customerId && o.OrderStatus == OrderStatus.Completed)
+                .SumAsync(o => o.TotalAmount);
+
+            // 3. Tìm Rank phù hợp nhất (dựa trên MinSpending)
+            var suitableRank = await _context.MembershipRanks
+                .Where(r => totalSpent >= (r.MinSpending ?? 0)) // Thêm xử lý null cho MinSpending
+                .OrderByDescending(r => r.MinSpending)
+                .FirstOrDefaultAsync();
+
+            // 4. Kiểm tra và cập nhật nếu có thay đổi
+            if (suitableRank != null && reputation.RankID != suitableRank.RankID)
+            {
+                reputation.RankID = suitableRank.RankID;
+                
+                // BỔ SUNG: Nên lưu lại lịch sử khi thăng/giáng hạng để người dùng theo dõi
+                _context.ReputationHistories.Add(new ReputationHistory
+                {
+                    CustomerID = customerId,
+                    ChangeAmount = 0, // Không cộng điểm, chỉ thay đổi rank
+                    Reason = $"Đã thăng/giáng hạng thành viên lên {suitableRank.RankType}", // Giả sử RankType là tên hoặc mã hạng
+                    ReferenceType = (byte)ReputationAction.RankUpdate, // Bạn cần thêm enum này vào
+                    CreateAt = DateTime.UtcNow
+                });
+
+                await _context.SaveChangesAsync();
+            }
+        }
         private async Task EnforceReputationThresholdsAsync(long customerId, int score)
         {
-            // Ngưỡng C (< 30 Điểm): Khai trừ / Khóa tài khoản vĩnh viễn
             if (score < 30)
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == customerId);
                 if (user != null)
                 {
-                    user.IsActive = true; // Khóa tài khoản vĩnh viễn
+                    user.IsActive = false; // ĐÃ SỬA: false để vô hiệu hóa tài khoản
                 }
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task UpdateCustomerRankAsync(long customerId)
+        // Các hàm kiểm tra để gọi ở Controller hoặc Service khác
+        public async Task<bool> CanCommentAsync(long customerId) 
         {
-            var reputation = await GetReputationWithRankAsync(customerId);
+            var rep = await GetReputationWithRankAsync(customerId);
+            return rep.ReputationPoint >= 80; // Ngưỡng 80 để comment
+        }
 
-            // Phân biệt nghiệp vụ: Điểm uy tín chỉ cộng khi Đơn hàng đạt trạng thái "Completed" 
-            // (Tức là sau thời hạn 7 ngày tự động hoặc khách xác nhận và không khiếu nại)
-            var totalSpent = await _context.Orders
-                .Where(o => o.CustomerID == customerId && o.OrderStatus == OrderStatus.Completed)
-                .SumAsync(o => o.TotalAmount);
-
-            // Tìm cấu hình Rank động dựa trên tổng chi tiêu thực tế
-            var suitableRank = await _context.MembershipRanks
-                .Where(r => totalSpent >= r.MinSpending)
-                .OrderByDescending(r => r.MinSpending)
-                .FirstOrDefaultAsync();
-
-            if (suitableRank != null && reputation.RankID != suitableRank.RankID)
-            {
-                reputation.RankID = suitableRank.RankID;
-            }
-
-            await _context.SaveChangesAsync();
+        public async Task<bool> CanUseCodAsync(long customerId) 
+        {
+            var rep = await GetReputationWithRankAsync(customerId);
+            return rep.ReputationPoint >= 60; // Ngưỡng 60 để dùng COD
         }
     }
 }
