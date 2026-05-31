@@ -84,8 +84,14 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 // Đăng ký IGamificationService
 builder.Services.AddScoped<IGamificationService, GamificationService>();
 
+// Đăng ký IVoucherService
+builder.Services.AddScoped<IVoucherService, VoucherService>();
+
 // Đăng ký IReputationService
 builder.Services.AddScoped<IReputationService, ReputationService>();
+
+// Đăng ký IStatisticsService
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
