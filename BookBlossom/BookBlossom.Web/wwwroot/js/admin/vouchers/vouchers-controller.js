@@ -37,7 +37,7 @@ class VouchersController {
             vouchers = vouchers.filter(v => v.code.toLowerCase().includes(filters.searchTerm));
         }
 
-        this.view.renderVouchers(vouchers);
+        this.view.renderVouchers(vouchers, this.model.mockCategories, this.model.mockBooks);
     }
 
     handleSaveVoucher(voucher) {
