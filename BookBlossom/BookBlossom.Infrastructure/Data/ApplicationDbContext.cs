@@ -42,6 +42,9 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<ReputationHistory> ReputationHistories { get; set; }
         public DbSet<Badge> Badges { get; set; }
         public DbSet<BadgeCustomer> BadgeCustomers { get; set; }
+        public DbSet<Voucher> Vouchers { get; set; }
+        public DbSet<CustomerVoucher> CustomerVouchers { get; set; }
+        public DbSet<VoucherCategory> VoucherCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

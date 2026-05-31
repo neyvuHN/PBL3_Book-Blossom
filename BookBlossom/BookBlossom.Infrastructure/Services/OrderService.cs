@@ -21,6 +21,7 @@ namespace BookBlossom.Infrastructure.Services
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
         private readonly IGamificationService _gamificationService;
+        private readonly IVoucherService _voucherService;
 
         static OrderService()
         {
@@ -28,11 +29,12 @@ namespace BookBlossom.Infrastructure.Services
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        public OrderService(ApplicationDbContext context, INotificationService notificationService, IGamificationService gamificationService)
+        public OrderService(ApplicationDbContext context, INotificationService notificationService, IGamificationService gamificationService, IVoucherService voucherService)
         {
             _context = context;
             _notificationService = notificationService;
             _gamificationService = gamificationService;
+            _voucherService = voucherService;
         }
 
         public async Task<OrderResponseDTO> CreateOrderAsync(long customerId, CheckoutRequestDTO request)
@@ -80,9 +82,9 @@ namespace BookBlossom.Infrastructure.Services
                     ShipPhoneNumber = deliveryAddress.PhoneNumber,
                     ShipDetailAddress = deliveryAddress.DetailAddress,
                     
-                    Note = null, 
+                    Note = null,
                     ShippingFee = 30000, // Phí vận chuyển mặc định
-                    DiscountAmount = 0   // Chưa làm nghiệp vụ Voucher nên mặc định bằng 0
+                    DiscountAmount = 0
                 };
 
                 decimal subTotal = 0;
@@ -158,10 +160,49 @@ namespace BookBlossom.Infrastructure.Services
                     }
                 }
 
-                order.TotalAmount = subTotal + (order.ShippingFee ?? 0);
+                // ─── VOUCHER: Validate & Áp giảm giá ────────────────────────
+                decimal discountAmount = 0;
+                long? appliedVoucherId = null;
+
+                if (!string.IsNullOrWhiteSpace(request.VoucherCode))
+                {
+                    // Lấy CategoryID của tất cả sách trong giỏ hàng để kiểm tra scope
+                    var bookIds = request.CartItems
+                        .Where(i => i.BookID.HasValue)
+                        .Select(i => i.BookID!.Value)
+                        .ToList();
+
+                    var bookCategoryIds = await _context.Set<RealBook>()
+                        .Where(b => bookIds.Contains(b.BookID))
+                        .Select(b => b.CategoryID)
+                        .Distinct()
+                        .ToListAsync();
+
+                    var voucherResult = await _voucherService.ValidateAndApplyVoucherAsync(
+                        customerId,
+                        request.VoucherCode,
+                        subTotal,
+                        bookCategoryIds);
+
+                    if (!voucherResult.IsValid)
+                        throw new InvalidOperationException($"Voucher không hợp lệ: {voucherResult.ErrorMessage}");
+
+                    discountAmount = voucherResult.DiscountAmount;
+                    appliedVoucherId = voucherResult.VoucherID;
+                    order.VoucherID = appliedVoucherId;
+                    order.DiscountAmount = discountAmount;
+                }
+
+                order.TotalAmount = Math.Max(0, subTotal + (order.ShippingFee ?? 0) - discountAmount);
 
                 await _context.Set<Order>().AddAsync(order);
                 await _context.SaveChangesAsync();
+
+                // Đánh dấu voucher đã được dùng sau khi tạo đơn thành công
+                if (appliedVoucherId.HasValue)
+                {
+                    await _voucherService.MarkVoucherAsUsedAsync(customerId, appliedVoucherId.Value, order.OrderID);
+                }
 
                 await transaction.CommitAsync();
 
@@ -400,6 +441,13 @@ namespace BookBlossom.Infrastructure.Services
                                 }
                             }
                         }
+
+                        // HOÀN TRẢ VOUCHER (nếu IsAutoRefundable = true)
+                        try
+                        {
+                            await _voucherService.RefundVoucherIfApplicableAsync(order.OrderID);
+                        }
+                        catch { /* Suppress voucher refund errors - không để lỗi này block hủy đơn */ }
                     }
                 }
 

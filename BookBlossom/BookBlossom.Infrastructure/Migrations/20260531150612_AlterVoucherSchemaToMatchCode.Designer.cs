@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531150612_AlterVoucherSchemaToMatchCode")]
+    partial class AlterVoucherSchemaToMatchCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1222,7 +1225,7 @@ namespace BookBlossom.Infrastructure.Migrations
 
                     b.HasKey("SwipeLogID");
 
-                    b.ToTable("SwipeLogs", (string)null);
+                    b.ToTable("SwipeLogs");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.ThreadComment", b =>

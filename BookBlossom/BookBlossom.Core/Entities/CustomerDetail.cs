@@ -22,5 +22,6 @@ namespace BookBlossom.Core.Entities
         public ICollection<CustomerReputation> CustomerReputations {get; set; } = new List<CustomerReputation>();
         public ICollection<CustomerPreference> CustomerPreferences {get; set; } = new List<CustomerPreference>();
         public virtual ICollection<BadgeCustomer> BadgeCustomers { get; set; } = new List<BadgeCustomer>();
+        public virtual ICollection<CustomerVoucher> CustomerVouchers { get; set; } = new List<CustomerVoucher>();
     }
 }
