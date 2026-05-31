@@ -1,23 +1,396 @@
+@model BookBlossom.Web.ViewModels.Admin.InventoryManagementViewModel
 @{
     ViewData["Title"] = "Inventory Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/inventory.css" asp-append-version="true" />
+}
+
 <div class="container-fluid py-4" style="font-family: 'Inter', sans-serif;">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 style="font-family: 'Lora', serif; font-weight: 700; color: #2C2630;">Inventory Management</h2>
-    </div>
-    
-    <div class="card border-0 shadow-sm p-5 text-center" style="border-radius: 16px; background-color: #ffffff;">
-        <div class="mb-4">
-            <span style="font-size: 4rem;">📚</span>
+        <div>
+            <h2 style="font-family: 'Lora', serif; font-weight: 700; color: #2C2630;">Inventory Management</h2>
+            <p class="text-muted mb-0">Manage your book stock, suppliers, and categories.</p>
         </div>
-        <h4 style="font-family: 'Lora', serif; font-weight: 600; color: #2C2630;" class="mb-2">Manage Your Book Stock</h4>
-        <p class="text-muted mx-auto" style="max-width: 500px;">
-            This is a separate dedicated module for stock monitoring, suppliers, and incoming shipments. Use this area to track item counts, manage low stock alerts, and perform bulk price adjustments.
-        </p>
-        <button class="btn btn-primary mt-3 px-4 py-2" style="background-color: #E3597D; border-color: #E3597D; border-radius: 30px; font-weight: 500;">
-            View Stock Catalog
-        </button>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null || TempData["ErrorMessage"] != null)
+    {
+        <div class="custom-alert-container">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="custom-alert alert-success-premium show" role="alert">
+                    <div class="alert-icon-box">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="alert-content-box">
+                        <h6 class="alert-heading">Success</h6>
+                        <p class="alert-message">@TempData["SuccessMessage"]</p>
+                    </div>
+                    <button type="button" class="btn-close-alert" onclick="this.parentElement.remove();">&times;</button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="custom-alert alert-danger-premium show" role="alert">
+                    <div class="alert-icon-box">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="alert-content-box">
+                        <h6 class="alert-heading">Error</h6>
+                        <p class="alert-message">@TempData["ErrorMessage"]</p>
+                    </div>
+                    <button type="button" class="btn-close-alert" onclick="this.parentElement.remove();">&times;</button>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="inventory-container bg-white shadow-sm">
+        <ul class="nav nav-tabs mb-4" id="inventoryTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab" aria-controls="books" aria-selected="true">
+                    Books Inventory
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">
+                    Categories
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="inventoryTabsContent">
+            <!-- Books Tab -->
+            <div class="tab-pane fade show active" id="books" role="tabpanel" aria-labelledby="books-tab">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="input-group" style="width: 300px;">
+                        <input type="text" class="form-control" placeholder="Search books by title, ISBN...">
+                        <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+                    </div>
+                    <button class="btn btn-primary action-btn" id="btn-add-book" style="background-color: #E3597D; border: none;">
+                        <i class="bi bi-plus-circle me-1"></i> Add New Book
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Book ID</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th>Reserved</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(Model?.Books != null && Model.Books.Any())
+                            {
+                                foreach (var book in Model.Books)
+                                {
+                                    <tr>
+                                        <td><span class="text-muted">@book.BookID</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@book.MainImageUrl" class="rounded shadow-sm me-3" style="width: 48px; height: 60px; object-fit: cover; border: 1px solid #eee;" onerror="this.onerror=null; this.src='/images/Book/book1.jpg';" />
+                                                <div>
+                                                    <div class="fw-bold text-dark">@book.Title</div>
+                                                    <div class="text-muted small">ISBN: @book.ISBN</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@book.CategoryName</td>
+                                        <td>
+                                            <span class="fw-bold @(book.UnitsInStock == 0 ? "text-danger" : (book.UnitsInStock < 15 ? "text-warning" : ""))">
+                                                @book.UnitsInStock
+                                            </span>
+                                        </td>
+                                        <td>@book.ReservedQuantity</td>
+                                        <td>@book.Price.ToString("N0") ₫</td>
+                                        <td>
+                                            @if (!book.IsContinued)
+                                            {
+                                                <span class="status-badge status-discontinued">Discontinued</span>
+                                            }
+                                            else if (book.UnitsInStock == 0)
+                                            {
+                                                <span class="status-badge status-out-of-stock">Out of Stock</span>
+                                            }
+                                            else if (book.UnitsInStock < 15)
+                                            {
+                                                <span class="status-badge status-low-stock">Low Stock</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge status-in-stock">In Stock</span>
+                                            }
+                                        </td>
+                                        <td class="text-end text-nowrap">
+                                            <button class="btn-action-edit me-1 btn-edit-book" 
+                                                    data-book-id="@book.BookID" 
+                                                    data-title="@book.Title" 
+                                                    data-category="@book.CategoryID" 
+                                                    data-publisher="@book.Publisher" 
+                                                    data-isbn="@book.ISBN" 
+                                                    data-publishyear="@book.PublishYear" 
+                                                    data-price="@book.Price" 
+                                                    data-weight="@book.Weight" 
+                                                    data-stock="@book.UnitsInStock" 
+                                                    data-description="@book.Description" 
+                                                    data-iscontinued="@book.IsContinued.ToString().ToLower()"
+                                                    data-mainimage="@book.MainImageUrl">
+                                                <i class="bi bi-pencil-square me-1"></i> Edit
+                                            </button>
+                                            <a href="#" 
+                                               class="btn-action-delete btn-delete-item" 
+                                               data-url="/Admin/DeleteBook?id=@book.BookID" 
+                                               data-title="Delete Book" 
+                                               data-message="Are you sure you want to delete the book &ldquo;@book.Title&rdquo;?">
+                                                <i class="bi bi-trash me-1"></i> Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="8" class="text-center py-4">No books found in inventory.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Categories Tab -->
+            <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="input-group" style="width: 300px;">
+                        <input type="text" class="form-control" placeholder="Search categories...">
+                        <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+                    </div>
+                    <button class="btn btn-primary action-btn" id="btn-add-category" style="background-color: #E3597D; border: none;">
+                        <i class="bi bi-plus-circle me-1"></i> Add Category
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Category ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Total Books</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(Model?.Categories != null && Model.Categories.Any())
+                            {
+                                foreach (var cat in Model.Categories)
+                                {
+                                    <tr>
+                                        <td><span class="text-muted">@cat.CategoryID</span></td>
+                                        <td class="fw-bold">@cat.CategoryName</td>
+                                        <td>
+                                            <span class="text-muted" style="max-width: 250px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                @cat.Description
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (cat.Status == "Active")
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">@cat.Status</span>
+                                            }
+                                        </td>
+                                        <td><span class="badge bg-light text-dark border">@cat.BookCount books</span></td>
+                                        <td class="text-end text-nowrap">
+                                            <button class="btn-action-edit me-1 btn-edit-category" 
+                                                    data-cat-id="@cat.CategoryID" 
+                                                    data-name="@cat.CategoryName" 
+                                                    data-desc="@cat.Description" 
+                                                    data-status="@cat.Status">
+                                                <i class="bi bi-pencil-square me-1"></i> Edit
+                                            </button>
+                                            <a href="#" 
+                                               class="btn-action-delete btn-delete-item" 
+                                               data-url="/Admin/DeleteCategory?id=@cat.CategoryID" 
+                                               data-title="Delete Category" 
+                                               data-message="Are you sure you want to delete the category &ldquo;@cat.CategoryName&rdquo;? This will fail if books are linked to it.">
+                                                <i class="bi bi-trash me-1"></i> Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="6" class="text-center py-4">No categories found.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Add/Edit Book Modal -->
+<div class="modal fade" id="addBookModal" tabindex="-1" aria-labelledby="addBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="addBookModalLabel" style="font-family: 'Lora', serif;">Add New Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addBookForm" method="post" action="/Admin/AddBook" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" name="Title" id="bookTitle" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category <span class="text-danger">*</span></label>
+                            <select name="CategoryID" id="bookCategory" class="form-select" required>
+                                <option value="">Select Category</option>
+                                @if(Model?.Categories != null)
+                                {
+                                    foreach (var cat in Model.Categories)
+                                    {
+                                        <option value="@cat.CategoryID">@cat.CategoryName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Publisher</label>
+                            <input type="text" name="Publisher" id="bookPublisher" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">ISBN</label>
+                            <input type="text" name="ISBN" id="bookIsbn" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Publish Year</label>
+                            <input type="number" name="PublishYear" id="bookPublishYear" class="form-control" min="0" max="2100">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Price (VND) <span class="text-danger">*</span></label>
+                            <input type="number" name="Price" id="bookPrice" class="form-control" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Weight (grams)</label>
+                            <input type="number" name="Weight" id="bookWeight" class="form-control" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Initial Stock <span class="text-danger">*</span></label>
+                            <input type="number" name="UnitsInStock" id="bookStock" class="form-control" value="0" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Sample File (Optional)</label>
+                            <input type="file" name="SampleFile" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Book Images</label>
+                            <input type="file" class="form-control" name="BookImages" id="bookImagesInput" multiple accept="image/*">
+                            <div class="form-text text-muted small">You can upload multiple files (jpg, jpeg, png). The first image will be marked as primary.</div>
+                            <div id="bookImagesPreviewContainer" class="d-flex flex-wrap gap-2 mt-2"></div>
+                            
+                            <!-- Existing Cover Image Preview when Editing -->
+                            <div id="currentBookCoverContainer" class="mt-3" style="display: none;">
+                                <label class="form-label text-muted small d-block">Current Cover Image:</label>
+                                <div class="image-preview-wrapper" style="width: 80px; height: 100px;">
+                                    <img id="currentBookCoverImg" src="" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea name="Description" id="bookDescription" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="IsContinued" id="isContinued" value="true" checked>
+                                <label class="form-check-label" for="isContinued">Currently Selling (IsContinued)</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="addBookForm" class="btn btn-primary" style="background-color: #E3597D; border: none;">Save Book</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="addCategoryModalLabel" style="font-family: 'Lora', serif;">Add Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm" method="post" action="/Admin/AddCategory">
+                    <div class="mb-3">
+                        <label class="form-label">Category Name <span class="text-danger">*</span></label>
+                        <input type="text" name="CategoryName" id="categoryNameInput" class="form-control" required placeholder="e.g. Literature, Skills...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <textarea name="Description" id="categoryDescInput" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="Status" id="categoryStatusInput" class="form-select">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="addCategoryForm" class="btn btn-primary" style="background-color: #E3597D; border: none;">Save Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3 text-danger">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
+                </div>
+                <h4 class="fw-bold mb-2" id="deleteConfirmTitle" style="color: #2C2630; font-family: 'Lora', serif;">Are you sure?</h4>
+                <p class="text-muted mb-4" id="deleteConfirmMessage">Do you really want to delete this item? This action cannot be undone.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light px-4 py-2 fw-semibold" data-bs-dismiss="modal" style="border-radius: 10px;">Cancel</button>
+                    <a id="deleteConfirmBtn" href="#" class="btn btn-danger px-4 py-2 fw-semibold" style="border-radius: 10px; background-color: #fa5252; border: none;">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/admin/inventory.js" asp-append-version="true"></script>
+}
