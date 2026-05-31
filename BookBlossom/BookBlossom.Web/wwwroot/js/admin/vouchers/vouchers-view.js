@@ -3,13 +3,13 @@ class VouchersView {
         this.grid = document.getElementById('vouchersGrid');
         this.modal = document.getElementById('voucherModal');
         this.form = document.getElementById('voucherForm');
-        
+
         // Buttons
         this.btnCreate = document.getElementById('btnCreateVoucher');
         this.btnCloseModal = document.getElementById('btnCloseModal');
         this.btnCancelModal = document.getElementById('btnCancelModal');
         this.btnSave = document.getElementById('btnSaveVoucher');
-        
+
         // Filters
         this.filterStatus = document.getElementById('filterStatus');
         this.searchVoucher = document.getElementById('searchVoucher');
@@ -39,9 +39,9 @@ class VouchersView {
 
         this.vType.addEventListener('change', () => this.toggleMaxDiscountGroup());
         this.vScope.addEventListener('change', () => this.toggleScopeButtons());
-        
+
         this.selectionSearch.addEventListener('input', (e) => this.filterSelectionList(e.target.value));
-        
+
         this.btnCloseSelectionModal.addEventListener('click', () => this.closeSelectionModal());
         this.btnConfirmSelection.addEventListener('click', () => this.confirmSelection());
     }
@@ -57,7 +57,7 @@ class VouchersView {
     toggleScopeButtons() {
         const scope = this.vScope.value;
         this.scopeSelectionButtons.style.display = scope === 'All' ? 'none' : 'flex';
-        
+
         if (scope === 'SpecificCategory') {
             this.btnSelectCategories.style.display = 'block';
             this.btnSelectBooks.style.display = 'none';
@@ -118,6 +118,7 @@ class VouchersView {
                 minScore: parseInt(document.getElementById('vMinScore').value || 0),
                 minRank: document.getElementById('vMinRank').value,
                 budget: parseInt(document.getElementById('vBudget').value),
+                limitPerUser: parseInt(document.getElementById('vLimitPerUser').value || 1),
                 scope: document.getElementById('vScope').value,
                 startDate: document.getElementById('vStartDate').value,
                 endDate: document.getElementById('vEndDate').value,
@@ -188,7 +189,7 @@ class VouchersView {
                 <input type="checkbox" id="sel_${item.id}" value="${item.id}" ${isChecked ? 'checked' : ''} style="margin-right: 12px; width: auto;">
                 <label for="sel_${item.id}" style="margin: 0; cursor: pointer; flex: 1;">${name}</label>
             `;
-            
+
             const checkbox = div.querySelector('input');
             checkbox.addEventListener('change', (e) => {
                 if (e.target.checked) {
@@ -247,17 +248,17 @@ class VouchersView {
             const usageRate = v.budget > 0 ? Math.round((v.used / v.budget) * 100) : 0;
             const card = document.createElement('div');
             card.className = 'voucher-card';
-            
+
             const statusClass = `status-${v.status.toLowerCase()}`;
             const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
             const displayValue = v.type === 'Percentage' ? `${v.value}%` : formatCurrency(v.value);
 
             // Stackable & Auto-Restore badges
-            const stackableBadge = v.stackable 
-                ? '<span class="rules-badge stackable-yes"><i class="ph ph-check-circle"></i> Stackable</span>' 
+            const stackableBadge = v.stackable
+                ? '<span class="rules-badge stackable-yes"><i class="ph ph-check-circle"></i> Stackable</span>'
                 : '<span class="rules-badge rules-no"><i class="ph ph-prohibit"></i> Non-Stackable</span>';
-            const autoRestoreBadge = v.autoRestore 
-                ? '<span class="rules-badge restore-yes"><i class="ph ph-check-circle"></i> Auto-Restore</span>' 
+            const autoRestoreBadge = v.autoRestore
+                ? '<span class="rules-badge restore-yes"><i class="ph ph-check-circle"></i> Auto-Restore</span>'
                 : '<span class="rules-badge rules-no"><i class="ph ph-prohibit"></i> No Restore</span>';
 
             // Resolve scope items
@@ -318,6 +319,7 @@ class VouchersView {
                             <span><i class="ph ph-ticket" style="color: #6b7280;"></i> Total Quantity:</span>
                             <span style="font-weight: 600; color: #111827;">${v.budget}</span>
                         </div>
+
                     </div>
 
                     <!-- Targeting Criteria -->
@@ -401,10 +403,10 @@ class VouchersView {
         document.getElementById('vStackable').checked = voucher.stackable;
         document.getElementById('vAutoRestore').checked = voucher.autoRestore || false;
         document.getElementById('vStatus').value = voucher.status;
-        
+
         this.selectedCategories = voucher.selectedCategories ? [...voucher.selectedCategories] : [];
         this.selectedBooks = voucher.selectedBooks ? [...voucher.selectedBooks] : [];
-        
+
         this.toggleMaxDiscountGroup();
         this.toggleScopeButtons();
         this.updateScopeButtonsText();
