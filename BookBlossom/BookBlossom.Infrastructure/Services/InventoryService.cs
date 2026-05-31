@@ -14,10 +14,12 @@ namespace BookBlossom.Infrastructure.Services
     public class InventoryService : IInventoryService
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public InventoryService(ApplicationDbContext context)
+        public InventoryService(ApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<ImportingDTO> CreateImportingAsync(long staffId, CreateImportingRequestDTO request)
@@ -107,6 +109,16 @@ namespace BookBlossom.Infrastructure.Services
             importing.TotalCost = totalCost;
             _context.Importings.Update(importing);
             await _context.SaveChangesAsync();
+
+            // Notify subscribers for each imported book
+            foreach (var detailDto in request.Details)
+            {
+                var book = await _context.RealBooks.FindAsync(detailDto.BookID);
+                if (book != null && detailDto.Quantity > 0)
+                {
+                    await SendRestockNotificationAsync(book.BookID, book.Title);
+                }
+            }
 
             // Return mapped DTO
             return await MapToDTOAsync(importing.ImportingID);
@@ -224,6 +236,12 @@ namespace BookBlossom.Infrastructure.Services
 
             await _context.SaveChangesAsync();
 
+            // Notify subscribers
+            if (request.Quantity > 0)
+            {
+                await SendRestockNotificationAsync(book.BookID, book.Title);
+            }
+
             // Recalculate TotalCost for the header
             await RecalculateTotalCostAsync(importingId);
 
@@ -267,6 +285,12 @@ namespace BookBlossom.Infrastructure.Services
 
             _context.ImportingDetails.Update(detail);
             await _context.SaveChangesAsync();
+
+            // Notify subscribers if we added stock
+            if (qtyDiff > 0)
+            {
+                await SendRestockNotificationAsync(book.BookID, book.Title);
+            }
 
             // Recalculate header total cost
             await RecalculateTotalCostAsync(importingId);
@@ -371,5 +395,31 @@ namespace BookBlossom.Infrastructure.Services
         }
 
         #endregion
+
+        private async Task SendRestockNotificationAsync(long bookId, string bookTitle)
+        {
+            try
+            {
+                var subscribers = await _context.Subscriptions
+                    .Where(s => s.TargetType == SubscriptionTargetType.Book && s.TargetID == bookId)
+                    .Select(s => s.CustomerID)
+                    .ToListAsync();
+
+                foreach (var subscriberId in subscribers)
+                {
+                    await _notificationService.CreateAndSendNotificationAsync(
+                        subscriberId,
+                        "Sách yêu thích đã có hàng",
+                        $"Cuốn sách \"{bookTitle}\" mà bạn theo dõi đã có hàng trở lại trong kho!",
+                        NotificationType.NewBookArrival,
+                        (int)bookId
+                    );
+                }
+            }
+            catch (Exception)
+            {
+                // Suppress errors for notification
+            }
+        }
     }
 }

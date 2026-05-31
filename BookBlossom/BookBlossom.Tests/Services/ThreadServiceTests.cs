@@ -10,6 +10,7 @@ using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
 using BookBlossom.Infrastructure.Data;
 using BookBlossom.Infrastructure.Services;
+using BookBlossom.Core.Interfaces.Services;
 using Xunit;
 
 namespace BookBlossom.Tests.Services
@@ -28,6 +29,11 @@ namespace BookBlossom.Tests.Services
         private Mock<ILogger<ThreadService>> GetMockLogger()
         {
             return new Mock<ILogger<ThreadService>>();
+        }
+
+        private Mock<INotificationService> GetMockNotificationService()
+        {
+            return new Mock<INotificationService>();
         }
 
         private async Task SeedBaseDataAsync(ApplicationDbContext context)
@@ -93,7 +99,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -114,7 +120,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -135,7 +141,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -163,7 +169,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
 
             // Set CurrentMonthThreadCount to 3 (equal to limit of Free package)
             var customerDetail = await context.CustomerDetails.FirstAsync(c => c.CustomerID == 101L);
@@ -189,7 +195,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -233,7 +239,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
 
             var postDto = await service.CreatePostAsync(101L, new CreateThreadPostDTO
             {

@@ -19,12 +19,14 @@ namespace BookBlossom.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ThreadService> _logger;
+        private readonly INotificationService _notificationService;
         private readonly string _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "threads");
 
-        public ThreadService(ApplicationDbContext context, ILogger<ThreadService> logger)
+        public ThreadService(ApplicationDbContext context, ILogger<ThreadService> logger, INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
+            _notificationService = notificationService;
             if (!Directory.Exists(_uploadFolder))
             {
                 Directory.CreateDirectory(_uploadFolder);
@@ -123,6 +125,33 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(p => p.Images)
                 .Include(p => p.Comments)
                 .FirstAsync(p => p.PostID == post.PostID);
+
+            // 8. Send Notifications to Followers
+            try
+            {
+                var followers = await _context.Subscriptions
+                    .Where(s => s.TargetType == SubscriptionTargetType.Thread && s.TargetID == customerId)
+                    .Select(s => s.CustomerID)
+                    .ToListAsync();
+
+                var creatorName = $"{customerDetail.User.LastName} {customerDetail.User.FirstName}".Trim();
+                if (string.IsNullOrEmpty(creatorName)) creatorName = "Người dùng";
+
+                foreach (var followerId in followers)
+                {
+                    await _notificationService.CreateAndSendNotificationAsync(
+                        followerId,
+                        "Bài viết mới từ người theo dõi",
+                        $"{creatorName} đã đăng một bài viết mới: \"{post.Title}\"",
+                        NotificationType.NewThread,
+                        (int)post.PostID
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi gửi thông báo bài viết mới đến những người theo dõi.");
+            }
 
             return MapToPostDTO(createdPost);
         }
@@ -271,6 +300,28 @@ namespace BookBlossom.Infrastructure.Services
             _context.ThreadComments.Add(comment);
             await _context.SaveChangesAsync();
 
+            try
+            {
+                var post = await _context.ThreadPosts.FindAsync(postId);
+                if (post != null && post.CustomerID != customerId)
+                {
+                    var commenterName = $"{user.LastName} {user.FirstName}".Trim();
+                    if (string.IsNullOrEmpty(commenterName)) commenterName = "Một người dùng";
+
+                    await _notificationService.CreateAndSendNotificationAsync(
+                        post.CustomerID,
+                        "Bình luận mới",
+                        $"{commenterName} đã bình luận về bài viết của bạn: \"{comment.Content}\"",
+                        NotificationType.NewInteraction,
+                        (int)postId
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi gửi thông báo bình luận mới.");
+            }
+
             return new ThreadCommentDTO
             {
                 CommentID = comment.CommentID,
@@ -331,13 +382,42 @@ namespace BookBlossom.Infrastructure.Services
             _context.Reports.Add(report);
             post.ReportCount += 1;
 
-            if (post.ReportCount >= 5)
+            bool isNowHidden = false;
+            if (post.ReportCount >= 5 && !post.IsHidden)
             {
                 post.IsHidden = true;
+                isNowHidden = true;
                 _logger.LogWarning($"[Moderation Alert] Bài viết ID {post.PostID} của khách hàng ID {post.CustomerID} đã nhận đủ 5 báo cáo vi phạm. Hệ thống đã tự động ẩn bài viết này.");
             }
 
             await _context.SaveChangesAsync();
+
+            try
+            {
+                await _notificationService.CreateAndSendNotificationAsync(
+                    post.CustomerID,
+                    "Bài viết bị báo cáo",
+                    $"Bài viết \"{post.Title}\" của bạn đã bị báo cáo vi phạm.",
+                    NotificationType.ModWarning,
+                    (int)post.PostID
+                );
+
+                if (isNowHidden)
+                {
+                    await _notificationService.CreateAndSendNotificationAsync(
+                        post.CustomerID,
+                        "Bài viết đã bị ẩn",
+                        $"Bài viết \"{post.Title}\" của bạn đã bị hệ thống tự động ẩn do nhận đủ 5 báo cáo vi phạm.",
+                        NotificationType.ModWarning,
+                        (int)post.PostID
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi gửi thông báo báo cáo vi phạm.");
+            }
+
             return post.ReportCount;
         }
 

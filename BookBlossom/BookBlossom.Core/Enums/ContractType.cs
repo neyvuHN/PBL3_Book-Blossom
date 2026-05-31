@@ -2,8 +2,8 @@ namespace BookBlossom.Core.Enums
 {
     public enum ContractType : byte
     {
-        FullTime = 1,
-        PartTime = 2,
-        Internship = 3
+        FullTime = 0,
+        PartTime = 1,
+        Internship = 2
     }
 }

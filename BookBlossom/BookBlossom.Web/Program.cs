@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.BackgroundJobs;
 using BookBlossom.Infrastructure.Data;
 using BookBlossom.Infrastructure.Services;
 using BookBlossom.Web.Middlewares;
+using BookBlossom.Web.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -72,6 +73,11 @@ builder.Services.AddScoped<IReturnService, ReturnService>();
 // Đăng ký IThreadService
 builder.Services.AddScoped<IThreadService, ThreadService>(); 
 
+// Đăng ký Notification Services
+builder.Services.AddScoped<INotificationPublisher, BookBlossom.Web.Hubs.NotificationPublisher>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSignalR();
+
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -91,6 +97,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
         options.Events = new JwtBearerEvents
         {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // If the request is for our hub...
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/hubs/notification")))
+                {
+                    // Read the token out of the query string
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
             OnChallenge = async context =>
             {
                 context.HandleResponse();
@@ -216,6 +236,7 @@ app.UseAuthentication(); // Thêm dòng này trước UseAuthorization
 app.UseAuthorization();
 
 app.MapStaticAssets();
+app.MapHub<NotificationHub>("/hubs/notification");
 app.MapControllers();
 
 app.MapControllerRoute(

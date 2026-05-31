@@ -7,6 +7,7 @@ using BookBlossom.Core.DTOs.CheckoutAndCreateOrder;
 using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.Interfaces;
+using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
@@ -18,6 +19,7 @@ namespace BookBlossom.Infrastructure.Services
     public class OrderService : IOrderService
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
 
         static OrderService()
         {
@@ -25,9 +27,10 @@ namespace BookBlossom.Infrastructure.Services
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        public OrderService(ApplicationDbContext context)
+        public OrderService(ApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<OrderResponseDTO> CreateOrderAsync(long customerId, CheckoutRequestDTO request)
@@ -305,6 +308,23 @@ namespace BookBlossom.Infrastructure.Services
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Send notifications to customers
+                foreach (var order in orders)
+                {
+                    try
+                    {
+                        await _notificationService.CreateAndSendNotificationAsync(
+                            order.CustomerID,
+                            "Đơn hàng được xác nhận",
+                            $"Đơn hàng #{order.OrderID} của bạn đã được xác nhận và đang chờ lấy hàng.",
+                            NotificationType.OrderStatus,
+                            (int)order.OrderID
+                        );
+                    }
+                    catch { /* Suppress notification errors */ }
+                }
+
                 await transaction.CommitAsync();
                 return true;
             }
@@ -382,6 +402,49 @@ namespace BookBlossom.Infrastructure.Services
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Send notifications to customers
+                foreach (var order in orders)
+                {
+                    try
+                    {
+                        string title = "Cập nhật trạng thái đơn hàng";
+                        string content = $"Đơn hàng #{order.OrderID} đã thay đổi trạng thái.";
+                        switch (status)
+                        {
+                            case OrderStatus.AwaitingPickup:
+                                title = "Đơn hàng chờ lấy";
+                                content = $"Đơn hàng #{order.OrderID} đang chờ đơn vị vận chuyển lấy hàng.";
+                                break;
+                            case OrderStatus.Shipping:
+                                title = "Đơn hàng đang giao";
+                                content = $"Đơn hàng #{order.OrderID} của bạn đã được gửi đi và đang vận chuyển.";
+                                break;
+                            case OrderStatus.Delivering:
+                                title = "Đơn hàng đang giao đến bạn";
+                                content = $"Đơn hàng #{order.OrderID} đang được giao đến địa chỉ của bạn.";
+                                break;
+                            case OrderStatus.Completed:
+                                title = "Đơn hàng hoàn thành";
+                                content = $"Đơn hàng #{order.OrderID} đã hoàn thành thành công. Cảm ơn bạn đã mua hàng!";
+                                break;
+                            case OrderStatus.Cancelled:
+                                title = "Đơn hàng bị hủy";
+                                content = $"Đơn hàng #{order.OrderID} của bạn đã bị hủy.";
+                                break;
+                        }
+
+                        await _notificationService.CreateAndSendNotificationAsync(
+                            order.CustomerID,
+                            title,
+                            content,
+                            NotificationType.OrderStatus,
+                            (int)order.OrderID
+                        );
+                    }
+                    catch { /* Suppress notification errors */ }
+                }
+
                 await transaction.CommitAsync();
                 return true;
             }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using BookBlossom.Core.Entities;
 using BookBlossom.Core.Interfaces;
+using BookBlossom.Core.Interfaces.Services;
 using BookBlossom.Core.DTOs.Book;
 using BookBlossom.Core.Enums;
 using BookBlossom.Infrastructure.Data;
@@ -15,12 +16,14 @@ namespace BookBlossom.Infrastructure.Services
     public class RealBookService : IRealBookService
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
         // Đường dẫn vật lý lưu file PDF đọc thử trên Server
         private readonly string _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "samples");
 
-        public RealBookService(ApplicationDbContext context)
+        public RealBookService(ApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
             // Tự động tạo thư mục lưu file PDF nếu hệ thống chưa có folder này
             if (!Directory.Exists(_uploadFolder)) Directory.CreateDirectory(_uploadFolder);
         }
@@ -63,7 +66,23 @@ namespace BookBlossom.Infrastructure.Services
             };
 
             _context.RealBooks.Add(realBook);
-            return await _context.SaveChangesAsync() > 0;
+            var success = await _context.SaveChangesAsync() > 0;
+
+            if (success)
+            {
+                try
+                {
+                    // Fetch category name
+                    var cat = await _context.Categories.FindAsync(request.CategoryID);
+                    var categoryName = cat?.CategoryName ?? "Thể loại";
+
+                    // Category subscription is no longer supported in the updated SubscriptionTargetType enum.
+                    await Task.CompletedTask;
+                }
+                catch { /* Suppress notification errors */ }
+            }
+
+            return success;
         }
 
         // 2. HÀM LẤY DANH SÁCH + TÌM KIẾM + PHÂN LOẠI + SẮP XẾP (GET ALL)

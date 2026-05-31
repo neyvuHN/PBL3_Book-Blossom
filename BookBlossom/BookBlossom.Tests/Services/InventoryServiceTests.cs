@@ -8,6 +8,8 @@ using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
 using BookBlossom.Infrastructure.Data;
 using BookBlossom.Infrastructure.Services;
+using Moq;
+using BookBlossom.Core.Interfaces.Services;
 using Xunit;
 
 namespace BookBlossom.Tests.Services
@@ -122,7 +124,8 @@ namespace BookBlossom.Tests.Services
             // Arrange
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
-            var service = new InventoryService(context);
+            var mockNotificationService = new Mock<INotificationService>();
+            var service = new InventoryService(context, mockNotificationService.Object);
 
             var request = new CreateImportingRequestDTO
             {
@@ -169,7 +172,8 @@ namespace BookBlossom.Tests.Services
             // Arrange
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
-            var service = new InventoryService(context);
+            var mockNotificationService = new Mock<INotificationService>();
+            var service = new InventoryService(context, mockNotificationService.Object);
 
             var request = new CreateImportingRequestDTO
             {
