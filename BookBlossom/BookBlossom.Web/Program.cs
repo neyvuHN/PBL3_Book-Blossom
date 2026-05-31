@@ -93,6 +93,9 @@ builder.Services.AddScoped<IReputationService, ReputationService>();
 // Đăng ký IStatisticsService
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
+// Đăng ký IAuditService
+builder.Services.AddScoped<IAuditService, AuditService>();
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -208,6 +211,13 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("CustomerOnly", policy =>
     {
         policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.Customer).ToString(), "Customer");
+        policy.RequireClaim("AccountStatus", activeStatus, "1");
+    });
+
+    // 3. Policy cho RequireSystemAdmin (quyền cao nhất)
+    options.AddPolicy("RequireSystemAdmin", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Role, ((int)UserRole.Admin).ToString(), "Admin");
         policy.RequireClaim("AccountStatus", activeStatus, "1");
     });
 });
