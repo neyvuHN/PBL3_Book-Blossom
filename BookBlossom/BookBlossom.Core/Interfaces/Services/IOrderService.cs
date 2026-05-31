@@ -13,6 +13,7 @@ namespace BookBlossom.Core.Interfaces
         
         // --- QUẢN LÝ ĐƠN HÀNG (STORE MANAGER) ---
         Task<IEnumerable<OrderListItemDTO>> GetOrdersForStoreAsync(OrderStatus? status, string? searchTerm);
+        Task<IEnumerable<OrderListItemDTO>> GetOrdersForCustomerAsync(long customerId, OrderStatus? status);
         Task<OrderDetailDTO?> GetOrderDetailForStoreAsync(long orderId);
         Task<bool> ConfirmOrdersAsync(List<long> orderIds);
         Task<bool> UpdateOrdersStatusAsync(List<long> orderIds, OrderStatus status);

@@ -222,6 +222,45 @@ namespace BookBlossom.Infrastructure.Services
             }
         }
 
+        // --- QUẢN LÝ ĐƠN HÀNG PHÍA CUSTOMER ---
+        public async Task<IEnumerable<OrderListItemDTO>> GetOrdersForCustomerAsync(long customerId, OrderStatus? status)
+        {
+            // Lọc đơn hàng theo chính CustomerID để đảm bảo bảo mật dữ liệu khách hàng
+            var query = _context.Set<Order>()
+                .Where(o => o.CustomerID == customerId);
+
+            // Nếu truyền vào status thì lọc theo trạng thái (Tab UI: Chờ xác nhận, Đang giao, Đã giao...)
+            if (status.HasValue)
+            {
+                query = query.Where(o => o.OrderStatus == status.Value);
+            }
+
+            // Sắp xếp đơn hàng mới nhất lên đầu
+            var orders = await query
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            // Lấy thông tin tên hiển thị của Customer từ DbContext
+            var user = await _context.Users.FindAsync(customerId);
+            string customerName = user != null ? $"{user.LastName} {user.FirstName}".Trim() : "Khách hàng";
+
+            // Ánh xạ sang DTO trả về cho Client hiển thị lên danh sách lịch sử mua hàng
+            return orders.Select(o => new OrderListItemDTO
+            {
+                OrderID = o.OrderID,
+                CustomerID = o.CustomerID,
+                CustomerName = customerName,
+                OrderDate = o.OrderDate ?? DateTime.UtcNow,
+                OrderStatus = o.OrderStatus,
+                PaymentMethod = o.PaymentMethod,
+                PaymentStatus = o.PaymentStatus,
+                TotalAmount = o.TotalAmount,
+                ShipReceiverName = o.ShipReceiverName,
+                ShipPhoneNumber = o.ShipPhoneNumber,
+                Note = o.Note
+            });
+        }
+
         // --- QUẢN LÝ ĐƠN HÀNG (STORE MANAGER) ---
 
         public async Task<IEnumerable<OrderListItemDTO>> GetOrdersForStoreAsync(OrderStatus? status, string? searchTerm)
