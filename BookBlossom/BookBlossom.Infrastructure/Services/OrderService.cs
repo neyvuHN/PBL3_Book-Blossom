@@ -20,6 +20,7 @@ namespace BookBlossom.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IGamificationService _gamificationService;
 
         static OrderService()
         {
@@ -27,10 +28,11 @@ namespace BookBlossom.Infrastructure.Services
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        public OrderService(ApplicationDbContext context, INotificationService notificationService)
+        public OrderService(ApplicationDbContext context, INotificationService notificationService, IGamificationService gamificationService)
         {
             _context = context;
             _notificationService = notificationService;
+            _gamificationService = gamificationService;
         }
 
         public async Task<OrderResponseDTO> CreateOrderAsync(long customerId, CheckoutRequestDTO request)
@@ -402,6 +404,22 @@ namespace BookBlossom.Infrastructure.Services
                 }
 
                 await _context.SaveChangesAsync();
+
+                if (status == OrderStatus.Completed)
+                {
+                    var completedCustomerIds = orders.Select(o => o.CustomerID).Distinct();
+                    foreach (var cId in completedCustomerIds)
+                    {
+                        try
+                        {
+                            await _gamificationService.CheckAndGrantShoppingBadgesAsync(cId);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Suppress/log badge check errors
+                        }
+                    }
+                }
 
                 // Send notifications to customers
                 foreach (var order in orders)

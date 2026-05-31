@@ -26,8 +26,11 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                    .OnDelete(DeleteBehavior.SetNull);
             
 
-            // Lưu ý: Mối quan hệ ngoại với [UserSystem].[CustomerDetail] nếu thực thể CustomerDetail 
-            // chưa nằm trong DbContext này thì EF sẽ tự nhận biết qua trường CustomerID khi query.
+            // 5. Cấu hình liên kết Foreign Key sang bảng CustomerDetail
+            builder.HasOne<CustomerDetail>()
+                   .WithMany(cd => cd.CustomerReputations)
+                   .HasForeignKey(cr => cr.CustomerID)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

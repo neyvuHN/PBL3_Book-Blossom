@@ -81,6 +81,9 @@ builder.Services.AddSignalR();
 // Đăng ký IReviewService
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
+// Đăng ký IGamificationService
+builder.Services.AddScoped<IGamificationService, GamificationService>();
+
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

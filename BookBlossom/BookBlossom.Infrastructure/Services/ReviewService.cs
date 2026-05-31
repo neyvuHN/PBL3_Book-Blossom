@@ -19,12 +19,14 @@ namespace BookBlossom.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ReviewService> _logger;
+        private readonly IGamificationService _gamificationService;
         private readonly string _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "reviews");
 
-        public ReviewService(ApplicationDbContext context, ILogger<ReviewService> logger)
+        public ReviewService(ApplicationDbContext context, ILogger<ReviewService> logger, IGamificationService gamificationService)
         {
             _context = context;
             _logger = logger;
+            _gamificationService = gamificationService;
             
             if (!Directory.Exists(_uploadFolder))
             {
@@ -97,6 +99,15 @@ namespace BookBlossom.Infrastructure.Services
 
             await _context.SaveChangesAsync();
 
+            try
+            {
+                await _gamificationService.CheckAndGrantInteractionBadgesAsync(customerId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi kiểm tra Badge sau khi tạo review cho Customer ID: {customerId}");
+            }
+
             // Lấy lại đầy đủ thông tin kèm User để trả về Client hiển thị đầy đủ
             var createdReview = await _context.Reviews
                 .Include(r => r.User)
@@ -115,6 +126,16 @@ namespace BookBlossom.Infrastructure.Services
 
             review.LikeCount += 1;
             await _context.SaveChangesAsync();
+
+            try
+            {
+                await _gamificationService.CheckAndGrantInteractionBadgesAsync(review.CustomerID);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi kiểm tra Badge sau khi like review cho Customer ID: {review.CustomerID}");
+            }
+
             return review.LikeCount;
         }
 

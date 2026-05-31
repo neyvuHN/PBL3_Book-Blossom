@@ -35,13 +35,6 @@ namespace BookBlossom.Infrastructure.Data.Configurations
            .WithOne(u => u.CustomerDetail)
            .HasForeignKey<CustomerDetail>(c => c.CustomerID)
            .OnDelete(DeleteBehavior.Cascade);
-
-    // Khai báo rõ quan hệ 1-N với CustomerReputation, FK là CustomerID
-    // Tránh EF tự sinh shadow property 'CustomerDetailCustomerID'
-    builder.HasMany(c => c.CustomerReputations)
-           .WithOne()
-           .HasForeignKey(cr => cr.CustomerID)
-           .OnDelete(DeleteBehavior.Cascade);
 }
     }
 }

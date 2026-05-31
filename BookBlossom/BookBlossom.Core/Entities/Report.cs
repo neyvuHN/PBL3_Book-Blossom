@@ -11,6 +11,7 @@ namespace BookBlossom.Core.Entities
         public ReportType Reason { get; set; }
         public string Description { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool? IsAccurate { get; set; }
 
         // Navigation properties
         public virtual ThreadPost Post { get; set; } = null!;
