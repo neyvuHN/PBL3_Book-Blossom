@@ -23,6 +23,7 @@ class BlindDateModel {
             images: data.images, // Array of File objects or URLs for preview
             stockInfo: data.stockInfo,
             barcode: `BLD${dateStr}${bdId}`,
+            realBookCategoryName: data.realBookCategoryName,
             createdAt: new Date().toISOString()
         };
         
@@ -40,7 +41,8 @@ class BlindDateModel {
                 keywords: data.keywords,
                 quotes: data.quotes,
                 hashtags: data.hashtags,
-                images: data.images
+                images: data.images,
+                realBookCategoryName: data.realBookCategoryName || this.blindDates[index].realBookCategoryName
             };
             return this.blindDates[index];
         }

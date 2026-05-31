@@ -58,8 +58,13 @@ class BlindDateView {
         
         // Inputs
         this.inputRealBookId = document.getElementById('bdRealBookID');
+        this.inputRealBookCategoryName = document.getElementById('bdRealBookCategoryName');
         this.inputQuantity = document.getElementById('bdQuantity');
         this.inputPrice = document.getElementById('bdPrice');
+        
+        // Search & Filter
+        this.searchInput = document.getElementById('searchBlindDateInput');
+        this.categoryFilter = document.getElementById('filterBlindDateCategory');
         
         // Table element
         this.tableBody = document.getElementById('blindDateTableBody');
@@ -146,6 +151,9 @@ class BlindDateView {
         
         // Fill real book info
         this.inputRealBookId.value = bookData.id || bookData.realBookId;
+        if (this.inputRealBookCategoryName) {
+            this.inputRealBookCategoryName.value = bookData.categoryName || bookData.realBookCategoryName || '';
+        }
         this.realBookImg.src = bookData.image || bookData.realBookImage || '/images/Book/book1.jpg';
         this.realBookTitle.textContent = bookData.title || bookData.realBookTitle;
         
@@ -192,6 +200,7 @@ class BlindDateView {
         return {
             id: editId,
             realBookId: formData.get('RealBookID'),
+            realBookCategoryName: formData.get('RealBookCategoryName'),
             realBookTitle: this.realBookTitle.textContent,
             realBookImage: this.realBookImg.src,
             realBookPrice: parseFloat(this.realBookPrice.textContent.replace(/\D/g, '')),

@@ -184,7 +184,8 @@
                                                     data-title="@book.Title" 
                                                     data-price="@book.Price" 
                                                     data-stock="@book.UnitsInStock"
-                                                    data-mainimage="@book.MainImageUrl">
+                                                    data-mainimage="@book.MainImageUrl"
+                                                    data-category-name="@book.CategoryName">
                                                 <i class="bi bi-gift me-1"></i> Blind Date
                                             </button>
                                             <a href="#" 
@@ -293,9 +294,21 @@
             <!-- Blind Date Tab -->
             <div class="tab-pane fade" id="blinddate" role="tabpanel" aria-labelledby="blinddate-tab">
                 <div class="d-flex justify-content-between mb-3 align-items-center">
-                    <div>
-                        <h5 class="mb-0 fw-bold" style="color: #2C2630;">Blind Date Packages</h5>
-                        <p class="text-muted small mb-0">Manage mystery book packages generated from inventory</p>
+                    <div class="d-flex gap-2 align-items-center w-100">
+                        <div class="search-box-wrapper flex-grow-1" style="max-width: 400px;">
+                            <input type="text" id="searchBlindDateInput" class="form-control" placeholder="Search by keywords, quotes, hashtags...">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <select id="filterBlindDateCategory" class="form-select" style="width: 200px; border-radius: 20px; height: 42px; font-size: 0.9rem; border-color: #e2e8f0; background-color: #f8fafc; cursor: pointer;">
+                            <option value="">All Categories</option>
+                            @if(Model?.Categories != null)
+                            {
+                                foreach (var cat in Model.Categories)
+                                {
+                                    <option value="@cat.CategoryName">@cat.CategoryName</option>
+                                }
+                            }
+                        </select>
                     </div>
                 </div>
 
@@ -482,6 +495,7 @@
             <div class="modal-body">
                 <form id="createBlindDateForm">
                     <input type="hidden" name="RealBookID" id="bdRealBookID">
+                    <input type="hidden" name="RealBookCategoryName" id="bdRealBookCategoryName">
                     
                     <div class="d-flex align-items-center p-3 mb-4 rounded" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
                         <img id="bdRealBookImage" src="" class="rounded shadow-sm me-3" style="width: 60px; height: 80px; object-fit: cover;" onerror="this.onerror=null; this.src='/images/Book/book1.jpg';" />

@@ -18,7 +18,8 @@ class BlindDateController {
                     title: createBtn.dataset.title,
                     price: createBtn.dataset.price,
                     stock: createBtn.dataset.stock,
-                    image: createBtn.dataset.mainimage
+                    image: createBtn.dataset.mainimage,
+                    categoryName: createBtn.dataset.categoryName
                 };
                 this.view.showModal(bookData, false);
                 return;
@@ -63,7 +64,13 @@ class BlindDateController {
                 
                 // Update view
                 this.view.hideModal();
-                this.view.renderTable(this.model.getBlindDates());
+                
+                // Refresh data with current filters
+                if (this.view.searchInput) {
+                    this.view.searchInput.dispatchEvent(new Event('input'));
+                } else {
+                    this.view.renderTable(this.model.getBlindDates());
+                }
                 
                 // Automatically navigate to Blind Date tab if not already there
                 const blindDateTabBtn = document.getElementById('blinddate-tab');
@@ -74,8 +81,35 @@ class BlindDateController {
             });
         }
         
+        // Handle Search and Filter
+        const renderFilteredData = () => {
+            const searchTerm = (this.view.searchInput?.value || '').toLowerCase();
+            const categoryFilter = this.view.categoryFilter?.value || '';
+
+            const filteredData = this.model.getBlindDates().filter(item => {
+                const searchMatch = !searchTerm || 
+                    (item.keywords || '').toLowerCase().includes(searchTerm) ||
+                    (item.quotes || '').toLowerCase().includes(searchTerm) ||
+                    (item.hashtags || '').toLowerCase().includes(searchTerm);
+                
+                const categoryMatch = !categoryFilter || item.realBookCategoryName === categoryFilter;
+
+                return searchMatch && categoryMatch;
+            });
+
+            this.view.renderTable(filteredData);
+        };
+
+        if (this.view.searchInput) {
+            this.view.searchInput.addEventListener('input', renderFilteredData);
+        }
+
+        if (this.view.categoryFilter) {
+            this.view.categoryFilter.addEventListener('change', renderFilteredData);
+        }
+        
         // Initial render for the blind date table
-        this.view.renderTable(this.model.getBlindDates());
+        renderFilteredData();
     }
 }
 
