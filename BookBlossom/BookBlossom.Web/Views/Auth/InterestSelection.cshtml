@@ -149,23 +149,8 @@
                 </div>
 
                 <!-- Tags Cloud -->
-                <div class="tags-cloud">
-                    <div class="tag">Romance 💓</div>
-                    <div class="tag">Sci-Fi 👽</div>
-                    <div class="tag">Fantasy 🐉</div>
-                    <div class="tag">Thriller 🔪</div>
-                    <div class="tag">Self-Help 🧠</div>
-                    <div class="tag">Cookbooks 🔍</div>
-                    <div class="tag">Manga 📚</div>
-                    <div class="tag">Art 🎨</div>
-                    <div class="tag">Philosophy 🦉</div>
-                    <div class="tag">Young Adult 🌱</div>
-                    <div class="tag">True Crime 🕵️‍♂️</div>
-                    <div class="tag">History 📜</div>
-                    <div class="tag">Biography ✒️</div>
-                    <div class="tag">Poetry 📝</div>
-                    <div class="tag">Business 💼</div>
-                    <div class="tag">Travel ✈️</div>
+                <div class="tags-cloud" id="tagsCloud">
+                    <!-- Tags will be loaded dynamically via API -->
                 </div>
                 
             </div>
@@ -174,12 +159,11 @@
 
         <!-- Fixed Bottom Bar (Ẩn lúc đầu) -->
         <div class="bottom-bar" id="bottomBar">
-            <button class="btn-explore" onclick="window.location.href='/Home'">Start Exploring</button>
-            <a href="/Home" class="skip-link">I'll let fate decide (Skip)</a>
+            <button class="btn-explore" id="btnExplore">Start Exploring</button>
+            <a href="javascript:void(0);" class="skip-link" id="skipLink">I'll let fate decide (Skip)</a>
         </div>
     </div>
 
-    <!-- Script xử lý tương tác -->
     <script>
         const mainActionBtn = document.querySelector('#mainActionBtn');
         const headerArea = document.querySelector('#headerArea');
@@ -188,15 +172,59 @@
         const genresSection = document.querySelector('#genresSection');
         const bottomBar = document.querySelector('#bottomBar');
         
-        const tags = document.querySelectorAll('.tag');
+        const tagsCloud = document.querySelector('#tagsCloud');
         const selectAllBtn = document.querySelector('#selectAllBtn');
+        const btnExplore = document.querySelector('#btnExplore');
+        const skipLink = document.querySelector('#skipLink');
 
         let isRevealed = false;
+
+        // Emoji mapping based on name
+        const getEmoji = (name) => {
+            const map = {
+                'romance': '💓', 'sci-fi': '👽', 'fantasy': '🐉', 'thriller': '🔪',
+                'self-help': '🧠', 'cookbooks': '🔍', 'manga': '📚', 'art': '🎨',
+                'philosophy': '🦉', 'young adult': '🌱', 'true crime': '🕵️‍♂️',
+                'history': '📜', 'biography': '✒️', 'poetry': '📝', 'business': '💼',
+                'travel': '✈️', 'fiction': '📖', 'non-fiction': '📘', 'mystery': '🔍'
+            };
+            return map[name.toLowerCase()] || '✨';
+        };
+
+        // Load Tags from API
+        async function loadTags() {
+            try {
+                const res = await fetch('/api/Onboarding/tags');
+                if (res.ok) {
+                    const categories = await res.json();
+                    tagsCloud.innerHTML = '';
+                    categories.forEach(cat => {
+                        const tag = document.createElement('div');
+                        tag.className = 'tag';
+                        tag.innerHTML = `${cat.categoryName} ${getEmoji(cat.categoryName)}`;
+                        tag.dataset.id = cat.categoryID;
+                        
+                        tag.addEventListener('click', () => {
+                            tag.classList.toggle('selected');
+                            updateCount();
+                        });
+                        
+                        tagsCloud.appendChild(tag);
+                    });
+                } else {
+                    console.error("Failed to load tags from API");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        
+        // Fetch tags when page loads
+        loadTags();
 
         // 1. Xử lý sự kiện bấm nút "Ready to Bloom!" để hiện danh sách
         mainActionBtn.addEventListener('click', () => {
             if (!isRevealed) {
-                // Hiện các phần tử mượt mà
                 headerArea.classList.add('shifted');
                 pinkLine.classList.add('show');
                 subtitleText.classList.add('show');
@@ -210,7 +238,7 @@
 
         // 2. Hàm đếm số lượng đã chọn
         function updateCount() {
-            if (!isRevealed) return; // Nếu chưa mở thì không đổi text
+            if (!isRevealed) return;
             
             const selectedCount = document.querySelectorAll('.tag.selected').length;
             if (selectedCount < 3) {
@@ -222,19 +250,12 @@
             }
         }
 
-        // 3. Xử lý click chọn Tag
-        tags.forEach(tag => {
-            tag.addEventListener('click', () => {
-                tag.classList.toggle('selected');
-                updateCount();
-            });
-        });
-
         // 4. Xử lý nút Select All
         selectAllBtn.addEventListener('click', () => {
-            const allSelected = Array.from(tags).every(tag => tag.classList.contains('selected'));
+            const allTags = document.querySelectorAll('.tag');
+            const allSelected = Array.from(allTags).every(tag => tag.classList.contains('selected'));
             
-            tags.forEach(tag => {
+            allTags.forEach(tag => {
                 if (allSelected) {
                     tag.classList.remove('selected');
                 } else {
@@ -244,6 +265,90 @@
             
             updateCount();
             selectAllBtn.textContent = allSelected ? 'Select All' : 'Deselect All';
+        });
+
+        // Save preferences logic
+        async function savePreferences(isSkipped) {
+            const selectedTags = Array.from(document.querySelectorAll('.tag.selected')).map(tag => parseInt(tag.dataset.id));
+            
+            if (!isSkipped && selectedTags.length < 3) {
+                alert('Please select at least 3 genres!');
+                return;
+            }
+
+            // Disable buttons
+            btnExplore.disabled = true;
+            btnExplore.textContent = 'Saving...';
+            
+            const token = localStorage.getItem('accessToken');
+            const guestId = localStorage.getItem('guestId');
+            
+            const payload = {
+                selectedTagIds: isSkipped ? [] : selectedTags,
+                isSkipped: isSkipped
+            };
+
+            try {
+                if (token) {
+                    // It's a User
+                    const prefRes = await fetch('/api/Onboarding/preferences', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (prefRes.ok) {
+                        const finRes = await fetch('/api/Onboarding/finalize', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (finRes.ok) {
+                            window.location.href = '/';
+                        } else {
+                            alert("Failed to finalize onboarding");
+                        }
+                    } else {
+                        alert("Failed to save preferences");
+                    }
+                } else if (guestId) {
+                    // It's a Guest
+                    const prefRes = await fetch('/api/Onboarding/guest/preferences', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Guest-Id': guestId
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (prefRes.ok) {
+                        window.location.href = '/';
+                    } else {
+                        alert("Failed to save guest preferences");
+                    }
+                } else {
+                    // No user/guest info
+                    window.location.href = '/Auth/Login';
+                }
+            } catch (err) {
+                console.error(err);
+                alert("An error occurred. Please try again.");
+            } finally {
+                btnExplore.disabled = false;
+                btnExplore.textContent = 'Start Exploring';
+            }
+        }
+
+        btnExplore.addEventListener('click', () => savePreferences(false));
+        skipLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            savePreferences(true);
         });
     </script>
 </body>

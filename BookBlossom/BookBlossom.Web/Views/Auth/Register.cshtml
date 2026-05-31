@@ -429,13 +429,27 @@
                         throw new Error(data.message || 'Mã OTP không chính xác.');
                     }
 
+                    // Save token to LocalStorage
+                    localStorage.setItem('accessToken', data.token);
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                    localStorage.setItem('userId', data.userId);
+                    localStorage.setItem('userName', data.userName);
+                    localStorage.setItem('roleId', data.roleID);
+                    document.cookie = "AuthToken=" + data.token + "; path=/; max-age=" + (60*60*24*7);
+
                     showToast('Phone number verified & account created successfully!', 'success', 'Verified');
                     isOtpVerified = true;
                     otpModal.classList.remove('active');
                     clearInterval(timerInterval);
 
                     setTimeout(() => {
-                        window.location.href = '/Auth/Login';
+                        if (data.roleID === 2 || data.roleID === '2' || data.roleID === 'Admin') {
+                            window.location.href = '/Admin/Dashboard';
+                        } else if (data.isOnboardingCompleted === false) {
+                            window.location.href = '/Auth/InterestSelection';
+                        } else {
+                            window.location.href = '/';
+                        }
                     }, 1500);
 
                 } catch (error) {

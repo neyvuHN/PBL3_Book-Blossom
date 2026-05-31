@@ -219,6 +219,8 @@
                     setTimeout(() => {
                         if (data.roleID === 2 || data.roleID === '2' || data.roleID === 'Admin') {
                             window.location.href = '/Admin/Dashboard';
+                        } else if (data.isOnboardingCompleted === false) {
+                            window.location.href = '/Auth/InterestSelection';
                         } else {
                             window.location.href = '/';
                         }
