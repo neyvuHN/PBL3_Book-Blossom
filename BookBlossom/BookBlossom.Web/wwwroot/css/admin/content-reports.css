@@ -12,12 +12,12 @@
     border-right: 1px solid #E5E7EB;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease, width 0.3s ease;
+    transition: width 0.3s ease;
     z-index: 10;
+    overflow: hidden;
 }
 
 .sub-sidebar.hidden {
-    transform: translateX(-100%);
     width: 0;
     border-right: none;
 }
@@ -28,6 +28,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    white-space: nowrap;
 }
 
 .sub-sidebar-header h3 {
@@ -51,6 +52,7 @@
     color: #6B7280;
     letter-spacing: 0.05em;
     margin-top: 10px;
+    white-space: nowrap;
 }
 
 .sub-menu-item {
@@ -61,6 +63,7 @@
     color: #374151;
     transition: background-color 0.2s, color 0.2s;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .sub-menu-item i {
