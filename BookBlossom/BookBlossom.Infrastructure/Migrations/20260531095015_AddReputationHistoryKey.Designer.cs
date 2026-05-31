@@ -4,6 +4,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookBlossom.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531095015_AddReputationHistoryKey")]
+    partial class AddReputationHistoryKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -583,7 +586,7 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Property<byte>("OrderStatus")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint")
-                        .HasDefaultValue((byte)0);
+                        .HasDefaultValue((byte)1);
 
                     b.Property<byte>("PaymentMethod")
                         .HasColumnType("tinyint");
@@ -1088,34 +1091,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.ToTable("StaffDetail", "UserSystem");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.Subscription", b =>
-                {
-                    b.Property<long>("FollowID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("FollowID"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<long>("CustomerID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TargetID")
-                        .HasColumnType("bigint");
-
-                    b.Property<byte>("TargetType")
-                        .HasColumnType("tinyint");
-
-                    b.HasKey("FollowID");
-
-                    b.HasIndex("CustomerID", "TargetID", "TargetType");
-
-                    b.ToTable("Subscription", "Notification");
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.SwipeLog", b =>
                 {
                     b.Property<long>("SwipeLogID")
@@ -1313,49 +1288,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasIndex("RoleID");
 
                     b.ToTable("User", "UserSystem");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.UserNotification", b =>
-                {
-                    b.Property<long>("NotificationID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("NotificationID"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<byte>("NotificationType")
-                        .HasColumnType("tinyint");
-
-                    b.Property<int?>("ReferenceID")
-                        .HasColumnType("int");
-
-                    b.Property<byte?>("ReferenceType")
-                        .HasColumnType("tinyint");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<long>("UserID")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("NotificationID");
-
-                    b.HasIndex("UserID", "IsRead");
-
-                    b.ToTable("UserFollow", "Notification");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Wishlist", b =>
@@ -1716,17 +1648,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.Subscription", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.ThreadComment", b =>
                 {
                     b.HasOne("BookBlossom.Core.Entities.User", "User")
@@ -1777,17 +1698,6 @@ namespace BookBlossom.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.UserNotification", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Wishlist", b =>
