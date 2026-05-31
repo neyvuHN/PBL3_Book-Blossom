@@ -287,7 +287,8 @@ class OrdersController {
                     const buyerNameElement = row.querySelector('div[style*="font-weight:600; color:#2C2630;"]');
                     const buyerName = buyerNameElement ? buyerNameElement.textContent : 'Customer';
                     
-                    this.view.openChatModal(buyerName, null);
+                    // Redirect to Messages page with buyer name parameter
+                    window.location.href = '/Admin/Messages?buyer=' + encodeURIComponent(buyerName);
                 }
 
                 if (btnResolve) {

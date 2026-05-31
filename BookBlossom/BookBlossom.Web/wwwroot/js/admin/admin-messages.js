@@ -60,6 +60,22 @@ $(document).ready(function() {
             buyer = Object.values(mockBuyers).find(b => b.name.toLowerCase() === buyerIdOrName.toString().toLowerCase());
         }
 
+        if (!buyer) {
+            // Generate temporary buyer if not found in mock database
+            buyer = {
+                name: decodeURIComponent(buyerIdOrName),
+                avatar: "/images/Avatar/avatar1.jpg",
+                status: "Offline",
+                isOnline: false,
+                joined: "Joined: Recently",
+                orders: "1",
+                spent: "0 VND",
+                address: "N/A",
+                phone: "N/A",
+                email: "N/A"
+            };
+        }
+
         if (buyer) {
             // Close search bar if open & clear highlights
             $('#admin-chat-search-bar').hide();
@@ -96,9 +112,9 @@ $(document).ready(function() {
     }
 
     // 2. Handle Conversation Selection
-    $('.convo-item').on('click', function() {
+    $('#admin-convo-list').on('click', '.convo-item', function() {
         // Reset state
-        $('.convo-item').removeClass('active');
+        $('#admin-convo-list .convo-item').removeClass('active');
         $(this).addClass('active');
 
         const buyerId = $(this).data('buyer-id');
@@ -870,4 +886,63 @@ $(document).ready(function() {
             }
         });
     });
+
+    // ==========================================
+    // Auto-select Buyer from URL Parameter
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const buyerFromUrl = urlParams.get('buyer');
+    if (buyerFromUrl) {
+        // Switch left tab to Conversations
+        $('.tab-btn[data-target="#conversations-tab"]').click();
+
+        // Find the convo-item with this name and click it
+        const $convoItem = $('.convo-item').filter(function() {
+            return $(this).find('.convo-name').text().trim().toLowerCase() === buyerFromUrl.toLowerCase();
+        });
+
+        if ($convoItem.length > 0) {
+            $convoItem.click();
+        } else {
+            // Fallback Sync Profile Data
+            const buyer = syncBuyerProfile(buyerFromUrl);
+            if (buyer) {
+                // Dynamically create and prepend a convo item
+                const newConvoItem = $(`
+                    <div class="convo-item" data-buyer-id="${buyer.name}">
+                        <div class="convo-avatar-wrapper">
+                            <img src="${buyer.avatar}" alt="Buyer" class="convo-avatar" onerror="this.src='/images/Avatar/default.png'">
+                        </div>
+                        <div class="convo-info">
+                            <div class="convo-name-time">
+                                <span class="convo-name">${buyer.name}</span>
+                                <span class="convo-time">Just now</span>
+                            </div>
+                            <div class="convo-preview">Contacted from Orders</div>
+                        </div>
+                    </div>
+                `);
+                $('#admin-convo-list').prepend(newConvoItem);
+                
+                // Trigger click on the newly created item to load the chat
+                newConvoItem.click();
+                
+                // Override the generic message with a complaint-specific one
+                $('#admin-chat-stream').empty().append(`
+                    <div class="chat-date-separator">
+                        <span>Today</span>
+                    </div>
+                    <div class="msg-bubble-group incoming">
+                        <img src="${buyer.avatar}" class="msg-avatar" onerror="this.src='/images/Avatar/avatar1.jpg'">
+                        <div class="msg-bubble-content">
+                            <div class="msg-text-bubble">
+                                Hello! I am ${buyer.name}. I have a complaint about my order.
+                            </div>
+                            <div class="msg-meta">Just now</div>
+                        </div>
+                    </div>
+                `);
+            }
+        }
+    }
 });
