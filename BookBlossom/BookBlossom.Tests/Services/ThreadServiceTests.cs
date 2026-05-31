@@ -36,6 +36,11 @@ namespace BookBlossom.Tests.Services
             return new Mock<INotificationService>();
         }
 
+        private Mock<IReputationService> GetMockReputationService()
+        {
+            return new Mock<IReputationService>();
+        }
+
         private async Task SeedBaseDataAsync(ApplicationDbContext context)
         {
             // Seed roles
@@ -99,7 +104,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object, GetMockReputationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -120,7 +125,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object, GetMockReputationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -141,7 +146,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object, GetMockReputationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -169,7 +174,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object, GetMockReputationService().Object);
 
             // Set CurrentMonthThreadCount to 3 (equal to limit of Free package)
             var customerDetail = await context.CustomerDetails.FirstAsync(c => c.CustomerID == 101L);
@@ -195,7 +200,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object, GetMockReputationService().Object);
 
             var dto = new CreateThreadPostDTO
             {
@@ -239,7 +244,7 @@ namespace BookBlossom.Tests.Services
             using var context = GetInMemoryDbContext();
             await SeedBaseDataAsync(context);
             var mockLogger = GetMockLogger();
-            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object);
+            var service = new ThreadService(context, mockLogger.Object, GetMockNotificationService().Object, GetMockReputationService().Object);
 
             var postDto = await service.CreatePostAsync(101L, new CreateThreadPostDTO
             {

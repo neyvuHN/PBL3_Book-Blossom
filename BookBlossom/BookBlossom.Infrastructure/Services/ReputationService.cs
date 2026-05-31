@@ -58,6 +58,9 @@ namespace BookBlossom.Infrastructure.Services
                 ReputationAction.ShopPackedCancellation => -5,   // Hủy đơn sau khi Shop đã đóng gói
                 ReputationAction.OrderBombed => -25,             // "Bom" hàng
                 ReputationAction.ReviewThreadDeleted => -5,      // Bị xóa bài reviews/threads
+                ReputationAction.StreakBonusLvl1 => 10,          // Đạt Streak 3 lần 1 trong tháng: +10
+                ReputationAction.StreakBonusLvl2 => 5,           // Đạt Streak 3 lần 2 trong tháng: +5
+                ReputationAction.StreakBonusLvl3 => 2,           // Đạt Streak 3 lần 3 trong tháng: +2
                 _ => 0
             };
 

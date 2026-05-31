@@ -309,5 +309,43 @@ namespace BookBlossom.Web.Controllers
                 return BadRequest(new { message = "Lỗi khi xuất danh sách hóa đơn PDF.", detail = ex.Message });
             }
         }
+
+        // API 9: Xác nhận thanh toán online thành công cho đơn hàng
+        [HttpPost("{orderId}/payment-success")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> ProcessPaymentSuccess(long orderId)
+        {
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ." });
+            }
+
+            try
+            {
+                var order = await _context.Set<Order>().FirstOrDefaultAsync(o => o.OrderID == orderId);
+                if (order == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy đơn hàng." });
+                }
+
+                if (order.CustomerID != customerId)
+                {
+                    return Forbid();
+                }
+
+                var success = await _service.ProcessPaymentSuccessAsync(orderId);
+                if (!success)
+                {
+                    return BadRequest(new { message = "Xác nhận thanh toán trực tuyến thất bại." });
+                }
+
+                return Ok(new { message = "Thanh toán thành công và đã cộng điểm uy tín." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Lỗi khi xử lý thanh toán thành công.", detail = ex.Message });
+            }
+        }
     }
 }

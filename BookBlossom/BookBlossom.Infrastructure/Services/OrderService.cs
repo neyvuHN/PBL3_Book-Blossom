@@ -371,19 +371,78 @@ namespace BookBlossom.Infrastructure.Services
                     else if (status == OrderStatus.Completed)
                     {
                         order.CompletedDate = DateTime.UtcNow;
-                        order.PaymentStatus = 1;
+
+                        // Tăng streak đơn hàng của khách hàng
+                        var customerDetail = await _context.Set<CustomerDetail>()
+                            .FirstOrDefaultAsync(cd => cd.CustomerID == order.CustomerID);
+                        if (customerDetail != null)
+                        {
+                            customerDetail.CurrentOrderStreak++;
+
+                            if (customerDetail.CurrentOrderStreak >= 3)
+                            {
+                                customerDetail.CurrentOrderStreak = 0; // Reset streak
+
+                                var now = DateTime.UtcNow;
+                                var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                                var streakCountThisMonth = await _context.Set<ReputationHistory>()
+                                    .CountAsync(rh => rh.CustomerID == order.CustomerID &&
+                                                      (rh.ReferenceType == (byte)ReputationAction.StreakBonusLvl1 ||
+                                                       rh.ReferenceType == (byte)ReputationAction.StreakBonusLvl2 ||
+                                                       rh.ReferenceType == (byte)ReputationAction.StreakBonusLvl3) &&
+                                                      rh.CreateAt >= startOfMonth);
+
+                                ReputationAction? bonusAction = null;
+                                string bonusReason = "";
+
+                                if (streakCountThisMonth == 0)
+                                {
+                                    bonusAction = ReputationAction.StreakBonusLvl1;
+                                    bonusReason = "Lần đầu đạt Streak 3 trong tháng";
+                                }
+                                else if (streakCountThisMonth == 1)
+                                {
+                                    bonusAction = ReputationAction.StreakBonusLvl2;
+                                    bonusReason = "Lần thứ 2 đạt Streak 3 trong tháng";
+                                }
+                                else if (streakCountThisMonth == 2)
+                                {
+                                    bonusAction = ReputationAction.StreakBonusLvl3;
+                                    bonusReason = "Lần thứ 3 đạt Streak 3 trong tháng";
+                                }
+
+                                if (bonusAction.HasValue)
+                                {
+                                    await _reputationService.HandleReputationChangeAsync(order.CustomerID, bonusAction.Value, bonusReason);
+                                    await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+                                }
+                            }
+                        }
 
                         // --- THÊM ĐOẠN NÀY ĐỂ CỘNG ĐIỂM ---
-                        var action = (order.PaymentMethod == PaymentMethod.COD) 
-                                    ? ReputationAction.CodDeliverySuccess 
-                                    : ReputationAction.OnlinePaymentSuccess;
+                        if (order.PaymentStatus == 0)
+                        {
+                            order.PaymentStatus = 1;
 
-                        await _reputationService.HandleReputationChangeAsync(order.CustomerID, action, $"Hoàn tất đơn hàng #{order.OrderID}");
-                        await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+                            var action = (order.PaymentMethod == PaymentMethod.COD) 
+                                        ? ReputationAction.CodDeliverySuccess 
+                                        : ReputationAction.OnlinePaymentSuccess;
+
+                            await _reputationService.HandleReputationChangeAsync(order.CustomerID, action, $"Hoàn tất đơn hàng #{order.OrderID}");
+                            await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+                        }
                         // ----------------------------------
                     }
                     else if (status == OrderStatus.Cancelled)
                     {
+                        // Reset streak đơn hàng về 0
+                        var customerDetail = await _context.Set<CustomerDetail>()
+                            .FirstOrDefaultAsync(cd => cd.CustomerID == order.CustomerID);
+                        if (customerDetail != null)
+                        {
+                            customerDetail.CurrentOrderStreak = 0;
+                        }
+
                         // HOÀN TRẢ LẠI KHO HÀNG
                         foreach (var detail in order.OrderDetails)
                         {
@@ -432,7 +491,7 @@ namespace BookBlossom.Infrastructure.Services
                         {
                             await _gamificationService.CheckAndGrantShoppingBadgesAsync(cId);
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             // Suppress/log badge check errors
                         }
@@ -481,6 +540,63 @@ namespace BookBlossom.Infrastructure.Services
                     catch { /* Suppress notification errors */ }
                 }
 
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> ProcessPaymentSuccessAsync(long orderId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var order = await _context.Set<Order>()
+                    .FirstOrDefaultAsync(o => o.OrderID == orderId);
+
+                if (order == null) return false;
+
+                // Chỉ xử lý nếu thanh toán trực tuyến (không phải COD)
+                if (order.PaymentMethod == PaymentMethod.COD)
+                {
+                    return false;
+                }
+
+                // Nếu đã thanh toán rồi, không làm gì cả (no-op)
+                if (order.PaymentStatus == 1)
+                {
+                    await transaction.CommitAsync();
+                    return true;
+                }
+
+                order.PaymentStatus = 1; // Completed / Đã thanh toán
+                order.OrderStatus = OrderStatus.AwaitingPickup; // Chuyển sang Chờ lấy hàng
+
+                // Cộng điểm uy tín thanh toán online thành công (+5)
+                await _reputationService.HandleReputationChangeAsync(
+                    order.CustomerID, 
+                    ReputationAction.OnlinePaymentSuccess, 
+                    $"Thanh toán trực tuyến thành công cho đơn hàng #{order.OrderID}");
+
+                await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+
+                try
+                {
+                    await _notificationService.CreateAndSendNotificationAsync(
+                        order.CustomerID,
+                        "Thanh toán đơn hàng thành công",
+                        $"Đơn hàng #{order.OrderID} của bạn đã được thanh toán thành công và đang chờ xác nhận từ cửa hàng.",
+                        NotificationType.OrderStatus,
+                        (int)order.OrderID
+                    );
+                }
+                catch { /* Suppress notification errors */ }
+
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 return true;
             }
