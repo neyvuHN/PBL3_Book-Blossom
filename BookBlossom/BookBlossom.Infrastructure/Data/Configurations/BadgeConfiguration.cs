@@ -19,11 +19,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(150);
 
-            builder.Property(b => b.IconPath)
-                .IsRequired()
-                .HasMaxLength(255);
-
-            builder.Property(b => b.ConditionDescription)
+            builder.Property(b => b.Description)
                 .IsRequired()
                 .HasMaxLength(500);
         }

@@ -8,11 +8,11 @@ namespace BookBlossom.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<BadgeCustomer> builder)
         {
-            builder.ToTable("BadgeCustomer", "Rank");
+            builder.ToTable("CustomerBadge", "Rank");
 
             builder.HasKey(bc => new { bc.CustomerID, bc.BadgeID });
 
-            builder.Property(bc => bc.EarnedDate)
+            builder.Property(bc => bc.EarnedAt)
                 .IsRequired();
 
             builder.HasOne(bc => bc.CustomerDetail)

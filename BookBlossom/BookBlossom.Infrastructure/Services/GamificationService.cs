@@ -46,9 +46,8 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     BadgeID = bc.BadgeID,
                     BadgeName = bc.Badge.BadgeName,
-                    IconPath = bc.Badge.IconPath,
-                    ConditionDescription = bc.Badge.ConditionDescription,
-                    EarnedDate = bc.EarnedDate
+                    Description = bc.Badge.Description,
+                    EarnedAt = bc.EarnedAt
                 })
                 .ToListAsync();
         }
@@ -60,8 +59,7 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     BadgeID = b.BadgeID,
                     BadgeName = b.BadgeName,
-                    IconPath = b.IconPath,
-                    ConditionDescription = b.ConditionDescription
+                    Description = b.Description
                 })
                 .ToListAsync();
         }
@@ -245,7 +243,7 @@ namespace BookBlossom.Infrastructure.Services
                     {
                         CustomerID = customerId,
                         BadgeID = badgeId,
-                        EarnedDate = DateTime.UtcNow
+                        EarnedAt = DateTime.UtcNow
                     };
 
                     _context.BadgeCustomers.Add(badgeCustomer);

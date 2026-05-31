@@ -41,11 +41,11 @@ namespace BookBlossom.Tests.Services
         {
             var badges = new[]
             {
-                new Badge { BadgeID = 1, BadgeName = "Chiến thần Review Cấp 1", IconPath = "icon1.png", ConditionDescription = "Review Lvl 1" },
-                new Badge { BadgeID = 2, BadgeName = "Chiến thần Review Cấp 2", IconPath = "icon2.png", ConditionDescription = "Review Lvl 2" },
-                new Badge { BadgeID = 5, BadgeName = "Trùm Blind Date Cấp 1", IconPath = "icon5.png", ConditionDescription = "Blind Date Lvl 1" },
-                new Badge { BadgeID = 8, BadgeName = "Mọt sách chính hiệu", IconPath = "icon8.png", ConditionDescription = "Bookworm" },
-                new Badge { BadgeID = 9, BadgeName = "Người dùng gương mẫu", IconPath = "icon9.png", ConditionDescription = "Exemplary User" }
+                new Badge { BadgeID = 1, BadgeName = "Chiến thần Review Cấp 1", Description = "Review Lvl 1" },
+                new Badge { BadgeID = 2, BadgeName = "Chiến thần Review Cấp 2", Description = "Review Lvl 2" },
+                new Badge { BadgeID = 5, BadgeName = "Trùm Blind Date Cấp 1", Description = "Blind Date Lvl 1" },
+                new Badge { BadgeID = 8, BadgeName = "Mọt sách chính hiệu", Description = "Bookworm" },
+                new Badge { BadgeID = 9, BadgeName = "Người dùng gương mẫu", Description = "Exemplary User" }
             };
             await context.Badges.AddRangeAsync(badges);
             await context.SaveChangesAsync();

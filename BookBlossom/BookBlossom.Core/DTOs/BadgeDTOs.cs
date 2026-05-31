@@ -6,17 +6,15 @@ namespace BookBlossom.Core.DTOs
     {
         public long BadgeID { get; set; }
         public string BadgeName { get; set; } = string.Empty;
-        public string IconPath { get; set; } = string.Empty;
-        public string ConditionDescription { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
     }
 
     public class BadgeCustomerDTO
     {
         public long BadgeID { get; set; }
         public string BadgeName { get; set; } = string.Empty;
-        public string IconPath { get; set; } = string.Empty;
-        public string ConditionDescription { get; set; } = string.Empty;
-        public DateTime EarnedDate { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public DateTime EarnedAt { get; set; }
     }
 
     public class ShareRequestDTO

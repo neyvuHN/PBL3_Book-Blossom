@@ -7,8 +7,7 @@ namespace BookBlossom.Core.Entities
     {
         public long BadgeID { get; set; }
         public string BadgeName { get; set; } = string.Empty;
-        public string IconPath { get; set; } = string.Empty;
-        public string ConditionDescription { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
 
         // Navigation property
         public virtual ICollection<BadgeCustomer> BadgeCustomers { get; set; } = new List<BadgeCustomer>();
@@ -18,7 +17,7 @@ namespace BookBlossom.Core.Entities
     {
         public long CustomerID { get; set; }
         public long BadgeID { get; set; }
-        public DateTime EarnedDate { get; set; } = DateTime.UtcNow;
+        public DateTime EarnedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         public virtual CustomerDetail CustomerDetail { get; set; } = null!;
