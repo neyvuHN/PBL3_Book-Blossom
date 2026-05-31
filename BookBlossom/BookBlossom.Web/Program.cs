@@ -81,6 +81,8 @@ builder.Services.AddSignalR();
 // Đăng ký IReviewService
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
+// Đăng ký IReputationService
+builder.Services.AddScoped<IReputationService, ReputationService>(); 
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

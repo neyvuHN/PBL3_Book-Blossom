@@ -15,6 +15,8 @@ namespace BookBlossom.Core.Entities
         // Tỷ lệ giảm giá tương ứng của Rank (Mặc định là 0 dưới DB)
         public decimal? DiscountRate { get; set; } = 0;
 
+
         public ICollection<CustomerDetail> CustomerDetails {get; set; } = new List<CustomerDetail>();
+        public virtual CustomerReputation? CustomerReputation { get; set; }
     }
 }
