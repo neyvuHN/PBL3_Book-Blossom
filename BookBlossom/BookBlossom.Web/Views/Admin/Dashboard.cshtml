@@ -41,75 +41,171 @@
 
 @section Scripts {
     <script>
-        // Dummy data for Growth Chart
-        const ctxGrowth = document.getElementById('growthChart').getContext('2d');
-        new Chart(ctxGrowth, {
-            type: 'line', // Changed to line chart
-            data: {
-                // The labels array represents 12 evenly divided periods based on the date filter
-                labels: ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6', 'Period 7', 'Period 8', 'Period 9', 'Period 10', 'Period 11', 'Period 12'],
-                datasets: [
-                    {
-                        label: 'Real Book Revenue',
-                        data: [150, 230, 180, 290, 210, 310, 340, 280, 350, 420, 380, 450],
-                        borderColor: '#27AE60',
-                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Blind Date Book Revenue',
-                        data: [80, 120, 150, 140, 180, 170, 220, 240, 210, 260, 280, 320],
-                        borderColor: '#E3597D',
-                        backgroundColor: 'rgba(227, 89, 125, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        let growthChartInstance = null;
+        let pieChartInstance = null;
 
-        // Dummy data for Pie Chart
-        const ctxPie = document.getElementById('pieChart').getContext('2d');
-        new Chart(ctxPie, {
-            type: 'doughnut',
-            data: {
-                labels: ['Pending', 'To Ship', 'In Transit', 'Completed', 'Cancelled', 'Returning'],
-                datasets: [{
-                    data: [10, 15, 25, 30, 5, 15],
-                    backgroundColor: [
-                        '#F2C94C', // Pending
-                        '#9B51E0', // AwaitingPickup
-                        '#2F80ED', // Shipping
-                        '#27AE60', // Completed
-                        '#EB5757', // Cancelled
-                        '#F2994A'  // Returning
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '60%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 12
+        async function loadDashboardData() {
+            const dateInputs = document.querySelectorAll('.custom-date-input');
+            const fromDate = dateInputs[0].value;
+            const toDate = dateInputs[1].value;
+
+            try {
+                // Sử dụng apiClient đã được tích hợp ở _AdminLayout.cshtml
+                const data = await apiClient.apiGet(`/api/Statistics/dashboard-overview?from=${fromDate}&to=${toDate}`);
+                
+                updateKpis(data.kpis);
+                updateCharts(data.revenueChart, data.orderChart);
+                updateTrendingBooks(data.topBooks);
+            } catch (error) {
+                console.error("Lỗi khi tải dữ liệu dashboard:", error);
+            }
+        }
+
+        function formatCurrency(amount) {
+            if(amount >= 1000000) {
+                return (amount / 1000000).toFixed(1) + 'M';
+            } else if(amount >= 1000) {
+                return (amount / 1000).toFixed(1) + 'K';
+            }
+            return amount.toString();
+        }
+
+        function updateKpis(kpis) {
+            document.querySelector('.stat-card.total-revenue .value').innerHTML = `${formatCurrency(kpis.totalRevenue)} <span>VND</span>`;
+            document.querySelector('.stat-card.total-orders .value').innerHTML = `${kpis.totalOrders} <span>Orders</span>`;
+            document.querySelector('.stat-card.return-rate .value').innerHTML = `${kpis.returnRate} <span>%</span>`;
+            // Active users not returned by BE currently, keeping it as is or N/A
+            document.querySelector('.stat-card.users .value').innerHTML = `N/A <span>Users</span>`;
+        }
+
+        function updateCharts(revenueChart, orderChart) {
+            // Cập nhật Growth Chart (Line Chart)
+            const labels = revenueChart.map(x => x.dateLabel);
+            const realBookData = revenueChart.map(x => x.realBookRevenue);
+            const blindBookData = revenueChart.map(x => x.blindBookRevenue);
+
+            const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+            
+            if (growthChartInstance) {
+                growthChartInstance.destroy();
+            }
+
+            growthChartInstance = new Chart(ctxGrowth, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Real Book Revenue',
+                            data: realBookData,
+                            borderColor: '#27AE60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Blind Date Book Revenue',
+                            data: blindBookData,
+                            borderColor: '#E3597D',
+                            backgroundColor: 'rgba(227, 89, 125, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
                         }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
                     }
                 }
+            });
+
+            // Cập nhật Pie Chart
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            
+            if (pieChartInstance) {
+                pieChartInstance.destroy();
+            }
+
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'To Ship', 'In Transit', 'Delivering', 'Completed', 'Cancelled', 'Returning'],
+                    datasets: [{
+                        data: [
+                            orderChart.pendingCount, 
+                            orderChart.awaitingPickupCount, 
+                            orderChart.shippingCount, 
+                            orderChart.deliveringCount,
+                            orderChart.completedCount, 
+                            orderChart.cancelledCount, 
+                            orderChart.returningCount
+                        ],
+                        backgroundColor: [
+                            '#F2C94C', '#9B51E0', '#2F80ED', '#56CCF2', '#27AE60', '#EB5757', '#F2994A'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12 } }
+                    }
+                }
+            });
+        }
+
+        function updateTrendingBooks(books) {
+            const tbody = document.querySelector('.trending-table tbody');
+            tbody.innerHTML = '';
+            
+            books.forEach(book => {
+                const typeClass = book.productType === 'Blind Book' ? 'badge-pink' : 'badge-classic';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="rank rank-${book.rank <= 3 ? book.rank : ''}">${book.rank}</span></td>
+                    <td>
+                        <div class="book-info">
+                            <div class="book-cover" style="background-color: #f1f5f9;"></div>
+                            <div class="book-details">
+                                <h4>${book.bookName}</h4>
+                                <span>Stock: ${book.stockCount}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge ${typeClass}">${book.productType}</span></td>
+                    <td>${book.soldCount}</td>
+                    <td>${formatCurrency(book.totalRevenue)} VND</td>
+                    <td class="trend-flat">-</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tải dữ liệu lần đầu
+            loadDashboardData();
+
+            // Lắng nghe sự kiện đổi ngày
+            const dateInputs = document.querySelectorAll('.custom-date-input');
+            dateInputs.forEach(input => {
+                input.addEventListener('change', loadDashboardData);
+            });
+
+            // Nút Export PDF
+            const exportBtn = document.querySelector('.btn-export-pdf');
+            if(exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    const fromDate = dateInputs[0].value;
+                    const toDate = dateInputs[1].value;
+                    window.location.href = `/api/Statistics/export-pdf?from=${fromDate}&to=${toDate}`;
+                });
             }
         });
     </script>

@@ -214,8 +214,14 @@
 
                     showToast('Đăng nhập thành công! Đang chuyển hướng...', 'success', 'Thành Công');
 
+
+
                     setTimeout(() => {
-                        window.location.href = '/';
+                        if (data.roleID === 2 || data.roleID === '2' || data.roleID === 'Admin') {
+                            window.location.href = '/Admin/Dashboard';
+                        } else {
+                            window.location.href = '/';
+                        }
                     }, 1500);
 
                 } catch (error) {
