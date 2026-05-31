@@ -78,6 +78,9 @@ builder.Services.AddScoped<INotificationPublisher, BookBlossom.Web.Hubs.Notifica
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddSignalR();
 
+// Đăng ký IReviewService
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

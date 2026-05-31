@@ -38,6 +38,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<Report> Reports { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
