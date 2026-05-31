@@ -46,24 +46,53 @@ class WishlistController {
         }
     }
 
-    handleAddToCart(id) {
+    async handleAddToCart(id) {
         // Find item
         const item = this.model.items.find(i => i.id === id);
         if (item) {
             console.log("Adding to cart:", item);
-            if (window.BookBlossomCart) {
-                window.BookBlossomCart.addToCart({
-                    title: item.title,
-                    priceVnd: item.price,
-                    price: item.price / 20000,
-                    img: item.imageUrl,
-                    isBlind: item.isBlindDate,
-                    hashtags: item.hashtags,
-                    qty: 1
-                });
-                showToast(`Added "${item.title}" to cart!`, 'success');
-            } else {
-                showToast(`Added "${item.title}" to cart (simulated)!`, 'success');
+            try {
+                if (window.apiClient) {
+                    const requestBody = { quantity: 1 };
+                    if (item.isBlindDate) {
+                        requestBody.blindBookID = item.blindBookID || item.id;
+                        if (typeof requestBody.blindBookID === 'string') {
+                            const parsed = parseInt(requestBody.blindBookID.replace(/\D/g, ''));
+                            if (!isNaN(parsed) && parsed > 0) requestBody.blindBookID = parsed;
+                            else requestBody.blindBookID = 1; 
+                        }
+                    } else {
+                        requestBody.bookID = item.bookID || item.id;
+                        if (typeof requestBody.bookID === 'string') {
+                            const parsed = parseInt(requestBody.bookID.replace(/\D/g, ''));
+                            if (!isNaN(parsed) && parsed > 0) requestBody.bookID = parsed;
+                            else requestBody.bookID = 1; 
+                        }
+                    }
+                    
+                    await window.apiClient.apiPost('/api/Cart', requestBody);
+                    showToast(`Added "${item.title}" to cart!`, 'success');
+                    
+                    if (window.BookBlossomLayout) {
+                        window.BookBlossomLayout.refreshCartBadge();
+                    }
+                } else if (window.BookBlossomCart) {
+                    window.BookBlossomCart.addToCart({
+                        title: item.title,
+                        priceVnd: item.price,
+                        price: item.price / 20000,
+                        img: item.imageUrl,
+                        isBlind: item.isBlindDate,
+                        hashtags: item.hashtags,
+                        qty: 1
+                    });
+                    showToast(`Added "${item.title}" to cart!`, 'success');
+                } else {
+                    showToast(`Added "${item.title}" to cart (simulated)!`, 'success');
+                }
+            } catch (error) {
+                console.error("Failed to add to cart", error);
+                showToast('Failed to add item to cart.', 'error');
             }
         }
     }

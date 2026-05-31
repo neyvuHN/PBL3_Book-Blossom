@@ -6,11 +6,9 @@ class WishlistModel {
 
     async fetchWishlist() {
         this.isLoading = true;
-        // Simulate slight network delay
-        await new Promise(resolve => setTimeout(resolve, 300));
         
         if (window.BookBlossomWishlist) {
-            this.items = window.BookBlossomWishlist.getWishlistItems();
+            this.items = await window.BookBlossomWishlist.getWishlistItems();
         } else {
             console.error("BookBlossomWishlist store not found.");
             this.items = [];
@@ -22,16 +20,22 @@ class WishlistModel {
 
     async removeItem(itemId) {
         if (window.BookBlossomWishlist) {
-            this.items = window.BookBlossomWishlist.removeItem(itemId);
-            return true;
+            const success = await window.BookBlossomWishlist.removeItem(itemId);
+            if (success) {
+                this.items = window.BookBlossomWishlist.getCachedItems();
+            }
+            return success;
         }
         return false;
     }
 
     async clearAll() {
         if (window.BookBlossomWishlist) {
-            this.items = window.BookBlossomWishlist.clearAll();
-            return true;
+            const success = await window.BookBlossomWishlist.clearAll();
+            if (success) {
+                this.items = window.BookBlossomWishlist.getCachedItems();
+            }
+            return success;
         }
         return false;
     }

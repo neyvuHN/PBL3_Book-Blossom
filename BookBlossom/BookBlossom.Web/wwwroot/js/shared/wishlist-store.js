@@ -1,114 +1,161 @@
 (function (window) {
-    const WISHLIST_KEY = 'bookblossom_wishlist_items';
-    const INIT_KEY = 'bookblossom_wishlist_initialized';
-
-    const DEFAULT_WISHLIST_ITEMS = [
-        {
-            id: 'w1',
-            title: 'The Great Gatsby',
-            author: 'F. Scott Fitzgerald',
-            price: 297000,
-            imageUrl: '/images/Book/book1.jpg',
-            isBlindDate: false
-        },
-        {
-            id: 'w2',
-            title: 'Mystery Thriller Blind Date',
-            author: 'Unknown',
-            price: 150000,
-            imageUrl: '/images/BlindDateBook/BlindBook.jpg',
-            isBlindDate: true,
-            hashtags: ['Mystery', 'Thriller']
-        },
-        {
-            id: 'w3',
-            title: 'Pride and Prejudice',
-            author: 'Jane Austen',
-            price: 198000,
-            imageUrl: '/images/Book/book1.jpg',
-            isBlindDate: false
-        }
-    ];
-
-    function safeParse(json, fallback) {
+    const MOCK_KEY = 'bookblossom_mock_wishlist';
+    
+    // In-memory cache for fast UI updates, updated from backend
+    let cachedItems = [];
+    
+    function getMockItems() {
         try {
-            return JSON.parse(json);
-        } catch {
-            return fallback;
-        }
+            return JSON.parse(localStorage.getItem(MOCK_KEY) || '[]');
+        } catch { return []; }
+    }
+    
+    function saveMockItems(items) {
+        localStorage.setItem(MOCK_KEY, JSON.stringify(items));
     }
 
-    function normalizeItem(item) {
-        item = item || {};
-
+    // Map backend DTO to frontend format
+    function normalizeItem(dto) {
         return {
-            id: item.id || ('wishlist-' + Date.now() + '-' + Math.floor(Math.random() * 10000)),
-            title: item.title || 'Unknown Book',
-            author: item.author || 'Unknown Author',
-            price: Number(item.price) || 0,
-            imageUrl: item.imageUrl || (item.isBlindDate ? '/images/BlindDateBook/BlindBook.jpg' : '/images/Book/book1.jpg'),
-            isBlindDate: item.isBlindDate === true,
-            hashtags: Array.isArray(item.hashtags) ? item.hashtags : []
+            id: dto.wishlistID || dto.id,
+            bookID: dto.bookID,
+            blindBookID: dto.blindBookID,
+            title: dto.title || 'Unknown Book',
+            price: Number(dto.price) || 0,
+            imageUrl: dto.imageUrl || (dto.blindBookID || dto.isBlindDate ? '/images/BlindDateBook/BlindBook.jpg' : '/images/Book/book1.jpg'),
+            isBlindDate: dto.isBlindDate !== undefined ? dto.isBlindDate : !!dto.blindBookID,
+            author: dto.author || (dto.blindBookID ? 'Unknown' : 'BookBlossom'), // Placeholder if backend doesn't return author
+            hashtags: dto.hashtags || []
         };
     }
 
-    function getWishlistItems() {
-        const initialized = localStorage.getItem(INIT_KEY);
+    async function getWishlistItems() {
+        let apiItems = [];
+        if (window.apiClient) {
+            try {
+                const data = await window.apiClient.apiGet('/api/Wishlist');
+                apiItems = Array.isArray(data) ? data.map(normalizeItem) : [];
+            } catch (error) {
+                console.warn("Failed to fetch wishlist from API, using mock/cache only.", error);
+            }
+        }
+        
+        const mockItems = getMockItems().map(normalizeItem);
+        
+        // Merge without duplicates (by ID)
+        const combined = [...apiItems];
+        mockItems.forEach(mockItem => {
+            if (!combined.some(i => i.id === mockItem.id || (mockItem.bookID && i.bookID === mockItem.bookID) || (mockItem.blindBookID && i.blindBookID === mockItem.blindBookID))) {
+                combined.push(mockItem);
+            }
+        });
+        
+        cachedItems = combined;
+        return cachedItems;
+    }
 
-        let shouldReset = !initialized;
-        if (initialized) {
-            const raw = localStorage.getItem(WISHLIST_KEY);
-            const items = safeParse(raw, []);
-            if (Array.isArray(items) && items.some(item => Number(item.price) < 1000)) {
-                shouldReset = true;
+    async function saveWishlistItems(items) {
+        return cachedItems;
+    }
+
+    async function addToWishlist(item) {
+        if (!window.apiClient) {
+            const mocks = getMockItems();
+            if(!mocks.find(i => i.id === item.id)) {
+                mocks.push(item);
+                saveMockItems(mocks);
+            }
+            await getWishlistItems();
+            return cachedItems;
+        }
+        
+        let isSuccess = false;
+        try {
+            const requestBody = {};
+            if (item.isBlindDate) {
+                requestBody.blindBookID = item.blindBookID || item.id;
+                if (typeof requestBody.blindBookID === 'string') {
+                    const parsed = parseInt(requestBody.blindBookID.replace(/\D/g, ''));
+                    if (!isNaN(parsed) && parsed > 0) requestBody.blindBookID = parsed;
+                    else requestBody.blindBookID = 1; 
+                }
+            } else {
+                requestBody.bookID = item.bookID || item.id;
+                if (typeof requestBody.bookID === 'string') {
+                    const parsed = parseInt(requestBody.bookID.replace(/\D/g, ''));
+                    if (!isNaN(parsed) && parsed > 0) requestBody.bookID = parsed;
+                    else requestBody.bookID = 1; 
+                }
+            }
+
+            await window.apiClient.apiPost('/api/Wishlist', requestBody);
+            isSuccess = true;
+        } catch (error) {
+            console.warn("API rejected adding to wishlist. Falling back to local mock storage.", error);
+        }
+
+        if (!isSuccess) {
+            const mocks = getMockItems();
+            if(!mocks.find(i => i.id === item.id)) {
+                mocks.push(item);
+                saveMockItems(mocks);
             }
         }
 
-        if (shouldReset) {
-            localStorage.setItem(INIT_KEY, 'true');
-            saveWishlistItems(DEFAULT_WISHLIST_ITEMS);
-            return DEFAULT_WISHLIST_ITEMS.map(normalizeItem);
+        await getWishlistItems();
+        return cachedItems;
+    }
+
+    async function removeItem(id) {
+        const existing = cachedItems.find(i => i.id === id || i.bookID === id || i.blindBookID === id || `book-${i.bookID}` === id || `blind-${i.blindBookID}` === id || `tindbook-${i.bookID}` === id);
+        
+        let targetWishlistId = id;
+        let removedFromApi = false;
+        
+        if (window.apiClient) {
+            try {
+                if (existing && existing.id && typeof existing.id === 'number') {
+                    targetWishlistId = existing.id;
+                } else if (existing && existing.wishlistID) {
+                    targetWishlistId = existing.wishlistID;
+                }
+                
+                if (typeof targetWishlistId === 'number' || !isNaN(parseInt(targetWishlistId))) {
+                    await window.apiClient.apiDelete(`/api/Wishlist/${targetWishlistId}`);
+                    removedFromApi = true;
+                }
+            } catch (error) {
+                console.warn("API rejected removing from wishlist or not found in API.");
+            }
         }
 
-        const raw = localStorage.getItem(WISHLIST_KEY);
-        const items = safeParse(raw, []);
-
-        if (!Array.isArray(items)) {
-            return [];
+        let mocks = getMockItems();
+        const initialLen = mocks.length;
+        mocks = mocks.filter(i => i.id !== id && i.bookID !== id && i.blindBookID !== id && `book-${i.bookID}` !== id && `blind-${i.blindBookID}` !== id && `tindbook-${i.bookID}` !== id);
+        if (mocks.length < initialLen) {
+            saveMockItems(mocks);
+            removedFromApi = true;
         }
 
-        return items.map(normalizeItem);
+        await getWishlistItems();
+        return removedFromApi;
     }
 
-    function saveWishlistItems(items) {
-        const normalizedItems = Array.isArray(items) ? items.map(normalizeItem) : [];
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(normalizedItems));
-        return normalizedItems;
-    }
-
-    function addToWishlist(item) {
-        const items = getWishlistItems();
-        const newItem = normalizeItem(item);
-
-        const existingItem = items.find(x =>
-            x.title === newItem.title &&
-            x.isBlindDate === newItem.isBlindDate
-        );
-
-        if (!existingItem) {
-            items.push(newItem);
-            return saveWishlistItems(items);
+    async function clearAll() {
+        if (window.apiClient) {
+            try {
+                const apiItems = cachedItems.filter(i => typeof i.id === 'number');
+                for (const item of apiItems) {
+                    await window.apiClient.apiDelete(`/api/Wishlist/${item.id}`);
+                }
+            } catch (error) {
+                console.error("Failed to clear wishlist via API", error);
+            }
         }
-        return items;
-    }
-
-    function removeItem(id) {
-        const items = getWishlistItems().filter(x => x.id !== id);
-        return saveWishlistItems(items);
-    }
-
-    function clearAll() {
-        return saveWishlistItems([]);
+        
+        saveMockItems([]);
+        await getWishlistItems();
+        return true;
     }
 
     window.BookBlossomWishlist = {
@@ -116,6 +163,7 @@
         saveWishlistItems,
         addToWishlist,
         removeItem,
-        clearAll
+        clearAll,
+        getCachedItems: () => cachedItems
     };
 })(window);

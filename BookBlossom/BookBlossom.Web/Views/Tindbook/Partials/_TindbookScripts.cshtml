@@ -50,7 +50,7 @@
             });
         }
 
-        function swipe(direction) {
+        async function swipe(direction) {
             if (currentCardIndex >= $cards.length) return;
 
             const $card = $cards.eq(currentCardIndex);
@@ -67,17 +67,24 @@
                         const img = $card.find('img').attr('src') || '/images/Book/book1.jpg';
                         const bookId = $card.attr('data-book-id') || Date.now();
                         
-                        window.BookBlossomWishlist.addToWishlist({
-                            id: 'tindbook-' + bookId,
-                            title: title,
-                            author: author,
-                            price: 150000,
-                            imageUrl: img,
-                            isBlindDate: false
-                        });
-                        
-                        if (typeof showToast === 'function') {
-                            showToast('Added to Wishlist!');
+                        try {
+                            await window.BookBlossomWishlist.addToWishlist({
+                                id: 'tindbook-' + bookId,
+                                bookID: bookId, // Use real ID if available
+                                title: title,
+                                author: author,
+                                price: 150000,
+                                imageUrl: img,
+                                isBlindDate: false
+                            });
+                            
+                            if (typeof showToast === 'function') {
+                                showToast('Added to Wishlist!');
+                            }
+                        } catch (e) {
+                            if (typeof showToast === 'function') {
+                                showToast('Failed to add to Wishlist.', 'error');
+                            }
                         }
                     }
                     break;

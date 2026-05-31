@@ -81,7 +81,7 @@
         $('.btn-chat-owner').attr('href', chatHref);
     }
 
-    function resetBlindDateUi() {
+    async function resetBlindDateUi() {
         $('#input-blind-qty').val(1);
 
         const $wishlist = $('#btn-toggle-blind-wishlist');
@@ -92,8 +92,8 @@
         
         let isInWishlist = false;
         if (window.BookBlossomWishlist) {
-            const items = window.BookBlossomWishlist.getWishlistItems();
-            isInWishlist = items.some(item => item.id === id);
+            const items = await window.BookBlossomWishlist.getWishlistItems();
+            isInWishlist = items.some(item => String(item.id) === String(id) || String(item.blindBookID) === String(id));
         }
 
         if (isInWishlist) {
@@ -405,7 +405,7 @@
     }
 
     function initWishlist() {
-        $('#btn-toggle-blind-wishlist').off('click.blindDetails').on('click.blindDetails', function () {
+        $('#btn-toggle-blind-wishlist').off('click.blindDetails').on('click.blindDetails', async function () {
             const $btn = $(this);
             const $icon = $btn.find('i');
             
@@ -420,34 +420,40 @@
 
             if ($icon.hasClass('far')) {
                 if (window.BookBlossomWishlist) {
-                    window.BookBlossomWishlist.addToWishlist({
-                        id: id,
-                        title: title,
-                        author: author,
-                        price: price,
-                        imageUrl: img,
-                        isBlindDate: true,
-                        hashtags: hashtags
-                    });
+                    try {
+                        await window.BookBlossomWishlist.addToWishlist({
+                            id: id,
+                            title: title,
+                            author: author,
+                            price: price,
+                            imageUrl: img,
+                            isBlindDate: true,
+                            hashtags: hashtags
+                        });
+                        $icon.removeClass('far').addClass('fas').css('color', '#ff4444');
+                        $btn.css({
+                            borderColor: '#ff4444',
+                            background: '#fff5f5'
+                        });
+                        showToast('Mystery Book added to your wishlist!');
+                    } catch (e) {
+                        showToast('Failed to add book to wishlist.', 'error');
+                    }
                 }
-
-                $icon.removeClass('far').addClass('fas').css('color', '#ff4444');
-                $btn.css({
-                    borderColor: '#ff4444',
-                    background: '#fff5f5'
-                });
-                showToast('Mystery Book added to your wishlist!');
             } else {
                 if (window.BookBlossomWishlist) {
-                    window.BookBlossomWishlist.removeItem(id);
+                    try {
+                        await window.BookBlossomWishlist.removeItem(id);
+                        $icon.removeClass('fas').addClass('far').css('color', '');
+                        $btn.css({
+                            borderColor: '#ddd',
+                            background: '#fff'
+                        });
+                        showToast('Mystery Book removed from your wishlist.');
+                    } catch (e) {
+                        showToast('Failed to remove book from wishlist.', 'error');
+                    }
                 }
-
-                $icon.removeClass('fas').addClass('far').css('color', '');
-                $btn.css({
-                    borderColor: '#ddd',
-                    background: '#fff'
-                });
-                showToast('Mystery Book removed from your wishlist.');
             }
         });
     }

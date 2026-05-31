@@ -279,31 +279,29 @@
 
         const $btn = $('#btn-toggle-wishlist');
         
-        if (isRealData) {
-            try {
-                const items = await apiClient.apiGet('/api/Wishlist');
-                const isInWishlist = items.some(item => item.bookID === bookData.bookID);
-                if (isInWishlist) {
-                    setWishlistActive($btn);
-                } else {
-                    setWishlistInactive($btn);
-                }
-            } catch (err) {
-                setWishlistInactive($btn);
-            }
-        } else {
-            const title = $('#detail-title').text().trim();
-            const id = 'book-' + getStableHash(title);
-            let isInWishlist = false;
+        try {
+            let items = [];
             if (window.BookBlossomWishlist) {
-                const items = window.BookBlossomWishlist.getWishlistItems();
-                isInWishlist = items.some(item => String(item.id) === String(id));
+                items = await window.BookBlossomWishlist.getWishlistItems();
             }
+
+            let isInWishlist = false;
+            if (isRealData) {
+                isInWishlist = items.some(item => item.bookID === bookData.bookID);
+            } else {
+                const title = $('#detail-title').text().trim();
+                const id = 'book-' + getStableHash(title);
+                isInWishlist = items.some(item => String(item.id) === String(id) || String(item.bookID) === String(id));
+            }
+
             if (isInWishlist) {
                 setWishlistActive($btn);
             } else {
                 setWishlistInactive($btn);
             }
+        } catch (err) {
+            console.error("Failed to sync wishlist icon", err);
+            setWishlistInactive($btn);
         }
     }
 
@@ -729,44 +727,58 @@
 
                 if ($icon.hasClass('far')) {
                     if (window.BookBlossomWishlist) {
-                        window.BookBlossomWishlist.addToWishlist({
-                            id: id,
-                            title: title,
-                            author: author,
-                            price: price,
-                            imageUrl: img,
-                            isBlindDate: false
-                        });
+                        try {
+                            await window.BookBlossomWishlist.addToWishlist({
+                                id: id,
+                                title: title,
+                                author: author,
+                                price: price,
+                                imageUrl: img,
+                                isBlindDate: false
+                            });
+                            setWishlistActive($btn);
+                            showToast('Book added to your wishlist!');
+                        } catch (e) {
+                            showToast('Failed to add book to wishlist.', 'error');
+                        }
                     }
-                    setWishlistActive($btn);
-                    showToast('Book added to your wishlist!');
                 } else {
                     if (window.BookBlossomWishlist) {
-                        window.BookBlossomWishlist.removeItem(id);
+                        try {
+                            await window.BookBlossomWishlist.removeItem(id);
+                            setWishlistInactive($btn);
+                            showToast('Book removed from your wishlist.');
+                        } catch (e) {
+                            showToast('Failed to remove book from wishlist.', 'error');
+                        }
                     }
-                    setWishlistInactive($btn);
-                    showToast('Book removed from your wishlist.');
                 }
             } else {
                 if ($icon.hasClass('far')) {
-                    try {
-                        await apiClient.apiPost('/api/Wishlist', { bookID: parseInt(bookId) });
-                        setWishlistActive($btn);
-                        showToast('Book added to your wishlist!');
-                    } catch (error) {
-                        console.error('Failed to add to wishlist', error);
+                    if (window.BookBlossomWishlist) {
+                        try {
+                            await window.BookBlossomWishlist.addToWishlist({
+                                id: bookId,
+                                bookID: bookId,
+                                isBlindDate: false
+                            });
+                            setWishlistActive($btn);
+                            showToast('Book added to your wishlist!');
+                        } catch (error) {
+                            console.error('Failed to add to wishlist', error);
+                            showToast('Failed to add book to wishlist.', 'error');
+                        }
                     }
                 } else {
-                    try {
-                        const items = await apiClient.apiGet('/api/Wishlist');
-                        const item = items.find(i => i.bookID === parseInt(bookId));
-                        if (item) {
-                            await apiClient.apiDelete(`/api/Wishlist/${item.wishlistID}`);
+                    if (window.BookBlossomWishlist) {
+                        try {
+                            await window.BookBlossomWishlist.removeItem(bookId);
                             setWishlistInactive($btn);
                             showToast('Book removed from your wishlist.');
+                        } catch (error) {
+                            console.error('Failed to remove from wishlist', error);
+                            showToast('Failed to remove book from wishlist.', 'error');
                         }
-                    } catch (error) {
-                        console.error('Failed to remove from wishlist', error);
                     }
                 }
             }
