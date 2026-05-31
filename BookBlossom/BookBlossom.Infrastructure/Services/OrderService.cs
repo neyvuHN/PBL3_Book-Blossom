@@ -54,6 +54,11 @@ namespace BookBlossom.Infrastructure.Services
 
                 int currentReputation = customerRep?.ReputationPoint ?? 100;
 
+                if (currentReputation < 30)
+                {
+                    throw new InvalidOperationException($"Tài khoản của bạn đã bị tạm khóa tính năng mua hàng do điểm uy tín quá thấp ({currentReputation}). Vui lòng liên hệ bộ phận hỗ trợ!");
+                }
+
                 if (currentReputation < 60 && request.PaymentMethod == PaymentMethod.COD)
                 {
                     throw new InvalidOperationException($"Điểm uy tín của bạn hiện tại là ({currentReputation}), không đủ điều kiện (tối thiểu 60) để dùng hình thức COD. Vui lòng thanh toán trực tuyến!");
@@ -476,6 +481,25 @@ namespace BookBlossom.Infrastructure.Services
                                 order.CustomerID, 
                                 ReputationAction.OrderBombed, // Hoặc ShopPackedCancellation
                                 $"Đơn hàng #{order.OrderID} bị hủy sau khi đã đóng gói");
+
+                            // 2. Cập nhật lại Rank
+                            await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+
+                            // ================= BỔ SUNG LOGIC KHÓA TÀI KHOẢN KHI ĐIỂM < 30 =================
+                            // 1. Lấy lại điểm uy tín mới nhất sau khi vừa trừ xong (Dùng Set<> cho đồng bộ và dùng == để so sánh)
+                            var updatedRep = await _context.Set<CustomerReputation>()
+                                .FirstOrDefaultAsync(cr => cr.CustomerID == order.CustomerID);
+
+                            if (updatedRep != null && updatedRep.ReputationPoint < 30)
+                            {
+                                // 2. Tìm trực tiếp User trong bảng Users bằng CustomerID để khóa
+                                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == order.CustomerID);
+                                if (user != null)
+                                {
+                                    // Chuyển trạng thái tài khoản thành Inactive (Khóa)
+                                    user.IsActive = false; 
+                                }
+                            }
                         }
                     }
                 }
