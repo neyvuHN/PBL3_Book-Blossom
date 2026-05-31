@@ -134,20 +134,62 @@ class NotificationView {
     getTypeIcon(type) {
         switch (type) {
             case 'Order':
+            case 'ORDER_STATUS':
                 return `
                     <div class="notif-icon-wrapper order">
                         <i class="fas fa-shopping-bag"></i>
                     </div>`;
             case 'Book':
+            case 'NEW_BOOK_ARRIVAL':
                 return `
                     <div class="notif-icon-wrapper book">
                         <i class="fas fa-book-open"></i>
                     </div>`;
             case 'Community':
+            case 'NEW_THREAD':
                 return `
                     <div class="notif-icon-wrapper community">
                         <i class="fas fa-comments"></i>
                     </div>`;
+            case 'RETURN_UPDATE':
+            case 'NEW_RETURN_REQUEST':
+                return `
+                    <div class="notif-icon-wrapper return">
+                        <i class="fas fa-undo"></i>
+                    </div>`;
+            case 'RE_ENGAGEMENT':
+                return `
+                    <div class="notif-icon-wrapper engagement">
+                        <i class="fas fa-heart"></i>
+                    </div>`;
+            case 'POINT_CHANGE':
+                return `
+                    <div class="notif-icon-wrapper point">
+                        <i class="fas fa-coins"></i>
+                    </div>`;
+            case 'BADGE_EARNED':
+                return `
+                    <div class="notif-icon-wrapper badge">
+                        <i class="fas fa-medal"></i>
+                    </div>`;
+            case 'RANK_UP':
+                return `
+                    <div class="notif-icon-wrapper rank">
+                        <i class="fas fa-trophy"></i>
+                    </div>`;
+            case 'NEW_INTERACTION':
+                return `
+                    <div class="notif-icon-wrapper interaction">
+                        <i class="fas fa-thumbs-up"></i>
+                    </div>`;
+            case 'MOD_WARNING':
+            case 'REPORT_ALERT':
+            case 'KPI_WARNING':
+                return `
+                    <div class="notif-icon-wrapper warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>`;
+            case 'NONE':
             case 'System':
             default:
                 return `

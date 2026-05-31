@@ -401,6 +401,41 @@
     color: #7b1fa2;
 }
 
+.notification-dropdown .notif-icon-wrapper.return {
+    background-color: rgba(255, 152, 0, 0.1);
+    color: #f57c00;
+}
+
+.notification-dropdown .notif-icon-wrapper.engagement {
+    background-color: rgba(233, 30, 99, 0.1);
+    color: #c2185b;
+}
+
+.notification-dropdown .notif-icon-wrapper.point {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #f57f17;
+}
+
+.notification-dropdown .notif-icon-wrapper.badge {
+    background-color: rgba(156, 39, 176, 0.1);
+    color: #7b1fa2;
+}
+
+.notification-dropdown .notif-icon-wrapper.rank {
+    background-color: rgba(103, 58, 183, 0.1);
+    color: #512da8;
+}
+
+.notification-dropdown .notif-icon-wrapper.interaction {
+    background-color: rgba(3, 169, 244, 0.1);
+    color: #0288d1;
+}
+
+.notification-dropdown .notif-icon-wrapper.warning {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #d32f2f;
+}
+
 /* Content texts */
 .notification-dropdown .notif-item-content {
     display: flex;
