@@ -1,0 +1,36 @@
+<!-- Reveal Real Book Modal (Full Screen) -->
+<div class="modal fade" id="revealRealBookModal" tabindex="-1" aria-labelledby="revealRealBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content" style="background-color: #f8f9fa;">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close" style="position: absolute; top: 20px; right: 20px; z-index: 1050; font-size: 1.5rem;"></button>
+            </div>
+            <div class="modal-body d-flex align-items-center justify-content-center">
+                <div class="container text-center">
+                    <h1 class="display-4 font-weight-bold mb-3" style="color: #d8456b;">It's a Match!</h1>
+                    <p class="lead text-muted mb-5">Here is the real book inside your Blind Date package.</p>
+                    
+                    <div id="reveal-book-card-container" class="reveal-book-card mx-auto shadow-lg" style="max-width: 400px; background: white; border-radius: 15px; padding: 30px; cursor: pointer; transition: transform 0.3s ease;">
+                        <img id="reveal-real-book-image" src="" alt="Real Book Cover" class="img-fluid rounded mb-4" style="max-height: 400px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                        
+                        <h2 id="reveal-real-book-title" class="h3 font-weight-bold mb-2">Book Title</h2>
+                        <p id="reveal-real-book-author" class="text-muted font-italic mb-3">Author Name</p>
+                        
+                        <p id="reveal-real-book-desc" class="text-left small text-muted" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"></p>
+                        
+                        <div class="mt-4">
+                            <span class="btn btn-primary rounded-pill px-4">View Book Details</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .reveal-book-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(216, 69, 107, 0.2) !important;
+    }
+</style>

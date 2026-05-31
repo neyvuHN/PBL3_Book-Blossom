@@ -21,6 +21,8 @@ class OrdersController {
         // [NEW] Bind Rate and View Review
         this.view.bindRateOrder(this.handleRateOrder.bind(this));
         this.view.bindViewReview(this.handleViewReview.bind(this));
+        // [NEW] Bind Reveal Real Book
+        this.view.bindRevealRealBook(this.handleRevealRealBook.bind(this));
         // [UPDATED] Bind clicking on book items to navigate to book details / blind book details
         this.view.bindViewBook(this.handleViewBook.bind(this));
         // [NEW] Bind Return/Refund click and submit handlers
@@ -204,6 +206,14 @@ class OrdersController {
             window.location.href = `/BlindDate#blind-details-${encodeURIComponent(title)}?tab=reviews`;
         } else {
             window.location.href = `/Explore#book-details-${encodeURIComponent(title)}?tab=reviews`;
+        }
+    }
+
+    // [NEW] Handle clicking Reveal Real Book
+    handleRevealRealBook(orderId) {
+        const order = this.model.orders.find(o => o.id === orderId);
+        if (order) {
+            this.view.showRevealRealBookModal(order);
         }
     }
 

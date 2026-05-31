@@ -134,9 +134,11 @@ class OrdersView {
                 break;
             case 'completed':
                 statusText = 'Completed';
+                const hasBlindBook = order.items.some(item => item.isBlind && item.realBook);
                 // [UPDATED] Buy Again opens the Secure Checkout popup
                 actionsHtml = `
                     <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
+                    ${hasBlindBook ? `<button class="btn btn-outline-info" data-action="reveal-real-book" data-id="${order.id}">Reveal Real Book <i class="fas fa-magic"></i></button>` : ''}
                     ${!order.isRated ? `<button class="btn btn-outline-secondary" data-action="rate-order" data-id="${order.id}">Rate</button>` : `<button class="btn btn-outline-secondary" data-action="view-review" data-id="${order.id}" data-book-title="${order.items[0].title}" data-blind="${order.items[0].isBlind || false}">View Review</button>`}
                 `;
                 break;
@@ -291,6 +293,41 @@ class OrdersView {
                 }
             });
         }
+    }
+
+    // [NEW] Delegate Reveal Real Book clicks to the controller handler
+    bindRevealRealBook(handler) {
+        this.ordersListContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action="reveal-real-book"]');
+            if (btn) {
+                const orderId = btn.getAttribute('data-id');
+                handler(orderId);
+            }
+        });
+    }
+
+    showRevealRealBookModal(order) {
+        // Find the blind book item that has a realBook mapping
+        const blindItem = order.items.find(item => item.isBlind && item.realBook);
+        if (!blindItem) return;
+
+        const realBook = blindItem.realBook;
+        
+        document.getElementById('reveal-real-book-title').textContent = realBook.title;
+        document.getElementById('reveal-real-book-author').textContent = realBook.author;
+        document.getElementById('reveal-real-book-image').src = realBook.image;
+        document.getElementById('reveal-real-book-desc').textContent = realBook.description;
+
+        // Attach click event on the entire card to redirect to detail page
+        const cardEl = document.getElementById('reveal-book-card-container');
+        if (cardEl) {
+            cardEl.onclick = () => {
+                $('#revealRealBookModal').modal('hide');
+                window.location.href = `/Explore#book-details-${encodeURIComponent(realBook.title)}`;
+            };
+        }
+
+        $('#revealRealBookModal').modal('show');
     }
 
     showConfirmModal({ icon, iconColor, accentColor, title, message, confirmText, confirmBtnClass, showReasonInput = false, onConfirm }) {

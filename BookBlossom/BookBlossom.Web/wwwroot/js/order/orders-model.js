@@ -162,7 +162,13 @@ class OrdersModel {
                         price: 250000,
                         quantity: 1,
                         image: '/images/BlindDateBook/BlindBook3.jpg', // [UPDATED]
-                        isBlind: true // [UPDATED]
+                        isBlind: true, // [UPDATED]
+                        realBook: {
+                            title: 'Project Hail Mary',
+                            author: 'Andy Weir',
+                            image: '/images/Book/book3.avif',
+                            description: 'A lone astronaut must save the earth from disaster in this incredible science-based thriller from the #1 New York Times bestselling author of The Martian.'
+                        }
                     }
                 ],
                 totalPrice: 250000,
@@ -327,6 +333,41 @@ class OrdersModel {
                 shippedDate: '2026-05-28 09:00',
                 deliveredDate: '2026-05-29 14:00',
                 cancelReason: 'Damaged book cover (Returned)'
+            },
+            {
+                id: 'ORD-12353',
+                shopName: 'Blind Date Books',
+                status: 'completed',
+                items: [
+                    {
+                        title: '#Mystery #Thriller #PageTurner',
+                        author: 'Hidden Author',
+                        price: 250000,
+                        quantity: 1,
+                        image: '/images/BlindDateBook/BlindBook1.webp',
+                        isBlind: true,
+                        realBook: {
+                            title: 'The Silent Patient',
+                            author: 'Alex Michaelides',
+                            image: '/images/Book/book4.jpg',
+                            description: 'A shocking psychological thriller of a woman\'s act of violence against her husband—and of the therapist obsessed with uncovering her motive.'
+                        }
+                    }
+                ],
+                totalPrice: 250000,
+                isRated: false,
+                shipReceiverName: 'Jane Doe',
+                shipPhoneNumber: '0901234567',
+                shipDetailAddress: '123 Nguyen Van Linh, Da Nang',
+                paymentMethod: 'Cash on Delivery (COD)',
+                note: '',
+                subTotal: 250000,
+                shippingFee: 0,
+                discountAmount: 0,
+                orderDate: '2026-05-20 10:00',
+                shippedDate: '2026-05-21 14:00',
+                deliveredDate: '2026-05-22 10:00',
+                completedDate: '2026-05-29 10:00'
             }
         ];
     }
