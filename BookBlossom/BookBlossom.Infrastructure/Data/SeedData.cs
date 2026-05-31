@@ -21,10 +21,7 @@ namespace BookBlossom.Infrastructure.Data
                 {
                     new Role { RoleID = UserRole.Guest, RoleName = "Guest", Description = "Quyền Guest" },
                     new Role { RoleID = UserRole.Customer, RoleName = "Customer", Description = "Quyền Customer" },
-                    new Role { RoleID = UserRole.SystemAdmin, RoleName = "SystemAdmin", Description = "Quyền SystemAdmin" },
-                    new Role { RoleID = UserRole.Moderator, RoleName = "Moderator", Description = "Quyền Moderator" },
-                    new Role { RoleID = UserRole.MarketingManager, RoleName = "MarketingManager", Description = "Quyền MarketingManager" },
-                    new Role { RoleID = UserRole.StoreManager, RoleName = "StoreManager", Description = "Quyền StoreManager" }
+                    new Role { RoleID = UserRole.Admin, RoleName = "Admin", Description = "Quyền Admin" }
                 };
                 await context.Roles.AddRangeAsync(roles);
                 await context.SaveChangesAsync();
@@ -33,11 +30,11 @@ namespace BookBlossom.Infrastructure.Data
             // 2. Định nghĩa danh sách tài khoản test
             var testAccounts = new[]
             {
-                new { UserName = "admin_test", Password = "admin", Role = UserRole.SystemAdmin, Email = "admin@bookblossom.com", Phone = "0900000001", FirstName = "Hệ thống", LastName = "Admin" },
-                new { UserName = "storemanager_test", Password = "storemanager", Role = UserRole.StoreManager, Email = "manager@bookblossom.com", Phone = "0900000002", FirstName = "Kho", LastName = "Quản lý" },
-                new { UserName = "moderator_test", Password = "moderator", Role = UserRole.Moderator, Email = "moderator@bookblossom.com", Phone = "0900000003", FirstName = "Duyệt", LastName = "Kiểm duyệt viên" },
-                new { UserName = "marketing_test", Password = "marketing", Role = UserRole.MarketingManager, Email = "marketing@bookblossom.com", Phone = "0900000004", FirstName = "MKT", LastName = "Marketing" },
-                new { UserName = "customer_test", Password = "customer", Role = UserRole.Customer, Email = "customer@bookblossom.com", Phone = "0900000005", FirstName = "Khách", LastName = "Khách hàng" }
+                new { UserName = "admin_test", Password = "admin", Role = UserRole.Admin, Email = "admin@bookblossom.com", Phone = "0900000001", FirstName = "Hệ thống", LastName = "Admin", Department = Department.SystemAdmin },
+                new { UserName = "storemanager_test", Password = "storemanager", Role = UserRole.Admin, Email = "manager@bookblossom.com", Phone = "0900000002", FirstName = "Kho", LastName = "Quản lý", Department = Department.StoreManager },
+                new { UserName = "moderator_test", Password = "moderator", Role = UserRole.Admin, Email = "moderator@bookblossom.com", Phone = "0900000003", FirstName = "Duyệt", LastName = "Kiểm duyệt viên", Department = Department.Moderator },
+                new { UserName = "marketing_test", Password = "marketing", Role = UserRole.Admin, Email = "marketing@bookblossom.com", Phone = "0900000004", FirstName = "MKT", LastName = "Marketing", Department = Department.MarketingManager },
+                new { UserName = "customer_test", Password = "customer", Role = UserRole.Customer, Email = "customer@bookblossom.com", Phone = "0900000005", FirstName = "Khách", LastName = "Khách hàng", Department = (Department)0 }
             };
 
             foreach (var acc in testAccounts)
@@ -94,10 +91,7 @@ namespace BookBlossom.Infrastructure.Data
                             StaffID = existingUser.UserID,
                             Address = "Khu Công Nghệ Phần Mềm, Thủ Đức, TP.HCM",
                             IsOnboardingCompleted = true,
-                            Department = acc.Role == UserRole.SystemAdmin ? Department.SystemAdmin :
-                                         acc.Role == UserRole.StoreManager ? Department.StoreManager :
-                                         acc.Role == UserRole.Moderator ? Department.Moderator :
-                                         Department.MarketingManager,
+                            Department = acc.Department,
                             Position = StaffPosition.Leader,
                             HireDate = DateTime.Today,
                             ContractType = ContractType.FullTime,

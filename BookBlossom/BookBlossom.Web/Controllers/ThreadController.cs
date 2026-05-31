@@ -97,11 +97,8 @@ namespace BookBlossom.Web.Controllers
                 {
                     var roleStr = User.FindFirst(ClaimTypes.Role)?.Value;
                     var isModeratorOrAdmin = !string.IsNullOrEmpty(roleStr) &&
-                        (roleStr.Equals("SystemAdmin", StringComparison.OrdinalIgnoreCase) ||
-                         roleStr.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
-                         roleStr.Equals("3") ||
-                         roleStr.Equals("Moderator", StringComparison.OrdinalIgnoreCase) ||
-                         roleStr.Equals("4"));
+                        (roleStr.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                         roleStr.Equals("3"));
 
                     if (!isModeratorOrAdmin)
                     {
@@ -226,7 +223,7 @@ namespace BookBlossom.Web.Controllers
 
         // 6. HIDE/UNHIDE POST - Chỉ Moderator/Admin
         [HttpPost("{postId}/hide")]
-        [Authorize(Policy = "ModeratorOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> HidePost(long postId, [FromQuery] bool isHidden = true)
         {
             try

@@ -25,7 +25,7 @@ namespace BookBlossom.API.Controllers
 
         // 1. POST: api/realbook (Thêm mới sách + Upload file PDF)
         [HttpPost]
-        [Authorize(Policy = "StoreManagerOnly")] // 🚨 ĐÃ ĐÁP ỨNG: Chỉ StoreManager và Admin mới được vào
+        [Authorize(Policy = "AdminOnly")] // 🚨 ĐÃ ĐÁP ỨNG: Chỉ StoreManager và Admin mới được vào
         public async Task<IActionResult> Create([FromForm] CreateRealBookDTO request)
         {
             try
@@ -47,7 +47,7 @@ namespace BookBlossom.API.Controllers
 
         // 2. PUT: api/realbook/{id} (Cập nhật thông tin sách)
         [HttpPut("{id}")]
-        [Authorize(Policy = "StoreManagerOnly")] // 🚨 ĐÃ ĐÁP ỨNG: Chặn đứng Buyer/Khách vãng lai sửa dữ liệu
+        [Authorize(Policy = "AdminOnly")] // 🚨 ĐÃ ĐÁP ỨNG: Chặn đứng Buyer/Khách vãng lai sửa dữ liệu
         public async Task<IActionResult> Update(long id, [FromForm] UpdateRealBookDTO request)
         {
             try
@@ -67,7 +67,7 @@ namespace BookBlossom.API.Controllers
 
         // 3. DELETE: api/realbook/{id} (Xóa mềm - Ngừng kinh doanh sách)
         [HttpDelete("{id}")]
-        [Authorize(Policy = "StoreManagerOnly")] // 🚨 ĐÃ ĐÁP ỨNG: Bảo vệ kho hàng nghiêm ngặt
+        [Authorize(Policy = "AdminOnly")] // 🚨 ĐÃ ĐÁP ỨNG: Bảo vệ kho hàng nghiêm ngặt
         public async Task<IActionResult> Delete(long id)
         {
             var result = await _realBookService.DeleteRealBookAsync(id);

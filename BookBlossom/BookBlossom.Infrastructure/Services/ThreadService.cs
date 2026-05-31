@@ -161,8 +161,8 @@ namespace BookBlossom.Infrastructure.Services
             var post = await _context.ThreadPosts.FindAsync(postId);
             if (post == null) return false;
 
-            // Only post owner or Moderator/Admin can delete
-            if (post.CustomerID != userId && role != UserRole.Moderator && role != UserRole.SystemAdmin)
+            // Only post owner or Admin can delete
+            if (post.CustomerID != userId && role != UserRole.Admin)
             {
                 throw new UnauthorizedAccessException("Bạn không có quyền xóa bài viết này.");
             }
@@ -288,8 +288,8 @@ namespace BookBlossom.Infrastructure.Services
             var comment = await _context.ThreadComments.FindAsync(commentId);
             if (comment == null) return false;
 
-            // Only comment owner or Moderator/Admin can delete
-            if (comment.CustomerID != userId && role != UserRole.Moderator && role != UserRole.SystemAdmin)
+            // Only comment owner or Admin can delete
+            if (comment.CustomerID != userId && role != UserRole.Admin)
             {
                 throw new UnauthorizedAccessException("Bạn không có quyền xóa bình luận này.");
             }

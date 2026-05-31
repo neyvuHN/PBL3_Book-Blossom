@@ -69,7 +69,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 2: Lấy danh sách khiếu nại (Staff Only - Moderator + StoreManager)
         [HttpGet("staff")]
-        [Authorize(Policy = "StaffOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetReturnRequests([FromQuery] byte? status)
         {
             try
@@ -85,7 +85,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 3: Xem chi tiết một khiếu nại (Staff Only)
         [HttpGet("staff/{requestId}")]
-        [Authorize(Policy = "StaffOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetReturnRequestDetail(long requestId)
         {
             try
@@ -102,7 +102,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 4: Moderator / StoreManager duyệt khiếu nại
         [HttpPost("staff/{requestId}/review")]
-        [Authorize(Policy = "StaffOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> ReviewReturnRequest(long requestId, [FromBody] ReviewReturnRequestDTO dto)
         {
             if (dto == null) return BadRequest("Dữ liệu duyệt trống.");

@@ -6,13 +6,13 @@ namespace BookBlossom.Web.Areas.Management.Controllers
     [Area("Management")]
     [Route("api/management/[controller]")]
     [ApiController]
-    [Authorize(Policy = "StaffOnly")]
+    [Authorize(Policy = "AdminOnly")]
     public class DashboardController : ControllerBase
     {
         [HttpGet]
         public IActionResult Index()
         {
-            return Ok(new { message = "Dashboard API - Staff Only" });
+            return Ok(new { message = "Dashboard API - Admin Only" });
         }
     }
 }
