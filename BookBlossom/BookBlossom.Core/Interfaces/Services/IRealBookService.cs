@@ -1,6 +1,5 @@
 using BookBlossom.Core.DTOs.Book;
 using BookBlossom.Core.Enums;
-using BookBlossom.Core.DTOs.Book;
 
 namespace BookBlossom.Core.Interfaces
 {
