@@ -59,8 +59,24 @@ class VouchersModel {
                 stackable: true,
                 revocable: true,
                 status: 'End',
-                roi: '45.2M'
+                roi: '45.2M',
+                selectedCategories: [],
+                selectedBooks: []
             }
+        ];
+
+        this.mockCategories = [
+            { id: 1, name: 'Literature & Fiction' },
+            { id: 2, name: 'Business & Economics' },
+            { id: 3, name: 'Self-Help & Skills' },
+            { id: 4, name: 'Science Fiction' }
+        ];
+
+        this.mockBooks = [
+            { id: 9001, title: 'The Great Gatsby' },
+            { id: 9002, title: 'Atomic Habits' },
+            { id: 9003, title: 'Dune' },
+            { id: 9004, title: 'The Secret Garden' }
         ];
     }
 
@@ -76,6 +92,8 @@ class VouchersModel {
         voucher.id = this.vouchers.length ? Math.max(...this.vouchers.map(v => v.id)) + 1 : 1;
         voucher.used = 0;
         voucher.roi = '0';
+        voucher.selectedCategories = voucher.selectedCategories || [];
+        voucher.selectedBooks = voucher.selectedBooks || [];
         this.vouchers.push(voucher);
         return voucher;
     }
@@ -86,6 +104,8 @@ class VouchersModel {
             // Keep used and roi properties
             updatedVoucher.used = this.vouchers[index].used;
             updatedVoucher.roi = this.vouchers[index].roi;
+            updatedVoucher.selectedCategories = updatedVoucher.selectedCategories || [];
+            updatedVoucher.selectedBooks = updatedVoucher.selectedBooks || [];
             this.vouchers[index] = updatedVoucher;
             return true;
         }

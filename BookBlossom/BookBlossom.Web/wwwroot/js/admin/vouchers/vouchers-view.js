@@ -18,9 +18,32 @@ class VouchersView {
         this.vType = document.getElementById('vType');
         this.maxDiscountGroup = document.getElementById('maxDiscountGroup');
 
-        this.vType.addEventListener('change', () => {
-            this.toggleMaxDiscountGroup();
-        });
+        // Scope
+        this.vScope = document.getElementById('vScope');
+        this.scopeSelectionButtons = document.getElementById('scopeSelectionButtons');
+        this.btnSelectCategories = document.getElementById('btnSelectCategories');
+        this.btnSelectBooks = document.getElementById('btnSelectBooks');
+
+        // Selection Modal
+        this.selectionModal = document.getElementById('selectionModal');
+        this.selectionModalTitle = document.getElementById('selectionModalTitle');
+        this.selectionList = document.getElementById('selectionList');
+        this.selectionSearch = document.getElementById('selectionSearch');
+        this.btnConfirmSelection = document.getElementById('btnConfirmSelection');
+        this.btnCloseSelectionModal = document.getElementById('btnCloseSelectionModal');
+
+        this.selectedCategories = [];
+        this.selectedBooks = [];
+        this.currentSelectionType = null; // 'Categories' or 'Books'
+        this.tempSelection = [];
+
+        this.vType.addEventListener('change', () => this.toggleMaxDiscountGroup());
+        this.vScope.addEventListener('change', () => this.toggleScopeButtons());
+        
+        this.selectionSearch.addEventListener('input', (e) => this.filterSelectionList(e.target.value));
+        
+        this.btnCloseSelectionModal.addEventListener('click', () => this.closeSelectionModal());
+        this.btnConfirmSelection.addEventListener('click', () => this.confirmSelection());
     }
 
     toggleMaxDiscountGroup() {
@@ -31,12 +54,37 @@ class VouchersView {
         }
     }
 
+    toggleScopeButtons() {
+        const scope = this.vScope.value;
+        this.scopeSelectionButtons.style.display = scope === 'All' ? 'none' : 'flex';
+        
+        if (scope === 'SpecificCategory') {
+            this.btnSelectCategories.style.display = 'block';
+            this.btnSelectBooks.style.display = 'none';
+        } else if (scope === 'SpecificBook') {
+            this.btnSelectCategories.style.display = 'none';
+            this.btnSelectBooks.style.display = 'block';
+        } else if (scope === 'Both') {
+            this.btnSelectCategories.style.display = 'block';
+            this.btnSelectBooks.style.display = 'block';
+        }
+    }
+
+    updateScopeButtonsText() {
+        this.btnSelectCategories.innerHTML = `<i class="ph ph-list"></i> Select Categories (${this.selectedCategories.length})`;
+        this.btnSelectBooks.innerHTML = `<i class="ph ph-books"></i> Select Books (${this.selectedBooks.length})`;
+    }
+
     bindCreateVoucher(handler) {
         this.btnCreate.addEventListener('click', () => {
             this.form.reset();
             document.getElementById('vId').value = '';
             document.getElementById('modalTitle').textContent = 'Create New Voucher';
+            this.selectedCategories = [];
+            this.selectedBooks = [];
             this.toggleMaxDiscountGroup();
+            this.toggleScopeButtons();
+            this.updateScopeButtonsText();
             this.modal.style.display = 'flex';
         });
     }
@@ -59,7 +107,7 @@ class VouchersView {
             }
 
             const voucher = {
-                id: document.getElementById('vId').value,
+                id: document.getElementById('vId').value ? parseInt(document.getElementById('vId').value) : null,
                 code: document.getElementById('vCode').value,
                 type: document.getElementById('vType').value,
                 value: parseFloat(document.getElementById('vValue').value),
@@ -74,12 +122,85 @@ class VouchersView {
                 endDate: document.getElementById('vEndDate').value,
                 stackable: document.getElementById('vStackable').checked,
                 revocable: document.getElementById('vRevocable').checked,
-                status: document.getElementById('vStatus').value
+                status: document.getElementById('vStatus').value,
+                selectedCategories: [...this.selectedCategories],
+                selectedBooks: [...this.selectedBooks]
             };
 
             handler(voucher);
         });
     }
+
+    // --- Selection Modal Logic ---
+
+    bindSelectCategories(handler) {
+        this.btnSelectCategories.addEventListener('click', () => handler());
+    }
+
+    bindSelectBooks(handler) {
+        this.btnSelectBooks.addEventListener('click', () => handler());
+    }
+
+    openSelectionModal(type, data) {
+        this.currentSelectionType = type;
+        this.selectionModalTitle.textContent = type === 'Categories' ? 'Select Categories' : 'Select Books';
+        this.tempSelection = type === 'Categories' ? [...this.selectedCategories] : [...this.selectedBooks];
+        this.selectionSearch.value = '';
+        this.renderSelectionList(data, '');
+        this.selectionModal.style.display = 'flex';
+    }
+
+    closeSelectionModal() {
+        this.selectionModal.style.display = 'none';
+        this.currentSelectionType = null;
+    }
+
+    confirmSelection() {
+        if (this.currentSelectionType === 'Categories') {
+            this.selectedCategories = [...this.tempSelection];
+        } else if (this.currentSelectionType === 'Books') {
+            this.selectedBooks = [...this.tempSelection];
+        }
+        this.updateScopeButtonsText();
+        this.closeSelectionModal();
+    }
+
+    filterSelectionList(searchTerm) {
+        const items = this.selectionList.querySelectorAll('.selection-item');
+        const term = searchTerm.toLowerCase();
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(term) ? 'flex' : 'none';
+        });
+    }
+
+    renderSelectionList(data, searchTerm) {
+        this.selectionList.innerHTML = '';
+        data.forEach(item => {
+            const isChecked = this.tempSelection.includes(item.id);
+            const name = item.name || item.title;
+            const div = document.createElement('div');
+            div.className = 'selection-item';
+            div.style.cssText = 'display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #f3f4f6; cursor: pointer;';
+            div.innerHTML = `
+                <input type="checkbox" id="sel_${item.id}" value="${item.id}" ${isChecked ? 'checked' : ''} style="margin-right: 12px; width: auto;">
+                <label for="sel_${item.id}" style="margin: 0; cursor: pointer; flex: 1;">${name}</label>
+            `;
+            
+            const checkbox = div.querySelector('input');
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.tempSelection.push(item.id);
+                } else {
+                    this.tempSelection = this.tempSelection.filter(id => id !== item.id);
+                }
+            });
+
+            this.selectionList.appendChild(div);
+        });
+    }
+
+    // --- End Selection Modal Logic ---
 
     bindEditVoucher(handler) {
         this.grid.addEventListener('click', (e) => {
@@ -179,7 +300,12 @@ class VouchersView {
         document.getElementById('vRevocable').checked = voucher.revocable;
         document.getElementById('vStatus').value = voucher.status;
         
+        this.selectedCategories = voucher.selectedCategories ? [...voucher.selectedCategories] : [];
+        this.selectedBooks = voucher.selectedBooks ? [...voucher.selectedBooks] : [];
+        
         this.toggleMaxDiscountGroup();
+        this.toggleScopeButtons();
+        this.updateScopeButtonsText();
         this.modal.style.display = 'flex';
     }
 

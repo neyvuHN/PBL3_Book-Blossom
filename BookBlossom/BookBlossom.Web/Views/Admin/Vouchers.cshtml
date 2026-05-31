@@ -329,8 +329,17 @@
                                 <option value="All">All Books</option>
                                 <option value="SpecificCategory">Specific Category</option>
                                 <option value="SpecificBook">Specific Book</option>
+                                <option value="Both">Specific Books & Categories</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="form-row" id="scopeSelectionButtons" style="display: none; gap: 16px;">
+                        <button type="button" id="btnSelectCategories" class="btn-secondary" style="display: none; flex: 1;">
+                            <i class="ph ph-list"></i> Select Categories (0)
+                        </button>
+                        <button type="button" id="btnSelectBooks" class="btn-secondary" style="display: none; flex: 1;">
+                            <i class="ph ph-books"></i> Select Books (0)
+                        </button>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -375,6 +384,25 @@
         <div class="modal-footer">
             <button class="btn-secondary" id="btnCancelModal">Cancel</button>
             <button class="btn-primary" id="btnSaveVoucher">Save Voucher</button>
+        </div>
+    </div>
+</div>
+
+<!-- Selection Modal (Reusable for Categories and Books) -->
+<div class="voucher-modal-overlay" id="selectionModal" style="z-index: 1050;">
+    <div class="voucher-modal" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 class="modal-title" id="selectionModalTitle">Select Items</h2>
+            <button class="modal-close" id="btnCloseSelectionModal">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 16px;">
+            <input type="text" id="selectionSearch" placeholder="Search..." style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 16px; font-size: 14px;">
+            <div id="selectionList" style="max-height: 300px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px;">
+                <!-- Items rendered by JS -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary" id="btnConfirmSelection">Confirm</button>
         </div>
     </div>
 </div>

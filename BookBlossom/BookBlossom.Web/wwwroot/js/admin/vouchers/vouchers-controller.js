@@ -11,6 +11,14 @@ class VouchersController {
         this.view.bindDeleteVoucher(this.handleDeleteVoucher.bind(this));
         this.view.bindFilters(this.handleFilters.bind(this));
 
+        // Bind Selection Modals
+        this.view.bindSelectCategories(() => {
+            this.view.openSelectionModal('Categories', this.model.mockCategories);
+        });
+        this.view.bindSelectBooks(() => {
+            this.view.openSelectionModal('Books', this.model.mockBooks);
+        });
+
         // Initial render
         this.refreshGrid();
     }
