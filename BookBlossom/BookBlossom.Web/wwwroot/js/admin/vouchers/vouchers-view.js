@@ -118,7 +118,6 @@ class VouchersView {
                 minScore: parseInt(document.getElementById('vMinScore').value || 0),
                 minRank: document.getElementById('vMinRank').value,
                 budget: parseInt(document.getElementById('vBudget').value),
-                limitPerUser: parseInt(document.getElementById('vLimitPerUser').value || 1),
                 scope: document.getElementById('vScope').value,
                 startDate: document.getElementById('vStartDate').value,
                 endDate: document.getElementById('vEndDate').value,

@@ -1,0 +1,315 @@
+@model BookBlossom.Web.ViewModels.Admin.SystemLogsViewModel
+@{
+    ViewData["Title"] = "System Audit Logs";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .systemlogs-container {
+            padding: 24px;
+            height: 100%;
+            overflow-y: auto;
+            background-color: var(--bb-light);
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--bb-dark);
+            margin-bottom: 4px;
+        }
+
+        .section-title p {
+            color: var(--bb-gray-600);
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+
+        /* Glassmorphism Table Card */
+        .log-table-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+            padding: 20px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-controls input, .filter-controls select {
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            font-size: 0.9rem;
+            min-width: 200px;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-controls input:focus, .filter-controls select:focus {
+            outline: none;
+            border-color: var(--bb-primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .bb-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .bb-table th {
+            background: rgba(248, 250, 252, 0.8);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--bb-gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .bb-table td {
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95rem;
+            color: #334155;
+            transition: background 0.2s ease;
+        }
+
+        .bb-table tbody tr:hover td {
+            background: rgba(248, 250, 252, 0.6);
+        }
+        
+        /* Action Badges */
+        .action-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge-create { background: #dcfce7; color: #166534; }
+        .badge-update { background: #dbeafe; color: #1e40af; }
+        .badge-delete { background: #fee2e2; color: #991b1b; }
+        .badge-login { background: #f3e8ff; color: #6b21a8; }
+        .badge-failed { background: #fee2e2; color: #dc2626; }
+        .badge-logout { background: #e0e7ff; color: #3730a3; }
+        .badge-staff { background: #cffafe; color: #155e75; }
+        .badge-lock { background: #ffedd5; color: #9a3412; }
+        .badge-unlock { background: #ecfdf5; color: #065f46; }
+        .badge-export { background: #fef08a; color: #854d0e; }
+        .badge-other { background: #f1f5f9; color: #475569; }
+        .json-data {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 8px;
+            max-width: 250px;
+            max-height: 80px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bb-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+    </style>
+}
+
+<div class="systemlogs-container">
+    <div class="section-header">
+        <div class="section-title">
+            <h2>System Audit Logs</h2>
+            <p>Monitor administrative actions, security events, and data modifications.</p>
+        </div>
+    </div>
+
+    <div class="log-table-card">
+        <div class="filter-controls">
+            <input type="text" id="searchInput" placeholder="Search by Admin or Table..." />
+            <select id="actionFilter">
+                <option value="all">All Actions</option>
+                <option value="LOGIN">Login & Authentication</option>
+                <option value="STAFF">Staff Account Management</option>
+                <option value="LOCK">Account Locking</option>
+                <option value="EXPORT">Data Export</option>
+                <option value="CREATE">Create Resource</option>
+                <option value="UPDATE">Update Resource</option>
+                <option value="DELETE">Delete Resource</option>
+            </select>
+            <input type="date" id="dateFilter" />
+        </div>
+
+        <div class="table-responsive">
+            <table class="bb-table" id="logsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Admin / Staff</th>
+                        <th>Action</th>
+                        <th>Table/Resource</th>
+                        <th>Old Data</th>
+                        <th>New Data</th>
+                        <th>IP Address</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Logs != null && Model.Logs.Any())
+                    {
+                        foreach (var log in Model.Logs)
+                        {
+                            var badgeClass = "badge-other";
+                            var icon = "ph-activity";
+                            if (log.ActionTypeName.Contains("CREATE_STAFF") || log.ActionTypeName.Contains("UPDATE_STAFF") || log.ActionTypeName.Contains("DELETE_STAFF")) { badgeClass = "badge-staff"; icon = "ph-identification-badge"; }
+                            else if (log.ActionTypeName == "CREATE") { badgeClass = "badge-create"; icon = "ph-plus-circle"; }
+                            else if (log.ActionTypeName == "UPDATE") { badgeClass = "badge-update"; icon = "ph-pencil-simple"; }
+                            else if (log.ActionTypeName == "DELETE") { badgeClass = "badge-delete"; icon = "ph-trash"; }
+                            else if (log.ActionTypeName == "USER_LOGIN") { badgeClass = "badge-login"; icon = "ph-sign-in"; }
+                            else if (log.ActionTypeName == "LOGIN_FAILED") { badgeClass = "badge-failed"; icon = "ph-warning"; }
+                            else if (log.ActionTypeName == "USER_LOGOUT") { badgeClass = "badge-logout"; icon = "ph-sign-out"; }
+                            else if (log.ActionTypeName == "LOCK_ACCOUNT") { badgeClass = "badge-lock"; icon = "ph-lock-key"; }
+                            else if (log.ActionTypeName == "UNLOCK_ACCOUNT") { badgeClass = "badge-unlock"; icon = "ph-lock-key-open"; }
+                            else if (log.ActionTypeName == "EXPORT") { badgeClass = "badge-export"; icon = "ph-export"; }
+
+                            <tr class="log-row" data-action="@log.ActionTypeName" data-date="@log.CreatedAt" data-search="@log.AdminUsername.ToLower() @log.TableName?.ToLower()">
+                                <td style="font-weight: 500; color: var(--bb-primary);">#@log.LogID</td>
+                                <td>
+                                    <div class="admin-info">
+                                        <div class="admin-avatar">@log.AdminUsername.Substring(0, 1).ToUpper()</div>
+                                        <div>
+                                            <div style="font-weight: 600;">@log.AdminUsername</div>
+                                            <div style="font-size: 0.8rem; color: #64748b;">ID: @log.SystemAdminID</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="action-badge @badgeClass">
+                                        <i class="ph @icon"></i> @log.ActionTypeName
+                                    </span>
+                                </td>
+                                <td style="font-weight: 500;">@log.TableName</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.OldData))
+                                    {
+                                        <div class="json-data">@log.OldData</div>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #94a3b8; font-style: italic;">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.NewData))
+                                    {
+                                        <div class="json-data">@log.NewData</div>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #94a3b8; font-style: italic;">N/A</span>
+                                    }
+                                </td>
+                                <td><span style="font-family: monospace; color: #475569;">@log.IPAddress</span></td>
+                                <td>@log.CreatedAt</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: #64748b;">
+                                <i class="ph ph-list-magnifying-glass" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
+                                <div>No audit logs found.</div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchInput = document.getElementById('searchInput');
+            const actionFilter = document.getElementById('actionFilter');
+            const dateFilter = document.getElementById('dateFilter');
+            const rows = document.querySelectorAll('.log-row');
+
+            function filterTable() {
+                const searchVal = searchInput.value.toLowerCase();
+                const actionVal = actionFilter.value;
+                const dateVal = dateFilter.value;
+
+                rows.forEach(row => {
+                    const searchStr = row.getAttribute('data-search');
+                    const rowAction = row.getAttribute('data-action');
+                    const rowDateStr = row.getAttribute('data-date'); // expected "yyyy-MM-dd HH:mm:ss"
+
+                    let matchSearch = searchStr.includes(searchVal);
+                    let matchAction = actionVal === 'all' || rowAction.includes(actionVal);
+                    
+                    let matchDate = true;
+                    if (dateVal) {
+                        matchDate = rowDateStr && rowDateStr.startsWith(dateVal);
+                    }
+
+                    if (matchSearch && matchAction && matchDate) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            searchInput.addEventListener('input', filterTable);
+            actionFilter.addEventListener('change', filterTable);
+            dateFilter.addEventListener('change', filterTable);
+        });
+    </script>
+}

@@ -1,10 +1,39 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using BookBlossom.Core.Entities;
 
 namespace BookBlossom.Web.Controllers
 {
     // [Authorize(Roles = "SystemAdmin, Moderator, MarketingManager, StoreManager")]
     public class AdminController : Controller
     {
+        
+        public IActionResult SystemLogs()
+        {
+            var adminNames = new Dictionary<long, string> { { 1, "admin_sarah" } };
+            var targetNames = new Dictionary<long, string> { { 2, "user_john_d" }, { 3, "buyer_alice" } };
+
+            var model = new ViewModels.Admin.SystemLogsViewModel
+            {
+                Logs = _auditLogs.Select(l => new ViewModels.Admin.AuditLogItemViewModel
+                {
+                    LogID = l.LogID,
+                    SystemAdminID = l.SystemAdminID,
+                    AdminUsername = adminNames.ContainsKey(l.SystemAdminID) ? adminNames[l.SystemAdminID] : "Unknown Admin",
+                    UserID = l.UserID,
+                    TargetUsername = l.UserID.HasValue && targetNames.ContainsKey(l.UserID.Value) ? targetNames[l.UserID.Value] : null,
+                    ActionType = l.ActionType,
+                    ActionTypeName = ((AuditActionType)l.ActionType).ToString(),
+                    TableName = l.TableName,
+                    OldData = l.OldData,
+                    NewData = l.NewData,
+                    IPAddress = l.IPAddress,
+                    CreatedAt = l.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")
+                }).ToList()
+            };
+            return View(model);
+        }
+
         public IActionResult Dashboard()
         {
             return View();
@@ -125,6 +154,51 @@ namespace BookBlossom.Web.Controllers
             };
 
             return View(model);
+        }
+
+        
+        private static List<AuditLog>? _auditLogsList;
+        private static List<AuditLog> _auditLogs
+        {
+            get
+            {
+                if (_auditLogsList == null)
+                {
+                    _auditLogsList = new List<AuditLog>
+                    {
+                        new AuditLog { LogID = 1, SystemAdminID = 1, UserID = 2, ActionType = (byte)AuditActionType.USER_LOGIN, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-5) },
+                        new AuditLog { LogID = 2, SystemAdminID = 1, UserID = null, ActionType = (byte)AuditActionType.LOGIN_FAILED, TableName = "Users", OldData = null, NewData = "{\"Reason\": \"Invalid Password\"}", IPAddress = "192.168.1.15", CreatedAt = DateTime.Now.AddMinutes(-10) },
+                        new AuditLog { LogID = 3, SystemAdminID = 1, UserID = 2, ActionType = (byte)AuditActionType.USER_LOGOUT, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-1) },
+                        new AuditLog { LogID = 4, SystemAdminID = 1, UserID = 4, ActionType = (byte)AuditActionType.CREATE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = null, NewData = "{\"Username\": \"new_staff\", \"Role\": \"Moderator\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddHours(-1) },
+                        new AuditLog { LogID = 5, SystemAdminID = 1, UserID = 4, ActionType = (byte)AuditActionType.UPDATE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = "{\"Role\": \"Moderator\"}", NewData = "{\"Role\": \"Admin\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddHours(-2) },
+                        new AuditLog { LogID = 6, SystemAdminID = 1, UserID = 5, ActionType = (byte)AuditActionType.DELETE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = "{\"Username\": \"old_staff\"}", NewData = null, IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-1) },
+                        new AuditLog { LogID = 7, SystemAdminID = 1, UserID = 3, ActionType = (byte)AuditActionType.LOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Active\"}", NewData = "{\"Status\": \"Locked\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-2) },
+                        new AuditLog { LogID = 8, SystemAdminID = 1, UserID = 3, ActionType = (byte)AuditActionType.UNLOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Locked\"}", NewData = "{\"Status\": \"Active\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-1) },
+                        new AuditLog { LogID = 9, SystemAdminID = 1, UserID = null, ActionType = (byte)AuditActionType.EXPORT, TableName = "Orders", OldData = null, NewData = "{\"Format\": \"PDF\", \"Range\": \"Last 30 Days\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-3) },
+                        new AuditLog { LogID = 10, SystemAdminID = 1, UserID = null, ActionType = (byte)AuditActionType.CREATE, TableName = "Books", OldData = null, NewData = "{\"Title\": \"The Great Novel\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-4) },
+                        new AuditLog { LogID = 11, SystemAdminID = 1, UserID = null, ActionType = (byte)AuditActionType.UPDATE, TableName = "Books", OldData = "{\"Price\": 100}", NewData = "{\"Price\": 150}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-5) },
+                        new AuditLog { LogID = 12, SystemAdminID = 1, UserID = null, ActionType = (byte)AuditActionType.DELETE, TableName = "Categories", OldData = "{\"Name\": \"Old Category\"}", NewData = null, IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-6) }
+                    };
+                }
+                return _auditLogsList;
+            }
+        }
+
+        private void LogAction(long adminId, long? userId, AuditActionType actionType, string tableName, object oldData, object newData)
+        {
+            var log = new AuditLog
+            {
+                LogID = _auditLogs.Any() ? _auditLogs.Max(l => l.LogID) + 1 : 1,
+                SystemAdminID = adminId,
+                UserID = userId,
+                ActionType = (byte)actionType,
+                TableName = tableName,
+                OldData = oldData != null ? JsonSerializer.Serialize(oldData) : null,
+                NewData = newData != null ? JsonSerializer.Serialize(newData) : null,
+                IPAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "127.0.0.1",
+                CreatedAt = DateTime.Now
+            };
+            _auditLogs.Insert(0, log);
         }
 
         public IActionResult Orders()
@@ -521,6 +595,8 @@ namespace BookBlossom.Web.Controllers
             };
 
             _books.Add(newBook);
+            
+            LogAction(1, null, AuditActionType.CREATE, "Books", null, newBook);
 
             // Increment category book count
             var cat = _categories.FirstOrDefault(c => c.CategoryID == bookInput.CategoryID);
@@ -559,8 +635,12 @@ namespace BookBlossom.Web.Controllers
                 book.Weight = bookInput.Weight;
                 book.UnitsInStock = bookInput.UnitsInStock;
                 book.IsContinued = bookInput.IsContinued;
+                var oldBookData = JsonSerializer.Serialize(book);
+                
                 book.PublishYear = bookInput.PublishYear;
                 book.Authors = bookInput.Authors ?? string.Empty;
+
+                LogAction(1, null, AuditActionType.UPDATE, "Books", JsonSerializer.Deserialize<object>(oldBookData), book);
 
                 TempData["SuccessMessage"] = "Book updated successfully!";
             }
@@ -574,6 +654,7 @@ namespace BookBlossom.Web.Controllers
             if (book != null)
             {
                 _books.Remove(book);
+                LogAction(1, null, AuditActionType.DELETE, "Books", book, null);
 
                 // Decrement category book count
                 var cat = _categories.FirstOrDefault(c => c.CategoryID == book.CategoryID);
@@ -600,6 +681,7 @@ namespace BookBlossom.Web.Controllers
                 BookCount = 0
             };
             _categories.Add(newCat);
+            LogAction(1, null, AuditActionType.CREATE, "Categories", null, newCat);
             TempData["SuccessMessage"] = "Category added successfully!";
             return RedirectToAction("Inventory");
         }
@@ -619,7 +701,7 @@ namespace BookBlossom.Web.Controllers
                 {
                     book.CategoryName = catInput.CategoryName;
                 }
-
+                LogAction(1, null, AuditActionType.UPDATE, "Categories", null, catInput);
                 TempData["SuccessMessage"] = "Category updated successfully!";
             }
             return RedirectToAction("Inventory");
@@ -640,6 +722,7 @@ namespace BookBlossom.Web.Controllers
                 else
                 {
                     _categories.Remove(cat);
+                    LogAction(1, null, AuditActionType.DELETE, "Categories", cat, null);
                     TempData["SuccessMessage"] = "Category deleted successfully!";
                 }
             }
