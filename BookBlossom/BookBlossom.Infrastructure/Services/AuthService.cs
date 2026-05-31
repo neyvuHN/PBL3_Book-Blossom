@@ -54,10 +54,33 @@ namespace BookBlossom.Infrastructure.Services
                     );
                 }
                 throw new UnauthorizedActionException("Số điện thoại hoặc mật khẩu không chính xác.");
+
+            // 1. Nếu tài khoản chưa xác thực (Unverified)
+            if (user.AccountStatus == AccountStatus.Unverified)
+            {
+                throw new UnauthorizedActionException("Tài khoản của bạn chưa được xác thực. Vui lòng kiểm tra lại.");
             }
-            
-            if (user.AccountStatus != AccountStatus.Active)
-                throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa hoặc chưa được xác thực.");
+
+            // 2. Nếu tài khoản đã bị Admin BAN cứng bằng tay trong DB
+            if (user.AccountStatus == AccountStatus.Banned)
+            {
+                throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa vĩnh viễn.");
+            }
+
+            // 3. TỰ ĐỘNG CHẶN THEO ĐIỂM UY TÍN < 30
+            if (user.RoleID == UserRole.Customer)
+            {
+                // Lấy điểm uy tín thực tế từ DB lên check
+                var customerRep = await _context.Set<CustomerReputation>()
+                    .FirstOrDefaultAsync(cr => cr.CustomerID == user.UserID);
+
+                int currentReputation = customerRep?.ReputationPoint ?? 100; // Mặc định 100 nếu chưa có
+
+                if (currentReputation < 30)
+                {
+                    throw new UnauthorizedActionException($"Tài khoản của bạn đã bị khóa tự động do điểm uy tín hiện tại ({currentReputation}) dưới mức tối thiểu là 30.");
+                }
+            }
 
             // --- XỬ LÝ ĐĂNG NHẬP THÀNH CÔNG ---
             // Kiểm tra theo Enum hệ thống (Nếu RoleID là SystemAdmin hoặc Admin hoặc Manager)
@@ -188,6 +211,11 @@ namespace BookBlossom.Infrastructure.Services
             if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
             {
                 throw new Exception("Refresh Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
+            }
+
+            if (user.AccountStatus == AccountStatus.Banned)
+            {
+                throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa. Không thể duy trì phiên đăng nhập.");
             }
 
             var newAccessToken = CreateJwtToken(principal.Claims.ToList());
