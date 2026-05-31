@@ -25,6 +25,9 @@ class ContentReportsView {
 
                 this.contentTabs.forEach(ct => ct.classList.remove('active'));
                 document.getElementById(target).classList.add('active');
+
+                // Adjust read-more buttons visibility when tab becomes active
+                this.adjustReadMoreButtonsVisibility();
             });
         });
 
@@ -37,8 +40,16 @@ class ContentReportsView {
                 } else {
                     this.mainContent.style.marginLeft = '0'; // Flex layout handles this automatically if configured correctly, but just in case
                 }
+                
+                // Recalculate visibility because layout changed
+                this.adjustReadMoreButtonsVisibility();
             });
         }
+
+        // Window resize listener to handle dynamic screen resize/zoom
+        window.addEventListener('resize', () => {
+            this.adjustReadMoreButtonsVisibility();
+        });
     }
 
     renderModerationItems(items) {
@@ -47,6 +58,21 @@ class ContentReportsView {
         
         items.forEach(item => {
             const isHighRisk = item.reportsCount >= 5;
+            
+            let bookLinkHtml = '';
+            if (item.bookLink) {
+                bookLinkHtml = `
+                    <div class="report-book-link">
+                        <img src="${item.bookLink.image}" alt="Book Cover" />
+                        <div class="report-book-link-info">
+                            <h5>${item.bookLink.title}</h5>
+                            <p>${item.bookLink.author}</p>
+                        </div>
+                        <button class="btn-action" style="margin-left: auto; border: 1px solid #D1D5DB; background: white;"><i class="ph ph-arrow-square-out"></i> View Book</button>
+                    </div>
+                `;
+            }
+
             const card = document.createElement('div');
             card.className = 'report-card';
             card.innerHTML = `
@@ -59,7 +85,11 @@ class ContentReportsView {
                 </div>
                 <div class="report-content">
                     <h4>${item.title}</h4>
-                    <p>"${item.content}"</p>
+                    <div class="report-text-container">
+                        <p class="report-text" id="report-text-${item.id}">"${item.content}"</p>
+                        <button class="btn-read-more" data-action="toggle-text" data-target="report-text-${item.id}" data-id="${item.id}">Show more</button>
+                    </div>
+                    ${bookLinkHtml}
                 </div>
                 <div class="report-actions">
                     <button class="btn-action btn-keep" data-action="keep" data-id="${item.id}">
@@ -80,6 +110,8 @@ class ContentReportsView {
             `;
             this.moderationContainer.appendChild(card);
         });
+
+        this.adjustReadMoreButtonsVisibility();
     }
 
     renderFeedbackItems(items) {
@@ -103,7 +135,10 @@ class ContentReportsView {
                 </div>
                 <div class="report-content" style="margin-bottom: 12px;">
                     <div style="margin-bottom: 8px;">${stars}</div>
-                    <p>"${item.content}"</p>
+                    <div class="report-text-container">
+                        <p class="report-text" id="feedback-text-${item.id}">"${item.content}"</p>
+                        <button class="btn-read-more" data-action="toggle-text" data-target="feedback-text-${item.id}">Show more</button>
+                    </div>
                     <p style="font-size: 0.85rem; color: #6B7280; margin-top: 4px;">- ${item.author}</p>
                 </div>
                 
@@ -128,6 +163,8 @@ class ContentReportsView {
             `;
             this.feedbackContainer.appendChild(card);
         });
+
+        this.adjustReadMoreButtonsVisibility();
     }
 
     renderReturnClaims(items) {
@@ -154,7 +191,10 @@ class ContentReportsView {
                 </div>
                 <div class="report-content">
                     <h4>Reason: ${item.reason}</h4>
-                    <p>${item.description}</p>
+                    <div class="report-text-container">
+                        <p class="report-text" id="return-text-${item.id}">${item.description}</p>
+                        <button class="btn-read-more" data-action="toggle-text" data-target="return-text-${item.id}">Show more</button>
+                    </div>
                     <p style="font-size: 0.85rem; color: #6B7280; margin-top: 4px;">Buyer: ${item.buyer}</p>
                     
                     <div class="evidence-gallery">
@@ -172,12 +212,14 @@ class ContentReportsView {
             `;
             this.returnsContainer.appendChild(card);
         });
+
+        this.adjustReadMoreButtonsVisibility();
     }
 
     bindModerationActions(handler) {
         if(!this.moderationContainer) return;
         this.moderationContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-action');
+            const btn = e.target.closest('.btn-action, .btn-read-more');
             if(!btn) return;
             
             const action = btn.getAttribute('data-action');
@@ -194,6 +236,17 @@ class ContentReportsView {
                 const input = document.getElementById(`penaltyInput-${id}`);
                 const points = input ? parseInt(input.value) : 0;
                 handler('hide', id, points);
+            } else if (action === 'toggle-text') {
+                const targetId = btn.getAttribute('data-target') || `report-text-${id}`;
+                const textElem = document.getElementById(targetId);
+                if (textElem) {
+                    textElem.classList.toggle('expanded');
+                    if (textElem.classList.contains('expanded')) {
+                        btn.innerText = 'Show less';
+                    } else {
+                        btn.innerText = 'Show more';
+                    }
+                }
             } else {
                 handler(action, id);
             }
@@ -203,13 +256,20 @@ class ContentReportsView {
     bindFeedbackActions(handler) {
         if(!this.feedbackContainer) return;
         this.feedbackContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-action');
+            const btn = e.target.closest('.btn-action, .btn-read-more');
             if(!btn) return;
             
             const action = btn.getAttribute('data-action');
             const id = btn.getAttribute('data-id');
             
-            if(action === 'reply') {
+            if (action === 'toggle-text') {
+                const targetId = btn.getAttribute('data-target');
+                const textElem = document.getElementById(targetId);
+                if (textElem) {
+                    textElem.classList.toggle('expanded');
+                    btn.innerText = textElem.classList.contains('expanded') ? 'Show less' : 'Show more';
+                }
+            } else if(action === 'reply') {
                 const input = document.getElementById(`replyInput-${id}`);
                 const replyText = input ? input.value : '';
                 handler(action, id, replyText);
@@ -222,12 +282,51 @@ class ContentReportsView {
     bindReturnActions(handler) {
         if(!this.returnsContainer) return;
         this.returnsContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-action');
+            const btn = e.target.closest('.btn-action, .btn-read-more');
             if(!btn) return;
             
             const action = btn.getAttribute('data-action');
             const id = btn.getAttribute('data-id');
-            handler(action, id);
+            if (action === 'toggle-text') {
+                const targetId = btn.getAttribute('data-target');
+                const textElem = document.getElementById(targetId);
+                if (textElem) {
+                    textElem.classList.toggle('expanded');
+                    btn.innerText = textElem.classList.contains('expanded') ? 'Show less' : 'Show more';
+                }
+            } else {
+                handler(action, id);
+            }
         });
+    }
+
+    adjustReadMoreButtonsVisibility() {
+        // Wait a tiny bit for rendering/layout calculations to complete
+        setTimeout(() => {
+            const containers = document.querySelectorAll('.report-text-container');
+            containers.forEach(container => {
+                const textElem = container.querySelector('.report-text');
+                const btn = container.querySelector('.btn-read-more');
+                if (textElem && btn) {
+                    // If the container is currently hidden (e.g. inactive tab), clientHeight will be 0.
+                    // Keep the button visible in this case so it can be evaluated when the tab becomes active.
+                    if (textElem.clientHeight === 0) {
+                        return;
+                    }
+                    
+                    if (textElem.classList.contains('expanded')) {
+                        btn.style.display = 'inline-block';
+                        return;
+                    }
+
+                    // Check if scrollHeight is greater than clientHeight (text is actually truncated)
+                    if (textElem.scrollHeight <= textElem.clientHeight) {
+                        btn.style.display = 'none';
+                    } else {
+                        btn.style.display = 'inline-block';
+                    }
+                }
+            });
+        }, 50);
     }
 }

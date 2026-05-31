@@ -194,65 +194,124 @@ namespace BookBlossom.Web.Controllers
                         IsBlindDate = false
                     }
                 },
-                ReturnedItems = new List<ViewModels.Admin.AdminReturnedItemViewModel>
-                {
-                    new()
-                    {
-                        Id = "RET-101",
-                        OrderId = "ORD-8715",
-                        BookTitle = "Principles of Chemistry",
-                        Quantity = 1,
-                        RefundAmount = 480000,
-                        ModeratorDecision = "Approve Return & Refund",
-                        ReturnReason = "Wrong textbook edition sent by mistake",
-                        RestockStatus = "Pending Restock",
-                        TransferredDate = "Yesterday"
-                    },
-                    new()
-                    {
-                        Id = "RET-102",
-                        OrderId = "ORD-8720",
-                        BookTitle = "Data Structures & Algorithms",
-                        Quantity = 1,
-                        RefundAmount = 320000,
-                        ModeratorDecision = "Approve Return & Refund",
-                        ReturnReason = "Book arrived with severe water damage",
-                        RestockStatus = "Restocked",
-                        TransferredDate = "2 days ago"
-                    }
-                },
-                Complaints = new List<ViewModels.Admin.AdminEscalatedComplaintViewModel>
-                {
-                    new()
-                    {
-                        Id = "CMP-301",
-                        OrderId = "ORD-8799",
-                        BuyerName = "Laura Watson",
-                        ContactEmail = "laura.w@readingmail.com",
-                        Type = "Review",
-                        Rating = 2,
-                        Content = "The packaging was ripped and the book corners were dented! Very upset.",
-                        ModeratorNote = "Buyer left a 2-star review citing poor packaging. Escalated to Store Manager to resolve and offer store points credit.",
-                        Status = "Pending Support",
-                        TransferredDate = "Today, 10:15 AM"
-                    },
-                    new()
-                    {
-                        Id = "CMP-302",
-                        OrderId = "ORD-8752",
-                        BuyerName = "James Carter",
-                        ContactEmail = "j.carter@techcorp.com",
-                        Type = "Complaint",
-                        Rating = 1,
-                        Content = "Ordered a signed copy, but received a standard copy instead. I want to swap or complain.",
-                        ModeratorNote = "Escalated complaint. Please contact user directly to coordinate replacement shipping.",
-                        Status = "Resolved",
-                        TransferredDate = "3 days ago"
-                    }
-                }
+                ReturnedItems = _returnedItems,
+                Complaints = _complaints
             };
 
             return View(model);
+        }
+
+        private static List<ViewModels.Admin.AdminReturnedItemViewModel>? _returnedItemsList;
+        private static List<ViewModels.Admin.AdminReturnedItemViewModel> _returnedItems
+        {
+            get
+            {
+                if (_returnedItemsList == null)
+                {
+                    _returnedItemsList = new List<ViewModels.Admin.AdminReturnedItemViewModel>
+                    {
+                        new()
+                        {
+                            Id = "RET-101",
+                            OrderId = "ORD-8715",
+                            BookTitle = "Principles of Chemistry",
+                            Quantity = 1,
+                            RefundAmount = 480000,
+                            ModeratorDecision = "Approve Return & Refund",
+                            ReturnReason = "Wrong textbook edition sent by mistake",
+                            RestockStatus = "Pending Restock",
+                            TransferredDate = "Yesterday"
+                        },
+                        new()
+                        {
+                            Id = "RET-102",
+                            OrderId = "ORD-8720",
+                            BookTitle = "Data Structures & Algorithms",
+                            Quantity = 1,
+                            RefundAmount = 320000,
+                            ModeratorDecision = "Approve Return & Refund",
+                            ReturnReason = "Book arrived with severe water damage",
+                            RestockStatus = "Restocked",
+                            TransferredDate = "2 days ago"
+                        }
+                    };
+                }
+                return _returnedItemsList;
+            }
+        }
+
+        [HttpPost]
+        public IActionResult TransferReturn([FromBody] ViewModels.Admin.AdminReturnedItemViewModel newReturn)
+        {
+            if (newReturn != null)
+            {
+                newReturn.Id = "RET-" + new Random().Next(103, 999);
+                newReturn.ModeratorDecision = "Approve Return & Refund";
+                newReturn.RestockStatus = "Pending Restock";
+                newReturn.TransferredDate = "Just now";
+                
+                _returnedItems.Insert(0, newReturn); // Add to top
+                return Json(new { success = true });
+            }
+            return Json(new { success = false });
+        }
+
+        private static List<ViewModels.Admin.AdminEscalatedComplaintViewModel>? _complaintsList;
+        private static List<ViewModels.Admin.AdminEscalatedComplaintViewModel> _complaints
+        {
+            get
+            {
+                if (_complaintsList == null)
+                {
+                    _complaintsList = new List<ViewModels.Admin.AdminEscalatedComplaintViewModel>
+                    {
+                        new()
+                        {
+                            Id = "CMP-301",
+                            OrderId = "ORD-8799",
+                            BuyerName = "Laura Watson",
+                            ContactEmail = "laura.w@readingmail.com",
+                            Type = "Review",
+                            Rating = 2,
+                            Content = "The packaging was ripped and the book corners were dented! Very upset.",
+                            ModeratorNote = "Buyer left a 2-star review citing poor packaging. Escalated to Store Manager to resolve and offer store points credit.",
+                            Status = "Pending Support",
+                            TransferredDate = "Today, 10:15 AM"
+                        },
+                        new()
+                        {
+                            Id = "CMP-302",
+                            OrderId = "ORD-8752",
+                            BuyerName = "James Carter",
+                            ContactEmail = "j.carter@techcorp.com",
+                            Type = "Complaint",
+                            Rating = 1,
+                            Content = "Ordered a signed copy, but received a standard copy instead. I want to swap or complain.",
+                            ModeratorNote = "Escalated complaint. Please contact user directly to coordinate replacement shipping.",
+                            Status = "Resolved",
+                            TransferredDate = "3 days ago"
+                        }
+                    };
+                }
+                return _complaintsList;
+            }
+        }
+
+        [HttpPost]
+        public IActionResult TransferComplaint([FromBody] ViewModels.Admin.AdminEscalatedComplaintViewModel newComplaint)
+        {
+            if (newComplaint != null)
+            {
+                newComplaint.Id = "CMP-" + new Random().Next(400, 999);
+                newComplaint.OrderId = "ORD-XXXX"; // Dummy
+                newComplaint.ContactEmail = "N/A";
+                newComplaint.Status = "Pending Support";
+                newComplaint.TransferredDate = "Just now";
+                
+                _complaints.Insert(0, newComplaint); // Add to top
+                return Json(new { success = true });
+            }
+            return Json(new { success = false });
         }
 
         private static List<ViewModels.Admin.InventoryCategoryViewModel>? _categoriesList;

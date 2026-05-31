@@ -73,12 +73,33 @@ class ContentReportsController {
                 alert('Reply submitted successfully.');
                 this.renderAll();
             } else if (action === 'transfer') {
-                alert('Review information and stars transferred to Admin/Orders Complaints tab successfully.');
-                const index = items.findIndex(i => i.id === id);
-                if (index > -1) {
-                    this.model.feedbackItems.splice(index, 1);
-                    this.renderAll();
-                }
+                const payload = {
+                    BuyerName: item.author,
+                    Type: "Review",
+                    Rating: item.rating,
+                    Content: item.content,
+                    ModeratorNote: "Transferred from Content Reports."
+                };
+
+                fetch('/Admin/TransferComplaint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        alert('Review information and stars transferred to Admin/Orders Complaints tab successfully.');
+                        const index = items.findIndex(i => i.id === id);
+                        if (index > -1) {
+                            this.model.feedbackItems.splice(index, 1);
+                            this.renderAll();
+                        }
+                    } else {
+                        alert('Failed to transfer complaint.');
+                    }
+                }).catch(err => {
+                    console.error('Error:', err);
+                    alert('Error transferring complaint.');
+                });
             }
         }
     }
@@ -89,14 +110,38 @@ class ContentReportsController {
         const index = items.findIndex(i => i.id === id);
         
         if (index > -1) {
+            const item = items[index];
             if (action === 'accept-return') {
-                alert('Refund Accepted. Order moved to Returns tab in Admin/Orders.');
-                this.model.returnClaims.splice(index, 1);
+                const payload = {
+                    OrderId: item.orderId,
+                    BookTitle: "Unknown Title", // Dummy since we don't store it in mock data precisely
+                    Quantity: 1,
+                    RefundAmount: 150000, // Dummy
+                    ReturnReason: item.reason
+                };
+
+                fetch('/Admin/TransferReturn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        alert('Refund Accepted. Order moved to Returns tab in Admin/Orders.');
+                        this.model.returnClaims.splice(index, 1);
+                        this.renderAll();
+                    } else {
+                        alert('Failed to process return claim.');
+                    }
+                }).catch(err => {
+                    console.error('Error:', err);
+                    alert('Error processing return claim.');
+                });
+
             } else if (action === 'reject-return') {
                 alert('Return Claim Rejected.');
                 this.model.returnClaims.splice(index, 1);
+                this.renderAll();
             }
-            this.renderAll();
         }
     }
 }

@@ -5,17 +5,22 @@ class ContentReportsModel {
                 id: 1,
                 type: 'thread',
                 title: 'Suspicious link in book discussion',
-                content: 'Check out this site for free pdfs of the new release...',
+                content: 'Check out this site for free pdfs of the new release... I have been using it for a while and you can get almost any book for free. It is totally safe and you do not need to pay anything. Just click the link and download. Sometimes there are ads but just close them. Really guys, why pay when you can get it for free? This is the best way to read books online without spending money. Also they have audiobooks!',
                 reportsCount: 8,
                 author: 'user_spammer123',
                 date: '2 hours ago',
-                status: 'pending'
+                status: 'pending',
+                bookLink: {
+                    title: 'The Secret Garden',
+                    author: 'Frances Hodgson Burnett',
+                    image: '/images/Book/book1.jpg'
+                }
             },
             {
                 id: 2,
                 type: 'review',
                 title: 'Inappropriate language in review',
-                content: 'This book was absolutely **** and the author is a ****.',
+                content: 'This book was absolutely **** and the author is a ****. I cannot believe I spent my hard-earned money on this garbage. The plot makes no sense, the characters are flat, and the ending was rushed. DO NOT BUY THIS BOOK. If you do, you will regret it forever. I want my money back but the store refused.',
                 reportsCount: 5,
                 author: 'angry_reader',
                 date: '4 hours ago',
