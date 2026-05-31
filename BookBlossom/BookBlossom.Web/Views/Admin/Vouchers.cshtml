@@ -1,0 +1,393 @@
+@{
+    ViewData["Title"] = "Voucher Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* Styling for Vouchers */
+    .vouchers-container {
+        padding: 24px;
+        color: #333;
+    }
+    .vouchers-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .vouchers-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+    }
+    .btn-create-voucher {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+    }
+    .btn-create-voucher:hover {
+        background: #059669;
+    }
+    
+    /* Vouchers Grid */
+    .vouchers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+    .voucher-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 20px;
+        position: relative;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .voucher-status {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-active { background: #d1fae5; color: #065f46; }
+    .status-draft { background: #f3f4f6; color: #374151; }
+    .status-schedule { background: #dbeafe; color: #1e40af; }
+    .status-pause { background: #fef3c7; color: #92400e; }
+    .status-end { background: #fee2e2; color: #991b1b; }
+
+    .voucher-code {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #111827;
+    }
+    .voucher-type {
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+    .voucher-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+    }
+    .stat-label {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .stat-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .voucher-actions {
+        margin-top: 16px;
+        display: flex;
+        gap: 10px;
+    }
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid #d1d5db;
+        background: white;
+        cursor: pointer;
+        font-size: 13px;
+        color: #374151;
+        flex: 1;
+    }
+    .btn-action:hover {
+        background: #f9fafb;
+    }
+
+    /* Modal Styling */
+    .voucher-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .voucher-modal {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+    .modal-body {
+        padding: 24px;
+        overflow-y: auto;
+    }
+    .form-section {
+        margin-bottom: 24px;
+        background: #f9fafb;
+        padding: 16px;
+        border-radius: 8px;
+    }
+    .form-section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #111827;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 8px;
+    }
+    .form-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .form-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group label {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: #374151;
+    }
+    .form-group input, .form-group select {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+    .btn-secondary {
+        padding: 8px 16px;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .btn-primary {
+        padding: 8px 16px;
+        border: none;
+        background: #3b82f6;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="vouchers-container">
+    <div class="vouchers-header">
+        <h1 class="vouchers-title">Voucher Management</h1>
+        <button class="btn-create-voucher" id="btnCreateVoucher">
+            <i class="ph ph-plus"></i> Create Voucher
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div style="margin-bottom: 20px; display: flex; gap: 15px;">
+        <select id="filterStatus" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+            <option value="All">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Draft">Draft</option>
+            <option value="Schedule">Schedule</option>
+            <option value="Pause">Pause</option>
+            <option value="End">End</option>
+        </select>
+        <input type="text" id="searchVoucher" placeholder="Search by Code..." style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; width: 250px;">
+    </div>
+
+    <div class="vouchers-grid" id="vouchersGrid">
+        <!-- Vouchers will be rendered here by JS -->
+    </div>
+</div>
+
+<!-- Create/Edit Voucher Modal -->
+<div class="voucher-modal-overlay" id="voucherModal">
+    <div class="voucher-modal">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Create New Voucher</h2>
+            <button class="modal-close" id="btnCloseModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="voucherForm">
+                <input type="hidden" id="vId" />
+                
+                <!-- Setup Section -->
+                <div class="form-section">
+                    <div class="form-section-title">1. Voucher Setup</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Voucher Code</label>
+                            <input type="text" id="vCode" placeholder="e.g. SUMMER2024" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Discount Type</label>
+                            <select id="vType" required>
+                                <option value="Fixed">Fixed Amount</option>
+                                <option value="Percentage">Percentage</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Discount Value</label>
+                            <input type="number" id="vValue" required>
+                        </div>
+                        <div class="form-group" id="maxDiscountGroup" style="display: none;">
+                            <label>Max Discount Amount (if Percentage)</label>
+                            <input type="number" id="vMaxDiscount">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Minimum Order Value</label>
+                            <input type="number" id="vMinOrder" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Targeting Section -->
+                <div class="form-section">
+                    <div class="form-section-title">2. Targeting Conditions</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Minimum Member Plan</label>
+                            <select id="vMinPlan">
+                                <option value="None">None</option>
+                                <option value="Basic">Basic</option>
+                                <option value="Pro">Pro</option>
+                                <option value="Premium">Premium</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Minimum Reputation Score</label>
+                            <input type="number" id="vMinScore" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Minimum Badges</label>
+                            <input type="number" id="vMinBadges" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operations Section -->
+                <div class="form-section">
+                    <div class="form-section-title">3. Operations Management</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Budget / Quantity</label>
+                            <input type="number" id="vBudget" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Scope (Apply To)</label>
+                            <select id="vScope">
+                                <option value="All">All Books</option>
+                                <option value="SpecificCategory">Specific Category</option>
+                                <option value="SpecificBook">Specific Book</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="datetime-local" id="vStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="datetime-local" id="vEndDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="vStackable" style="width: auto;">
+                            <label style="margin: 0;">Stackable (Can be used with other vouchers)</label>
+                        </div>
+                        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="vRevocable" style="width: auto;">
+                            <label style="margin: 0;">Revocable (Can be revoked by admin)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lifecycle Section -->
+                <div class="form-section">
+                    <div class="form-section-title">4. Lifecycle Status</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="vStatus">
+                                <option value="Draft">Draft</option>
+                                <option value="Schedule">Schedule</option>
+                                <option value="Active">Active</option>
+                                <option value="Pause">Pause</option>
+                                <option value="End">End</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" id="btnCancelModal">Cancel</button>
+            <button class="btn-primary" id="btnSaveVoucher">Save Voucher</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/admin/vouchers/vouchers-model.js"></script>
+    <script src="~/js/admin/vouchers/vouchers-view.js"></script>
+    <script src="~/js/admin/vouchers/vouchers-controller.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const model = new VouchersModel();
+            const view = new VouchersView();
+            const controller = new VouchersController(model, view);
+        });
+    </script>
+}

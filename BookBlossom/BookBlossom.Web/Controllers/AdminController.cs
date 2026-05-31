@@ -431,7 +431,7 @@ namespace BookBlossom.Web.Controllers
             return View(model);
         }
 
-        public IActionResult Marketing()
+        public IActionResult Vouchers()
         {
             return View();
         }
