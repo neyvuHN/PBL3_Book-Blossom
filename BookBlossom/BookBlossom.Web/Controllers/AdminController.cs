@@ -167,9 +167,9 @@ namespace BookBlossom.Web.Controllers
                 {
                     _auditLogsList = new List<AuditLog>
                     {
-                        new AuditLog { LogID = 1, SystemAdminID = 1, UserID = 2, ActionType = ActionType.USER_LOGIN, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-5) },
+                        new AuditLog { LogID = 1, SystemAdminID = 1, UserID = 2, ActionType = ActionType.ADMIN_LOGIN, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-5) },
                         new AuditLog { LogID = 2, SystemAdminID = 1, UserID = null, ActionType = ActionType.LOGIN_FAILED, TableName = "Users", OldData = null, NewData = "{\"Reason\": \"Invalid Password\"}", IPAddress = "192.168.1.15", CreatedAt = DateTime.Now.AddMinutes(-10) },
-                        new AuditLog { LogID = 3, SystemAdminID = 1, UserID = 2, ActionType = ActionType.USER_LOGOUT, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-1) },
+                        new AuditLog { LogID = 3, SystemAdminID = 1, UserID = 2, ActionType = ActionType.ADMIN_LOGOUT, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-1) },
                         new AuditLog { LogID = 4, SystemAdminID = 1, UserID = 4, ActionType = ActionType.CREATE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = null, NewData = "{\"Username\": \"new_staff\", \"Role\": \"Moderator\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddHours(-1) },
                         new AuditLog { LogID = 5, SystemAdminID = 1, UserID = 4, ActionType = ActionType.UPDATE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = "{\"Role\": \"Moderator\"}", NewData = "{\"Role\": \"Admin\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddHours(-2) },
                         new AuditLog { LogID = 6, SystemAdminID = 1, UserID = 5, ActionType = ActionType.DELETE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = "{\"Username\": \"old_staff\"}", NewData = null, IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-1) },

@@ -23,26 +23,57 @@ namespace BookBlossom.Infrastructure.Services
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly IGuestService _guestService;
+        private readonly IAuditService _auditService;
 
-        public AuthService(ApplicationDbContext context, IConfiguration configuration, IGuestService guestService)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration, IGuestService guestService, IAuditService auditService)
         {
             _context = context;
             _configuration = configuration;
             _guestService = guestService;
+            _auditService = auditService;
         }
 
-        public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request)
+        public async Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request, string ipAddress)
         {
             var user = await _context.Users
                 .Include(u => u.CustomerDetail)
                 .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
             
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password)) {
+                // Kiểm tra nếu tài khoản tồn tại và thuộc nhóm Quản trị viên (Không phải Customer / Guest)
+                if (user != null && user.RoleID != UserRole.Customer && user.RoleID != UserRole.Guest)
+                {
+                    await _auditService.LogActionAsync(
+                        user.UserID, 
+                        null, 
+                        ActionType.LOGIN_FAILED, 
+                        "Users", 
+                        null, 
+                        $"Thử đăng nhập thất bại vào tài khoản Admin: {request.PhoneNumber}", 
+                        ipAddress
+                    );
+                }
                 throw new UnauthorizedActionException("Số điện thoại hoặc mật khẩu không chính xác.");
-
+            }
+            
             if (user.AccountStatus != AccountStatus.Active)
                 throw new UnauthorizedActionException("Tài khoản của bạn đã bị khóa hoặc chưa được xác thực.");
 
+            // --- XỬ LÝ ĐĂNG NHẬP THÀNH CÔNG ---
+            // Kiểm tra theo Enum hệ thống (Nếu RoleID là SystemAdmin hoặc Admin hoặc Manager)
+            if (user.RoleID == UserRole.Admin)
+            {
+                await _auditService.LogActionAsync(
+                    user.UserID, 
+                    null, 
+                    ActionType.ADMIN_LOGIN, 
+                    "Users", 
+                    null, 
+                    $"Quản trị viên '{user.UserName}' đăng nhập hệ thống.", 
+                    ipAddress
+                );
+            }
+            
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),

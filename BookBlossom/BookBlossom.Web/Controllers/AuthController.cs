@@ -1,9 +1,12 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
 using BookBlossom.Core.Entities;
 using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Core.Enums;
 using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BookBlossom.Core.DTOs;
@@ -21,9 +24,10 @@ namespace BookBlossom.Web.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IAuthService _authService;
         private readonly IGuestService _guestService;
+        private readonly IAuditService _auditService;
 
         // Khai báo và tiêm các dependency cần thiết
-        public AuthController(IOTPService otpService, ISMSService smsService, IMemoryCache cache, ApplicationDbContext context, IAuthService authService, IGuestService guestService)
+        public AuthController(IOTPService otpService, ISMSService smsService, IMemoryCache cache, ApplicationDbContext context, IAuthService authService, IGuestService guestService, IAuditService auditService)
         {
             _otpService = otpService;
             _smsService = smsService;
@@ -31,6 +35,7 @@ namespace BookBlossom.Web.Controllers
             _context = context;
             _authService = authService;
             _guestService = guestService;
+            _auditService = auditService;
         }
 
         // ==================== MVC Razor Views ====================
@@ -65,7 +70,7 @@ namespace BookBlossom.Web.Controllers
 
         [HttpGet("/Auth/Logout")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult Logout()
+        public IActionResult LogoutView()
         {
             return RedirectToAction("Login");
         }
@@ -77,7 +82,8 @@ namespace BookBlossom.Web.Controllers
         {
             try
             {
-                var result = await _authService.LoginAsync(request);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var result = await _authService.LoginAsync(request, ipAddress);
 
                 // Migrate Guest Cart and Wishlist if GuestID is present
                 if (Request.Headers.TryGetValue("X-Guest-ID", out var guestIdHeader) && Guid.TryParse(guestIdHeader.ToString(), out var guestId))
@@ -102,6 +108,47 @@ namespace BookBlossom.Web.Controllers
             catch (Exception ex)
             {
                 return Unauthorized(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                // Lấy thông tin ID tài khoản từ Claims Token hiện tại
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+
+                if (!string.IsNullOrEmpty(userIdClaim))
+                {
+                    long currentAdminId = long.Parse(userIdClaim);
+
+                    // Kiểm tra xem User này có phải thuộc nhóm quản trị dựa trên claim Role không
+                    // Note: Nếu trong Token bạn lưu Role dạng ID (Chuỗi số), hãy parse ra để so sánh với Enum.
+                    if (Enum.TryParse(roleClaim, out UserRole roleEnum) && 
+                        (roleEnum == UserRole.Admin))
+                    {
+                        // Tiến hành ghi nhận hành động Logout của Admin vào bảng AuditLog
+                        await _auditService.LogActionAsync(
+                            currentAdminId, 
+                            null, 
+                            ActionType.ADMIN_LOGOUT, 
+                            "Users", 
+                            null, 
+                            "Quản trị viên đăng xuất khỏi hệ thống.", 
+                            ipAddress
+                        );
+                    }
+                }
+
+                return Ok(new { Message = "Đăng xuất thành công." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
             }
         }
 
@@ -182,7 +229,8 @@ namespace BookBlossom.Web.Controllers
                     PhoneNumber = cachedRequest.PhoneNumber,
                     Password = cachedRequest.Password
                 };
-                var authResponse = await _authService.LoginAsync(loginRequest);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var authResponse = await _authService.LoginAsync(loginRequest, ipAddress);
 
                 return Ok(authResponse);
             }
