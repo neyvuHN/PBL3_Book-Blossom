@@ -270,6 +270,11 @@
                     resetOtpInputs();
                     startResendTimer();
                     
+                    // In mã OTP ra màn hình Console để tiện test
+                    console.log('--- MÃ OTP ĐỂ TEST ---');
+                    console.log('Mã OTP của bạn là: ' + data.otpCode);
+                    console.log('------------------------');
+                    
                     showToast(data.message || 'Mã OTP đã được gửi đến số điện thoại của bạn!', 'success', 'OTP Sent');
 
                     // Focus on first input
@@ -337,6 +342,12 @@
                     }
 
                     showToast('A new OTP has been sent to ' + phoneInput.value, 'success', 'OTP Sent');
+                    
+                    // In mã OTP ra màn hình Console để tiện test
+                    console.log('--- MÃ OTP ĐỂ TEST (GỬI LẠI) ---');
+                    console.log('Mã OTP mới của bạn là: ' + data.otpCode);
+                    console.log('------------------------');
+
                     startResendTimer();
                     resetOtpInputs();
                     otpDigits[0].focus();

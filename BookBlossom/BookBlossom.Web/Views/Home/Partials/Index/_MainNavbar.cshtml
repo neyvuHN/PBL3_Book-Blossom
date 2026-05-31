@@ -12,7 +12,7 @@
             <li><a href="/Reviews" id="nav-reviews">Reviews</a></li>
         </ul>
         <div class="nav-actions">
-            @if (true /*User.Identity.IsAuthenticated*/)
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 <a href="/Cart" class="nav-icon-btn nav-cart-btn" id="nav-cart-btn">
                     <i class="fas fa-shopping-cart"></i> Cart

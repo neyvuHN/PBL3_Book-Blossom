@@ -67,7 +67,8 @@ namespace BookBlossom.Web.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult Logout()
         {
-            return RedirectToAction("Login");
+            Response.Cookies.Delete("AuthToken");
+            return Redirect("/Auth/Login?logout=true");
         }
 
         // ==================== API Endpoints ====================

@@ -76,6 +76,18 @@
     <!-- Script for password visibility toggle and AJAX login -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Check for logout parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout') === 'true') {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('roleId');
+                // Remove the query param to keep URL clean
+                window.history.replaceState({}, document.title, "/Auth/Login");
+            }
+
             // Reusable Toast Helper function
             function showToast(message, type = 'success', title = '') {
                 let container = document.getElementById('toastContainer');
@@ -196,6 +208,9 @@
                     localStorage.setItem('userId', data.userId);
                     localStorage.setItem('userName', data.userName);
                     localStorage.setItem('roleId', data.roleID);
+
+                    // Set cookie for server-side Razor pages to authenticate
+                    document.cookie = "AuthToken=" + data.token + "; path=/; max-age=" + (60*60*24*7); // 7 days
 
                     showToast('Đăng nhập thành công! Đang chuyển hướng...', 'success', 'Thành Công');
 

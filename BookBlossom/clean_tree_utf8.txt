@@ -1,0 +1,643 @@
+﻿BookBlossom
++--- BookBlossom.Core
+|   +--- Constants
+|   |   +--- ReputationThresholds.cs
+|   |   \--- SystemLimits.cs
+|   +--- DTOs
+|   |   +--- Auth
+|   |   |   +--- AuthResponseDTO.cs
+|   |   |   +--- ForgotPasswordRequestDTO.cs
+|   |   |   +--- LoginRequestDTO.cs
+|   |   |   +--- RegisterRequestDTO.cs
+|   |   |   +--- ResetPasswordRequestDTO.cs
+|   |   |   +--- TokenRequestDTO.cs
+|   |   |   \--- VerifyOtpRequestDTO.cs
+|   |   +--- Book
+|   |   |   +--- BlindBookAdminDTO.cs
+|   |   |   +--- BlindBookClientDTO.cs
+|   |   |   +--- CreateBlindBookDTO.cs
+|   |   |   +--- CreateRealBookDTO.cs
+|   |   |   +--- RealBookDTO.cs
+|   |   |   +--- RestockBlindBookDTO.cs
+|   |   |   \--- UpdateRealBookDTO.cs
+|   |   +--- Cart
+|   |   |   \--- CartDTOs.cs
+|   |   +--- Category
+|   |   |   +--- CategoryDTO.cs
+|   |   |   +--- CreateCategoryRequestDTO.cs
+|   |   |   \--- UpdateCategoryRequestDTO.cs
+|   |   +--- CheckoutAndCreateOrder
+|   |   |   +--- CheckoutRequestDTO.cs
+|   |   |   \--- OrderResponseDTO.cs
+|   |   +--- Guest
+|   |   |   \--- GuestSessionResponseDTO.cs
+|   |   +--- Importing
+|   |   |   +--- CreateImportingDetailRequestDTO.cs
+|   |   |   +--- CreateImportingRequestDTO.cs
+|   |   |   +--- ImportingDetailDTO.cs
+|   |   |   +--- ImportingDTO.cs
+|   |   |   +--- UpdateImportingDetailRequestDTO.cs
+|   |   |   \--- UpdateImportingRequestDTO.cs
+|   |   +--- Notification
+|   |   |   +--- NotificationDTO.cs
+|   |   |   +--- SubscribeRequestDTO.cs
+|   |   |   \--- SubscriptionDTO.cs
+|   |   +--- Onboarding
+|   |   |   +--- CategoryResponseDTO.cs
+|   |   |   \--- SavePreferencesRequestDTO.cs
+|   |   +--- Review
+|   |   |   +--- CreateReviewDTO.cs
+|   |   |   \--- ReviewDTO.cs
+|   |   +--- Thread
+|   |   |   +--- CreateReportDTO.cs
+|   |   |   +--- CreateThreadCommentDTO.cs
+|   |   |   +--- CreateThreadPostDTO.cs
+|   |   |   +--- ThreadCommentDTO.cs
+|   |   |   +--- ThreadImageDTO.cs
+|   |   |   +--- ThreadPostDTO.cs
+|   |   |   \--- UpdateThreadPostDTO.cs
+|   |   +--- Tindbook
+|   |   |   \--- SwipeActionDTO.cs
+|   |   +--- Wishlist
+|   |   |   \--- WishlistDTOs.cs
+|   |   +--- BadgeDTOs.cs
+|   |   +--- BookResponseDTO.cs
+|   |   +--- OrderDTO.cs
+|   |   +--- ReturnRequestDTOs.cs
+|   |   \--- UserDTO.cs
+|   +--- Entities
+|   |   +--- AuditLog.cs
+|   |   +--- Author.cs
+|   |   +--- Badge.cs
+|   |   +--- BlindBook.cs
+|   |   +--- Book.cs
+|   |   +--- BookAuthor.cs
+|   |   +--- BookImage.cs
+|   |   +--- Cart.cs
+|   |   +--- Category.cs
+|   |   +--- CustomerDetail.cs
+|   |   +--- CustomerPreference.cs
+|   |   +--- CustomerReputation.cs
+|   |   +--- CustomerService.cs
+|   |   +--- DeliveryAddress.cs
+|   |   +--- GuestDetail.cs
+|   |   +--- GuestPreference.cs
+|   |   +--- Importing.cs
+|   |   +--- ImportingDetail.cs
+|   |   +--- MembershipRank.cs
+|   |   +--- Order.cs
+|   |   +--- OrderDetail.cs
+|   |   +--- OTPLog.cs
+|   |   +--- RealBook.cs
+|   |   +--- Report.cs
+|   |   +--- ReputationHistory.cs
+|   |   +--- ReturnRequest.cs
+|   |   +--- Review.cs
+|   |   +--- RoleSystem.cs
+|   |   +--- ServiceHistory.cs
+|   |   +--- ServicePackage.cs
+|   |   +--- StaffDetail.cs
+|   |   +--- Subscription.cs
+|   |   +--- SwipeLog.cs
+|   |   +--- ThreadComment.cs
+|   |   +--- ThreadImage.cs
+|   |   +--- ThreadPost.cs
+|   |   +--- User.cs
+|   |   +--- UserNotification.cs
+|   |   +--- Voucher.cs
+|   |   \--- Wishlist.cs
+|   +--- Enums
+|   |   +--- AccountStatus.cs
+|   |   +--- BlindBookRequestStatus.cs
+|   |   +--- CategoryStatus.cs
+|   |   +--- ContractType.cs
+|   |   +--- Department.cs
+|   |   +--- NotificationType.cs
+|   |   +--- OrderStatus.cs
+|   |   +--- PaymentMethod.cs
+|   |   +--- PaymentStatus.cs
+|   |   +--- RankType.cs
+|   |   +--- ReportType.cs
+|   |   +--- ReputationAction.cs
+|   |   +--- ResolutionType.cs
+|   |   +--- ReturnStatus.cs
+|   |   +--- SortOrder.cs
+|   |   +--- StaffPosition.cs
+|   |   +--- SubscriptionTargetType.cs
+|   |   +--- SubscriptionType.cs
+|   |   +--- SwipeIntent.cs
+|   |   +--- UserRole.cs
+|   |   +--- VoucherStatus.cs
+|   |   \--- VoucherType.cs
+|   +--- Exceptions
+|   |   +--- InsufficientReputationException.cs
+|   |   +--- OrderNotFoundException.cs
+|   |   +--- OutOfStockException.cs
+|   |   +--- UnauthorizedActionException.cs
+|   |   +--- VoucherExpiredException.cs
+|   |   \--- VoucherInvalidException.cs
+|   +--- Interfaces
+|   |   +--- Infrastructure
+|   |   |   +--- IFileStorageService.cs
+|   |   |   \--- IPaymentService.cs
+|   |   \--- Services
+|   |       +--- IAuthService.cs
+|   |       +--- IBlindBookService.cs
+|   |       +--- IBookService.cs
+|   |       +--- ICartService.cs
+|   |       +--- ICategoryService.cs
+|   |       +--- IGamificationService.cs
+|   |       +--- IGuestService.cs
+|   |       +--- IInventoryService.cs
+|   |       +--- IModerationService.cs
+|   |       +--- INotificationPublisher.cs
+|   |       +--- INotificationService.cs
+|   |       +--- IOnboardingService.cs
+|   |       +--- IOrderService.cs
+|   |       +--- IOTPService.cs
+|   |       +--- IRealBookService.cs
+|   |       +--- IReputationService.cs
+|   |       +--- IReturnService.cs
+|   |       +--- IReviewService.cs
+|   |       +--- IServicePackageService.cs
+|   |       +--- ISMSService.cs
+|   |       +--- IThreadService.cs
+|   |       +--- ITindbookService.cs
+|   |       +--- IUserService.cs
+|   |       +--- IVoucherService.cs
+|   |       \--- IWishlistService.cs
+|   +--- Specifications
+|   |   \--- BookFilterSpecification.cs
+|   \--- BookBlossom.Core.csproj
++--- BookBlossom.Infrastructure
+|   +--- BackgroundJobs
+|   |   +--- OrderAutoCancelService.cs
+|   |   +--- OrderAutoCompleteService.cs
+|   |   +--- OtpCleanupJob.cs
+|   |   +--- RecurringReportService.cs
+|   |   \--- SubscriptionExpiryJob.cs
+|   +--- Data
+|   |   +--- Configurations
+|   |   |   +--- AuditLogConfiguration.cs
+|   |   |   +--- BadgeConfiguration.cs
+|   |   |   +--- BadgeCustomerConfiguration.cs
+|   |   |   +--- BlindBookConfiguration.cs
+|   |   |   +--- BookConfiguration.cs
+|   |   |   +--- CartConfiguration.cs
+|   |   |   +--- CategoryConfiguration.cs
+|   |   |   +--- CustomerDetailConfiguration.cs
+|   |   |   +--- CustomerPreferenceConfiguration.cs
+|   |   |   +--- CustomerReputationConfiguration.cs
+|   |   |   +--- CustomerServiceConfiguration.cs
+|   |   |   +--- DeliveryAddressConfiguration.cs
+|   |   |   +--- GuestDetailConfiguration.cs
+|   |   |   +--- GuestPreferenceConfiguration.cs
+|   |   |   +--- ImportingConfiguration.cs
+|   |   |   +--- ImportingDetailConfiguration.cs
+|   |   |   +--- MembershipRankConfiguration.cs
+|   |   |   +--- OrderConfiguration.cs
+|   |   |   +--- OrderDetailConfiguration.cs
+|   |   |   +--- OTPLogConfiguration.cs
+|   |   |   +--- RealBookConfiguration.cs
+|   |   |   +--- ReportConfiguration.cs
+|   |   |   +--- ReputationHistoryConfiguration.cs
+|   |   |   +--- ReturnRequestConfiguration.cs
+|   |   |   +--- RoleConfiguration.cs
+|   |   |   +--- ServiceHistoryConfiguration.cs
+|   |   |   +--- ServicePackageConfiguration.cs
+|   |   |   +--- StaffDetailConfiguration.cs
+|   |   |   +--- SubscriptionConfiguration.cs
+|   |   |   +--- ThreadConfiguration.cs
+|   |   |   +--- UserConfiguration.cs
+|   |   |   +--- UserNotificationConfiguration.cs
+|   |   |   +--- VoucherConfiguration.cs
+|   |   |   \--- WishlistConfiguration.cs
+|   |   +--- ApplicationDbContext.cs
+|   |   \--- SeedData.cs
+|   +--- Extensions
+|   |   \--- DependencyInjection.cs
+|   +--- Migrations
+|   |   +--- 20260515102130_FixGuestRelationshipTo1N.cs
+|   |   +--- 20260515102130_FixGuestRelationshipTo1N.Designer.cs
+|   |   +--- 20260515105936_UpdateOTPLogSecurity.cs
+|   |   +--- 20260515105936_UpdateOTPLogSecurity.Designer.cs
+|   |   +--- 20260515110412_AddIpAddressToOTPLog.cs
+|   |   +--- 20260515110412_AddIpAddressToOTPLog.Designer.cs
+|   |   +--- 20260515152150_UpdateRoleIDToByte.cs
+|   |   +--- 20260515152150_UpdateRoleIDToByte.Designer.cs
+|   |   +--- 20260515163619_SyncServiceModule.cs
+|   |   +--- 20260515163619_SyncServiceModule.Designer.cs
+|   |   +--- 20260516052831_AddOnboardingModule.cs
+|   |   +--- 20260516052831_AddOnboardingModule.Designer.cs
+|   |   +--- 20260517074342_AddCategoryAndBookConfigurations.cs
+|   |   +--- 20260517074342_AddCategoryAndBookConfigurations.Designer.cs
+|   |   +--- 20260517151127_AddImportTables.cs
+|   |   +--- 20260517151127_AddImportTables.Designer.cs
+|   |   +--- 20260518142436_SyncPublishYearToInt.cs
+|   |   +--- 20260518142436_SyncPublishYearToInt.Designer.cs
+|   |   +--- 20260519144739_SyncBlindBookOnly.cs
+|   |   +--- 20260519144739_SyncBlindBookOnly.Designer.cs
+|   |   +--- 20260519145808_SyncImportTablesSchema.cs
+|   |   +--- 20260519145808_SyncImportTablesSchema.Designer.cs
+|   |   +--- 20260520060007_AddCartAndWishlistModule.cs
+|   |   +--- 20260520060007_AddCartAndWishlistModule.Designer.cs
+|   |   +--- 20260522052455_AddMembershipRankAndReputationTables.cs
+|   |   +--- 20260522052455_AddMembershipRankAndReputationTables.Designer.cs
+|   |   +--- 20260526134847_AddOrderDateIndex.cs
+|   |   +--- 20260526134847_AddOrderDateIndex.Designer.cs
+|   |   +--- 20260528144807_AddCustomerPreferenceSchema.cs
+|   |   +--- 20260528144807_AddCustomerPreferenceSchema.Designer.cs
+|   |   +--- 20260528145942_FixCustomerPreference.cs
+|   |   +--- 20260528145942_FixCustomerPreference.Designer.cs
+|   |   +--- 20260528153102_AddGuestTindbookSupport.cs
+|   |   +--- 20260528153102_AddGuestTindbookSupport.Designer.cs
+|   |   +--- 20260528155618_AddThreadModule.cs
+|   |   +--- 20260528155618_AddThreadModule.Designer.cs
+|   |   +--- 20260529185849_Fix_CustomerDetail_RankID_Final.cs
+|   |   +--- 20260529185849_Fix_CustomerDetail_RankID_Final.Designer.cs
+|   |   +--- 20260529190222_AddRankID_To_CustomerDetail_Final.cs
+|   |   +--- 20260529190222_AddRankID_To_CustomerDetail_Final.Designer.cs
+|   |   +--- 20260530034243_AddUndoFieldsToGuestDetail.cs
+|   |   +--- 20260530034243_AddUndoFieldsToGuestDetail.Designer.cs
+|   |   +--- 20260530061412_AddReportEntity.cs
+|   |   +--- 20260530061412_AddReportEntity.Designer.cs
+|   |   +--- 20260531052218_UpdateUserRolesToAdmin.cs
+|   |   +--- 20260531052218_UpdateUserRolesToAdmin.Designer.cs
+|   |   +--- 20260531060237_AddNotificationAndSubscription.cs
+|   |   +--- 20260531060237_AddNotificationAndSubscription.Designer.cs
+|   |   +--- 20260531060720_UpdateNotificationEnums.cs
+|   |   +--- 20260531060720_UpdateNotificationEnums.Designer.cs
+|   |   +--- 20260531062832_FixEnumValuesStartFromZero.cs
+|   |   +--- 20260531062832_FixEnumValuesStartFromZero.Designer.cs
+|   |   +--- 20260531095015_AddReputationHistoryKey.cs
+|   |   +--- 20260531095015_AddReputationHistoryKey.Designer.cs
+|   |   +--- 20260531120855_AddBadgeAndCustomerShareSchema.cs
+|   |   +--- 20260531120855_AddBadgeAndCustomerShareSchema.Designer.cs
+|   |   \--- ApplicationDbContextModelSnapshot.cs
+|   +--- Payments
+|   |   +--- MomoService.cs
+|   |   \--- VNPayService.cs
+|   +--- Services
+|   |   +--- AuthService.cs
+|   |   +--- BlindBookService.cs
+|   |   +--- BookService.cs
+|   |   +--- CartService.cs
+|   |   +--- CategoryService.cs
+|   |   +--- EsmsSmsService.cs
+|   |   +--- GamificationService.cs
+|   |   +--- GuestService.cs
+|   |   +--- InventoryService.cs
+|   |   +--- ModerationService.cs
+|   |   +--- NotificationService.cs
+|   |   +--- OnboardingService.cs
+|   |   +--- OrderService.cs
+|   |   +--- OTPService.cs
+|   |   +--- RealBookService.cs
+|   |   +--- ReputationService.cs
+|   |   +--- ReturnService.cs
+|   |   +--- ReviewService.cs
+|   |   +--- ServicePackageService.cs
+|   |   +--- SmsService.cs
+|   |   +--- ThreadService.cs
+|   |   +--- TindbookService.cs
+|   |   +--- UserService.cs
+|   |   +--- VoucherService.cs
+|   |   \--- WishlistService.cs
+|   +--- Storage
+|   |   \--- CloudinaryService.cs
+|   \--- BookBlossom.Infrastructure.csproj
++--- BookBlossom.Tests
+|   +--- Controllers
+|   |   \--- OrderControllerTests.cs
+|   +--- Services
+|   |   +--- CartServiceTests.cs
+|   |   +--- GamificationServiceTests.cs
+|   |   +--- InventoryServiceTests.cs
+|   |   +--- OrderServiceTests.cs
+|   |   +--- ThreadServiceTests.cs
+|   |   +--- VoucherServiceTests.cs
+|   |   \--- WishlistServiceTests.cs
+|   +--- BookBlossom.Tests.csproj
+|   \--- UnitTest1.cs
++--- BookBlossom.Web
+|   +--- Areas
+|   |   +--- Management
+|   |   |   \--- Controllers
+|   |   |       +--- DashboardController.cs
+|   |   |       +--- InventoryController.cs
+|   |   |       \--- VoucherController.cs
+|   |   \--- Moderation
+|   |       \--- Controllers
+|   |           \--- ReportController.cs
+|   +--- Controllers
+|   |   +--- AdminController.cs
+|   |   +--- AuthController.cs
+|   |   +--- BadgeController.cs
+|   |   +--- BlindBookController.cs
+|   |   +--- BlindDateController.cs
+|   |   +--- BookController.cs
+|   |   +--- BookPreviewController.cs
+|   |   +--- CartController.cs
+|   |   +--- CategoryController.cs
+|   |   +--- CommunityController.cs
+|   |   +--- GuestController.cs
+|   |   +--- HomeController.cs
+|   |   +--- InventoryController.cs
+|   |   +--- MessagesController.cs
+|   |   +--- NotificationController.cs
+|   |   +--- OnboardingController.cs
+|   |   +--- OrderController.cs
+|   |   +--- ProfileController.cs
+|   |   +--- RealBookController.cs
+|   |   +--- ReturnController.cs
+|   |   +--- ReviewController.cs
+|   |   +--- ServicePackageController.cs
+|   |   +--- ThreadController.cs
+|   |   +--- TindbookController.cs
+|   |   \--- WishlistController.cs
+|   +--- Filters
+|   |   \--- CheckReputationFilter.cs
+|   +--- Hubs
+|   |   +--- NotificationHub.cs
+|   |   \--- NotificationPublisher.cs
+|   +--- Mappings
+|   |   \--- MappingProfile.cs
+|   +--- Middlewares
+|   |   +--- AuditLogMiddleware.cs
+|   |   +--- ExceptionMiddleware.cs
+|   |   \--- GuestSessionMiddleware.cs
+|   +--- Properties
+|   |   \--- launchSettings.json
+|   +--- TestAPI
+|   |   \--- register.http
+|   +--- ViewModels
+|   |   +--- Admin
+|   |   |   +--- InventoryManagementViewModel.cs
+|   |   |   +--- OrderManagementViewModel.cs
+|   |   |   +--- SystemLogsViewModel.cs
+|   |   |   \--- UserManagementViewModel.cs
+|   |   +--- Auth (Tr?ng)
+|   |   +--- BlindDate (Tr?ng)
+|   |   +--- Book (Tr?ng)
+|   |   +--- Order (Tr?ng)
+|   |   +--- Profile
+|   |   |   \--- ProfileViewModel.cs
+|   |   +--- Tindbook (Tr?ng)
+|   |   +--- Voucher (Tr?ng)
+|   |   +--- .gitkeep
+|   |   \--- ErrorViewModel.cs
+|   +--- Views
+|   |   +--- Admin
+|   |   |   +--- Partials
+|   |   |   |   +--- _AddStaffModal.cshtml
+|   |   |   |   +--- _AdminMessagesWorkspace.cshtml
+|   |   |   |   +--- _AlertsAndConfig.cshtml
+|   |   |   |   +--- _BuyerNoteModal.cshtml
+|   |   |   |   +--- _Charts.cshtml
+|   |   |   |   +--- _EditRoleModal.cshtml
+|   |   |   |   +--- _StaffTable.cshtml
+|   |   |   |   +--- _StatCards.cshtml
+|   |   |   |   +--- _SystemLogs.cshtml
+|   |   |   |   +--- _TrendingBooks.cshtml
+|   |   |   |   \--- _UserTable.cshtml
+|   |   |   +--- ContentReports.cshtml
+|   |   |   +--- Dashboard.cshtml
+|   |   |   +--- Inventory.cshtml
+|   |   |   +--- Messages.cshtml
+|   |   |   +--- Orders.cshtml
+|   |   |   +--- SystemLogs.cshtml
+|   |   |   +--- Users.cshtml
+|   |   |   \--- Vouchers.cshtml
+|   |   +--- Auth
+|   |   |   +--- ForgotPassword.cshtml
+|   |   |   +--- InterestSelection.cshtml
+|   |   |   +--- Login.cshtml
+|   |   |   \--- Register.cshtml
+|   |   +--- BlindDate
+|   |   |   +--- Partials
+|   |   |   |   +--- _BlindDateBooksSection.cshtml
+|   |   |   |   +--- _BlindDateDetailsSection.cshtml
+|   |   |   |   \--- _BlindDateScripts.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- Book
+|   |   |   +--- Partials
+|   |   |   |   +--- _BookModals.cshtml
+|   |   |   |   +--- _ExploreScripts.cshtml
+|   |   |   |   +--- _ExploreSection.cshtml
+|   |   |   |   \--- _ProductDetailsSection.cshtml
+|   |   |   \--- Explore.cshtml
+|   |   +--- Community
+|   |   |   +--- Partials
+|   |   |   |   +--- _CommunityScripts.cshtml
+|   |   |   |   \--- _CommunitySection.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- Home
+|   |   |   +--- Partials
+|   |   |   |   \--- Index
+|   |   |   |       +--- _Footer.cshtml
+|   |   |   |       +--- _HomeIndexModals.cshtml
+|   |   |   |       +--- _HomeIndexStyles.cshtml
+|   |   |   |       +--- _HomeLanding.cshtml
+|   |   |   |       +--- _HomeLandingScripts.cshtml
+|   |   |   |       \--- _MainNavbar.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- Messages
+|   |   |   +--- Partials
+|   |   |   |   +--- _MessagesModals.cshtml
+|   |   |   |   +--- _MessagesNavbar.cshtml
+|   |   |   |   +--- _MessagesScripts.cshtml
+|   |   |   |   +--- _MessagesStyles.cshtml
+|   |   |   |   +--- _MessagesToast.cshtml
+|   |   |   |   \--- _MessagesWorkspace.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- Order
+|   |   |   +--- Partials
+|   |   |   |   +--- _CartScripts.cshtml
+|   |   |   |   +--- _CartSection.cshtml
+|   |   |   |   +--- _ConfirmActionModal.cshtml
+|   |   |   |   +--- _OrderDetailsModal.cshtml
+|   |   |   |   +--- _OrdersScripts.cshtml
+|   |   |   |   +--- _OrdersSection.cshtml
+|   |   |   |   +--- _OrderTrackingModal.cshtml
+|   |   |   |   +--- _RateOrderModal.cshtml
+|   |   |   |   +--- _ReturnRefundModal.cshtml
+|   |   |   |   \--- _RevealRealBookModal.cshtml
+|   |   |   +--- Cart.cshtml
+|   |   |   \--- Orders.cshtml
+|   |   +--- Profile
+|   |   |   +--- Partials
+|   |   |   |   +--- _ProfileScripts.cshtml
+|   |   |   |   \--- _ProfileSection.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- Review
+|   |   |   +--- Partials
+|   |   |   |   +--- _ReviewsModals.cshtml
+|   |   |   |   +--- _ReviewsScripts.cshtml
+|   |   |   |   \--- _ReviewsSection.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- Shared
+|   |   |   +--- AdminPartials
+|   |   |   |   +--- _Sidebar.cshtml
+|   |   |   |   \--- _Topbar.cshtml
+|   |   |   +--- Partials
+|   |   |   |   \--- _CheckoutModal.cshtml
+|   |   |   +--- Error.cshtml
+|   |   |   +--- _AdminLayout.cshtml
+|   |   |   +--- _BookBlossomLayout.cshtml
+|   |   |   +--- _Layout.cshtml
+|   |   |   +--- _Layout.cshtml.css
+|   |   |   \--- _ValidationScriptsPartial.cshtml
+|   |   +--- Tindbook
+|   |   |   +--- Partials
+|   |   |   |   +--- _TindbookScripts.cshtml
+|   |   |   |   \--- _TindbookSection.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- Wishlist
+|   |   |   +--- Partials
+|   |   |   |   +--- _WishlistScripts.cshtml
+|   |   |   |   \--- _WishlistSection.cshtml
+|   |   |   \--- Index.cshtml
+|   |   +--- _ViewImports.cshtml
+|   |   \--- _ViewStart.cshtml
+|   +--- wwwroot
+|   |   +--- css
+|   |   |   +--- admin
+|   |   |   |   +--- admin-layout.css
+|   |   |   |   +--- admin-messages.css
+|   |   |   |   +--- content-reports.css
+|   |   |   |   +--- dashboard.css
+|   |   |   |   +--- inventory.css
+|   |   |   |   +--- orders.css
+|   |   |   |   \--- users.css
+|   |   |   +--- blind-date
+|   |   |   |   +--- blind-date-details.css
+|   |   |   |   \--- blind-date.css
+|   |   |   +--- book
+|   |   |   |   +--- book-preview.css
+|   |   |   |   +--- explore.css
+|   |   |   |   \--- product-details.css
+|   |   |   +--- notification
+|   |   |   |   \--- notification.css
+|   |   |   +--- order
+|   |   |   |   +--- cart.css
+|   |   |   |   \--- orders.css
+|   |   |   +--- profile
+|   |   |   |   \--- profile.css
+|   |   |   +--- wishlist
+|   |   |   |   \--- wishlist.css
+|   |   |   +--- globals.css
+|   |   |   +--- site.css
+|   |   |   \--- style.css
+|   |   +--- images
+|   |   |   +--- Avatar
+|   |   |   |   \--- avatar1.jpg
+|   |   |   +--- BlindDateBook
+|   |   |   |   +--- BlindBook.jpg
+|   |   |   |   +--- BlindBook1.jpg
+|   |   |   |   +--- BlindBook2.jpg
+|   |   |   |   +--- BlindBook3.jpg
+|   |   |   |   +--- BlindBook4.jpg
+|   |   |   |   +--- BlindBook5.jpg
+|   |   |   |   \--- Vector.png
+|   |   |   +--- Book
+|   |   |   |   +--- book1.jpg
+|   |   |   |   +--- book2.webp
+|   |   |   |   +--- book3.avif
+|   |   |   |   +--- book4.jpg
+|   |   |   |   +--- book5.jpg
+|   |   |   |   +--- book6.webp
+|   |   |   |   \--- f68091e2-8227-40f4-a9e8-35229eb71195_yes (12).JPG
+|   |   |   +--- Homepage
+|   |   |   |   +--- homepage1.jpg
+|   |   |   |   +--- homepage2.jpg
+|   |   |   |   +--- homepage3.jpg
+|   |   |   |   +--- homepage4.jpg
+|   |   |   |   \--- homepage5.jpg
+|   |   |   +--- Message (Tr?ng)
+|   |   |   +--- book.jpg
+|   |   |   +--- book_cover.png
+|   |   |   \--- tindbook.jpg
+|   |   +--- js
+|   |   |   +--- admin
+|   |   |   |   +--- blind-date (Tr?ng)
+|   |   |   |   +--- content-reports
+|   |   |   |   |   +--- content-reports-controller.js
+|   |   |   |   |   +--- content-reports-model.js
+|   |   |   |   |   \--- content-reports-view.js
+|   |   |   |   +--- inventory
+|   |   |   |   |   \--- blind-date
+|   |   |   |   |       +--- blind-date-controller.js
+|   |   |   |   |       +--- blind-date-model.js
+|   |   |   |   |       \--- blind-date-view.js
+|   |   |   |   +--- layout
+|   |   |   |   |   +--- layout-controller.js
+|   |   |   |   |   +--- layout-model.js
+|   |   |   |   |   \--- layout-view.js
+|   |   |   |   +--- orders
+|   |   |   |   |   +--- orders-controller.js
+|   |   |   |   |   +--- orders-model.js
+|   |   |   |   |   \--- orders-view.js
+|   |   |   |   +--- users
+|   |   |   |   |   +--- users-controller.js
+|   |   |   |   |   +--- users-model.js
+|   |   |   |   |   \--- users-view.js
+|   |   |   |   +--- vouchers
+|   |   |   |   |   +--- vouchers-controller.js
+|   |   |   |   |   +--- vouchers-model.js
+|   |   |   |   |   \--- vouchers-view.js
+|   |   |   |   +--- admin-dashboard.js
+|   |   |   |   +--- admin-messages.js
+|   |   |   |   \--- inventory.js
+|   |   |   +--- blind-date
+|   |   |   |   +--- blind-date-details.js
+|   |   |   |   \--- blind-date.js
+|   |   |   +--- book
+|   |   |   |   +--- book-preview.js
+|   |   |   |   +--- explore.js
+|   |   |   |   \--- product-details.js
+|   |   |   +--- notification
+|   |   |   |   +--- notification-controller.js
+|   |   |   |   +--- notification-model.js
+|   |   |   |   \--- notification-view.js
+|   |   |   +--- order
+|   |   |   |   +--- orders-controller.js
+|   |   |   |   +--- orders-model.js
+|   |   |   |   \--- orders-view.js
+|   |   |   +--- profile
+|   |   |   |   +--- profile-controller.js
+|   |   |   |   +--- profile-model.js
+|   |   |   |   +--- profile-view.js
+|   |   |   |   \--- profile.js
+|   |   |   +--- shared
+|   |   |   |   +--- cart-store.js
+|   |   |   |   +--- checkout.js
+|   |   |   |   +--- layout.js
+|   |   |   |   +--- notification-store.js
+|   |   |   |   \--- wishlist-store.js
+|   |   |   +--- wishlist
+|   |   |   |   +--- wishlist-controller.js
+|   |   |   |   +--- wishlist-model.js
+|   |   |   |   \--- wishlist-view.js
+|   |   |   \--- site.js
+|   |   +--- PDF
+|   |   |   +--- Book1.pdf
+|   |   |   +--- Book2.pdf
+|   |   |   \--- Book3.pdf
+|   |   +--- samples
+|   |   |   \--- 98526220-bf13-49af-9465-68da57cc2229_DSC02974.JPG
+|   |   +--- shared (Tr?ng)
+|   |   +--- uploads
+|   |   |   +--- return_videos
+|   |   |   |   \--- 357b66e9-62ae-40d0-a480-bc53b1dd4f2f.mp4
+|   |   |   \--- threads
+|   |   |       +--- 261074e0-5095-40dc-b986-ddd848517b79.png
+|   |   |       +--- b20daf26-8534-46d3-822f-ab781f6bc88e.png
+|   |   |       \--- cddeba97-fd79-4931-961e-1f8ea04d5322.png
+|   |   \--- favicon.ico
+|   +--- appsettings.Development.json
+|   +--- appsettings.json
+|   +--- BookBlossom.Web.csproj
+|   +--- BookBlossom.Web.csproj.user
+|   \--- Program.cs
++--- .gitignore
+\--- BookBlossom.slnx

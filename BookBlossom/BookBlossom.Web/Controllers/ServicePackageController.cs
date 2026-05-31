@@ -40,11 +40,11 @@ namespace BookBlossom.Web.Controllers
 
             return Ok(new
             {
-                PackageName = service.ServicePackage.PackageName,
+                PackageName = service.ServicePackage?.PackageName,
                 StartDate = service.StartDate,
                 EndDate = service.EndDate,
-                ThreadLimit = service.ServicePackage.ThreadLimit,
-                UndoLimit = service.ServicePackage.UndoLimit
+                ThreadLimit = service.ServicePackage?.ThreadLimit,
+                UndoLimit = service.ServicePackage?.UndoLimit
             });
         }
 

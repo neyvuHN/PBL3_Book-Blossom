@@ -125,7 +125,15 @@ namespace BookBlossom.Infrastructure.Services
                 TotalSpending = 0,
                 DailyUndoCount = 0,
                 CurrentMonthThreadCount = 0,
-                CurrentOrderStreak = 0
+                CurrentOrderStreak = 0,
+                CustomerReputations = new List<CustomerReputation>
+                {
+                    new CustomerReputation 
+                    {
+                        CustomerID = newUser.UserID,
+                        ReputationPoint = 100
+                    }
+                }
             };
             _context.CustomerDetails.Add(customerDetail);
 

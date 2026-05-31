@@ -184,7 +184,7 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
-        private void LogAction(long adminId, long? userId, AuditActionType actionType, string tableName, object oldData, object newData)
+        private void LogAction(long adminId, long? userId, AuditActionType actionType, string tableName, object? oldData, object? newData)
         {
             var log = new AuditLog
             {

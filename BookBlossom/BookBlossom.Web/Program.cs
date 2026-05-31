@@ -107,6 +107,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
+                // Read token from cookie for Razor pages
+                if (context.Request.Cookies.ContainsKey("AuthToken"))
+                {
+                    context.Token = context.Request.Cookies["AuthToken"];
+                }
+
                 var accessToken = context.Request.Query["access_token"];
 
                 // If the request is for our hub...
