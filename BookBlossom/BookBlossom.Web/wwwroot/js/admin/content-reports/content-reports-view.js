@@ -121,7 +121,7 @@ class ContentReportsView {
                             <h5>${item.bookLink.title}</h5>
                             <p>${item.bookLink.author}</p>
                         </div>
-                        <button class="btn-action" style="margin-left: auto; border: 1px solid #D1D5DB; background: white;"><i class="ph ph-arrow-square-out"></i> View Book</button>
+                        <button class="btn-action btn-view-book" data-action="view-book" data-id="${item.id}" style="margin-left: auto; border: 1px solid #D1D5DB; background: white;"><i class="ph ph-arrow-square-out"></i> View Book</button>
                     </div>
                 `;
             }

@@ -329,5 +329,47 @@ document.addEventListener('DOMContentLoaded', function () {
         searchCategoriesInput.addEventListener('input', filterCategories);
         if (filterCategoryStatus) filterCategoryStatus.addEventListener('change', filterCategories);
     }
+
+    // --- Handle Direct Navigation to Book via URL (e.g., from Content Reports) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookTitleFromUrl = urlParams.get('book');
+    if (bookTitleFromUrl && searchBooksInput) {
+        // Switch to the books tab
+        const booksTabBtn = document.getElementById('books-tab');
+        if (booksTabBtn) {
+            booksTabBtn.click();
+        }
+
+        // Set search input and trigger filter
+        searchBooksInput.value = bookTitleFromUrl;
+        searchBooksInput.dispatchEvent(new Event('input'));
+        
+        // Find the visible row that matches this title exactly and add a highlight effect
+        setTimeout(() => {
+            const rows = document.querySelectorAll('#books tbody tr:not(#booksNoResultsRow)');
+            for (let row of rows) {
+                if (row.style.display !== 'none') {
+                    const titleElement = row.querySelector('.fw-bold.text-dark');
+                    if (titleElement && titleElement.textContent.toLowerCase() === bookTitleFromUrl.toLowerCase()) {
+                        // Scroll into view
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Add highlight effect (light red)
+                        row.style.transition = 'background-color 0.8s ease, box-shadow 0.3s ease';
+                        row.style.backgroundColor = 'rgba(220, 38, 38, 0.15)'; // red-600 with 15% opacity
+                        row.style.boxShadow = '0 0 10px rgba(220, 38, 38, 0.3)';
+                        row.style.position = 'relative';
+                        row.style.zIndex = '10';
+                        
+                        setTimeout(() => {
+                            row.style.backgroundColor = '';
+                            row.style.boxShadow = '';
+                            row.style.zIndex = '';
+                        }, 3000); // Effect lasts 3 seconds
+                        break;
+                    }
+                }
+            }
+        }, 150);
+    }
 });
 

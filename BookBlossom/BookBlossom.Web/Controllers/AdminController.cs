@@ -395,6 +395,24 @@ namespace BookBlossom.Web.Controllers
                             PublishYear = 1965,
                             Authors = "Frank Herbert",
                             MainImageUrl = "/images/Book/book1.jpg"
+                        },
+                        new()
+                        {
+                            BookID = 9004,
+                            CategoryID = 1,
+                            CategoryName = "Literature & Fiction",
+                            Title = "The Secret Garden",
+                            Publisher = "Heinemann",
+                            ISBN = "978-0140366668",
+                            Description = "A story of an orphaned girl who discovers a hidden garden.",
+                            Price = 120000,
+                            Weight = 250.0,
+                            UnitsInStock = 20,
+                            ReservedQuantity = 1,
+                            IsContinued = true,
+                            PublishYear = 1911,
+                            Authors = "Frances Hodgson Burnett",
+                            MainImageUrl = "/images/Book/book1.jpg"
                         }
                     };
                 }

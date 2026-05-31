@@ -53,12 +53,16 @@ class ContentReportsController {
         const index = items.findIndex(i => i.id === id);
         
         if (index > -1) {
+            const item = items[index];
             if (action === 'keep') {
                 showPremiumAlert('Content Kept', 'Content kept. Report dismissed.', 'success');
                 this.model.moderationItems.splice(index, 1);
             } else if (action === 'delete') {
                 showPremiumAlert('Content Deleted', 'Content deleted. Standard penalty points applied to author.', 'success');
                 this.model.moderationItems.splice(index, 1);
+            } else if (action === 'view-book' && item.bookLink) {
+                window.location.href = `/Admin/Inventory?book=${encodeURIComponent(item.bookLink.title)}#books`;
+                return; // no need to re-render
             }
             this.renderAll();
         }
