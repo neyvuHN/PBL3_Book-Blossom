@@ -1,0 +1,104 @@
+@{
+    ViewData["Title"] = "Content & Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/content-reports.css" asp-append-version="true" />
+}
+
+<div class="content-reports-layout" id="contentReportsLayout">
+    
+    <!-- Sub Sidebar -->
+    <div class="sub-sidebar" id="reportsSidebar">
+        <div class="sub-sidebar-header">
+            <h3>Content Management</h3>
+        </div>
+        <div class="sub-sidebar-menu">
+            <div class="menu-section-title">Moderation</div>
+            <div class="sub-menu-item active" data-target="tab-moderation">
+                <i class="ph ph-shield-warning"></i>
+                Moderation
+                <span class="badge-count" id="badgeModeration">3</span>
+            </div>
+            
+            <div class="menu-section-title">Customer Service</div>
+            <div class="sub-menu-item" data-target="tab-feedback">
+                <i class="ph ph-chat-teardrop-text"></i>
+                Feedback
+                <span class="badge-count" id="badgeFeedback" style="background:#3B82F6;">5</span>
+            </div>
+            <div class="sub-menu-item" data-target="tab-returns">
+                <i class="ph ph-package"></i>
+                Return Claims
+                <span class="badge-count" id="badgeReturns" style="background:#F59E0B;">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content-area" id="mainContentArea">
+        <button class="toggle-sidebar-btn" id="btnToggleSidebar" title="Toggle Sidebar">
+            <i class="ph ph-list"></i>
+        </button>
+
+        <!-- Moderation Tab -->
+        <div class="content-tab active" id="tab-moderation">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Thread/Review Moderation</h2>
+                    <p>Process reported content and monitor for community guideline violations.</p>
+                </div>
+            </div>
+            
+            <div id="moderationListContainer">
+                <!-- Dynamically populated by MVC View -->
+            </div>
+        </div>
+
+        <!-- Feedback Tab -->
+        <div class="content-tab" id="tab-feedback">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Receipt and Feedback</h2>
+                    <p>Reply to buyer product reviews and community posts. Transfer to complaints if necessary.</p>
+                </div>
+            </div>
+            
+            <div id="feedbackListContainer">
+                <!-- Dynamically populated by MVC View -->
+            </div>
+        </div>
+
+        <!-- Return Claims Tab -->
+        <div class="content-tab" id="tab-returns">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Return Complaint Processing</h2>
+                    <p>Review evidence for return and refund requests.</p>
+                </div>
+            </div>
+            
+            <div id="returnsListContainer">
+                <!-- Dynamically populated by MVC View -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- MVC Frontend Architecture for Content Reports -->
+    <script src="~/js/admin/content-reports/content-reports-model.js" asp-append-version="true"></script>
+    <script src="~/js/admin/content-reports/content-reports-view.js" asp-append-version="true"></script>
+    <script src="~/js/admin/content-reports/content-reports-controller.js" asp-append-version="true"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize MVC
+            const model = new ContentReportsModel();
+            const view = new ContentReportsView();
+            const controller = new ContentReportsController(model, view);
+            controller.init();
+        });
+    </script>
+}
