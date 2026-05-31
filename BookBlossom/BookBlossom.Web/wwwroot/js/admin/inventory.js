@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('bookWeight').value = this.dataset.weight || '';
             document.getElementById('bookStock').value = this.dataset.stock;
             document.getElementById('bookDescription').value = this.dataset.description || '';
+            document.getElementById('bookAuthors').value = this.dataset.authors || '';
             
             const isContinuedChecked = this.dataset.iscontinued === 'true';
             document.getElementById('isContinued').checked = isContinuedChecked;
@@ -198,4 +199,107 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 400);
         }, 4000);
     });
+
+    // --- Live Instant Search for Books ---
+    const searchBooksInput = document.getElementById('searchBooksInput');
+    if (searchBooksInput) {
+        // Create dynamic "No matching books" row
+        const noResultsRow = document.createElement('tr');
+        noResultsRow.id = 'booksNoResultsRow';
+        noResultsRow.style.display = 'none';
+        noResultsRow.innerHTML = '<td colspan="8" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No books match your search query.</td>';
+        const tbody = document.querySelector('#books tbody');
+        if (tbody) tbody.appendChild(noResultsRow);
+
+        searchBooksInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#books tbody tr:not(#booksNoResultsRow)');
+            let visibleCount = 0;
+            let totalCount = 0;
+
+            rows.forEach(row => {
+                // If it is the default backend "No books found" placeholder, hide it if query is entered
+                if (row.cells.length === 1 && row.cells[0].colSpan === 8 && !row.id) {
+                    row.style.display = query ? "none" : "";
+                    return;
+                }
+                totalCount++;
+
+                const titleElement = row.querySelector('.fw-bold.text-dark');
+                const isbnElement = row.querySelector('.text-muted.small');
+                const authorElement = row.querySelector('.book-authors-list');
+                const categoryCell = row.cells[2];
+                const bookIdCell = row.cells[0];
+
+                const title = titleElement ? titleElement.textContent.toLowerCase() : "";
+                const isbn = isbnElement ? isbnElement.textContent.toLowerCase() : "";
+                const author = authorElement ? authorElement.getAttribute('title').toLowerCase() : "";
+                const category = categoryCell ? categoryCell.textContent.toLowerCase() : "";
+                const bookId = bookIdCell ? bookIdCell.textContent.toLowerCase() : "";
+
+                if (title.includes(query) || isbn.includes(query) || category.includes(query) || bookId.includes(query) || author.includes(query)) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            if (query && visibleCount === 0 && totalCount > 0) {
+                noResultsRow.style.display = '';
+            } else {
+                noResultsRow.style.display = 'none';
+            }
+        });
+    }
+
+    // --- Live Instant Search for Categories ---
+    const searchCategoriesInput = document.getElementById('searchCategoriesInput');
+    if (searchCategoriesInput) {
+        // Create dynamic "No matching categories" row
+        const noResultsRow = document.createElement('tr');
+        noResultsRow.id = 'categoriesNoResultsRow';
+        noResultsRow.style.display = 'none';
+        noResultsRow.innerHTML = '<td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No categories match your search query.</td>';
+        const tbody = document.querySelector('#categories tbody');
+        if (tbody) tbody.appendChild(noResultsRow);
+
+        searchCategoriesInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#categories tbody tr:not(#categoriesNoResultsRow)');
+            let visibleCount = 0;
+            let totalCount = 0;
+
+            rows.forEach(row => {
+                // If it is the default backend "No categories found" placeholder, hide it if query is entered
+                if (row.cells.length === 1 && row.cells[0].colSpan === 6 && !row.id) {
+                    row.style.display = query ? "none" : "";
+                    return;
+                }
+                totalCount++;
+
+                const idCell = row.cells[0];
+                const nameCell = row.cells[1];
+                const descCell = row.cells[2];
+
+                const id = idCell ? idCell.textContent.toLowerCase() : "";
+                const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+                const desc = descCell ? descCell.textContent.toLowerCase() : "";
+
+                if (id.includes(query) || name.includes(query) || desc.includes(query)) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            if (query && visibleCount === 0 && totalCount > 0) {
+                noResultsRow.style.display = '';
+            } else {
+                noResultsRow.style.display = 'none';
+            }
+        });
+    }
 });
+

@@ -55,5 +55,7 @@ namespace BookBlossom.Core.Entities
         public virtual Category Category { get; set; } = null!;
 
         public virtual ICollection<BookImage> BookImages { get; set; } = new List<BookImage>();
+        public virtual ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
     }
 }
+

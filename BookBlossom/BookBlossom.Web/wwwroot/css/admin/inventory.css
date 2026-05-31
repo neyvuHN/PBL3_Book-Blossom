@@ -77,7 +77,7 @@
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid #dee2e6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .image-preview-wrapper img {
@@ -124,12 +124,13 @@
     text-decoration: none;
     cursor: pointer;
 }
+
 .btn-action-edit:hover {
     background-color: #e9ecef;
     border-color: #ced4da;
     color: #212529;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .btn-action-delete {
@@ -146,6 +147,7 @@
     text-decoration: none;
     cursor: pointer;
 }
+
 .btn-action-delete:hover {
     background-color: #fa5252;
     border-color: #fa5252;
@@ -254,6 +256,7 @@
         opacity: 0;
         transform: translateY(-15px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -265,6 +268,7 @@
         opacity: 1;
         transform: translateY(0);
     }
+
     to {
         opacity: 0;
         transform: translateY(-15px);

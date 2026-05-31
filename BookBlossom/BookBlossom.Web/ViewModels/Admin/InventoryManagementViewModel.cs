@@ -22,8 +22,11 @@ namespace BookBlossom.Web.ViewModels.Admin
         public int ReservedQuantity { get; set; }
         public bool IsContinued { get; set; }
         public int PublishYear { get; set; }
+        public string Authors { get; set; } = string.Empty;
         public string MainImageUrl { get; set; } = string.Empty;
     }
+
+
 
     public class InventoryCategoryViewModel
     {

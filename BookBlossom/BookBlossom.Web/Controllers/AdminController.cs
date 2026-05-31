@@ -296,6 +296,7 @@ namespace BookBlossom.Web.Controllers
                             ReservedQuantity = 2,
                             IsContinued = true,
                             PublishYear = 2004,
+                            Authors = "F. Scott Fitzgerald",
                             MainImageUrl = "/images/Book/book1.jpg"
                         },
                         new()
@@ -313,6 +314,7 @@ namespace BookBlossom.Web.Controllers
                             ReservedQuantity = 5,
                             IsContinued = true,
                             PublishYear = 2018,
+                            Authors = "James Clear",
                             MainImageUrl = "/images/Book/book2.webp"
                         },
                         new()
@@ -330,6 +332,7 @@ namespace BookBlossom.Web.Controllers
                             ReservedQuantity = 0,
                             IsContinued = false,
                             PublishYear = 1965,
+                            Authors = "Frank Herbert",
                             MainImageUrl = "/images/Book/book1.jpg"
                         }
                     };
@@ -434,6 +437,7 @@ namespace BookBlossom.Web.Controllers
                 IsContinued = bookInput.IsContinued,
                 ReservedQuantity = 0,
                 PublishYear = bookInput.PublishYear,
+                Authors = bookInput.Authors ?? string.Empty,
                 MainImageUrl = savedImagePaths.FirstOrDefault() ?? "/images/Book/book1.jpg"
             };
 
@@ -477,6 +481,7 @@ namespace BookBlossom.Web.Controllers
                 book.UnitsInStock = bookInput.UnitsInStock;
                 book.IsContinued = bookInput.IsContinued;
                 book.PublishYear = bookInput.PublishYear;
+                book.Authors = bookInput.Authors ?? string.Empty;
 
                 TempData["SuccessMessage"] = "Book updated successfully!";
             }
