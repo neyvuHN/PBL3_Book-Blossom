@@ -60,6 +60,11 @@
                     Categories
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="blinddate-tab" data-bs-toggle="tab" data-bs-target="#blinddate" type="button" role="tab" aria-controls="blinddate" aria-selected="false">
+                    Blind Date
+                </button>
+            </li>
         </ul>
 
         <div class="tab-content" id="inventoryTabsContent">
@@ -173,6 +178,15 @@
                                                     data-mainimage="@book.MainImageUrl">
                                                 <i class="bi bi-pencil-square me-1"></i> Edit
                                             </button>
+                                            <button class="btn-action-edit me-1 btn-create-blind-date text-info border-info" 
+                                                    style="background-color: rgba(13, 202, 240, 0.1);"
+                                                    data-book-id="@book.BookID" 
+                                                    data-title="@book.Title" 
+                                                    data-price="@book.Price" 
+                                                    data-stock="@book.UnitsInStock"
+                                                    data-mainimage="@book.MainImageUrl">
+                                                <i class="bi bi-gift me-1"></i> Blind Date
+                                            </button>
                                             <a href="#" 
                                                class="btn-action-delete btn-delete-item" 
                                                data-url="/Admin/DeleteBook?id=@book.BookID" 
@@ -271,6 +285,35 @@
                             {
                                 <tr><td colspan="6" class="text-center py-4">No categories found.</td></tr>
                             }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Blind Date Tab -->
+            <div class="tab-pane fade" id="blinddate" role="tabpanel" aria-labelledby="blinddate-tab">
+                <div class="d-flex justify-content-between mb-3 align-items-center">
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: #2C2630;">Blind Date Packages</h5>
+                        <p class="text-muted small mb-0">Manage mystery book packages generated from inventory</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Package Image</th>
+                                <th>Package Name</th>
+                                <th>Real Book</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Barcode</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blindDateTableBody">
+                            <!-- JS MVC will render items here -->
                         </tbody>
                     </table>
                 </div>
@@ -428,6 +471,68 @@
     </div>
 </div>
 
+<!-- Create Blind Date Modal -->
+<div class="modal fade" id="createBlindDateModal" tabindex="-1" aria-labelledby="createBlindDateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="createBlindDateModalLabel" style="font-family: 'Lora', serif;">Create Blind Date Package</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createBlindDateForm">
+                    <input type="hidden" name="RealBookID" id="bdRealBookID">
+                    
+                    <div class="d-flex align-items-center p-3 mb-4 rounded" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                        <img id="bdRealBookImage" src="" class="rounded shadow-sm me-3" style="width: 60px; height: 80px; object-fit: cover;" onerror="this.onerror=null; this.src='/images/Book/book1.jpg';" />
+                        <div>
+                            <h6 id="bdRealBookTitle" class="fw-bold mb-1">Book Title</h6>
+                            <div id="bdRealBookPrice" class="text-success fw-bold small mb-1">Current price: 0 ₫</div>
+                            <div id="bdRealBookStockInfo" class="text-muted small">Current stock: 0</div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Quantity to Sell <span class="text-danger">*</span></label>
+                            <input type="number" name="Quantity" id="bdQuantity" class="form-control" min="1" required>
+                            <div class="form-text text-muted small">Must be less than or equal to current stock.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Selling Price (VND) <span class="text-danger">*</span></label>
+                            <input type="number" name="Price" id="bdPrice" class="form-control" min="0" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Keywords <span class="text-muted small">(Multiple)</span></label>
+                            <input type="text" name="Keywords" class="form-control" placeholder="e.g. Romance, Thriller, Fast-paced">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Quotes <span class="text-muted small">(Format: "...")</span></label>
+                            <textarea name="Quotes" class="form-control" rows="2" placeholder='e.g. "A thrilling ride from start to finish"&#10;"Unputdownable"'></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Hashtags <span class="text-muted small">(Format: #...)</span></label>
+                            <input type="text" name="Hashtags" class="form-control" placeholder="e.g. #mystery #mustread">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Blind Date Images <span class="text-muted small">(Multiple)</span></label>
+                            <input type="file" class="form-control" name="BlindDateImages" id="bdImagesInput" multiple accept="image/*">
+                            <div class="form-text text-muted small">You can upload multiple files for the blind date package cover.</div>
+                            <div id="bdImagesPreviewContainer" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="createBlindDateForm" class="btn btn-primary" style="background-color: #0dcaf0; color: white; border: none;">Approve & Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="~/js/admin/inventory.js" asp-append-version="true"></script>
+    <script src="~/js/admin/inventory/blind-date/blind-date-model.js" asp-append-version="true"></script>
+    <script src="~/js/admin/inventory/blind-date/blind-date-view.js" asp-append-version="true"></script>
+    <script src="~/js/admin/inventory/blind-date/blind-date-controller.js" asp-append-version="true"></script>
 }
