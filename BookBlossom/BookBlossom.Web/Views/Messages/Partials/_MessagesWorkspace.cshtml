@@ -1,0 +1,232 @@
+<!-- Main Messages Workspace -->
+    <div class="messages-wrapper">
+
+        <!-- Center Sidebar: Active Conversation and Bubbles -->
+        <div class="chat-panel chat-main-area">
+            
+            <!-- Chat Window Header -->
+            <div class="chat-header">
+                <div class="chat-header-user">
+                    <div class="convo-avatar-wrapper">
+                        <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="convo-avatar">
+                        <span class="online-dot"></span>
+                    </div>
+                    <div>
+                        <div class="chat-header-title">
+                            BookBlossom Shop 
+                            <span class="shop-verified-tag">Official Shop</span>
+                        </div>
+                        <div class="chat-header-status">
+                            <i class="fas fa-bolt" style="color: #2e7d32;"></i> Active now • Highly responsive (responses in mins)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-header-actions">
+                    <button class="header-action-btn" id="btn-call-center" title="Call center"><i class="fas fa-phone"></i></button>
+                    <button class="header-action-btn" id="btn-toggle-chat-search" title="Search messages"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <!-- Chat Search Bar (Slides down under header) -->
+            <div id="chat-search-bar" style="display: none; background: #fff; border-bottom: 1.5px solid #F4E1E2; padding: 10px 20px; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.03); transition: all 0.2s ease;">
+                <div style="position: relative; flex-grow: 1; max-width: 400px; display: flex; align-items: center;">
+                    <i class="fas fa-search" style="position: absolute; left: 12px; color: #C2185B; font-size: 0.85rem;"></i>
+                    <input type="text" id="chat-search-input" placeholder="Search messages..." style="width: 100%; border: 1.5px solid #EEC7C9; border-radius: 20px; padding: 6px 15px 6px 34px; font-size: 0.85rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#C2185B'" onblur="this.style.borderColor='#EEC7C9'">
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.82rem; font-weight: 600; color: #666;">
+                    <span id="chat-search-results-count" style="background: #fdf5f6; color: #C2185B; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(194, 24, 91, 0.1);">0 matches</span>
+                    <div style="display: flex; gap: 4px;">
+                        <button id="btn-chat-search-prev" style="border: none; background: #fbf8f9; color: #888; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#F4E1E2'; this.style.color='#C2185B';" onmouseout="this.style.background='#fbf8f9'; this.style.color='#888';"><i class="fas fa-chevron-up" style="font-size: 0.75rem;"></i></button>
+                        <button id="btn-chat-search-next" style="border: none; background: #fbf8f9; color: #888; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#F4E1E2'; this.style.color='#C2185B';" onmouseout="this.style.background='#fbf8f9'; this.style.color='#888';"><i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i></button>
+                    </div>
+                    <button id="btn-close-chat-search" style="border: none; background: none; color: #aaa; cursor: pointer; font-size: 1.1rem; transition: color 0.2s; padding: 0;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+
+            <!-- Active Product Reference Context Bar (Tied dynamically to details) -->
+            <div class="chat-product-context" id="chat-product-bar">
+                <img src="/images/Book/book1.jpg" alt="Active book" class="product-context-img" id="context-book-img">
+                <div class="product-context-details">
+                    <div class="product-context-title" id="context-book-title">Mystery Blind Book (Science Fiction Vibe)</div>
+                    <div class="product-context-desc">Inquiring about this book currently active on your date list</div>
+                    <div class="product-context-price" id="context-book-price">120.000 VND</div>
+                </div>
+                <div class="product-context-actions">
+                    <button class="btn-context-action btn-context-buy" id="btn-context-checkout">Checkout Now</button>
+                    <button class="btn-context-close" id="btn-close-context-bar" title="Dismiss context"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+
+            <!-- Chat messages stream -->
+            <div class="chat-messages-container" id="chat-stream">
+                <div class="chat-date-separator">
+                    <span>Today</span>
+                </div>
+
+                <!-- Shop greeting message -->
+                <div class="msg-bubble-group incoming">
+                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                    <div class="msg-bubble-content">
+                        <div class="msg-text-bubble">
+                            Welcome to <strong>BookBlossom</strong> official shop chat channel! 🌸<br><br>
+                            How can we guide you today? We are online and happy to answer questions regarding our <strong>Blind Date Books</strong> condition, shipping durations, or active coupon codes!
+                        </div>
+                        <div class="msg-meta">18:01 • Shop Supporter</div>
+                    </div>
+                </div>
+
+                <!-- Active context inquiry -->
+                <div class="msg-bubble-group incoming">
+                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                    <div class="msg-bubble-content">
+                        <div class="msg-text-bubble">
+                            I see you are inquiring about our <strong>Mystery Science Fiction Blind Date Book</strong>! It is currently one of our best-selling categories. The clues hint at an ancient alien artifact on a distant moon! 🌌 It features standard condition wrapper decoration.
+                        </div>
+                        <div class="msg-meta">18:01 • Shop Supporter</div>
+                    </div>
+                </div>
+
+                <!-- User placeholder/initial messages if any -->
+            </div>
+
+            <!-- Typing indicator (hidden by default) -->
+            <div class="chat-messages-container" style="display: none; flex: 0; padding: 0 25px 15px 25px; background: #faf8f9;" id="typing-indicator-wrapper">
+                <div class="msg-bubble-group incoming">
+                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                    <div class="msg-bubble-content">
+                        <div class="typing-indicator">
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom chat actions and text area input -->
+            <div class="chat-input-container">
+                <!-- Quick replies chips -->
+                <div class="quick-replies-row">
+                    <div class="quick-reply-chip" data-text="Is this Mystery Book currently in stock?">Is it in stock? 📦</div>
+                    <div class="quick-reply-chip" data-text="Can you explain how Blind Date Books work?">How it works? 🌸</div>
+                    <div class="quick-reply-chip" data-text="What coupon codes can I use for discount?">Active Coupons? 🎫</div>
+                    <div class="quick-reply-chip" data-text="How long does standard shipping take?">Delivery Time? 🚚</div>
+                </div>
+
+                <!-- Tagged Books Preview Bar -->
+                <div class="tagged-books-preview-bar" id="tagged-books-preview" style="display: none; padding: 10px 15px; background: #fffcfd; border-top: 1px dashed rgba(194, 24, 91, 0.15); gap: 8px; flex-wrap: wrap; align-items: center; border-bottom: 1px dashed rgba(194, 24, 91, 0.15);">
+                </div>
+
+                <!-- Media Attachment Preview Bar -->
+                <div class="media-attachment-preview-bar" id="media-attachment-preview" style="display: none; padding: 10px 15px; background: #fffcfd; border-top: 1px dashed rgba(194, 24, 91, 0.15); gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px dashed rgba(194, 24, 91, 0.15);">
+                </div>
+
+                <!-- Rich Input form bar -->
+                <div class="input-bar-wrapper">
+                    <button class="btn-input-attachment" id="btn-media-attachment-trigger" title="Attach picture/video"><i class="far fa-image"></i></button>
+                    <input type="file" id="media-attachment-input" accept="image/*,video/*" multiple style="display: none;">
+                    <button class="btn-input-attachment" id="btn-tag-book-trigger" title="Tag a Book"><i class="fas fa-link"></i></button>
+                    <input type="text" class="chat-main-input" placeholder="Type a message to BookBlossom Shop..." id="message-text-input">
+                    <button class="btn-send-message" id="btn-submit-chat"><i class="far fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Sidebar: Shop Profile, Metrics, Vouchers & Policies -->
+        <div class="shop-info-sidebar">
+            
+            <!-- Shop Profile Details -->
+            <div class="shop-profile-card">
+                <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="shop-profile-avatar">
+                <div class="shop-profile-name">BookBlossom Official</div>
+                <div class="shop-profile-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <strong style="color: #333; margin-left: 5px;">4.9</strong>
+                    <span style="color: #888;">(1.2k ratings)</span>
+                </div>
+                
+                <div class="shop-metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Products</span>
+                        <span class="metric-value">250+ Books</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Response Rate</span>
+                        <span class="metric-value">99%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Users</span>
+                        <span class="metric-value">12.5k</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Established</span>
+                        <span class="metric-value">1 year ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shared Materials (Pictures & Links) -->
+            <div class="shop-vouchers-card">
+                <div class="vouchers-header">
+                    <i class="fas fa-folder-open" style="color: #C2185B;"></i> Shared Materials
+                </div>
+                
+                <div class="voucher-mini-list">
+                    <!-- Pictures Button -->
+                    <div class="voucher-mini-item" id="btn-view-shared-pictures" style="padding: 15px; border-style: solid; border-color: rgba(194, 24, 91, 0.1); border-width: 1px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 12px; background: #fffafb; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#C2185B';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(194, 24, 91, 0.1)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #F4E1E2; display: flex; align-items: center; justify-content: center; color: #C2185B;">
+                                <i class="far fa-images" style="font-size: 1.2rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: #333; text-align: left;">Shared Pictures</div>
+                                <div style="font-size: 0.72rem; color: #777; text-align: left;">View photos & documents</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color: #C2185B; font-size: 0.85rem;"></i>
+                    </div>
+
+                    <!-- Book Links Button -->
+                    <div class="voucher-mini-item" id="btn-view-shared-links" style="padding: 15px; border-style: solid; border-color: rgba(194, 24, 91, 0.1); border-width: 1px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 12px; background: #fffafb; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#C2185B';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(194, 24, 91, 0.1)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #F4E1E2; display: flex; align-items: center; justify-content: center; color: #C2185B;">
+                                <i class="fas fa-link" style="font-size: 1.1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: #333; text-align: left;">Shared Book Links</div>
+                                <div style="font-size: 0.72rem; color: #777; text-align: left;">View books exchanged</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color: #C2185B; font-size: 0.85rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Trust Policies -->
+            <div class="shop-policies-card">
+                <div class="policy-item">
+                    <i class="fas fa-shield-alt policy-icon"></i>
+                    <div>
+                        <strong>100% Authentic Guarantee</strong>
+                        <div style="font-size: 0.75rem; color: #888; margin-top: 2px;">Double refund if counterfeit book is found.</div>
+                    </div>
+                </div>
+                <div class="policy-item">
+                    <i class="fas fa-undo-alt policy-icon"></i>
+                    <div>
+                        <strong>7 Days Free Returns</strong>
+                        <div style="font-size: 0.75rem; color: #888; margin-top: 2px;">Returns allowed for defective wrappers or wrong items.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>

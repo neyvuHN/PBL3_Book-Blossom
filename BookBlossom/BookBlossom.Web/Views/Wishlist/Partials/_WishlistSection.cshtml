@@ -1,0 +1,76 @@
+<section id="wishlist-section" class="wishlist-page-section">
+    <div class="container pb-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h1 class="wishlist-title"><i class="far fa-heart"></i> My Wishlist</h1>
+            <div class="wishlist-header-actions d-flex align-items-center gap-3">
+                <span class="wishlist-count-badge" id="wishlist-count">0 items</span>
+                <button class="btn btn-outline-danger btn-sm btn-clear-wishlist" id="btn-clear-wishlist" style="display: none;">
+                    <i class="fas fa-trash-alt"></i> Clear All
+                </button>
+            </div>
+        </div>
+
+        <div id="wishlist-loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <div id="wishlist-content" style="display: none;">
+            <div class="row g-4" id="wishlist-grid">
+                <!-- Items injected here by JS -->
+            </div>
+        </div>
+
+        <div id="empty-wishlist-state" class="text-center py-5" style="display: none;">
+            <div class="mb-4">
+                <i class="far fa-heart fa-5x text-muted" style="opacity: 0.5;"></i>
+            </div>
+            <h3>Your Wishlist is Empty</h3>
+            <p class="text-muted mb-4">You haven't saved any items yet. Start exploring and add books you love!</p>
+            <a href="/Explore" class="btn btn-primary px-4 py-2" id="btn-wishlist-explore">
+                <i class="fas fa-search me-2"></i>Explore Books
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Template for a wishlist card -->
+<template id="wishlist-card-template">
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+        <div class="wishlist-card">
+            <div class="wishlist-badge-container">
+                <!-- Badge like Blind Date / Normal -->
+            </div>
+            <button class="btn-remove-wishlist" title="Remove from wishlist">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="wishlist-card-img-wrapper">
+                <img src="" alt="" class="wishlist-card-img" />
+            </div>
+            <div class="wishlist-card-body">
+                <h4 class="wishlist-book-title"></h4>
+                <p class="wishlist-book-author"></p>
+                <div class="wishlist-book-price"></div>
+                
+                <div class="wishlist-card-footer mt-3">
+                    <button class="btn btn-primary w-100 btn-add-to-cart-wishlist">
+                        <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                    </button>
+        </div>
+    </div>
+</template>
+
+<!-- Custom Confirmation Modal for Wishlist Clear All -->
+<div class="custom-modal" id="wishlist-confirm-modal" style="display: none; z-index: 11000;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+        <h3>Clear Wishlist</h3>
+        <p id="wishlist-confirm-message">Are you sure you want to clear all items from your wishlist?</p>
+        <div class="modal-btns">
+            <button class="btn-modal-cancel" id="btn-wishlist-confirm-cancel">Cancel</button>
+            <button class="btn-modal-confirm" id="btn-wishlist-confirm-ok">Yes, Clear All</button>
+        </div>
+    </div>
+</div>
+

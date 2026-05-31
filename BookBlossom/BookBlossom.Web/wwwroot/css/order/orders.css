@@ -1,0 +1,609 @@
+.orders-container {
+    max-width: 1000px;
+}
+
+.orders-title {
+    font-family: 'Playfair Display', serif;
+    color: #333;
+}
+
+.orders-tabs-wrapper {
+    border-bottom: 2px solid #eee;
+}
+
+.orders-tabs .nav-item {
+    margin-bottom: -2px;
+}
+
+.orders-tabs .nav-link {
+    color: #666;
+    font-weight: 500;
+    padding: 10px 20px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.orders-tabs .nav-link:hover {
+    color: #d8456b;
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.orders-tabs .nav-link.active {
+    color: #d8456b;
+    border-bottom: 2px solid #d8456b;
+    background-color: transparent;
+}
+.search-box-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-box-container .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.search-box-container .orders-search-input {
+    padding-left: 45px;
+    border-radius: 25px;
+    height: 45px;
+    border: 1px solid #e0e0e0;
+    font-size: 14px;
+    background-color: #fdfdfd;
+    box-shadow: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.search-box-container .orders-search-input:focus {
+    border-color: #d8456b;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(216, 69, 107, 0.1);
+}
+
+.order-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+}
+
+.order-shop-info {
+    font-weight: 600;
+    color: #333;
+}
+
+.order-status {
+    color: #d8456b;
+    font-weight: 500;
+}
+
+.order-item {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.order-item-img {
+    width: 80px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 15px;
+}
+
+.order-item-details {
+    flex: 1;
+}
+
+.order-item-title {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.order-item-meta {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.order-item-price {
+    font-weight: 600;
+    color: #d8456b;
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+    margin-top: 10px;
+}
+
+.order-total-price {
+    font-size: 1.1em;
+}
+
+.order-actions .btn {
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.9em;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.order-actions .btn-primary {
+    background-color: #d8456b;
+    border-color: #d8456b;
+}
+
+.order-actions .btn-primary:hover {
+    background-color: #c03859;
+    border-color: #c03859;
+}
+
+.order-actions .btn-outline-secondary {
+    color: #666;
+    border-color: #ddd;
+}
+
+.order-actions .btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Premium Vertical Timeline */
+#detail-timeline {
+    position: relative;
+    padding-left: 24px;
+    margin-left: 8px;
+    border-left: 2px solid #e9ecef;
+}
+
+#detail-timeline li {
+    position: relative;
+    padding-bottom: 20px;
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+#detail-timeline li:last-child {
+    padding-bottom: 0;
+}
+
+#detail-timeline li::before {
+    content: '';
+    position: absolute;
+    left: -31px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    transition: all 0.2s ease-in-out;
+}
+
+#detail-timeline li:last-child::before {
+    background-color: #d8456b;
+    box-shadow: 0 0 0 3px rgba(216, 69, 107, 0.25);
+}
+
+/* Confirm Action Modal */
+#confirmActionModal .modal-content {
+    animation: confirmModalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes confirmModalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.88) translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+#confirmActionModal #confirm-modal-icon {
+    transition: transform 0.3s ease;
+}
+
+#confirmActionModal #confirm-modal-icon:hover {
+    transform: scale(1.1);
+}
+
+/* [UPDATED] Premium hover effects for clickable book items */
+.order-item-img-link {
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+.order-item-img-link:hover {
+    transform: scale(1.04);
+    opacity: 0.88;
+}
+
+.order-item-title-link {
+    cursor: pointer;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.order-item-title-link:hover {
+    color: #d8456b !important;
+    text-decoration: underline !important;
+}
+
+/* Premium Tracking Timeline */
+.tracking-timeline {
+    position: relative;
+    padding-left: 50px;
+    margin-left: 20px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.tracking-step {
+    position: relative;
+    margin-bottom: 45px;
+    z-index: 2;
+}
+
+.tracking-step:last-child {
+    margin-bottom: 0;
+}
+
+/* Timeline Node */
+.tracking-node {
+    position: absolute;
+    left: -48px;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 2px solid #cbd5e1;
+    z-index: 3;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Completed Step (Green checkmark, matches mockup) */
+.tracking-step.completed .tracking-node {
+    background: #38a169;
+    border-color: #38a169;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    left: -39px;
+    top: 0px;
+}
+
+.tracking-step.completed .tracking-node i {
+    font-size: 11px;
+}
+
+/* Current Step (Blue large node with truck + In Transit inside, matching mockup) */
+.tracking-step.current .tracking-node {
+    background: #2b6cb0;
+    border-color: #93c5fd;
+    color: #fff;
+    box-shadow: 0 0 0 6px rgba(147, 197, 253, 0.45);
+    width: 50px;
+    height: 50px;
+    left: -52px;
+    top: -12px; /* Pull up to align text center */
+    display: flex;
+    flex-direction: column;
+}
+
+.tracking-step.current .tracking-node i {
+    font-size: 16px;
+    margin-top: 6px;
+}
+
+.tracking-step.current .tracking-node .node-subtext {
+    font-size: 7px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 2px;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+}
+
+/* Pending Step (Gray outline) */
+.tracking-step.pending .tracking-node {
+    background: #fff;
+    border: 2px solid #cbd5e1;
+    width: 24px;
+    height: 24px;
+    left: -39px;
+    top: 0px;
+}
+
+/* Tracking Step connector lines */
+.tracking-connector {
+    position: absolute;
+    left: -28px; /* Center aligned with the nodes */
+    width: 2px;
+    z-index: 1;
+}
+
+/* Connector sizing adaptively matching the node state */
+.tracking-step.completed .tracking-connector {
+    top: 20px;
+    bottom: -48px;
+}
+
+.tracking-step.current .tracking-connector {
+    top: 36px;
+    bottom: -48px;
+}
+
+.tracking-step.pending .tracking-connector {
+    top: 20px;
+    bottom: -48px;
+}
+
+.tracking-connector.solid-green {
+    background-color: #38a169;
+}
+
+.tracking-connector.dashed-gray {
+    border-left: 2px dashed #cbd5e1;
+}
+
+/* Text Content layout */
+.tracking-info {
+    padding-left: 15px;
+    min-height: 35px;
+}
+
+.tracking-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #a0aec0;
+    margin-bottom: 2px;
+    transition: color 0.2s ease;
+}
+
+.tracking-step.completed .tracking-title {
+    color: #1a202c;
+}
+
+.tracking-step.current .tracking-title {
+    color: #1a202c;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.tracking-time {
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+.tracking-desc {
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin-top: 4px;
+}
+
+/* ==========================================
+   Premium Return/Refund Modal & Form Styles
+   ========================================== */
+
+/* Full screen modal adjustments */
+.modal-fullscreen .modal-content {
+    min-height: 100vh;
+}
+
+/* Custom premium select styling */
+.custom-select-premium {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%234a5568' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 14px 10px;
+    background-color: #ffffff;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-select-premium:focus {
+    border-color: #d8456b !important;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(216, 69, 107, 0.15) !important;
+}
+
+/* Image Upload Slots */
+.proof-photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.upload-box-square {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dotted-box-trigger:hover {
+    border-color: #d8456b !important;
+    background-color: rgba(216, 69, 107, 0.02) !important;
+    transform: translateY(-2px);
+}
+
+/* Uploaded Image Slot */
+.photo-slot.has-image {
+    border: 1px solid #cbd5e1 !important;
+    background-color: #f8fafc;
+    opacity: 1 !important;
+}
+
+.photo-slot.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.photo-slot.has-image .delete-photo-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgba(229, 62, 62, 0.9);
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.photo-slot.has-image .delete-photo-btn:hover {
+    background-color: #e53e3e;
+    transform: scale(1.1);
+}
+
+/* Video Upload Panel */
+.video-upload-panel {
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    background-color: #fafbfc;
+    transition: all 0.25s ease-in-out;
+}
+
+.video-upload-panel:hover {
+    border-color: #38a169 !important;
+    background-color: rgba(56, 161, 105, 0.02) !important;
+}
+
+/* Segmented Proposal Tabs */
+.proposal-selector-wrapper {
+    background-color: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.proposal-tab-btn {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.proposal-tab-btn.active[data-proposal="return"] {
+    background-color: #e6f4ea !important;
+    color: #137333 !important;
+    border: 1px solid #c4eed0 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.proposal-tab-btn.active[data-proposal="keep"] {
+    background-color: #e6f4ea !important;
+    color: #137333 !important;
+    border: 1px solid #c4eed0 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Input group styling */
+.input-group-premium {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-group-premium:focus-within {
+    border-color: #d8456b !important;
+    box-shadow: 0 0 0 3px rgba(216, 69, 107, 0.15) !important;
+}
+
+/* Interactive hover logic for button submitting */
+#submit-refund-request-btn:not([disabled]) {
+    cursor: pointer !important;
+    opacity: 1 !important;
+    background-color: #d8456b !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#submit-refund-request-btn:not([disabled]):hover {
+    background-color: #c03859 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(216, 69, 107, 0.25) !important;
+}
+
+/* Smooth Slide Animations */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fix Bootstrap modal backdrop cutoff bug caused by global absolute override in style.css */
+html.modal-open,
+body.modal-open {
+    overflow: hidden !important;
+    height: 100vh !important;
+    position: relative !important;
+}
+
+.modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    z-index: 1040 !important;
+    background-color: rgba(15, 23, 42, 0.75) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+
+
+
+

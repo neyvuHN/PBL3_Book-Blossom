@@ -1,0 +1,51 @@
+<div class="edit-role-popover" id="editRolePopover">
+    <!-- Popover Header -->
+    <div class="popover-header">
+        <h4>Edit Role</h4>
+        <button class="popover-close-btn" id="btnPopoverClose" title="Close Panel">
+            <i class="ph ph-x-bold"></i>
+        </button>
+    </div>
+    
+    <!-- Popover Username tag -->
+    <div class="popover-username" id="popoverUsername">&#64;user_username</div>
+    
+    <!-- Role Radio Button Grid Cards -->
+    <div class="role-cards-grid">
+        <!-- User role option commented out per request
+        <label class="role-card-option" data-role="User" id="optRoleUser">
+            <input type="radio" name="popoverRoleRadio" value="User" />
+            <i class="ph ph-user-circle"></i>
+            <span>User</span>
+        </label>
+        -->
+        <!-- Moderator role option commented out per request
+        <label class="role-card-option" data-role="Moderator" id="optRoleModerator">
+            <input type="radio" name="popoverRoleRadio" value="Moderator" />
+            <i class="ph ph-shield-star"></i>
+            <span>Moderator</span>
+        </label>
+        -->
+        <label class="role-card-option" data-role="Admin" id="optRoleAdmin">
+            <input type="radio" name="popoverRoleRadio" value="Admin" />
+            <i class="ph ph-crown-simple"></i>
+            <span>Admin</span>
+        </label>
+    </div>
+    
+    <!-- Safety Lock re-entry security validation -->
+    <div class="safety-lock-container">
+        <div class="lock-title">
+            <i class="ph ph-lock-key-open"></i> Safety Lock
+        </div>
+        <div style="font-size: 0.72rem; color: #777777; margin-top: 4px;">
+            Requires Admin Password re-entry
+        </div>
+        <div class="lock-input-wrapper">
+            <input type="password" id="popoverAdminPassword" autocomplete="current-password" placeholder="Re-enter password to unlock..." />
+        </div>
+    </div>
+    
+    <!-- Execution trigger -->
+    <button class="btn-save-role" id="btnSaveRole" disabled>Save Changes</button>
+</div>

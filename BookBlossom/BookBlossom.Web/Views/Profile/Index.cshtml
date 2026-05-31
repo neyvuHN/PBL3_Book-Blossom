@@ -1,0 +1,21 @@
+@model BookBlossom.Web.ViewModels.Profile.ProfileViewModel
+
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "My Account - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    ViewData["IncludeCheckout"] = true;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/profile/profile.css" asp-append-version="true" />
+}
+
+<main>
+    @await Html.PartialAsync("~/Views/Profile/Partials/_ProfileSection.cshtml", Model)
+</main>
+
+@section Scripts {
+    @await Html.PartialAsync("~/Views/Profile/Partials/_ProfileScripts.cshtml", Model)
+}

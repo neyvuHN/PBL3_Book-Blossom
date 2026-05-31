@@ -1,0 +1,19 @@
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Cart - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    ViewData["IncludeCheckout"] = true;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/order/cart.css" asp-append-version="true" />
+}
+
+<main>
+    @await Html.PartialAsync("Partials/_CartSection")
+</main>
+
+@section Scripts {
+    @await Html.PartialAsync("Partials/_CartScripts")
+}

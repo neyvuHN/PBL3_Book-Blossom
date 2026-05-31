@@ -17,7 +17,7 @@ namespace BookBlossom.Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OrderController : ControllerBase
+    public class OrderController : Controller
     {
         private readonly IOrderService _service;
         private readonly ApplicationDbContext _context;
@@ -28,10 +28,39 @@ namespace BookBlossom.Web.Controllers
             _context = context;
         }
 
+        // =========================
+        // MVC VIEW ACTIONS - FRONTEND
+        // =========================
+
+        [HttpGet("/Cart")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Cart()
+        {
+            return View();
+        }
+
+        [HttpGet("/Checkout")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Checkout()
+        {
+            return View();
+        }
+
+        [HttpGet("/Orders")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Orders()
+        {
+            return View();
+        }
+
+        // =========================
+        // API ACTIONS - BACKEND
+        // =========================
+
         // API 1: Khởi tạo tiến trình Đặt hàng (Checkout & Tạo đơn hàng)
         [HttpPost("checkout")]
         [Authorize(Policy = "CustomerOnly")]
-        public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDTO dto)
+        public async Task<IActionResult> CheckoutApi([FromBody] CheckoutRequestDTO dto)
         {
             if (dto == null) return BadRequest("Dữ liệu truyền lên trống.");
 
@@ -149,7 +178,7 @@ namespace BookBlossom.Web.Controllers
                     var existingDefaults = await _context.Set<DeliveryAddress>()
                         .Where(da => da.CustomerID == customerId && da.IsDefault == true)
                         .ToListAsync();
-                    
+
                     foreach (var addr in existingDefaults)
                     {
                         addr.IsDefault = false;
@@ -183,7 +212,7 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
-        // --- CÁC API THÊM MỚI DÀNH CHO STORE MANAGER (Module 3.3) ---
+        // --- CÁC API DÀNH CHO STORE MANAGER (Module 3.3) ---
 
         // API 3: Lấy danh sách đơn hàng cho StoreManager (Kanban/List)
         [HttpGet("store")]

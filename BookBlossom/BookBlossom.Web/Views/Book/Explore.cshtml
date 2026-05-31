@@ -1,0 +1,25 @@
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Explore Books - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = true;
+    ViewData["IncludeCheckout"] = true;
+}
+
+@section Head {
+    <!-- PDF.js for secure digital preview rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <link rel="stylesheet" href="~/css/book/explore.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/book/product-details.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/book/book-preview.css" asp-append-version="true" />
+}
+
+<main>
+    @await Html.PartialAsync("Partials/_ExploreSection")
+    @await Html.PartialAsync("Partials/_ProductDetailsSection")
+</main>
+
+@section Scripts {
+    @await Html.PartialAsync("Partials/_ExploreScripts")
+}

@@ -1,0 +1,13 @@
+@{
+    Layout = "~/Views/Shared/_BookBlossomLayout.cshtml";
+    ViewData["Title"] = "Tindbook - BookBlossom";
+    ViewData["BodyClass"] = "homepage-container";
+    ViewData["IncludeCommonModals"] = false;
+    ViewData["IncludeCheckout"] = false;
+}
+
+@await Html.PartialAsync("~/Views/Tindbook/Partials/_TindbookSection.cshtml")
+
+@section Scripts {
+    @await Html.PartialAsync("Partials/_TindbookScripts")
+}

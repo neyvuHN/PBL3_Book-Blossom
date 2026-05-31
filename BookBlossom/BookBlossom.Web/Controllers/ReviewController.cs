@@ -13,7 +13,7 @@ namespace BookBlossom.Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ReviewController : ControllerBase
+    public class ReviewController : Controller
     {
         private readonly IReviewService _service;
 
@@ -22,7 +22,23 @@ namespace BookBlossom.Web.Controllers
             _service = service;
         }
 
+        // =========================
+        // MVC VIEW ACTIONS - FRONTEND
+        // =========================
+
+        [HttpGet("/Reviews")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // =========================
+        // API ACTIONS - BACKEND
+        // =========================
+
         // 1. LẤY DANH SÁCH REVIEW (Xem công khai không cần đăng nhập)
+        // GET /api/Review?bookId=...&blindBookId=...
         [HttpGet]
         public async Task<IActionResult> GetReviews([FromQuery] long? bookId, [FromQuery] long? blindBookId)
         {
@@ -38,11 +54,15 @@ namespace BookBlossom.Web.Controllers
         }
 
         // 2. ĐĂNG BÀI REVIEW MỚI - Chỉ Customer đăng nhập mới có quyền
+        // POST /api/Review
         [HttpPost]
         [Authorize(Policy = "CustomerOnly")]
         public async Task<IActionResult> CreateReview([FromForm] CreateReviewDTO dto, [FromForm] List<IFormFile>? mediaFiles)
         {
-            if (dto == null) return BadRequest(new { message = "Dữ liệu đánh giá trống." });
+            if (dto == null)
+            {
+                return BadRequest(new { message = "Dữ liệu đánh giá trống." });
+            }
 
             var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
@@ -70,6 +90,7 @@ namespace BookBlossom.Web.Controllers
         }
 
         // 3. THẢ LIKE BÀI REVIEW - Người dùng bất kỳ đã đăng nhập
+        // POST /api/Review/{reviewId}/like
         [HttpPost("{reviewId}/like")]
         [Authorize]
         public async Task<IActionResult> LikeReview(long reviewId)
@@ -83,7 +104,11 @@ namespace BookBlossom.Web.Controllers
             try
             {
                 var updatedLikes = await _service.LikeReviewAsync(customerId, reviewId);
-                return Ok(new { message = "Thích bài đánh giá thành công.", totalLikes = updatedLikes });
+                return Ok(new
+                {
+                    message = "Thích bài đánh giá thành công.",
+                    totalLikes = updatedLikes
+                });
             }
             catch (KeyNotFoundException ex)
             {
@@ -96,6 +121,7 @@ namespace BookBlossom.Web.Controllers
         }
 
         // 4. ẨN/HIỆN REVIEW - Dành riêng cho Ban quản trị (Moderator/Admin)
+        // POST /api/Review/{reviewId}/moderation?isHidden=true
         [HttpPost("{reviewId}/moderation")]
         [Authorize(Policy = "ModeratorOnly")]
         public async Task<IActionResult> ToggleHideReview(long reviewId, [FromQuery] bool isHidden = true)
@@ -103,11 +129,18 @@ namespace BookBlossom.Web.Controllers
             try
             {
                 var success = await _service.HideReviewAsync(reviewId, isHidden);
+
                 if (!success)
                 {
                     return NotFound(new { message = "Không tìm thấy dữ liệu bài đánh giá yêu cầu." });
                 }
-                return Ok(new { message = isHidden ? "Đã ẩn bài đánh giá thành công." : "Đã bỏ ẩn bài đánh giá." });
+
+                return Ok(new
+                {
+                    message = isHidden
+                        ? "Đã ẩn bài đánh giá thành công."
+                        : "Đã bỏ ẩn bài đánh giá."
+                });
             }
             catch (Exception ex)
             {

@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+Home_old/
+BookBlossom_backup/
+
 # User-specific files
 *.rsuser
 *.suo

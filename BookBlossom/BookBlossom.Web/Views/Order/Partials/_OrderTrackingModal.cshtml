@@ -1,0 +1,41 @@
+<!-- Full Screen / Centered Order Tracking Modal -->
+<div class="modal fade" id="orderTrackingModal" tabindex="-1" role="dialog" aria-labelledby="orderTrackingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            
+            <!-- Coloured accent bar at the top -->
+            <div style="height: 6px; background: linear-gradient(90deg, #3182ce, #63b3ed);"></div>
+
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h4 class="modal-title font-weight-bold" id="orderTrackingModalLabel" style="color: #2d3748;">
+                    Track Order
+                </h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4 px-5">
+                <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #f7fafc; padding: 12px 20px; border-radius: 10px;">
+                    <div>
+                        <span class="text-muted mr-1" style="font-size: 0.95rem;">Order ID:</span>
+                        <strong id="tracking-order-id" style="color: #2d3748; font-size: 0.95rem;"></strong>
+                    </div>
+                    <div>
+                        <span class="text-muted mr-1" style="font-size: 0.95rem;">Status:</span>
+                        <span class="badge font-weight-bold px-3 py-2" id="tracking-order-status" style="font-size: 0.85rem; border-radius: 20px; background-color: #ebf8ff; color: #2b6cb0;">To Ship</span>
+                    </div>
+                </div>
+
+                <!-- Vertical Premium Timeline container -->
+                <div class="tracking-timeline" id="tracking-timeline-container">
+                    <!-- Dynamic tracking milestones will be injected here -->
+                </div>
+            </div>
+
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4 justify-content-end">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal" style="min-width: 120px;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

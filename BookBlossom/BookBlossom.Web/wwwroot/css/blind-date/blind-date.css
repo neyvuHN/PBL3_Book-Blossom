@@ -1,0 +1,540 @@
+/* =========================
+   BLIND DATE BOOKS PAGE
+   ========================= */
+
+body.homepage-container {
+    background: #fffdfb !important;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#blind-date-section.blind-date-page-section {
+    display: block;
+    min-height: calc(100vh - 90px);
+    padding-top: 90px !important;
+    background: #fffdfb !important;
+    position: relative !important;
+    z-index: 1 !important;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Hero */
+#blind-date-section .blind-hero {
+    background: linear-gradient(90deg, #1f2937 0%, #a291b5 100%) !important;
+    color: #fff;
+    padding: 100px 0 80px;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+#blind-date-section .blind-hero-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    position: relative;
+    z-index: 2;
+}
+
+#blind-date-section .blind-hero-text h1 {
+    font-family: 'Lora', serif;
+    font-size: 2.7rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    line-height: 1.15;
+}
+
+#blind-date-section .blind-hero-text p {
+    font-size: 1.35rem;
+    margin-bottom: 6px;
+    opacity: 0.92;
+}
+
+#blind-date-section .blind-hero-text span {
+    display: block;
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    margin-bottom: 26px;
+    opacity: 0.95;
+}
+
+#blind-date-section .btn-how-it-works {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    color: #fff;
+    padding: 9px 22px;
+    border-radius: 999px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    transition: all 0.22s ease;
+}
+
+#blind-date-section .btn-how-it-works:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+#blind-date-section .blind-hero-illustration {
+    width: 350px;
+    max-width: 36%;
+    opacity: 0.94;
+}
+
+#blind-date-section .blind-hero-illustration img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Main layout */
+#blind-date-section .blind-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+/* Sidebar */
+#blind-date-section .blind-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    position: sticky;
+    top: 105px;
+    height: calc(100vh - 125px);
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #f1edf5;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(106, 79, 140, 0.05);
+}
+
+#blind-date-section .blind-sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+#blind-date-section .blind-sidebar::-webkit-scrollbar-thumb {
+    background: #e6dfed;
+    border-radius: 999px;
+}
+
+#blind-date-section .blind-sidebar.collapsed {
+    width: 0 !important;
+    opacity: 0 !important;
+    margin-right: -40px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+}
+
+#blind-date-section .sidebar-title {
+    font-family: 'Lora', serif;
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin-bottom: 25px;
+    color: #111;
+}
+
+#blind-date-section .btn-hide-sidebar {
+    background: none !important;
+    border: none !important;
+    color: #a291b5 !important;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+#blind-date-section .btn-hide-sidebar:hover {
+    color: #6a4f8c !important;
+}
+
+/* Filters */
+#blind-date-section .filter-section {
+    margin-bottom: 30px;
+}
+
+#blind-date-section .filter-section h4 {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+#blind-date-section .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#blind-date-section .vibe-tag {
+    background: #f2f0f4;
+    padding: 7px 13px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-weight: 600;
+}
+
+#blind-date-section .vibe-tag:hover {
+    background: #e8e3f0;
+    color: #6a4f8c;
+}
+
+#blind-date-section .vibe-tag.active {
+    background: #e9d5ff !important;
+    color: #6a4f8c !important;
+    border-color: #c4a7e7;
+}
+
+/* Price slider */
+#blind-date-section .price-range-wrapper {
+    padding: 10px 0;
+}
+
+#blind-date-section .dual-range-slider {
+    position: relative;
+    width: 100%;
+    height: 24px;
+    margin-bottom: 22px;
+}
+
+#blind-date-section .dual-range-slider input[type="range"] {
+    position: absolute;
+    width: 100%;
+    pointer-events: none;
+    -webkit-appearance: none;
+    z-index: 2;
+    height: 6px;
+    top: 0;
+    background: none;
+}
+
+#blind-date-section .dual-range-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #a291b5;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    margin-top: -7px;
+}
+
+#blind-date-section .dual-range-slider input[type="range"]::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #a291b5;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+#blind-date-section .price-slider-track {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: #eee;
+    top: 0;
+    border-radius: 3px;
+    z-index: 1;
+}
+
+#blind-date-section .slider-tooltip {
+    position: absolute;
+    top: 25px;
+    background: #a291b5;
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    transform: translateX(-50%);
+    z-index: 3;
+    pointer-events: none;
+    font-weight: 700;
+}
+
+#blind-date-section .price-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+#blind-date-section .price-field {
+    flex: 1;
+}
+
+#blind-date-section .price-field input {
+    width: 100%;
+    padding: 7px 9px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+    outline: none;
+}
+
+#blind-date-section .price-field input:focus {
+    border-color: #a291b5 !important;
+    box-shadow: 0 0 0 3px rgba(162, 145, 181, 0.12);
+}
+
+/* Checkbox */
+#blind-date-section .filter-checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#blind-date-section .filter-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.4;
+}
+
+#blind-date-section .filter-checkbox-item input {
+    width: 18px;
+    height: 18px;
+    accent-color: #7c3aed;
+}
+
+/* Grid */
+#blind-date-section .blind-main {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+#blind-date-section .clear-filters {
+    color: #a291b5;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+#blind-date-section .clear-filters:hover {
+    color: #6a4f8c;
+    text-decoration: underline;
+}
+
+#blind-date-section .blind-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 22px;
+}
+
+#blind-date-section .blind-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.045);
+    transition: all 0.24s ease;
+    border: 1px solid #f0edf4;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+#blind-date-section .blind-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 26px rgba(106, 79, 140, 0.12);
+    border-color: #e0d4eb;
+}
+
+#blind-date-section .blind-card-image {
+    height: 210px;
+    position: relative;
+    overflow: hidden;
+}
+
+#blind-date-section .blind-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+#blind-date-section .blind-card:hover .blind-card-image img {
+    transform: scale(1.04);
+}
+
+#blind-date-section .view-overlay {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.94);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #111;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+#blind-date-section .blind-card:hover .view-overlay {
+    opacity: 1;
+}
+
+#blind-date-section .blind-card-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#blind-date-section .card-hashtags {
+    font-weight: 800;
+    font-size: 0.86rem;
+    color: #111;
+    margin-bottom: 4px;
+}
+
+#blind-date-section .card-desc {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.8em;
+}
+
+#blind-date-section .card-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 5px;
+}
+
+#blind-date-section .verified-badge {
+    background: #dcfce7;
+    color: #166534;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+#blind-date-section .card-price {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #6a4f8c;
+    white-space: nowrap;
+}
+
+#blind-date-section .card-condition {
+    font-size: 0.8rem;
+    color: #888;
+    border-top: 1px solid #f5f2f7;
+    padding-top: 10px;
+    margin-top: 5px;
+}
+
+/* Floating filter button */
+#blind-date-section .btn-toggle-matchmaker {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 1000;
+    background: #111;
+    color: #fff;
+    border: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    transition: all 0.2s ease;
+}
+
+#blind-date-section .btn-toggle-matchmaker:hover {
+    transform: scale(1.08);
+    background: #6a4f8c;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    #blind-date-section .blind-hero-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #blind-date-section .blind-hero-illustration {
+        max-width: 260px;
+        width: 70%;
+    }
+
+    #blind-date-section .blind-container {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    #blind-date-section .blind-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: 0;
+    }
+
+    #blind-date-section .blind-sidebar.collapsed {
+        width: 100% !important;
+        display: none;
+        margin-right: 0 !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #blind-date-section .blind-hero {
+        padding: 80px 0 60px;
+    }
+
+    #blind-date-section .blind-hero-text h1 {
+        font-size: 2.1rem;
+    }
+
+    #blind-date-section .blind-hero-text p {
+        font-size: 1.05rem;
+    }
+
+    #blind-date-section .blind-grid {
+        grid-template-columns: 1fr;
+    }
+}

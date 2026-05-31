@@ -1,0 +1,310 @@
+@model BookBlossom.Web.ViewModels.Admin.OrderManagementViewModel
+@{
+    ViewData["Title"] = "Order Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/orders.css" asp-append-version="true" />
+}
+
+<div class="orders-management-container">
+    <!-- Header Block -->
+    <div class="management-header">
+        <div>
+            <h2>Manage Orders</h2>
+        </div>
+        <div class="header-actions">
+            <button class="btn-export-pdf" id="btnExportPdfList" title="Export PDF Invoice Summary">
+                <i class="ph ph-file-pdf"></i> Export List PDF
+            </button>
+            <button class="btn-batch-confirm" id="btnBatchConfirm" style="display: none;">
+                <i class="ph ph-check-square"></i> Batch Actions
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="admin-tabs" id="orderTabNav">
+        <div class="admin-tab-item active" data-tab="all">
+            All <span class="tab-badge" id="badge-all">0</span>
+        </div>
+        <div class="admin-tab-item" data-tab="pending">
+            Pending <span class="tab-badge" id="badge-pending" style="background-color: #F2C94C; color: #2C2630;">0</span>
+            <span class="red-dot" id="pending-red-dot" style="display:none;"></span>
+        </div>
+        <div class="admin-tab-item" data-tab="toship">
+            To Ship <span class="tab-badge" id="badge-toship">0</span>
+        </div>
+        <div class="admin-tab-item" data-tab="intransit">
+            In Transit <span class="tab-badge" id="badge-intransit">0</span>
+        </div>
+        <div class="admin-tab-item" data-tab="completed">
+            Completed <span class="tab-badge" id="badge-completed">0</span>
+        </div>
+        <div class="admin-tab-item" data-tab="returns" style="border-left: 1px solid rgba(0,0,0,0.08);">
+            <i class="ph ph-arrow-counter-clockwise"></i> Returns <span class="tab-badge" id="badge-returns" style="background-color: #E3597D;">0</span>
+        </div>
+        <div class="admin-tab-item" data-tab="complaints">
+            <i class="ph ph-chat-centered-dots"></i> Complaints <span class="tab-badge" id="badge-complaints" style="background-color: #EB5757;">0</span>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-bar">
+        <div class="search-box-wrapper">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="orderSearchInput" placeholder="Search by Order ID, Book Title, or Buyer Name..." />
+        </div>
+        <div class="dropdown-filters" id="ordersFiltersArea">
+            <select class="filter-select" id="orderTypeFilter">
+                <option value="">Order Type: All</option>
+                <option value="standard">Standard Orders</option>
+                <option value="blind-date">Blind Date Orders</option>
+            </select>
+            <select class="filter-select" id="kpiFilter">
+                <option value="">KPI Risk: All</option>
+                <option value="high">Critical (< 24h Left)</option>
+                <option value="warning">Warning (< 48h Left)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Batch Action Indicator Panel -->
+    <div class="batch-action-bar" id="batchActionBar" style="display: none;">
+        <div class="batch-info">
+            <input type="checkbox" id="selectAllBatchCheck" style="margin-right: 6px; scale: 1.1; cursor:pointer;" />
+            <span id="batchSelectedCountText">0 orders selected for batch processing</span>
+        </div>
+        <div class="batch-actions">
+            <button class="btn-batch-action primary" id="btnBatchActionSubmit">Start Shipping Selected</button>
+            <button class="btn-batch-action secondary" id="btnBatchActionCancel">Deselect All</button>
+        </div>
+    </div>
+
+    <!-- Main Card Body Container for dynamically rendered Order Cards -->
+    <div class="orders-list-wrapper">
+        
+        <!-- Order dynamic content -->
+        <div id="ordersContentArea">
+            <!-- Order Cards are injected dynamically here in MVC View standard -->
+        </div>
+
+        <!-- Logistics returned items content (Table grid list) -->
+        <div id="returnsContentArea" style="display: none;">
+            <!-- Returns injected here -->
+        </div>
+
+        <!-- Complaints & reviews escalated content (Table grid list) -->
+        <div id="complaintsContentArea" style="display: none;">
+            <!-- Complaints injected here -->
+        </div>
+
+    </div>
+</div>
+
+<!-- Premium Print Label / Shipping Invoice Simulator Modal -->
+<div class="modal-overlay" id="printInvoiceModal">
+    <div class="modal-card">
+        <div class="modal-header-premium">
+            <h3>Print Shipping Document</h3>
+            <button class="btn-close-modal" id="btnClosePrintModal">&times;</button>
+        </div>
+        <div class="modal-body-premium">
+            <div id="invoicePrintArea">
+                <!-- Rendered Dynamically inside View -->
+            </div>
+        </div>
+        <div class="modal-footer-premium">
+            <button class="btn-outline-action" id="btnCancelPrint">Close</button>
+            <button class="btn-primary-action toship" id="btnConfirmNativePrint" onclick="window.print()">
+                <i class="ph ph-printer"></i> Send to Printer
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Batch Invoice Export Modal -->
+<div class="modal-overlay" id="exportListModal">
+    <div class="modal-card" style="max-width: 700px;">
+        <div class="modal-header-premium">
+            <h3>Export Orders PDF manifest</h3>
+            <button class="btn-close-modal" id="btnCloseExportModal">&times;</button>
+        </div>
+        <div class="modal-body-premium" style="max-height: 450px; overflow-y: auto;">
+            <div id="exportPdfPreviewArea">
+                <!-- Batch manifest list of invoice details -->
+            </div>
+        </div>
+        <div class="modal-footer-premium">
+            <button class="btn-outline-action" id="btnCancelExport">Close</button>
+            <button class="btn-primary-action toship" id="btnTriggerPdfDownload">
+                <i class="ph ph-download-simple"></i> Download PDF Document
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Notification Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Premium Custom Confirmation Dialog Modal -->
+<div class="confirm-overlay" id="confirmDialogOverlay">
+    <div class="confirm-card">
+        <div class="confirm-body">
+            <div class="confirm-alert-icon" id="confirmAlertIcon">
+                <i class="ph ph-warning"></i>
+            </div>
+            <h4 class="confirm-title" id="confirmTitle">Cancel Order?</h4>
+            <p class="confirm-message" id="confirmMessage">Are you sure you want to cancel this order? This action cannot be undone.</p>
+        </div>
+        <div class="confirm-footer">
+            <button class="btn-confirm-action-no" id="btnConfirmNo">Keep Order</button>
+            <button class="btn-confirm-action-yes" id="btnConfirmYes">Yes, Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Chat Modal -->
+<div class="modal-overlay" id="chatModal">
+    <div class="modal-card chat-modal-card">
+        <div class="chat-layout">
+            <!-- Left: Main Chat Area -->
+            <div class="chat-main">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <img src="" alt="Avatar" class="chat-avatar" id="chatHeaderAvatar">
+                        <div class="chat-user-details">
+                            <h4 id="chatHeaderName">Customer Name</h4>
+                            <span class="chat-status online"><i class="ph-fill ph-circle"></i> Online</span>
+                        </div>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button class="btn-icon-soft"><i class="ph ph-phone"></i></button>
+                        <button class="btn-icon-soft"><i class="ph ph-magnifying-glass"></i></button>
+                        <button class="btn-close-modal" id="btnCloseChatModal">&times;</button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessagesArea">
+                    <div class="chat-date-divider"><span>Today</span></div>
+                    <!-- Sample Messages -->
+                    <div class="chat-message received">
+                        <img src="" alt="Avatar" class="msg-avatar" id="chatMsgAvatar1">
+                        <div class="msg-content">
+                            <div class="msg-bubble">Hello, I have a question about my order.</div>
+                            <span class="msg-time">09:41 AM</span>
+                        </div>
+                    </div>
+                    <div class="chat-message sent">
+                        <div class="msg-content">
+                            <div class="msg-bubble">Welcome to BookBlossom support! How can we help you today?</div>
+                            <span class="msg-time">09:45 AM</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <div class="chat-quick-replies">
+                        <button class="quick-reply-pill">Order Status</button>
+                        <button class="quick-reply-pill">Return Policy</button>
+                        <button class="quick-reply-pill">Shipping Info</button>
+                    </div>
+                    <div class="chat-input-wrapper">
+                        <button class="btn-icon-soft"><i class="ph ph-plus-circle"></i></button>
+                        <button class="btn-icon-soft"><i class="ph ph-image"></i></button>
+                        <button class="btn-icon-soft"><i class="ph ph-link"></i></button>
+                        <input type="text" class="chat-input" placeholder="Type your message here...">
+                        <button class="btn-icon-soft chat-send-btn"><i class="ph-fill ph-paper-plane-right"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Sidebar Profile & Requests -->
+            <div class="chat-sidebar">
+                <div class="chat-sidebar-profile">
+                    <img src="" alt="Avatar" class="sidebar-avatar" id="chatSidebarAvatar">
+                    <h4 id="chatSidebarName">Customer Name</h4>
+                    <p class="sidebar-role">Customer</p>
+                    <div class="sidebar-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="chatSidebarOrders">5</span>
+                            <span class="stat-label">Orders</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">1 yr</span>
+                            <span class="stat-label">Member</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-sidebar-section">
+                    <h5>Call Requests</h5>
+                    <div class="call-request-card pending">
+                        <div class="call-info">
+                            <i class="ph ph-phone-call"></i>
+                            <div>
+                                <h6>Support Request</h6>
+                                <span>Requested 10m ago</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary-action btn-sm">Accept</button>
+                    </div>
+                </div>
+                
+                <div class="chat-sidebar-section">
+                    <h5>Shared Materials</h5>
+                    <div class="shared-material-item">
+                        <i class="ph ph-image"></i>
+                        <span>Shared Pictures (2)</span>
+                        <i class="ph ph-caret-right ml-auto"></i>
+                    </div>
+                    <div class="shared-material-item">
+                        <i class="ph ph-link"></i>
+                        <span>Shared Book Links (1)</span>
+                        <i class="ph ph-caret-right ml-auto"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Gallery Modal for Shared Materials -->
+<div class="modal-overlay" id="galleryModal">
+    <div class="modal-card" style="max-width: 800px; background: transparent; box-shadow: none;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button class="btn-close-modal" id="btnCloseGallery" style="color: white; font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">&times;</button>
+        </div>
+        <div style="background-color: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <img src="" id="galleryPreviewImage" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; display: none;" />
+            <div id="galleryPreviewVideo" style="max-width: 100%; max-height: 70vh; border-radius: 8px; display: none; background: #000; width: 100%; text-align: center; color: white; padding: 100px 0;">
+                <i class="ph ph-play-circle" style="font-size: 4rem;"></i>
+                <p>Video Placeholder</p>
+            </div>
+            <div style="margin-top: 20px; font-weight: 600; color: #2C2630;" id="galleryCaption">Shared Media</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Import Frontend Modular MVC Components for Order Management -->
+    <script src="~/js/admin/orders/orders-model.js" asp-append-version="true"></script>
+    <script src="~/js/admin/orders/orders-view.js" asp-append-version="true"></script>
+    <script src="~/js/admin/orders/orders-controller.js" asp-append-version="true"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Retrieve and parse backend data passed dynamically from ASP.NET MVC ViewModel
+            const initialData = @Html.Raw(Json.Serialize(Model));
+            
+            // Initialize Modular Frontend MVC Architecture
+            const model = new OrdersModel(initialData);
+            const view = new OrdersView();
+            const controller = new OrdersController(model, view);
+            
+            // Start listening and managing the DOM
+            controller.init();
+        });
+    </script>
+}

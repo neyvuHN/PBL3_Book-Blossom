@@ -1,0 +1,28 @@
+<!-- Buyer Notes Premium Modal Dialog -->
+<div class="buyer-note-modal-overlay" id="buyerNoteModal">
+    <div class="buyer-note-card">
+        <!-- Close floating button -->
+        <button class="buyer-note-close-btn" id="btnCloseBuyerNoteModal" title="Close without saving">
+            <i class="ph ph-x"></i>
+        </button>
+
+        <div class="buyer-note-header">
+            <div class="note-badge">
+                <i class="ph ph-note-pencil"></i> Administrative Log
+            </div>
+            <h2>Buyer Log Entry</h2>
+            <p>Notes regarding customer behaviour, preferences, or account logs for <strong id="noteModalUsername"></strong></p>
+        </div>
+
+        <div class="buyer-note-body">
+            <textarea id="buyerNoteText" rows="6" placeholder="Enter administrative observations, customer preferences, log details, or special instructions regarding this buyer..."></textarea>
+        </div>
+
+        <div class="buyer-note-footer">
+            <button type="button" class="btn-note-cancel" id="btnCancelBuyerNote">Cancel</button>
+            <button type="button" class="btn-note-save" id="btnSaveBuyerNote">
+                <i class="ph ph-floppy-disk"></i> Save Log Note
+            </button>
+        </div>
+    </div>
+</div>

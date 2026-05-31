@@ -1,5 +1,8 @@
 namespace BookBlossom.Core.Entities;
+using System.Collections.Generic;
 using BookBlossom.Core.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class Category
 {

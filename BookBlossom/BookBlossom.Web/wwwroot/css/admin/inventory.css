@@ -1,0 +1,323 @@
+/* Inventory Styles */
+.inventory-container {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.nav-tabs .nav-link {
+    color: #495057;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    padding: 12px 24px;
+}
+
+.nav-tabs .nav-link.active {
+    color: #E3597D;
+    background: none;
+    border-color: transparent;
+    border-bottom: 3px solid #E3597D;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: #E3597D;
+}
+
+.action-btn {
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+
+/*
+🔴 Discontinued ( Nền xám nhạt, chữ đen xám.)	!book.IsContinued	Sách đã Ngừng kinh doanh/Ngừng nhập. Cho dù số lượng tồn kho còn bao nhiêu cũng sẽ chuyển sang trạng thái này.
+⚫ Out of Stock (Nền đỏ nhạt, chữ đỏ đậm)	book.IsContinued && book.UnitsInStock == 0	Sách vẫn đang kinh doanh nhưng Hết hàng trong kho.
+🟡 Low Stock (Nền vàng nhạt, chữ vàng đậm)	book.IsContinued && 0 < book.UnitsInStock < 15	Sách đang kinh doanh và Sắp hết hàng (dưới 15 cuốn). Cảnh báo Quản trị viên chuẩn bị nhập hàng.
+🟢 In Stock (Nền xanh lá nhạt, chữ xanh đậm.)	book.IsContinued && book.UnitsInStock >= 15	Sách đang kinh doanh và Còn hàng dồi dào (từ 15 cuốn trở lên).
+*/
+
+
+.status-in-stock {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-low-stock {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-out-of-stock {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.status-discontinued {
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+.table th {
+    font-weight: 600;
+    color: #6c757d;
+    border-bottom-width: 1px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Image Preview Styles */
+.image-preview-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.image-preview-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview-wrapper .remove-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgba(227, 89, 125, 0.9);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1;
+    transition: background-color 0.2s;
+}
+
+.image-preview-wrapper .remove-btn:hover {
+    background-color: #E3597D;
+}
+
+/* Premium Actions Buttons */
+.btn-action-edit {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-action-edit:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #212529;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn-action-delete {
+    background-color: #fff5f5;
+    border: 1px solid #ffc9c9;
+    color: #fa5252;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-action-delete:hover {
+    background-color: #fa5252;
+    border-color: #fa5252;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(250, 82, 82, 0.15);
+}
+
+/* Custom Premium System Alerts */
+.custom-alert-container {
+    margin-bottom: 20px;
+    animation: fadeInDown 0.4s ease-out forwards;
+}
+
+.custom-alert {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+    position: relative;
+    border-left: 5px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.alert-success-premium {
+    background-color: #ecfdf5;
+    border: 1px solid #d1fae5;
+    border-left: 5px solid #10b981;
+}
+
+.alert-success-premium .alert-icon-box {
+    color: #10b981;
+}
+
+.alert-success-premium .alert-heading {
+    color: #065f46;
+}
+
+.alert-success-premium .alert-message {
+    color: #047857;
+}
+
+.alert-danger-premium {
+    background-color: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-left: 5px solid #ef4444;
+}
+
+.alert-danger-premium .alert-icon-box {
+    color: #ef4444;
+}
+
+.alert-danger-premium .alert-heading {
+    color: #991b1b;
+}
+
+.alert-danger-premium .alert-message {
+    color: #b91c1c;
+}
+
+.alert-icon-box {
+    font-size: 1.25rem;
+    margin-right: 14px;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.alert-content-box {
+    flex-grow: 1;
+}
+
+.alert-heading {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.alert-message {
+    font-size: 0.875rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+.btn-close-alert {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.5rem;
+    font-weight: 300;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    margin-left: 15px;
+    transition: color 0.2s;
+    margin-top: -2px;
+}
+
+.btn-close-alert:hover {
+    color: #4b5563;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+}
+
+/* Premium Modern Search Inputs */
+.search-box-wrapper {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.search-box-wrapper .form-control {
+    padding-left: 42px;
+    border-radius: 30px;
+    border: 1px solid #e2e8f0;
+    height: 42px;
+    font-size: 0.9rem;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.search-box-wrapper .form-control:focus {
+    background-color: #ffffff;
+    border-color: #E3597D;
+    box-shadow: 0 0 0 3px rgba(227, 89, 125, 0.15);
+    color: #2c2630;
+}
+
+.search-box-wrapper .bi-search {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.search-box-wrapper .form-control:focus+.bi-search {
+    color: #E3597D;
+}

@@ -1,0 +1,357 @@
+<!-- Add New Staff Full-Screen Premium Modal -->
+<div class="add-staff-modal-overlay" id="addStaffModal">
+    <div class="add-staff-card">
+        <!-- Close floating button -->
+        <button class="add-staff-close-btn" id="btnCloseAddStaffModal" title="Close & Cancel">
+            <i class="ph ph-x"></i>
+        </button>
+
+        <!-- Left Sidebar: Visuals & Auto-set fields -->
+        <div class="modal-sidebar">
+            <div class="sidebar-header">
+                <div class="brand-badge">
+                    <i class="ph ph-sparkle-fill"></i> System Administration
+                </div>
+                <h3>Staff Profiler</h3>
+                <p>Register administrative staff and define access scopes.</p>
+            </div>
+
+            <!-- Avatar Preview & Selector -->
+            <div class="avatar-manager">
+                <div class="avatar-preview-wrapper">
+                    <img id="newStaffAvatarPreview" src="https://i.pravatar.cc/150?img=1" alt="Avatar Preview" />
+                    <span class="preview-badge">Preview</span>
+                </div>
+                
+                <div class="avatar-selector-section">
+                    <label class="section-label">Select Avatar Preset</label>
+                    <div class="avatar-presets-grid">
+                        <img class="avatar-preset-opt active" src="https://i.pravatar.cc/150?img=1" data-url="https://i.pravatar.cc/150?img=1" alt="Preset 1" />
+                        <img class="avatar-preset-opt" src="https://i.pravatar.cc/150?img=11" data-url="https://i.pravatar.cc/150?img=11" alt="Preset 2" />
+                        <img class="avatar-preset-opt" src="https://i.pravatar.cc/150?img=12" data-url="https://i.pravatar.cc/150?img=12" alt="Preset 3" />
+                        <img class="avatar-preset-opt" src="https://i.pravatar.cc/150?img=10" data-url="https://i.pravatar.cc/150?img=10" alt="Preset 4" />
+                        <img class="avatar-preset-opt" src="https://i.pravatar.cc/150?img=60" data-url="https://i.pravatar.cc/150?img=60" alt="Preset 5" />
+                        <img class="avatar-preset-opt" src="https://i.pravatar.cc/150?img=47" data-url="https://i.pravatar.cc/150?img=47" alt="Preset 6" />
+                    </div>
+                    <div class="custom-avatar-url-wrapper">
+                        <i class="ph ph-link"></i>
+                        <input type="text" id="newStaffCustomAvatar" placeholder="Or enter custom avatar image URL..." />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-Calculated Database Values -->
+            <div class="auto-fields-panel">
+                <div class="auto-field-item">
+                    <div class="field-icon"><i class="ph ph-calendar-blank"></i></div>
+                    <div class="field-info">
+                        <span class="field-title">Hire Date (Join Date)</span>
+                        <span class="field-value" id="newStaffHireDate">May 30, 2026</span>
+                    </div>
+                    <span class="badge-auto">Auto-Save</span>
+                </div>
+
+                <div class="auto-field-item">
+                    <div class="field-icon"><i class="ph ph-gauge"></i></div>
+                    <div class="field-info">
+                        <span class="field-title">KPI Score (Internal Score)</span>
+                        <span class="field-value">100 / 100</span>
+                    </div>
+                    <span class="badge-auto">Auto-100</span>
+                </div>
+
+                <div class="auto-field-item">
+                    <div class="field-icon"><i class="ph ph-barcode"></i></div>
+                    <div class="field-info">
+                        <span class="field-title">Tax Code</span>
+                        <span class="field-value text-muted">Pending Employee Input</span>
+                    </div>
+                    <span class="badge-self">Self-entered</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Account Credentials Form -->
+        <div class="modal-form-panel">
+            <div class="form-header">
+                <h2>Add New Staff</h2>
+                <p>Complete the profile information below to create the new account. All fields are required.</p>
+            </div>
+
+            <form id="newStaffForm" autocomplete="off" onsubmit="return false;">
+                <!-- Account Section -->
+                <div class="form-section">
+                    <h4 class="form-section-title"><i class="ph ph-user-gear"></i> Account Credentials</h4>
+                    
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label for="newStaffUsername">Username <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-user"></i>
+                                <input type="text" id="newStaffUsername" placeholder="e.g. mkt_manager_lee" required autocomplete="off" />
+                                <div class="validation-status">
+                                    <i class="ph ph-check-circle-fill valid-icon"></i>
+                                    <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                                </div>
+                            </div>
+                            <span class="validation-error-msg" id="errNewStaffUsername">Username must be at least 3 characters.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newStaffEmail">Email Address <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-envelope"></i>
+                                <input type="email" id="newStaffEmail" placeholder="e.g. lee@bookblossom.com" required autocomplete="off" />
+                                <div class="validation-status">
+                                    <i class="ph ph-check-circle-fill valid-icon"></i>
+                                    <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                                </div>
+                            </div>
+                            <span class="validation-error-msg" id="errNewStaffEmail">Please enter a valid email address.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newStaffPassword">Initial Password <span class="req">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-key"></i>
+                            <input type="password" id="newStaffPassword" placeholder="Set temporary secure password..." required autocomplete="new-password" />
+                            <div class="validation-status">
+                                <i class="ph ph-check-circle-fill valid-icon"></i>
+                                <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                            </div>
+                        </div>
+                        <span class="validation-error-msg" id="errNewStaffPassword">Password must be at least 6 characters.</span>
+                    </div>
+                </div>
+
+                <!-- Personal Profile Section -->
+                <div class="form-section">
+                    <h4 class="form-section-title"><i class="ph ph-identification-card"></i> Personal Profile</h4>
+                    
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label for="newStaffLastName">Last Name <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-text-aa"></i>
+                                <input type="text" id="newStaffLastName" placeholder="e.g. Nguyen" required autocomplete="off" />
+                                <div class="validation-status">
+                                    <i class="ph ph-check-circle-fill valid-icon"></i>
+                                    <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                                </div>
+                            </div>
+                            <span class="validation-error-msg" id="errNewStaffLastName">Last name is required.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newStaffFirstName">First Name <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-text-aa"></i>
+                                <input type="text" id="newStaffFirstName" placeholder="e.g. An" required autocomplete="off" />
+                                <div class="validation-status">
+                                    <i class="ph ph-check-circle-fill valid-icon"></i>
+                                    <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                                </div>
+                            </div>
+                            <span class="validation-error-msg" id="errNewStaffFirstName">First name is required.</span>
+                        </div>
+                    </div>
+
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label for="newStaffPhone">Phone Number <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-phone"></i>
+                                <input type="tel" id="newStaffPhone" placeholder="e.g. 0912345678" required autocomplete="off" />
+                                <div class="validation-status">
+                                    <i class="ph ph-check-circle-fill valid-icon"></i>
+                                    <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                                </div>
+                            </div>
+                            <span class="validation-error-msg" id="errNewStaffPhone">Enter a valid 10-digit phone number.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newStaffGender">Gender <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-gender-intersex" style="z-index: 5;"></i>
+                                <select id="newStaffGender" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newStaffBirthday">Birthday <span class="req">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-calendar"></i>
+                            <input type="date" id="newStaffBirthday" required style="padding-left: 42px;" />
+                            <div class="validation-status">
+                                <i class="ph ph-check-circle-fill valid-icon"></i>
+                                <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                            </div>
+                        </div>
+                        <span class="validation-error-msg" id="errNewStaffBirthday">Please select a valid date of birth.</span>
+                    </div>
+                </div>
+
+                <!-- Professional & HR Information Section -->
+                <div class="form-section">
+                    <h4 class="form-section-title"><i class="ph ph-briefcase"></i> Professional & HR Info</h4>
+                    
+                    <div class="input-grid">
+                        <!-- Department field commented out per request
+                        <div class="form-group">
+                            <label for="newStaffDepartment">Department <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-buildings"></i>
+                                <select id="newStaffDepartment" required>
+                                    <option value="Administration">Administration</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Inventory & Logistics">Inventory & Logistics</option>
+                                    <option value="Customer Support">Customer Support</option>
+                                </select>
+                            </div>
+                        </div>
+                        -->
+
+                        <!-- Position Title field commented out per request
+                        <div class="form-group">
+                            <label for="newStaffPosition">Position Title <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-briefcase-metal"></i>
+                                <input type="text" id="newStaffPosition" placeholder="e.g. Marketing Lead" required autocomplete="off" />
+                                <div class="validation-status">
+                                    <i class="ph ph-check-circle-fill valid-icon"></i>
+                                    <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                                </div>
+                            </div>
+                            <span class="validation-error-msg" id="errNewStaffPosition">Position title is required.</span>
+                        </div>
+                        -->
+                    </div>
+
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label for="newStaffContractType">Contract Type <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-file-text"></i>
+                                <select id="newStaffContractType" required>
+                                    <option value="Full-time">Full-time</option>
+                                    <option value="Part-time">Part-time</option>
+                                    <option value="Internship">Internship (Thử việc)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newStaffSalary">Initial Salary (VND) <span class="req">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-money"></i>
+                                <input type="number" id="newStaffSalary" placeholder="e.g. 15000000" min="0" required autocomplete="off" />
+                                <div class="validation-status">
+                                    <i class="ph ph-check-circle-fill valid-icon"></i>
+                                    <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                                </div>
+                            </div>
+                            <span class="validation-error-msg" id="errNewStaffSalary">Enter a valid positive salary amount.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newStaffBankAccount">Bank Account Number <span class="req">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-credit-card"></i>
+                            <input type="text" id="newStaffBankAccount" placeholder="e.g. 19034567891011" required autocomplete="off" />
+                            <div class="validation-status">
+                                <i class="ph ph-check-circle-fill valid-icon"></i>
+                                <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                            </div>
+                        </div>
+                        <span class="validation-error-msg" id="errNewStaffBankAccount">Please enter a valid bank account number.</span>
+                    </div>
+                </div>
+
+                <!-- Role Selection Section -->
+                <div class="form-section">
+                    <h4 class="form-section-title"><i class="ph ph-shield-check"></i> Assign Staff Role <span class="req">*</span></h4>
+                    
+                    <div class="staff-role-options-grid">
+                        <!-- Admin Option -->
+                        <label class="staff-role-card selected" data-role="Admin">
+                            <input type="radio" name="newStaffRole" value="Admin" checked />
+                            <div class="role-card-icon admin-color"><i class="ph ph-crown-simple-fill"></i></div>
+                            <div class="role-card-details">
+                                <span class="role-title">Admin</span>
+                                <span class="role-desc">Full system controls and configurations</span>
+                            </div>
+                        </label>
+
+                        <!-- Moderator Option commented out per request
+                        <label class="staff-role-card" data-role="Moderator">
+                            <input type="radio" name="newStaffRole" value="Moderator" />
+                            <div class="role-card-icon mod-color"><i class="ph ph-shield-star-fill"></i></div>
+                            <div class="role-card-details">
+                                <span class="role-title">Moderator</span>
+                                <span class="role-desc">Moderate reviews, reports, and orders</span>
+                            </div>
+                        </label>
+                        -->
+
+                        <!-- Marketing Manager Option commented out per request
+                        <label class="staff-role-card" data-role="Marketing Manager">
+                            <input type="radio" name="newStaffRole" value="Marketing Manager" />
+                            <div class="role-card-icon mkt-color"><i class="ph ph-megaphone-fill"></i></div>
+                            <div class="role-card-details">
+                                <span class="role-title">Marketing Manager</span>
+                                <span class="role-desc">Manage marketing, campaigns and vouchers</span>
+                            </div>
+                        </label>
+                        -->
+
+                        <!-- Store Manager Option commented out per request
+                        <label class="staff-role-card" data-role="Store Manager">
+                            <input type="radio" name="newStaffRole" value="Store Manager" />
+                            <div class="role-card-icon store-color"><i class="ph ph-storefront-fill"></i></div>
+                            <div class="role-card-details">
+                                <span class="role-title">Store Manager</span>
+                                <span class="role-desc">Supervise orders and inventory tracking</span>
+                            </div>
+                        </label>
+                        -->
+                    </div>
+                </div>
+
+                <!-- Professional Qualifications Textbox -->
+                <div class="form-section">
+                    <h4 class="form-section-title"><i class="ph ph-student"></i> Experience & Qualifications <span class="req">*</span></h4>
+                    
+                    <div class="form-group">
+                        <label for="newStaffQualifications">Credentials & Experience Description</label>
+                        <div class="input-wrapper text-area-wrapper">
+                            <i class="ph ph-scroll" style="top: 15px; transform: none;"></i>
+                            <textarea id="newStaffQualifications" rows="3" placeholder="Enter background details, degrees, experience level (e.g. Master of Business, 3 years inventory management...)" required></textarea>
+                            <div class="validation-status" style="top: 15px; transform: none;">
+                                <i class="ph ph-check-circle-fill valid-icon"></i>
+                                <i class="ph ph-warning-circle-fill invalid-icon"></i>
+                            </div>
+                        </div>
+                        <span class="validation-error-msg" id="errNewStaffQualifications">Please provide qualifications or experience details.</span>
+                    </div>
+                </div>
+
+                <!-- Action Button Controls -->
+                <div class="modal-form-actions">
+                    <button type="button" class="btn-form-cancel" id="btnCancelAddStaff">Cancel</button>
+                    <button type="button" class="btn-form-submit" id="btnSaveNewStaff" disabled>
+                        <i class="ph ph-user-plus-bold"></i> Save Staff Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

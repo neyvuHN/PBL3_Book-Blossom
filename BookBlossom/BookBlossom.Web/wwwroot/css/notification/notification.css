@@ -1,0 +1,500 @@
+/* =========================================================================
+   BookBlossom Premium Notification Dropdown System Stylesheet
+   ========================================================================= */
+
+/* Relative positioning container for the navbar bell icon and dropdown wrapper */
+.premium-navbar .notification-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover and active states for the navbar icon bell */
+.premium-navbar .notification-btn {
+    position: relative;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.premium-navbar .notification-btn:hover {
+    background-color: rgba(238, 199, 201, 0.15);
+    color: #EEC7C9 !important;
+}
+
+.premium-navbar .notification-btn.active {
+    color: #EEC7C9 !important;
+    background-color: rgba(238, 199, 201, 0.2);
+}
+
+/* Navbar active status badges */
+.premium-navbar .notification-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 17px;
+    height: 17px;
+    background-color: #ff4d4d;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Pulse animation helper for active unread notifications badge */
+.premium-navbar .notification-dot.pulse {
+    animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7), 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 77, 77, 0), 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 77, 77, 0), 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* Glassmorphic Dropdown Floating Panel */
+.premium-navbar .notification-dropdown {
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    width: 380px;
+    max-height: 520px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(238, 199, 201, 0.45);
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(238, 199, 201, 0.1);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1005;
+    transform-origin: top right;
+    animation: scale-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-navbar .notification-dropdown.active {
+    display: flex;
+}
+
+@keyframes scale-up {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Dropdown Header */
+.notification-dropdown .notif-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.notification-dropdown .notif-dropdown-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c2c2c;
+    margin: 0;
+}
+
+.notification-dropdown .notif-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification-dropdown .btn-notif-mark-all {
+    background: none;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e59092;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.notification-dropdown .btn-notif-mark-all:hover {
+    color: #c95d60;
+    background-color: rgba(238, 199, 201, 0.15);
+}
+
+.notification-dropdown .notif-settings-icon {
+    font-size: 14px;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.notification-dropdown .notif-settings-icon:hover {
+    color: #333;
+}
+
+/* Category Filters Tabs */
+.notification-dropdown .notif-dropdown-tabs {
+    display: flex;
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0 10px;
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.notification-dropdown .notif-tab {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: #777;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.notification-dropdown .notif-tab:hover {
+    color: #2c2c2c;
+}
+
+.notification-dropdown .notif-tab.active {
+    color: #e59092;
+}
+
+.notification-dropdown .tab-count {
+    background-color: rgba(238, 199, 201, 0.25);
+    color: #b75e61;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+
+.notification-dropdown .notif-tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+    height: 3px;
+    background-color: #EEC7C9;
+    width: calc(50% - 10px);
+    border-radius: 3px 3px 0 0;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.notification-dropdown .notif-tab-indicator.slide-unread {
+    transform: translateX(100%);
+}
+
+/* Dropdown Body Container */
+.notification-dropdown .notif-dropdown-body {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Smooth customized scrollbars for scrolling list */
+.notification-dropdown .notif-dropdown-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-dropdown .notif-dropdown-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notification-dropdown .notif-dropdown-body::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+}
+
+.notification-dropdown .notif-dropdown-body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Notification Loading State Wrapper */
+.notification-dropdown .notif-loading-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    color: #777;
+    font-size: 13px;
+    gap: 12px;
+}
+
+.notification-dropdown .notif-spinner {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid rgba(238, 199, 201, 0.2);
+    border-top-color: #e59092;
+    animation: notif-spin 0.8s infinite linear;
+}
+
+@keyframes notif-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Empty State Styling */
+.notification-dropdown .notif-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+    color: #888;
+}
+
+.notification-dropdown .notif-empty-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    animation: wiggle 2s infinite ease-in-out;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0); }
+    50% { transform: rotate(15deg); }
+}
+
+.notification-dropdown .notif-empty-state h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    margin: 0 0 6px 0;
+}
+
+.notification-dropdown .notif-empty-state p {
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Notification Item Card */
+.notification-dropdown .notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 20px;
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    user-select: none;
+}
+
+/* Hover and active item states */
+.notification-dropdown .notif-item:hover {
+    background-color: rgba(238, 199, 201, 0.08);
+}
+
+.notification-dropdown .notif-item:active {
+    background-color: rgba(238, 199, 201, 0.15);
+}
+
+/* Unread notification specific styles */
+.notification-dropdown .notif-item.unread {
+    background-color: rgba(238, 199, 201, 0.04);
+}
+
+.notification-dropdown .notif-item.unread .notif-item-title {
+    font-weight: 700;
+    color: #111;
+}
+
+.notification-dropdown .notif-item.unread .notif-item-text {
+    color: #444;
+}
+
+/* Unread small pink dot indicator */
+.notification-dropdown .unread-dot-indicator {
+    position: absolute;
+    right: 20px;
+    top: 22px;
+    width: 8px;
+    height: 8px;
+    background-color: #e59092;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+/* Dismiss item button */
+.notification-dropdown .btn-notif-delete {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: 300;
+    color: #bbb;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.notification-dropdown .notif-item:hover .btn-notif-delete {
+    opacity: 1;
+}
+
+.notification-dropdown .btn-notif-delete:hover {
+    color: #ff4d4d;
+}
+
+/* Visual category specific type icons */
+.notification-dropdown .notif-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 15px;
+    flex-shrink: 0;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.02);
+}
+
+.notification-dropdown .notif-icon-wrapper.order {
+    background-color: rgba(238, 199, 201, 0.2);
+    color: #c95d60;
+}
+
+.notification-dropdown .notif-icon-wrapper.book {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: #1976d2;
+}
+
+.notification-dropdown .notif-icon-wrapper.community {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #388e3c;
+}
+
+.notification-dropdown .notif-icon-wrapper.system {
+    background-color: rgba(156, 39, 176, 0.1);
+    color: #7b1fa2;
+}
+
+.notification-dropdown .notif-icon-wrapper.return {
+    background-color: rgba(255, 152, 0, 0.1);
+    color: #f57c00;
+}
+
+.notification-dropdown .notif-icon-wrapper.engagement {
+    background-color: rgba(233, 30, 99, 0.1);
+    color: #c2185b;
+}
+
+.notification-dropdown .notif-icon-wrapper.point {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #f57f17;
+}
+
+.notification-dropdown .notif-icon-wrapper.badge {
+    background-color: rgba(156, 39, 176, 0.1);
+    color: #7b1fa2;
+}
+
+.notification-dropdown .notif-icon-wrapper.rank {
+    background-color: rgba(103, 58, 183, 0.1);
+    color: #512da8;
+}
+
+.notification-dropdown .notif-icon-wrapper.interaction {
+    background-color: rgba(3, 169, 244, 0.1);
+    color: #0288d1;
+}
+
+.notification-dropdown .notif-icon-wrapper.warning {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #d32f2f;
+}
+
+/* Content texts */
+.notification-dropdown .notif-item-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding-right: 16px;
+}
+
+.notification-dropdown .notif-item-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 3px 0;
+    line-height: 1.35;
+}
+
+.notification-dropdown .notif-item-text {
+    font-size: 12.5px;
+    color: #666;
+    margin: 0 0 5px 0;
+    line-height: 1.4;
+}
+
+.notification-dropdown .notif-item-time {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+}
+
+/* Dropdown Footer Settings Page Navigator */
+.notification-dropdown .notif-dropdown-footer {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: #fafafa;
+    text-align: center;
+}
+
+.notification-dropdown .btn-view-all-notif {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #555;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.notification-dropdown .btn-view-all-notif:hover {
+    color: #c95d60;
+}
+
+/* =========================================================================
+   Responsive Styling Adaptations for Tablet & Mobile Screen Viewports
+   ========================================================================= */
+@media (max-width: 768px) {
+    .premium-navbar .notification-dropdown {
+        position: fixed;
+        top: 70px;
+        left: 20px;
+        right: 20px;
+        width: calc(100% - 40px);
+        max-height: 480px;
+    }
+}

@@ -10,7 +10,7 @@ namespace BookBlossom.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WishlistController : ControllerBase
+    public class WishlistController : Controller
     {
         private readonly IWishlistService _wishlistService;
 
@@ -18,6 +18,21 @@ namespace BookBlossom.Web.Controllers
         {
             _wishlistService = wishlistService;
         }
+
+        // =========================
+        // MVC VIEW ACTIONS - FRONTEND
+        // =========================
+
+        [HttpGet("/Wishlist")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // =========================
+        // HELPER METHODS
+        // =========================
 
         private (long? userId, Guid? guestId) GetUserOrGuestId()
         {
@@ -27,6 +42,7 @@ namespace BookBlossom.Web.Controllers
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
                 if (long.TryParse(userIdClaim, out var uid))
                 {
                     userId = uid;
@@ -34,8 +50,10 @@ namespace BookBlossom.Web.Controllers
             }
             else
             {
-                // Try to get the validated GuestID from HttpContext.Items (populated by GuestSessionMiddleware)
-                if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj) && guestIdObj is Guid parsedGuestId)
+                // Try to get the validated GuestID from HttpContext.Items
+                // populated by GuestSessionMiddleware
+                if (HttpContext.Items.TryGetValue("GuestID", out var guestIdObj)
+                    && guestIdObj is Guid parsedGuestId)
                 {
                     guestId = parsedGuestId;
                 }
@@ -44,6 +62,11 @@ namespace BookBlossom.Web.Controllers
             return (userId, guestId);
         }
 
+        // =========================
+        // API ACTIONS - BACKEND
+        // =========================
+
+        // GET /api/Wishlist
         [HttpGet]
         public async Task<IActionResult> GetWishlistItems(
             [FromHeader(Name = "X-Guest-Id")] string? guestIdHeader = null,
@@ -53,13 +76,17 @@ namespace BookBlossom.Web.Controllers
 
             if (!userId.HasValue && !guestId.HasValue)
             {
-                return BadRequest(new { message = "Yêu cầu phải có xác thực người dùng hoặc GuestID trong header (X-Guest-ID)." });
+                return BadRequest(new
+                {
+                    message = "Yêu cầu phải có xác thực người dùng hoặc GuestID trong header (X-Guest-ID)."
+                });
             }
 
             var items = await _wishlistService.GetWishlistItemsAsync(userId, guestId);
             return Ok(items);
         }
 
+        // POST /api/Wishlist
         [HttpPost]
         public async Task<IActionResult> AddToWishlist(
             [FromBody] AddWishlistRequestDTO request,
@@ -70,7 +97,10 @@ namespace BookBlossom.Web.Controllers
 
             if (!userId.HasValue && !guestId.HasValue)
             {
-                return BadRequest(new { message = "Yêu cầu phải có xác thực người dùng hoặc GuestID trong header (X-Guest-ID)." });
+                return BadRequest(new
+                {
+                    message = "Yêu cầu phải có xác thực người dùng hoặc GuestID trong header (X-Guest-ID)."
+                });
             }
 
             try
@@ -80,15 +110,26 @@ namespace BookBlossom.Web.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                var details = ex.InnerException != null ? $"{ex.Message} Inner: {ex.InnerException.Message}" : ex.Message;
-                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", details = details });
+                var details = ex.InnerException != null
+                    ? $"{ex.Message} Inner: {ex.InnerException.Message}"
+                    : ex.Message;
+
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi hệ thống.",
+                    details = details
+                });
             }
         }
 
+        // DELETE /api/Wishlist/{wishlistId}
         [HttpDelete("{wishlistId}")]
         public async Task<IActionResult> RemoveFromWishlist(
             long wishlistId,
@@ -99,14 +140,28 @@ namespace BookBlossom.Web.Controllers
 
             if (!userId.HasValue && !guestId.HasValue)
             {
-                return BadRequest(new { message = "Yêu cầu phải có xác thực người dùng hoặc GuestID trong header (X-Guest-ID)." });
+                return BadRequest(new
+                {
+                    message = "Yêu cầu phải có xác thực người dùng hoặc GuestID trong header (X-Guest-ID)."
+                });
             }
 
             try
             {
                 var result = await _wishlistService.RemoveFromWishlistAsync(wishlistId, userId, guestId);
-                if (!result) return NotFound(new { message = "Không tìm thấy mục trong danh sách yêu thích." });
-                return Ok(new { message = "Đã xóa khỏi danh sách yêu thích." });
+
+                if (!result)
+                {
+                    return NotFound(new
+                    {
+                        message = "Không tìm thấy mục trong danh sách yêu thích."
+                    });
+                }
+
+                return Ok(new
+                {
+                    message = "Đã xóa khỏi danh sách yêu thích."
+                });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -114,7 +169,11 @@ namespace BookBlossom.Web.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", details = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi hệ thống.",
+                    details = ex.Message
+                });
             }
         }
     }

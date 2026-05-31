@@ -3,14 +3,16 @@ using BookBlossom.Core.DTOs.Tindbook;
 using BookBlossom.Core.Interfaces;
 using BookBlossom.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
+using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
-namespace BookBlossom.API.Controllers
+namespace BookBlossom.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     // Không dùng [Authorize] ở đây - mỗi endpoint sẽ tự kiểm soát quyền truy cập
-    public class TindbookController : ControllerBase
+    public class TindbookController : Controller
     {
         private readonly ITindbookService _tindbookService;
 
@@ -18,6 +20,21 @@ namespace BookBlossom.API.Controllers
         {
             _tindbookService = tindbookService;
         }
+
+        // =========================
+        // MVC VIEW ACTIONS - FRONTEND
+        // =========================
+
+        [HttpGet("/Tindbook")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // =========================
+        // HELPER METHODS
+        // =========================
 
         /// <summary>Lấy UserId từ JWT nếu đã đăng nhập. Trả về null nếu chưa.</summary>
         private long? GetUserId()
@@ -32,8 +49,13 @@ namespace BookBlossom.API.Controllers
             return HttpContext.Items.TryGetValue("GuestID", out var val) && val is Guid gid ? gid : null;
         }
 
+        // =========================
+        // API ACTIONS - BACKEND
+        // =========================
+
         // ─────────────────────────────────────────────────
         // 1. Lấy sách gợi ý
+        // GET /api/Tindbook/recommendations
         // ─────────────────────────────────────────────────
         [HttpGet("recommendations")]
         [AllowAnonymous]
@@ -56,34 +78,50 @@ namespace BookBlossom.API.Controllers
             }
             else
             {
-                return Unauthorized(new { message = "Vui lòng tạo phiên Guest hoặc đăng nhập để sử dụng Tindbook." });
+                return Unauthorized(new
+                {
+                    message = "Vui lòng tạo phiên Guest hoặc đăng nhập để sử dụng Tindbook."
+                });
             }
         }
 
         // ─────────────────────────────────────────────────
         // 2. Xử lý hành động quẹt
+        // POST /api/Tindbook/swipe
         // ─────────────────────────────────────────────────
         [HttpPost("swipe")]
         [AllowAnonymous]
         public async Task<IActionResult> SwipeAction([FromBody] SwipeActionDTO dto)
         {
             if (!Enum.IsDefined(typeof(SwipeIntent), dto.Intent))
+            {
                 return BadRequest("Hành động quẹt không hợp lệ.");
+            }
 
             var userId = GetUserId();
             var guestId = GetGuestId();
 
             if (userId.HasValue)
             {
-                // === Customer ===
+                // Customer
                 var result = await _tindbookService.RecordSwipeActionAsync(userId, dto);
-                if (!result) return BadRequest("Không thể thực hiện hành động này.");
-                return Ok(new { message = $"Đã thực hiện: {dto.Intent}", intent = dto.Intent.ToString() });
+
+                if (!result)
+                {
+                    return BadRequest("Không thể thực hiện hành động này.");
+                }
+
+                return Ok(new
+                {
+                    message = $"Đã thực hiện: {dto.Intent}",
+                    intent = dto.Intent.ToString()
+                });
             }
             else if (guestId.HasValue)
             {
-                // === Guest ===
-                var (success, requiresLogin) = await _tindbookService.RecordGuestSwipeActionAsync(guestId.Value, dto);
+                // Guest
+                var (success, requiresLogin) =
+                    await _tindbookService.RecordGuestSwipeActionAsync(guestId.Value, dto);
 
                 if (requiresLogin)
                 {
@@ -95,17 +133,29 @@ namespace BookBlossom.API.Controllers
                     });
                 }
 
-                if (!success) return BadRequest("Không thể thực hiện hành động này.");
-                return Ok(new { message = $"Đã thực hiện: {dto.Intent}", intent = dto.Intent.ToString() });
+                if (!success)
+                {
+                    return BadRequest("Không thể thực hiện hành động này.");
+                }
+
+                return Ok(new
+                {
+                    message = $"Đã thực hiện: {dto.Intent}",
+                    intent = dto.Intent.ToString()
+                });
             }
             else
             {
-                return Unauthorized(new { message = "Vui lòng tạo phiên Guest hoặc đăng nhập." });
+                return Unauthorized(new
+                {
+                    message = "Vui lòng tạo phiên Guest hoặc đăng nhập."
+                });
             }
         }
 
         // ─────────────────────────────────────────────────
         // 3. Hoàn tác hành động cuối
+        // POST /api/Tindbook/undo
         // ─────────────────────────────────────────────────
         [HttpPost("undo")]
         [AllowAnonymous]
@@ -117,26 +167,47 @@ namespace BookBlossom.API.Controllers
             if (userId.HasValue)
             {
                 var result = await _tindbookService.UndoLastSwipeAsync(userId.Value);
-                if (!result) return NotFound("Không có hành động nào để hoàn tác.");
-                return Ok(new { message = "Đã hoàn tác hành động gần nhất." });
+
+                if (!result)
+                {
+                    return NotFound("Không có hành động nào để hoàn tác.");
+                }
+
+                return Ok(new
+                {
+                    message = "Đã hoàn tác hành động gần nhất."
+                });
             }
             else if (guestId.HasValue)
             {
                 var canGuestUndo = await _tindbookService.CanUndoGuestAsync(guestId.Value);
+
                 if (!canGuestUndo)
                 {
-                    return BadRequest(new { 
-                        message = "Bạn đã hết lượt Hoàn tác miễn phí trong ngày! Vui lòng đăng ký tài khoản để nhận thêm đặc quyền." 
+                    return BadRequest(new
+                    {
+                        message = "Bạn đã hết lượt Hoàn tác miễn phí trong ngày! Vui lòng đăng ký tài khoản để nhận thêm đặc quyền."
                     });
                 }
 
                 var result = await _tindbookService.UndoLastGuestSwipeAsync(guestId.Value);
-                if (!result) return NotFound("Không có hành động nào để hoàn tác.");
-                return Ok(new { message = "Đã hoàn tác hành động gần nhất." });
+
+                if (!result)
+                {
+                    return NotFound("Không có hành động nào để hoàn tác.");
+                }
+
+                return Ok(new
+                {
+                    message = "Đã hoàn tác hành động gần nhất."
+                });
             }
             else
             {
-                return Unauthorized(new { message = "Vui lòng tạo phiên Guest hoặc đăng nhập." });
+                return Unauthorized(new
+                {
+                    message = "Vui lòng tạo phiên Guest hoặc đăng nhập."
+                });
             }
         }
     }

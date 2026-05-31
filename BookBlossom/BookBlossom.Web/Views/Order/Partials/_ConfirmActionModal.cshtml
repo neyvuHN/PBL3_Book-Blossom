@@ -1,0 +1,56 @@
+<!-- Confirm Action Modal (reused for Cancel Order & Order Received) -->
+<div class="modal fade confirm-action-modal" id="confirmActionModal" tabindex="-1" role="dialog" aria-labelledby="confirmActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+
+            <!-- Coloured accent bar at the top -->
+            <div id="confirm-modal-accent" style="height: 6px; background: linear-gradient(90deg, #d8456b, #f76b8a);"></div>
+
+            <div class="modal-body p-5 text-center">
+                <!-- Icon -->
+                <div id="confirm-modal-icon" class="mb-3" style="font-size: 3.5rem; line-height: 1;">
+                    <i class="fas fa-question-circle text-muted"></i>
+                </div>
+
+                <!-- Title -->
+                <h4 class="font-weight-bold mb-2" id="confirmActionModalLabel" style="color: #2d3748;">
+                    Confirm Action
+                </h4>
+
+                <!-- Message -->
+                <p class="text-muted mb-4" id="confirm-modal-message" style="font-size: 1rem; max-width: 340px; margin: 0 auto 1.5rem;">
+                    Are you sure you want to proceed?
+                </p>
+
+                <!-- Reason Input (shown only when needed) -->
+                <div id="confirm-reason-wrapper" style="display: none; margin-bottom: 1.25rem; text-align: left;">
+                    <label for="confirm-reason-input" class="font-weight-semibold mb-1" style="font-size: 0.9rem; color: #4a5568;">Reason for cancellation <span class="text-danger">*</span></label>
+                    <textarea id="confirm-reason-input"
+                              class="form-control"
+                              rows="3"
+                              maxlength="300"
+                              placeholder="Please tell us why you want to cancel this order..."
+                              style="border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; resize: none; transition: border-color 0.2s;"></textarea>
+                    <div id="confirm-reason-error" class="text-danger mt-1" style="font-size: 0.82rem; display: none;">Please enter a reason before confirming.</div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-center gap-3" style="gap: 12px;">
+                    <button type="button"
+                            class="btn btn-outline-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal"
+                            style="min-width: 120px;">
+                        No, Go Back
+                    </button>
+                    <button type="button"
+                            id="confirm-modal-action-btn"
+                            class="btn rounded-pill px-4"
+                            style="min-width: 140px;">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

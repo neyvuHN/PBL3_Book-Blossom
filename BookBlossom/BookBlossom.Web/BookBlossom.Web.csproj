@@ -9,6 +9,10 @@
   <ItemGroup>
     <ProjectReference Include="..\BookBlossom.Core\BookBlossom.Core.csproj" />
     <ProjectReference Include="..\BookBlossom.Infrastructure\BookBlossom.Infrastructure.csproj" />
+    
+    <!-- Ignore dynamic uploads from dotnet watch tracking to prevent workspace desync crash -->
+    <Watch Remove="wwwroot\images\Book\**\*" />
+    <Watch Remove="wwwroot\samples\**\*" />
   </ItemGroup>
 
   <ItemGroup>
