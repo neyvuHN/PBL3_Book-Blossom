@@ -1,3 +1,46 @@
+window.showPremiumAlert = function(title, message, type = 'success') {
+    const alertClass = type === 'success' ? 'alert-success-premium' : 'alert-danger-premium';
+    const iconClass = type === 'success' ? 'ph-fill ph-check-circle' : 'ph-fill ph-warning-circle';
+    
+    let container = document.getElementById('dynamic-alert-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'dynamic-alert-container';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '9999';
+        container.style.minWidth = '300px';
+        document.body.appendChild(container);
+    }
+    
+    const alertEl = document.createElement('div');
+    alertEl.className = 'custom-alert-container';
+    
+    const alertInner = document.createElement('div');
+    alertInner.className = `custom-alert ${alertClass}`;
+    alertInner.innerHTML = `
+        <div class="alert-icon-box"><i class="${iconClass}"></i></div>
+        <div class="alert-content-box">
+            <h5 class="alert-heading">${title}</h5>
+            <p class="alert-message">${message}</p>
+        </div>
+        <button class="btn-close-alert" onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; cursor: pointer;"><i class="ph ph-x"></i></button>
+    `;
+    
+    alertEl.appendChild(alertInner);
+    container.appendChild(alertEl);
+    
+    setTimeout(() => {
+        if (document.body.contains(alertEl)) {
+            alertEl.style.animation = "fadeOutUp 0.4s ease-out forwards";
+            setTimeout(() => {
+                if (document.body.contains(alertEl)) alertEl.remove();
+            }, 400);
+        }
+    }, 4000);
+};
+
 class ContentReportsView {
     constructor() {
         this.tabs = document.querySelectorAll('.sub-menu-item');
@@ -50,6 +93,16 @@ class ContentReportsView {
         window.addEventListener('resize', () => {
             this.adjustReadMoreButtonsVisibility();
         });
+
+        // Report filter select listener
+        const filterSelect = document.getElementById('filterReportStatus');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', (e) => {
+                if (this.onReportFilterChange) {
+                    this.onReportFilterChange(e.target.value);
+                }
+            });
+        }
     }
 
     renderModerationItems(items) {
@@ -95,17 +148,9 @@ class ContentReportsView {
                     <button class="btn-action btn-keep" data-action="keep" data-id="${item.id}">
                         <i class="ph ph-check"></i> Keep
                     </button>
-                    <button class="btn-action btn-hide" data-action="hide" data-id="${item.id}">
-                        <i class="ph ph-eye-closed"></i> Hide
-                    </button>
                     <button class="btn-action btn-delete" data-action="delete" data-id="${item.id}">
                         <i class="ph ph-trash"></i> Delete
                     </button>
-                    <div class="penalty-input-group" id="penaltyGroup-${item.id}" style="display:none;">
-                        <label style="font-size: 0.8rem; color:#4B5563;">Deduct Points:</label>
-                        <input type="number" min="0" max="100" placeholder="e.g. 10" id="penaltyInput-${item.id}" />
-                        <button class="btn-action btn-primary btn-sm" data-action="confirm-hide" data-id="${item.id}" style="padding: 4px 8px;">Confirm</button>
-                    </div>
                 </div>
             `;
             this.moderationContainer.appendChild(card);
@@ -225,18 +270,7 @@ class ContentReportsView {
             const action = btn.getAttribute('data-action');
             const id = btn.getAttribute('data-id');
             
-            if(action === 'hide') {
-                // Show penalty input
-                const group = document.getElementById(`penaltyGroup-${id}`);
-                if(group) {
-                    group.style.display = 'flex';
-                    btn.style.display = 'none'; // hide the original hide button
-                }
-            } else if (action === 'confirm-hide') {
-                const input = document.getElementById(`penaltyInput-${id}`);
-                const points = input ? parseInt(input.value) : 0;
-                handler('hide', id, points);
-            } else if (action === 'toggle-text') {
+            if (action === 'toggle-text') {
                 const targetId = btn.getAttribute('data-target') || `report-text-${id}`;
                 const textElem = document.getElementById(targetId);
                 if (textElem) {
@@ -251,6 +285,10 @@ class ContentReportsView {
                 handler(action, id);
             }
         });
+    }
+
+    bindReportFilterChange(handler) {
+        this.onReportFilterChange = handler;
     }
 
     bindFeedbackActions(handler) {

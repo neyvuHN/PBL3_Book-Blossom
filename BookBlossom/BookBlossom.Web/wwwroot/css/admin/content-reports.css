@@ -365,3 +365,122 @@
     color: white;
     font-size: 2rem;
 }
+
+/* Custom Premium System Alerts for Content Reports */
+.custom-alert-container {
+    margin-bottom: 20px;
+    animation: fadeInDown 0.4s ease-out forwards;
+}
+
+.custom-alert {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+    position: relative;
+    border-left: 5px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.alert-success-premium {
+    background-color: #ecfdf5;
+    border: 1px solid #d1fae5;
+    border-left: 5px solid #10b981;
+}
+
+.alert-success-premium .alert-icon-box {
+    color: #10b981;
+}
+
+.alert-success-premium .alert-heading {
+    color: #065f46;
+}
+
+.alert-success-premium .alert-message {
+    color: #047857;
+}
+
+.alert-danger-premium {
+    background-color: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-left: 5px solid #ef4444;
+}
+
+.alert-danger-premium .alert-icon-box {
+    color: #ef4444;
+}
+
+.alert-danger-premium .alert-heading {
+    color: #991b1b;
+}
+
+.alert-danger-premium .alert-message {
+    color: #b91c1c;
+}
+
+.alert-icon-box {
+    font-size: 1.25rem;
+    margin-right: 14px;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.alert-content-box {
+    flex-grow: 1;
+}
+
+.alert-heading {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.alert-message {
+    font-size: 0.875rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+.btn-close-alert {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.5rem;
+    font-weight: 300;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    margin-left: 15px;
+    transition: color 0.2s;
+    margin-top: -2px;
+}
+
+.btn-close-alert:hover {
+    color: #4b5563;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+}

@@ -2,6 +2,7 @@ class ContentReportsController {
     constructor(model, view) {
         this.model = model;
         this.view = view;
+        this.currentReportFilter = 'all';
     }
 
     init() {
@@ -10,10 +11,18 @@ class ContentReportsController {
         this.view.bindModerationActions(this.handleModerationAction.bind(this));
         this.view.bindFeedbackActions(this.handleFeedbackAction.bind(this));
         this.view.bindReturnActions(this.handleReturnAction.bind(this));
+        this.view.bindReportFilterChange(this.handleReportFilterChange.bind(this));
     }
 
     renderAll() {
-        this.view.renderModerationItems(this.model.getModerationItems());
+        let moderationItems = this.model.getModerationItems();
+        if (this.currentReportFilter === 'high') {
+            moderationItems = moderationItems.filter(item => item.reportsCount >= 5);
+        } else if (this.currentReportFilter === 'low') {
+            moderationItems = moderationItems.filter(item => item.reportsCount < 5);
+        }
+
+        this.view.renderModerationItems(moderationItems);
         this.view.renderFeedbackItems(this.model.getFeedbackItems());
         this.view.renderReturnClaims(this.model.getReturnClaims());
         this.updateBadges();
@@ -33,24 +42,22 @@ class ContentReportsController {
         if(bRet) bRet.textContent = returnCount;
     }
 
-    handleModerationAction(action, idStr, penaltyPoints = 0) {
+    handleReportFilterChange(filterValue) {
+        this.currentReportFilter = filterValue;
+        this.renderAll();
+    }
+
+    handleModerationAction(action, idStr) {
         const id = parseInt(idStr);
         const items = this.model.getModerationItems();
         const index = items.findIndex(i => i.id === id);
         
         if (index > -1) {
             if (action === 'keep') {
-                alert('Content kept. Report dismissed.');
+                showPremiumAlert('Content Kept', 'Content kept. Report dismissed.', 'success');
                 this.model.moderationItems.splice(index, 1);
             } else if (action === 'delete') {
-                alert('Content deleted. Standard penalty points applied to author.');
-                this.model.moderationItems.splice(index, 1);
-            } else if (action === 'confirm-hide') {
-                if (isNaN(penaltyPoints) || penaltyPoints < 0) {
-                    alert('Please enter a valid penalty score.');
-                    return;
-                }
-                alert(`Content hidden. User penalized by ${penaltyPoints} points.`);
+                showPremiumAlert('Content Deleted', 'Content deleted. Standard penalty points applied to author.', 'success');
                 this.model.moderationItems.splice(index, 1);
             }
             this.renderAll();
@@ -65,12 +72,12 @@ class ContentReportsController {
         if (item) {
             if (action === 'reply') {
                 if (!replyText.trim()) {
-                    alert('Reply cannot be empty.');
+                    showPremiumAlert('Empty Reply', 'Reply cannot be empty.', 'danger');
                     return;
                 }
                 item.isReplied = true;
                 item.replyContent = replyText;
-                alert('Reply submitted successfully.');
+                showPremiumAlert('Reply Submitted', 'Reply submitted successfully.', 'success');
                 this.renderAll();
             } else if (action === 'transfer') {
                 const payload = {
@@ -80,25 +87,25 @@ class ContentReportsController {
                     Content: item.content,
                     ModeratorNote: "Transferred from Content Reports."
                 };
-
+ 
                 fetch('/Admin/TransferComplaint', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 }).then(res => res.json()).then(data => {
                     if (data.success) {
-                        alert('Review information and stars transferred to Admin/Orders Complaints tab successfully.');
+                        showPremiumAlert('Complaint Transferred', 'Review information and stars transferred to Admin/Orders Complaints tab successfully.', 'success');
                         const index = items.findIndex(i => i.id === id);
                         if (index > -1) {
                             this.model.feedbackItems.splice(index, 1);
                             this.renderAll();
                         }
                     } else {
-                        alert('Failed to transfer complaint.');
+                        showPremiumAlert('Transfer Failed', 'Failed to transfer complaint.', 'danger');
                     }
                 }).catch(err => {
                     console.error('Error:', err);
-                    alert('Error transferring complaint.');
+                    showPremiumAlert('Error', 'Error transferring complaint.', 'danger');
                 });
             }
         }
@@ -126,19 +133,19 @@ class ContentReportsController {
                     body: JSON.stringify(payload)
                 }).then(res => res.json()).then(data => {
                     if (data.success) {
-                        alert('Refund Accepted. Order moved to Returns tab in Admin/Orders.');
+                        showPremiumAlert('Refund Approved', 'Refund Accepted. Order moved to Returns tab in Admin/Orders.', 'success');
                         this.model.returnClaims.splice(index, 1);
                         this.renderAll();
                     } else {
-                        alert('Failed to process return claim.');
+                        showPremiumAlert('Process Failed', 'Failed to process return claim.', 'danger');
                     }
                 }).catch(err => {
                     console.error('Error:', err);
-                    alert('Error processing return claim.');
+                    showPremiumAlert('Error', 'Error processing return claim.', 'danger');
                 });
 
             } else if (action === 'reject-return') {
-                alert('Return Claim Rejected.');
+                showPremiumAlert('Claim Rejected', 'Return Claim Rejected.', 'success');
                 this.model.returnClaims.splice(index, 1);
                 this.renderAll();
             }

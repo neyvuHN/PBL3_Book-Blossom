@@ -44,10 +44,17 @@
 
         <!-- Moderation Tab -->
         <div class="content-tab active" id="tab-moderation">
-            <div class="section-header">
-                <div class="section-title">
+            <div class="section-header d-flex justify-content-between align-items-center flex-wrap gap-3" style="margin-bottom: 24px;">
+                <div class="section-title" style="margin-bottom: 0;">
                     <h2>Thread/Review Moderation</h2>
-                    <p>Process reported content and monitor for community guideline violations.</p>
+                    <p style="margin-bottom: 0;">Process reported content and monitor for community guideline violations.</p>
+                </div>
+                <div class="filter-wrapper">
+                    <select id="filterReportStatus" class="form-select" style="width: 320px; border-radius: 20px; height: 42px; font-size: 0.9rem; border-color: #e2e8f0; background-color: #f8fafc; cursor: pointer; padding: 0 16px; font-weight: 500; color: #4B5563;">
+                        <option value="all">All Reports</option>
+                        <option value="high">High Risk (≥ 5 Reports - Hidden from Buyers)</option>
+                        <option value="low">Low Risk (< 5 Reports - Visible)</option>
+                    </select>
                 </div>
             </div>
             
