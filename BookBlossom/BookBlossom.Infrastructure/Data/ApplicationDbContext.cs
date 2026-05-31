@@ -40,7 +40,8 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ReputationHistory> ReputationHistories { get; set; }
-        
+        public DbSet<Badge> Badges { get; set; }
+        public DbSet<BadgeCustomer> BadgeCustomers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

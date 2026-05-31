@@ -12,6 +12,8 @@ namespace BookBlossom.Core.Entities
         // Điểm uy tín của khách hàng (Mặc định là 100 dưới DB)
         public int? ReputationPoint { get; set; } = 100;
 
+        public DateTime? ReputationMaxStreakStartDate { get; set; }
+
         // Navigation Properties
         public virtual MembershipRank? MembershipRank { get; set; }
 
