@@ -26,13 +26,13 @@ namespace BookBlossom.Tests.Services
         private async Task SeedBaseDataAsync(ApplicationDbContext context)
         {
             // Seed a StoreManager Staff User
-            var role = new Role { RoleID = UserRole.StoreManager, RoleName = "StoreManager" };
+            var role = new Role { RoleID = UserRole.Admin, RoleName = "Admin" };
             await context.Roles.AddAsync(role);
 
             var user = new User
             {
                 UserID = 101,
-                RoleID = UserRole.StoreManager,
+                RoleID = UserRole.Admin,
                 UserName = "storemanager1",
                 Password = "hashedpassword",
                 PhoneNumber = "0123456789",

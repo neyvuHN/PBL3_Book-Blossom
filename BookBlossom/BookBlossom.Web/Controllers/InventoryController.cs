@@ -11,7 +11,7 @@ namespace BookBlossom.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = "RequireStoreManager")] // Restricted to Store Managers
+    [Authorize(Policy = "AdminOnly")] // Restricted to Store Managers
     public class InventoryController : ControllerBase
     {
         private readonly IInventoryService _inventoryService;

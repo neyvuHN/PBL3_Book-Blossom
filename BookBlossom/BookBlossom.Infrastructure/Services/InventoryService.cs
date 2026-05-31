@@ -36,9 +36,7 @@ namespace BookBlossom.Infrastructure.Services
                         StaffID = staffId,
                         Address = "Khu Công Nghệ Phần Mềm, Thủ Đức, TP.HCM",
                         IsOnboardingCompleted = true,
-                        Department = user.RoleID == UserRole.SystemAdmin ? Department.SystemAdmin :
-                                     user.RoleID == UserRole.StoreManager ? Department.StoreManager :
-                                     user.RoleID == UserRole.Moderator ? Department.Moderator :
+                        Department = user.RoleID == UserRole.Admin ? Department.SystemAdmin :
                                      Department.MarketingManager,
                         Position = StaffPosition.Leader,
                         HireDate = DateTime.Today,

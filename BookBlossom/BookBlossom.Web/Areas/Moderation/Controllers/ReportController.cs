@@ -6,13 +6,13 @@ namespace BookBlossom.Web.Areas.Moderation.Controllers
     [Area("Moderation")]
     [Route("api/moderation/[controller]")]
     [ApiController]
-    [Authorize(Policy = "ModeratorOnly")]
+    [Authorize(Policy = "AdminOnly")]
     public class ReportController : ControllerBase
     {
         [HttpGet]
         public IActionResult Index()
         {
-            return Ok(new { message = "Report API - Moderator Only" });
+            return Ok(new { message = "Report API - Admin Only" });
         }
     }
 }

@@ -63,7 +63,7 @@ namespace BookBlossom.Web.Controllers
 
         // ======================== STAFF ONLY - CRUD GÓI ========================
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("create")]
         public async Task<IActionResult> CreatePackage([FromBody] ServicePackage package)
         {
@@ -73,7 +73,7 @@ namespace BookBlossom.Web.Controllers
             return BadRequest("Tạo gói dịch vụ thất bại.");
         }
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("update/{packageId}")]
         public async Task<IActionResult> UpdatePackage(long packageId, [FromBody] ServicePackage package)
         {
@@ -84,7 +84,7 @@ namespace BookBlossom.Web.Controllers
             return NotFound("Không tìm thấy gói dịch vụ.");
         }
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("delete/{packageId}")]
         public async Task<IActionResult> DeletePackage(long packageId)
         {

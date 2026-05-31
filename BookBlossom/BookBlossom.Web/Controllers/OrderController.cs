@@ -187,7 +187,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 3: Lấy danh sách đơn hàng cho StoreManager (Kanban/List)
         [HttpGet("store")]
-        [Authorize(Policy = "StoreManagerOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetOrders([FromQuery] OrderStatus? status, [FromQuery] string? searchTerm)
         {
             try
@@ -203,7 +203,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 4: Lấy thông tin chi tiết của một đơn hàng
         [HttpGet("store/{orderId}")]
-        [Authorize(Policy = "StoreManagerOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetOrderDetail(long orderId)
         {
             try
@@ -220,7 +220,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 5: Xác nhận đơn hàng loạt (Store confirm)
         [HttpPost("store/confirm")]
-        [Authorize(Policy = "StoreManagerOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> ConfirmOrders([FromBody] BulkConfirmRequestDTO request)
         {
             if (request == null || request.OrderIds == null || !request.OrderIds.Any())
@@ -242,7 +242,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 6: Cập nhật trạng thái đơn hàng loạt
         [HttpPut("store/status")]
-        [Authorize(Policy = "StoreManagerOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> UpdateOrdersStatus([FromBody] BulkStatusUpdateRequestDTO request)
         {
             if (request == null || request.OrderIds == null || !request.OrderIds.Any())
@@ -264,7 +264,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 7: Xuất PDF hóa đơn cho từng đơn
         [HttpGet("store/{orderId}/invoice")]
-        [Authorize(Policy = "StoreManagerOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetInvoicePdf(long orderId)
         {
             try
@@ -284,7 +284,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 8: Xuất PDF hóa đơn gộp cho danh sách đơn hàng
         [HttpPost("store/invoices")]
-        [Authorize(Policy = "StoreManagerOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetInvoicesPdf([FromBody] List<long> orderIds)
         {
             if (orderIds == null || !orderIds.Any())

@@ -130,8 +130,8 @@ namespace BookBlossom.Web.Controllers
 
                 _cache.Set(request.PhoneNumber, request, cacheOptions);
 
-                // Gửi SMS thông qua eSMS với mẫu đã đăng ký
-                await _smsService.SendSmsAsync(request.PhoneNumber, $"Ma OTP dang ky tai khoan tai Book Blossom la {otpCode}. Ma co hieu luc trong 5 phut.");
+                // Bỏ qua gửi eSMS thực tế, mã OTP mock sẽ được trả về trực tiếp trong response để test
+                // await _smsService.SendSmsAsync(request.PhoneNumber, $"Ma OTP dang ky tai khoan tai Book Blossom la {otpCode}. Ma co hieu luc trong 5 phut.");
 
                 return Ok(new 
                 { 
@@ -226,8 +226,8 @@ namespace BookBlossom.Web.Controllers
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                 var otpCode = await _otpService.GenerateOtpAsync(request.PhoneNumber, ipAddress);
 
-                // Gửi SMS chứa mã OTP với mẫu đã được đăng ký
-                await _smsService.SendSmsAsync(request.PhoneNumber, $"Ma OTP khoi phuc mat khau tai Book Blossom la {otpCode}. Ma co hieu luc trong 5 phut.");
+                // Bỏ qua gửi eSMS thực tế, mã OTP mock sẽ được trả về trực tiếp trong response để test
+                // await _smsService.SendSmsAsync(request.PhoneNumber, $"Ma OTP khoi phuc mat khau tai Book Blossom la {otpCode}. Ma co hieu luc trong 5 phut.");
 
                 return Ok(new 
                 { 

@@ -48,7 +48,7 @@ namespace BookBlossom.Web.Controllers
             
             // Trả về dữ liệu Quản trị cho Nhân viên (Staff công việc nội bộ)
             if (User.Identity?.IsAuthenticated == true && 
-            (User.IsInRole("MarketingManager") || User.IsInRole("StoreManager") || User.IsInRole("Admin")))
+            User.IsInRole("Admin"))
             {
                 if (isAwaitingApproval)
                 {
@@ -119,7 +119,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 3: Marketing tạo yêu cầu
         [HttpPost]
-        [Authorize(Roles = "MarketingManager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateBlindBookDTO dto)
         {
             if (dto == null) return BadRequest("Dữ liệu truyền lên trống.");
@@ -152,7 +152,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 4: Store Manager duyệt yêu cầu ban đầu
         [HttpPut("approve/{id}")]
-        [Authorize(Roles = "StoreManager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(long id)
         {
             try
@@ -171,7 +171,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 5: Marketing gửi yêu cầu bổ sung hàng (Restock)
         [HttpPost("restock")]
-        [Authorize(Roles = "MarketingManager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RestockRequest([FromBody] RestockBlindBookDTO dto)
         {
             if (dto == null) return BadRequest("Dữ liệu không hợp lệ.");
@@ -192,7 +192,7 @@ namespace BookBlossom.Web.Controllers
 
         // API 6: Store Manager duyệt yêu cầu Restock
         [HttpPut("restock/approve/{id}")]
-        [Authorize(Roles = "StoreManager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApproveRestock(long id, [FromQuery] int approvedQuantity)
         {
             try

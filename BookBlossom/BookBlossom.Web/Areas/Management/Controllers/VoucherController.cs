@@ -6,13 +6,13 @@ namespace BookBlossom.Web.Areas.Management.Controllers
     [Area("Management")]
     [Route("api/management/[controller]")]
     [ApiController]
-    [Authorize(Policy = "MarketingManagerOnly")]
+    [Authorize(Policy = "AdminOnly")]
     public class VoucherController : ControllerBase
     {
         [HttpGet]
         public IActionResult Index()
         {
-            return Ok(new { message = "Voucher API - MarketingManager Only" });
+            return Ok(new { message = "Voucher API - Admin Only" });
         }
     }
 }
