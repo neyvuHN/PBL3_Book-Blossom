@@ -17,6 +17,7 @@ namespace BookBlossom.Core.Interfaces
         Task<OrderDetailDTO?> GetOrderDetailForStoreAsync(long orderId);
         Task<bool> ConfirmOrdersAsync(List<long> orderIds);
         Task<bool> UpdateOrdersStatusAsync(List<long> orderIds, OrderStatus status);
+        Task<bool> ProcessPaymentSuccessAsync(long orderId);
         Task<byte[]> GenerateInvoicePdfAsync(long orderId);
         Task<byte[]> GenerateInvoicesPdfAsync(List<long> orderIds);
     }

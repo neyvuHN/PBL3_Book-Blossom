@@ -20,13 +20,15 @@ namespace BookBlossom.Infrastructure.Services
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ThreadService> _logger;
         private readonly INotificationService _notificationService;
+        private readonly IReputationService _reputationService;
         private readonly string _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "threads");
 
-        public ThreadService(ApplicationDbContext context, ILogger<ThreadService> logger, INotificationService notificationService)
+        public ThreadService(ApplicationDbContext context, ILogger<ThreadService> logger, INotificationService notificationService, IReputationService reputationService)
         {
             _context = context;
             _logger = logger;
             _notificationService = notificationService;
+            _reputationService = reputationService;
             if (!Directory.Exists(_uploadFolder))
             {
                 Directory.CreateDirectory(_uploadFolder);
@@ -215,8 +217,31 @@ namespace BookBlossom.Infrastructure.Services
                 }
             }
 
+            var postAuthorId = post.CustomerID;
             _context.ThreadPosts.Remove(post);
-            return await _context.SaveChangesAsync() > 0;
+            
+            var success = await _context.SaveChangesAsync() > 0;
+            if (success)
+            {
+                // Nếu bị Admin/Moderator xóa (không phải tác giả tự xóa)
+                if (role == UserRole.Admin && postAuthorId != userId)
+                {
+                    try
+                    {
+                        await _reputationService.HandleReputationChangeAsync(
+                            postAuthorId, 
+                            ReputationAction.ReviewThreadDeleted, 
+                            "Bài viết bị ban quản trị xóa do vi phạm tiêu chuẩn cộng đồng.");
+                        await _reputationService.UpdateCustomerRankAsync(postAuthorId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Lỗi khi trừ điểm uy tín của tác giả {postAuthorId} sau khi bài viết bị Admin xóa.");
+                    }
+                }
+            }
+
+            return success;
         }
 
         public async Task<bool> HidePostAsync(long postId, bool isHidden)
