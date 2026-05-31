@@ -373,8 +373,10 @@ class UsersView {
      */
     updateFiltersForTab(tabName) {
         if (tabName === 'buyers') {
+            /* Commented out per request: Bỏ luôn filter theo role
             this.roleFilter.innerHTML = `<option value="">Role: Buyer</option>`;
             this.roleFilter.disabled = true; // No alternative roles for buyers tab
+            */
             
             this.scoreFilter.innerHTML = `
                 <option value="">Reputation Score</option>
@@ -383,6 +385,7 @@ class UsersView {
                 <option value="C">Under 30 (Banned)</option>
             `;
         } else if (tabName === 'staff') {
+            /* Commented out per request: Bỏ luôn filter theo role
             this.roleFilter.disabled = false;
             this.roleFilter.innerHTML = `
                 <option value="">Role: All Staff</option>
@@ -391,6 +394,7 @@ class UsersView {
                 <option value="Marketing Manager">Marketing Manager</option>
                 <option value="Store Manager">Store Manager</option>
             `;
+            */
             
             this.scoreFilter.innerHTML = `
                 <option value="">Internal Score</option>
@@ -398,6 +402,7 @@ class UsersView {
                 <option value="caution">Critical (<50)</option>
             `;
         } else if (tabName === 'banned') {
+            /* Commented out per request: Bỏ luôn filter theo role
             this.roleFilter.disabled = false;
             this.roleFilter.innerHTML = `
                 <option value="">Role: All Banned</option>
@@ -405,6 +410,7 @@ class UsersView {
                 <option value="Moderator">Moderator</option>
                 <option value="User">User</option>
             `;
+            */
             
             this.scoreFilter.innerHTML = `
                 <option value="">Reputation Score</option>
@@ -445,8 +451,8 @@ class UsersView {
         this.newStaffPhone.value = '';
         this.newStaffGender.value = 'Male';
         this.newStaffBirthday.value = '';
-        this.newStaffDepartment.value = 'Administration';
-        this.newStaffPosition.value = '';
+        // this.newStaffDepartment.value = 'Administration'; /* Commented out per request */
+        // this.newStaffPosition.value = ''; /* Commented out per request */
         this.newStaffContractType.value = 'Full-time';
         this.newStaffSalary.value = '';
         this.newStaffBankAccount.value = '';
@@ -533,8 +539,8 @@ class UsersView {
             phoneNumber: this.newStaffPhone.value.trim(),
             gender: this.newStaffGender.value,
             birthday: this.newStaffBirthday.value,
-            department: this.newStaffDepartment.value,
-            position: this.newStaffPosition.value.trim(),
+            department: 'Administration', /* this.newStaffDepartment.value commented out per request */
+            position: 'Staff', /* this.newStaffPosition.value.trim() commented out per request */
             contractType: this.newStaffContractType.value,
             salary: parseFloat(this.newStaffSalary.value) || 0,
             bankAccount: this.newStaffBankAccount.value.trim(),
@@ -589,8 +595,8 @@ class UsersView {
         this.newStaffPhone.value = staffObj.phoneNumber || '';
         this.newStaffGender.value = staffObj.gender || 'Male';
         this.newStaffBirthday.value = staffObj.birthday || '';
-        this.newStaffDepartment.value = staffObj.department || 'Administration';
-        this.newStaffPosition.value = staffObj.position || '';
+        // this.newStaffDepartment.value = staffObj.department || 'Administration'; /* Commented out per request */
+        // this.newStaffPosition.value = staffObj.position || ''; /* Commented out per request */
         this.newStaffContractType.value = staffObj.contractType || 'Full-time';
         this.newStaffSalary.value = staffObj.salary || '';
         this.newStaffBankAccount.value = staffObj.bankAccount || '';

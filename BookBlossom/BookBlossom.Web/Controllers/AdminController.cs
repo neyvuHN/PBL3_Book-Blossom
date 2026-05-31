@@ -68,6 +68,7 @@ namespace BookBlossom.Web.Controllers
                         Status = "Active",
                         AvatarUrl = "https://i.pravatar.cc/150?img=1"
                     },
+                    /*
                     new()
                     {
                         Id = "staff_2",
@@ -104,6 +105,7 @@ namespace BookBlossom.Web.Controllers
                         Status = "Active",
                         AvatarUrl = "https://i.pravatar.cc/150?img=10"
                     }
+                    */
                 },
                 Banned = new List<ViewModels.Admin.AdminUserItemViewModel>
                 {

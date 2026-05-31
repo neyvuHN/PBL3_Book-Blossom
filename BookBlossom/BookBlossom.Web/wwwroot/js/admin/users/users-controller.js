@@ -57,7 +57,7 @@ class UsersController {
                 // Clear query and filter selections in Model to avoid crossing criteria
                 this.model.filterRole = '';
                 this.model.filterScore = '';
-                this.view.roleFilter.value = '';
+                // this.view.roleFilter.value = ''; /* Commented out per request: Bỏ filter theo role */
                 this.view.scoreFilter.value = '';
 
                 // Dynamically load correct options for this tab
@@ -79,11 +79,13 @@ class UsersController {
             this.redrawActiveTable();
         });
 
+        /* Commented out per request: Bỏ luôn filter theo role
         // Role dropdown filter selection
         this.view.roleFilter.addEventListener('change', (e) => {
             this.model.filterRole = e.target.value;
             this.redrawActiveTable();
         });
+        */
 
         // Score dropdown filter selection
         this.view.scoreFilter.addEventListener('change', (e) => {
@@ -285,7 +287,8 @@ class UsersController {
             const firstName = this.view.newStaffFirstName.value.trim();
             const phone = this.view.newStaffPhone.value.trim();
             const birthday = this.view.newStaffBirthday.value;
-            const position = this.view.newStaffPosition.value.trim();
+            // const position = this.view.newStaffPosition.value.trim(); /* Commented out per request */
+            const position = 'Staff';
             const salary = this.view.newStaffSalary.value.trim();
             const bankAccount = this.view.newStaffBankAccount.value.trim();
             const qualifications = this.view.newStaffQualifications.value.trim();
@@ -307,7 +310,8 @@ class UsersController {
             // Birthday selected and in the past
             const isBirthdayValid = birthday !== "" && new Date(birthday) < new Date();
 
-            const isPositionValid = position.length > 0;
+            // const isPositionValid = position.length > 0; /* Commented out per request */
+            const isPositionValid = true;
             const isSalaryValid = salary !== "" && parseFloat(salary) > 0;
 
             // Numeric bank account check (at least 6 digits)
@@ -324,7 +328,7 @@ class UsersController {
             validateField(this.view.newStaffFirstName, isFirstNameValid);
             validateField(this.view.newStaffPhone, isPhoneValid);
             validateField(this.view.newStaffBirthday, isBirthdayValid);
-            validateField(this.view.newStaffPosition, isPositionValid);
+            // validateField(this.view.newStaffPosition, isPositionValid); /* Commented out per request */
             validateField(this.view.newStaffSalary, isSalaryValid);
             validateField(this.view.newStaffBankAccount, isBankValid);
             validateField(this.view.newStaffQualifications, isQualificationsValid);
@@ -346,8 +350,8 @@ class UsersController {
         this.view.newStaffPhone.addEventListener('input', validateForm);
         this.view.newStaffGender.addEventListener('change', validateForm);
         this.view.newStaffBirthday.addEventListener('change', validateForm);
-        this.view.newStaffDepartment.addEventListener('change', validateForm);
-        this.view.newStaffPosition.addEventListener('input', validateForm);
+        // this.view.newStaffDepartment.addEventListener('change', validateForm); /* Commented out per request */
+        // this.view.newStaffPosition.addEventListener('input', validateForm); /* Commented out per request */
         this.view.newStaffContractType.addEventListener('change', validateForm);
         this.view.newStaffSalary.addEventListener('input', validateForm);
         this.view.newStaffBankAccount.addEventListener('input', validateForm);

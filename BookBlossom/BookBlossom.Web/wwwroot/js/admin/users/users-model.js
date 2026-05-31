@@ -48,10 +48,12 @@ class UsersModel {
                 }
             }
 
+            /* Commented out per request: Bỏ luôn filter theo role
             // 2. Role Filter Dropdown
             if (this.filterRole && item.role !== this.filterRole) {
                 return false;
             }
+            */
 
             // 3. Score Filter Dropdown
             if (this.filterScore) {
@@ -178,7 +180,7 @@ class UsersModel {
             id: `staff_${Date.now()}`,
             username: staffData.username,
             email: staffData.email,
-            role: staffData.role,
+            role: 'Admin', /* staffData.role commented out per request to only allow Admin role */
             plan: 'Pro', // Default for staff
             internalScore: 100, // Automatically 100 KPI score (KPIScore in DB)
             joinDate: formattedDate, // Automatically saves current date (HireDate in DB)
@@ -191,8 +193,8 @@ class UsersModel {
             phoneNumber: staffData.phoneNumber,
             gender: staffData.gender,
             birthday: staffData.birthday,
-            department: staffData.department,
-            position: staffData.position,
+            department: 'Administration', /* staffData.department commented out per request */
+            position: 'Staff', /* staffData.position commented out per request */
             contractType: staffData.contractType,
             salary: staffData.salary,
             bankAccount: staffData.bankAccount,
@@ -231,7 +233,7 @@ class UsersModel {
         // Update fields
         staffObj.username = updatedData.username;
         staffObj.email = updatedData.email;
-        staffObj.role = updatedData.role;
+        staffObj.role = 'Admin'; /* updatedData.role commented out per request to only allow Admin role */
         staffObj.avatarUrl = updatedData.avatarUrl;
         
         staffObj.lastName = updatedData.lastName;
@@ -239,8 +241,8 @@ class UsersModel {
         staffObj.phoneNumber = updatedData.phoneNumber;
         staffObj.gender = updatedData.gender;
         staffObj.birthday = updatedData.birthday;
-        staffObj.department = updatedData.department;
-        staffObj.position = updatedData.position;
+        staffObj.department = 'Administration'; /* updatedData.department commented out per request */
+        staffObj.position = 'Staff'; /* updatedData.position commented out per request */
         staffObj.contractType = updatedData.contractType;
         staffObj.salary = updatedData.salary;
         staffObj.bankAccount = updatedData.bankAccount;
