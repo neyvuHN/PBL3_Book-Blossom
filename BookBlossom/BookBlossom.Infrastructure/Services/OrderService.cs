@@ -231,6 +231,25 @@ namespace BookBlossom.Infrastructure.Services
                     await _voucherService.MarkVoucherAsUsedAsync(customerId, appliedVoucherId.Value, order.OrderID);
                 }
 
+                // XÓA CÁC SẢN PHẨM KHỎI GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
+                var cartItemsToDelete = await _context.Set<Cart>()
+                    .Where(c => c.UserID == customerId)
+                    .ToListAsync();
+                    
+                var purchasedBookIds = request.CartItems.Where(i => i.BookID.HasValue).Select(i => i.BookID.Value).ToList();
+                var purchasedBlindBookIds = request.CartItems.Where(i => i.BlindBookID.HasValue).Select(i => i.BlindBookID.Value).ToList();
+                
+                var itemsToRemove = cartItemsToDelete.Where(c => 
+                    (c.BookID.HasValue && purchasedBookIds.Contains(c.BookID.Value)) ||
+                    (c.BlindBookID.HasValue && purchasedBlindBookIds.Contains(c.BlindBookID.Value))
+                ).ToList();
+
+                if (itemsToRemove.Any())
+                {
+                    _context.Set<Cart>().RemoveRange(itemsToRemove);
+                    await _context.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
 
                 return new OrderResponseDTO
@@ -254,6 +273,10 @@ namespace BookBlossom.Infrastructure.Services
         {
             // Lọc đơn hàng theo chính CustomerID để đảm bảo bảo mật dữ liệu khách hàng
             var query = _context.Set<Order>()
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.RealBook)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.BlindBook)
                 .Where(o => o.CustomerID == customerId);
 
             // Nếu truyền vào status thì lọc theo trạng thái (Tab UI: Chờ xác nhận, Đang giao, Đã giao...)
@@ -284,15 +307,238 @@ namespace BookBlossom.Infrastructure.Services
                 TotalAmount = o.TotalAmount,
                 ShipReceiverName = o.ShipReceiverName,
                 ShipPhoneNumber = o.ShipPhoneNumber,
-                Note = o.Note
+                Note = o.Note,
+                CancelReason = null, // Logic cancel reason có thể lấy từ bảng khác nếu có
+                OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
+                {
+                    BookID = od.BookID,
+                    BlindBookID = od.BlindBookID,
+                    Title = od.BlindBookID.HasValue && od.BlindBook != null
+                        ? $"[Sách Mù] {od.BlindBook.Category}"
+                        : od.RealBook?.Title ?? "Sách không xác định",
+                    UnitPrice = od.UnitPrice,
+                    Quantity = od.Quantity,
+                    Discount = od.Discount ?? 0,
+                    TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
+                    SampleFilePath = od.RealBook?.SampleFilePath,
+                    ISBN = od.RealBook?.ISBN ?? string.Empty,
+                    Publisher = od.RealBook?.Publisher ?? string.Empty
+                }).ToList()
             });
+        }
+
+        public async Task<OrderDetailDTO?> GetOrderDetailForCustomerAsync(long customerId, long orderId)
+        {
+            var order = await _context.Set<Order>()
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.RealBook)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.BlindBook)
+                .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
+
+            if (order == null) return null;
+
+            var user = await _context.Users.FindAsync(order.CustomerID);
+            string customerName = user != null ? $"{user.LastName} {user.FirstName}".Trim() : "Khách hàng";
+
+            return new OrderDetailDTO
+            {
+                OrderID = order.OrderID,
+                CustomerID = order.CustomerID,
+                CustomerName = customerName,
+                CustomerEmail = user?.Email ?? string.Empty,
+                CustomerPhoneNumber = user?.PhoneNumber ?? string.Empty,
+                OrderDate = order.OrderDate ?? DateTime.UtcNow,
+                ShippedDate = order.ShippedDate,
+                DeliveredDate = order.DeliveredDate,
+                CompletedDate = order.CompletedDate,
+                OrderStatus = order.OrderStatus,
+                PaymentMethod = order.PaymentMethod,
+                PaymentStatus = order.PaymentStatus,
+                ShippingFee = order.ShippingFee ?? 0,
+                DiscountAmount = order.DiscountAmount ?? 0,
+                TotalAmount = order.TotalAmount,
+                ShipReceiverName = order.ShipReceiverName,
+                ShipPhoneNumber = order.ShipPhoneNumber,
+                ShipDetailAddress = order.ShipDetailAddress,
+                Note = order.Note,
+                CancelReason = null, // Mocked for now, normally from DB if saved
+                OrderItems = order.OrderDetails.Select(od => new OrderItemDTO
+                {
+                    BookID = od.BookID,
+                    BlindBookID = od.BlindBookID,
+                    Title = od.BlindBookID.HasValue && od.BlindBook != null
+                        ? $"[Sách Mù] {od.BlindBook.Category}"
+                        : od.RealBook?.Title ?? "Sách không xác định",
+                    UnitPrice = od.UnitPrice,
+                    Quantity = od.Quantity,
+                    Discount = od.Discount ?? 0,
+                    TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
+                    SampleFilePath = od.RealBook?.SampleFilePath,
+                    ISBN = od.RealBook?.ISBN ?? string.Empty,
+                    Publisher = od.RealBook?.Publisher ?? string.Empty
+                }).ToList()
+            };
+        }
+
+        public async Task<bool> CancelOrderCustomerAsync(long customerId, long orderId, string reason)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var order = await _context.Set<Order>()
+                    .Include(o => o.OrderDetails)
+                    .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
+
+                if (order == null) return false;
+                
+                // Only allow cancellation if pending
+                if (order.OrderStatus != OrderStatus.Pending)
+                {
+                    throw new InvalidOperationException("Chỉ có thể hủy đơn hàng ở trạng thái Chờ xác nhận.");
+                }
+
+                order.OrderStatus = OrderStatus.Cancelled;
+                
+                // HOÀN TRẢ LẠI KHO HÀNG
+                foreach (var detail in order.OrderDetails)
+                {
+                    var realBook = await _context.Set<RealBook>().FindAsync(detail.BookID);
+                    if (realBook != null)
+                    {
+                        realBook.UnitsInStock += detail.Quantity;
+                        realBook.ReservedQuantity -= detail.Quantity;
+                        if (realBook.ReservedQuantity < 0) realBook.ReservedQuantity = 0;
+                    }
+
+                    if (detail.BlindBookID.HasValue)
+                    {
+                        var blindBook = await _context.Set<BlindBook>().FindAsync(detail.BlindBookID.Value);
+                        if (blindBook != null)
+                        {
+                            blindBook.StockQuantity += detail.Quantity;
+                        }
+                    }
+                }
+                
+                // Reset streak đơn hàng về 0
+                var customerDetail = await _context.Set<CustomerDetail>()
+                    .FirstOrDefaultAsync(cd => cd.CustomerID == order.CustomerID);
+                if (customerDetail != null)
+                {
+                    customerDetail.CurrentOrderStreak = 0;
+                }
+
+                try
+                {
+                    await _voucherService.RefundVoucherIfApplicableAsync(order.OrderID);
+                }
+                catch { /* Suppress error */ }
+                
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                
+                // Save reason - if we have a table for it, or just return true. We don't have a cancel reason field in Order entity.
+                return true;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> ConfirmOrderReceivedCustomerAsync(long customerId, long orderId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var order = await _context.Set<Order>()
+                    .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
+
+                if (order == null) return false;
+
+                if (order.OrderStatus != OrderStatus.Delivering && order.OrderStatus != OrderStatus.Shipping && order.OrderStatus != OrderStatus.Completed)
+                {
+                    throw new InvalidOperationException("Không thể xác nhận đã nhận hàng ở trạng thái này.");
+                }
+                
+                if (order.OrderStatus == OrderStatus.Completed) return true; // Already completed
+
+                order.OrderStatus = OrderStatus.Completed;
+                order.CompletedDate = DateTime.UtcNow;
+
+                // Tăng streak đơn hàng
+                var customerDetail = await _context.Set<CustomerDetail>()
+                    .FirstOrDefaultAsync(cd => cd.CustomerID == order.CustomerID);
+                if (customerDetail != null)
+                {
+                    customerDetail.CurrentOrderStreak++;
+
+                    if (customerDetail.CurrentOrderStreak >= 3)
+                    {
+                        customerDetail.CurrentOrderStreak = 0; // Reset streak
+                        var now = DateTime.UtcNow;
+                        var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                        var streakCountThisMonth = await _context.Set<ReputationHistory>()
+                            .CountAsync(rh => rh.CustomerID == order.CustomerID &&
+                                              (rh.ReferenceType == (byte)ReputationAction.StreakBonusLvl1 ||
+                                               rh.ReferenceType == (byte)ReputationAction.StreakBonusLvl2 ||
+                                               rh.ReferenceType == (byte)ReputationAction.StreakBonusLvl3) &&
+                                              rh.CreateAt >= startOfMonth);
+
+                        ReputationAction? bonusAction = null;
+                        if (streakCountThisMonth == 0) bonusAction = ReputationAction.StreakBonusLvl1;
+                        else if (streakCountThisMonth == 1) bonusAction = ReputationAction.StreakBonusLvl2;
+                        else if (streakCountThisMonth == 2) bonusAction = ReputationAction.StreakBonusLvl3;
+
+                        if (bonusAction.HasValue)
+                        {
+                            await _reputationService.HandleReputationChangeAsync(order.CustomerID, bonusAction.Value, "Thưởng Streak đơn hàng");
+                            await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+                        }
+                    }
+                }
+
+                if (order.PaymentStatus == 0)
+                {
+                    order.PaymentStatus = 1;
+                    var action = (order.PaymentMethod == PaymentMethod.COD) 
+                                ? ReputationAction.CodDeliverySuccess 
+                                : ReputationAction.OnlinePaymentSuccess;
+
+                    await _reputationService.HandleReputationChangeAsync(order.CustomerID, action, $"Hoàn tất đơn hàng #{order.OrderID}");
+                    await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
+                }
+
+                await _context.SaveChangesAsync();
+                
+                try
+                {
+                    await _gamificationService.CheckAndGrantShoppingBadgesAsync(customerId);
+                }
+                catch { /* Ignore badge error */ }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // --- QUẢN LÝ ĐƠN HÀNG (STORE MANAGER) ---
 
         public async Task<IEnumerable<OrderListItemDTO>> GetOrdersForStoreAsync(OrderStatus? status, string? searchTerm)
         {
-            var query = _context.Set<Order>().AsQueryable();
+            var query = _context.Set<Order>()
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.RealBook)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.BlindBook)
+                .AsQueryable();
 
             if (status.HasValue)
             {
@@ -328,7 +574,23 @@ namespace BookBlossom.Infrastructure.Services
                 TotalAmount = o.TotalAmount,
                 ShipReceiverName = o.ShipReceiverName,
                 ShipPhoneNumber = o.ShipPhoneNumber,
-                Note = o.Note
+                Note = o.Note,
+                CancelReason = null,
+                OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
+                {
+                    BookID = od.BookID,
+                    BlindBookID = od.BlindBookID,
+                    Title = od.BlindBookID.HasValue && od.BlindBook != null
+                        ? $"[Sách Mù] {od.BlindBook.Category}"
+                        : od.RealBook?.Title ?? "Sách không xác định",
+                    UnitPrice = od.UnitPrice,
+                    Quantity = od.Quantity,
+                    Discount = od.Discount ?? 0,
+                    TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
+                    SampleFilePath = od.RealBook?.SampleFilePath,
+                    ISBN = od.RealBook?.ISBN ?? string.Empty,
+                    Publisher = od.RealBook?.Publisher ?? string.Empty
+                }).ToList()
             });
         }
 
