@@ -374,6 +374,7 @@ namespace BookBlossom.Infrastructure.Services
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
                         ? $"[Sách Mù] {od.BlindBook.Category}"
                         : od.RealBook?.Title ?? "Sách không xác định",
+                    RealBookTitle = od.RealBook?.Title ?? "Sách không xác định",
                     UnitPrice = od.UnitPrice,
                     Quantity = od.Quantity,
                     Discount = od.Discount ?? 0,
