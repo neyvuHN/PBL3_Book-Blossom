@@ -1,82 +1,8 @@
 class ContentReportsModel {
     constructor() {
-        this.moderationItems = [
-            {
-                id: 1,
-                type: 'thread',
-                title: 'Suspicious link in book discussion',
-                content: 'Check out this site for free pdfs of the new release... I have been using it for a while and you can get almost any book for free. It is totally safe and you do not need to pay anything. Just click the link and download. Sometimes there are ads but just close them. Really guys, why pay when you can get it for free? This is the best way to read books online without spending money. Also they have audiobooks!',
-                reportsCount: 8,
-                author: 'user_spammer123',
-                date: '2 hours ago',
-                status: 'pending',
-                bookLink: {
-                    title: 'The Secret Garden',
-                    author: 'Frances Hodgson Burnett',
-                    image: '/images/Book/book1.jpg'
-                }
-            },
-            {
-                id: 2,
-                type: 'review',
-                title: 'Inappropriate language in review',
-                content: 'This book was absolutely **** and the author is a ****. I cannot believe I spent my hard-earned money on this garbage. The plot makes no sense, the characters are flat, and the ending was rushed. DO NOT BUY THIS BOOK. If you do, you will regret it forever. I want my money back but the store refused.',
-                reportsCount: 5,
-                author: 'angry_reader',
-                date: '4 hours ago',
-                status: 'pending'
-            },
-            {
-                id: 3,
-                type: 'thread',
-                title: 'Phone number sharing',
-                content: 'Call me at 0912345678 if you want to trade books.',
-                reportsCount: 2,
-                author: 'trader_joe',
-                date: '1 day ago',
-                status: 'pending' // < 5 reports but visible
-            }
-        ];
-
-        this.feedbackItems = [
-            {
-                id: 1,
-                type: 'product_review',
-                bookTitle: 'The Great Gatsby',
-                rating: 2,
-                content: 'The packaging was terrible, book arrived with bent corners.',
-                author: 'Alice Smith',
-                date: 'Yesterday',
-                isReplied: false
-            },
-            {
-                id: 2,
-                type: 'community_review',
-                bookTitle: 'Atomic Habits',
-                rating: 5,
-                content: 'Life-changing book! Highly recommend to everyone.',
-                author: 'Bob Johnson',
-                date: '2 days ago',
-                isReplied: true,
-                replyContent: 'Thank you for your kind words!'
-            }
-        ];
-
-        this.returnClaims = [
-            {
-                id: 1,
-                orderId: 'ORD-8715',
-                buyer: 'Charlie Brown',
-                reason: 'Received wrong book',
-                description: 'I ordered a chemistry textbook but received a history one instead. See video of unboxing.',
-                media: [
-                    { type: 'video', url: '/samples/dummy_video.mp4' },
-                    { type: 'image', url: 'https://placehold.co/400x300?text=Wrong+Book' }
-                ],
-                date: 'Today',
-                status: 'pending'
-            }
-        ];
+        this.moderationItems = [];
+        this.feedbackItems = [];
+        this.returnClaims = [];
     }
 
     getModerationItems() {
@@ -89,5 +15,112 @@ class ContentReportsModel {
 
     getReturnClaims() {
         return this.returnClaims;
+    }
+
+    async loadAll() {
+        await Promise.all([
+            this.loadModerationItems(),
+            this.loadFeedbackItems(),
+            this.loadReturnClaims()
+        ]);
+    }
+
+    async loadModerationItems() {
+        try {
+            const data = await window.apiClient.apiGet('/api/moderation/Report');
+            if (Array.isArray(data)) {
+                this.moderationItems = data.map(r => ({
+                    id: r.reportID,
+                    postId: r.postID,
+                    type: 'thread',
+                    title: r.post?.title || `Report #${r.reportID}`,
+                    content: r.post?.content || `No content available`,
+                    reportsCount: r.post?.reportCount || 1,
+                    author: r.post?.authorUsername || "Unknown",
+                    date: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A',
+                    status: r.isAccurate === null ? 'pending' : (r.isAccurate ? 'resolved' : 'dismissed'),
+                    isHidden: r.post?.isHidden || false,
+                    reasonText: r.reasonText || 'Spam',
+                    description: r.description || '',
+                    reporter: r.reporterUsername || 'Unknown'
+                }));
+            }
+        } catch (error) {
+            console.error('Error loading moderation items:', error);
+            this.moderationItems = [];
+        }
+    }
+
+    async loadFeedbackItems() {
+        try {
+            const data = await window.apiClient.apiGet('/api/Review');
+            if (Array.isArray(data)) {
+                this.feedbackItems = data.map(rev => {
+                    const localReply = localStorage.getItem(`review_reply_${rev.reviewID}`);
+                    return {
+                        id: rev.reviewID,
+                        type: rev.blindBookID ? 'community_review' : 'product_review',
+                        bookTitle: rev.blindBookID ? `Mystery Book #${rev.blindBookID}` : `Book #${rev.bookID}`,
+                        rating: rev.rating,
+                        content: rev.content,
+                        author: rev.customerName || 'Anonymous',
+                        date: rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : 'N/A',
+                        isReplied: !!localReply,
+                        replyContent: localReply || ''
+                    };
+                });
+            }
+        } catch (error) {
+            console.error('Error loading feedback items:', error);
+            this.feedbackItems = [];
+        }
+    }
+
+    async loadReturnClaims() {
+        try {
+            const data = await window.apiClient.apiGet('/api/Return/staff');
+            if (Array.isArray(data)) {
+                this.returnClaims = data.filter(r => r.returnStatus === 0).map(ret => ({
+                    id: ret.returnRequestID,
+                    orderId: `ORD-${ret.orderID}`,
+                    buyer: ret.customerName || 'Customer',
+                    reason: ret.returnReason || 'No reason provided',
+                    description: `Quantity: ${ret.returnQuantity}. Reason: ${ret.returnReason}`,
+                    unboxVideoPath: ret.unboxVideoPath,
+                    date: ret.requestDate ? new Date(ret.requestDate).toLocaleDateString() : 'N/A',
+                    status: 'pending'
+                }));
+            }
+        } catch (error) {
+            console.error('Error loading return claims:', error);
+            this.returnClaims = [];
+        }
+    }
+
+    async keepReport(reportId) {
+        return await window.apiClient.apiPost(`/api/moderation/Report/${reportId}/process?isAccurate=false`);
+    }
+
+    async hidePost(reportId, postId, customDeduction = 10) {
+        await window.apiClient.apiPost(`/api/moderation/Report/${reportId}/process?isAccurate=true&customDeduction=${customDeduction}`);
+        return await window.apiClient.apiPost(`/api/Thread/${postId}/hide?isHidden=true`);
+    }
+
+    async deletePost(reportId, postId, customDeduction = 10) {
+        await window.apiClient.apiPost(`/api/moderation/Report/${reportId}/process?isAccurate=true&customDeduction=${customDeduction}`);
+        return await window.apiClient.apiDelete(`/api/Thread/${postId}`);
+    }
+
+    async replyFeedback(reviewId, replyText) {
+        localStorage.setItem(`review_reply_${reviewId}`, replyText);
+        return { success: true };
+    }
+
+    async reviewReturnClaim(requestId, isApproved, rejectReason = '') {
+        const payload = {
+            isApproved: isApproved,
+            rejectReason: rejectReason
+        };
+        return await window.apiClient.apiPost(`/api/Return/staff/${requestId}/review`, payload);
     }
 }

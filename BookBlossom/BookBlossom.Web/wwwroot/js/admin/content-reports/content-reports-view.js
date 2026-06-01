@@ -109,49 +109,86 @@ class ContentReportsView {
         if(!this.moderationContainer) return;
         this.moderationContainer.innerHTML = '';
         
+        if (items.length === 0) {
+            this.moderationContainer.innerHTML = `
+                <div class="report-card" style="text-align: center; padding: 40px; color: #6B7280;">
+                    <i class="ph ph-shield-check" style="font-size: 3rem; margin-bottom: 12px; color: #10B981;"></i>
+                    <p style="margin: 0; font-size: 1.1rem; font-weight: 600;">No reported content pending review!</p>
+                    <p style="margin: 4px 0 0 0; font-size: 0.9rem;">The community is clean and safe.</p>
+                </div>
+            `;
+            return;
+        }
+
         items.forEach(item => {
             const isHighRisk = item.reportsCount >= 5;
+            const isPending = item.status === 'pending';
             
-            let bookLinkHtml = '';
-            if (item.bookLink) {
-                bookLinkHtml = `
-                    <div class="report-book-link">
-                        <img src="${item.bookLink.image}" alt="Book Cover" />
-                        <div class="report-book-link-info">
-                            <h5>${item.bookLink.title}</h5>
-                            <p>${item.bookLink.author}</p>
-                        </div>
-                        <button class="btn-action btn-view-book" data-action="view-book" data-id="${item.id}" style="margin-left: auto; border: 1px solid #D1D5DB; background: white;"><i class="ph ph-arrow-square-out"></i> View Book</button>
-                    </div>
-                `;
-            }
-
             const card = document.createElement('div');
             card.className = 'report-card';
+            if (item.isHidden) {
+                card.style.borderLeft = '5px solid #F59E0B';
+                card.style.backgroundColor = '#FFFBEB';
+            } else if (item.status === 'resolved') {
+                card.style.borderLeft = '5px solid #10B981';
+                card.style.opacity = '0.85';
+            } else if (item.status === 'dismissed') {
+                card.style.borderLeft = '5px solid #9CA3AF';
+                card.style.opacity = '0.75';
+            }
+
+            let statusBadge = '';
+            if (item.isHidden) {
+                statusBadge = `<span class="report-type" style="background:#FEF3C7; color:#92400E; margin-left: 8px;">HIDDEN</span>`;
+            }
+            if (item.status === 'resolved') {
+                statusBadge += `<span class="report-type" style="background:#D1FAE5; color:#065F46; margin-left: 8px;">RESOLVED</span>`;
+            } else if (item.status === 'dismissed') {
+                statusBadge += `<span class="report-type" style="background:#E5E7EB; color:#374151; margin-left: 8px;">DISMISSED</span>`;
+            }
+
             card.innerHTML = `
                 <div class="report-header">
                     <div>
-                        <span class="report-type ${item.type === 'thread' ? 'type-thread' : 'type-review'}">${item.type.toUpperCase()}</span>
-                        <span style="margin-left: 8px; color: #6B7280; font-size: 0.85rem;">by ${item.author} • ${item.date}</span>
+                        <span class="report-type type-thread">THREAD POST</span>
+                        ${statusBadge}
+                        <span style="margin-left: 8px; color: #6B7280; font-size: 0.85rem;">by <strong>${item.author}</strong> • ${item.date}</span>
                     </div>
                     ${isHighRisk ? `<div class="report-stats"><i class="ph-fill ph-warning-circle"></i> ${item.reportsCount} Reports</div>` : `<div class="report-stats" style="color:#F59E0B"><i class="ph-fill ph-info"></i> ${item.reportsCount} Reports</div>`}
                 </div>
                 <div class="report-content">
-                    <h4>${item.title}</h4>
-                    <div class="report-text-container">
+                    <h4 style="font-weight:700; color:#1F2937;">${item.title}</h4>
+                    <div class="report-text-container" style="background:#F9FAFB; padding:12px; border-radius:8px; border: 1px solid #F3F4F6;">
                         <p class="report-text" id="report-text-${item.id}">"${item.content}"</p>
                         <button class="btn-read-more" data-action="toggle-text" data-target="report-text-${item.id}" data-id="${item.id}">Show more</button>
                     </div>
-                    ${bookLinkHtml}
+                    
+                    <div class="report-details" style="margin-top:12px; font-size:0.9rem; border-top:1px dashed #E5E7EB; padding-top:8px;">
+                        <p style="margin: 4px 0;"><i class="ph ph-warning" style="color:#EF4444;"></i> <strong>Violation Type:</strong> <span class="badge-count" style="background:#EF4444; float:none; display:inline-block; font-size:0.75rem; padding:2px 8px; border-radius:4px;">${item.reasonText}</span></p>
+                        <p style="margin: 4px 0; color:#4B5563;"><i class="ph ph-user-focus"></i> <strong>Reported by:</strong> ${item.reporter} - <em>"${item.description || 'No comment provided'}"</em></p>
+                    </div>
                 </div>
-                <div class="report-actions">
+                
+                ${isPending ? `
+                <div class="report-actions" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:16px; border-top:1px solid #E5E7EB; padding-top:12px;">
                     <button class="btn-action btn-keep" data-action="keep" data-id="${item.id}">
-                        <i class="ph ph-check"></i> Keep
+                        <i class="ph ph-check"></i> Ignore Report
                     </button>
+                    ${!item.isHidden ? `
+                    <button class="btn-action btn-hide" data-action="hide" data-id="${item.id}">
+                        <i class="ph ph-eye-slash"></i> Hide Content
+                    </button>
+                    ` : ''}
                     <button class="btn-action btn-delete" data-action="delete" data-id="${item.id}">
-                        <i class="ph ph-trash"></i> Delete
+                        <i class="ph ph-trash"></i> Delete Post
                     </button>
+                    
+                    <div class="penalty-input-group" style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+                        <label for="penalty-${item.id}" style="font-size: 0.85rem; color: #4B5563; font-weight: 500;">Deduct Pts:</label>
+                        <input type="number" id="penalty-${item.id}" value="10" min="0" max="150" class="form-control" style="width:70px; padding:6px; border:1px solid #D1D5DB; border-radius:6px; font-size:0.875rem;" />
+                    </div>
                 </div>
+                ` : ''}
             `;
             this.moderationContainer.appendChild(card);
         });
@@ -217,12 +254,15 @@ class ContentReportsView {
         this.returnsContainer.innerHTML = '';
         
         items.forEach(item => {
-            const mediaHtml = item.media.map(m => {
-                if(m.type === 'video') {
-                    return `<div class="evidence-video-wrapper"><i class="ph-fill ph-play-circle"></i></div>`;
-                }
-                return `<img src="${m.url}" class="evidence-item" alt="Evidence" />`;
-            }).join('');
+            let mediaHtml = '';
+            if (item.unboxVideoPath) {
+                mediaHtml = `
+                    <div class="evidence-video-wrapper" onclick="window.open('${item.unboxVideoPath}', '_blank')" style="cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <i class="ph-fill ph-play-circle" style="color:white; font-size:1.8rem;"></i>
+                        <span style="color:white; font-size:0.75rem; margin-top:4px;">Play Video</span>
+                    </div>
+                `;
+            }
 
             const card = document.createElement('div');
             card.className = 'report-card';
@@ -282,7 +322,12 @@ class ContentReportsView {
                     }
                 }
             } else {
-                handler(action, id);
+                let customPenalty = 10;
+                const penaltyInput = document.getElementById(`penalty-${id}`);
+                if (penaltyInput) {
+                    customPenalty = parseInt(penaltyInput.value) || 0;
+                }
+                handler(action, id, customPenalty);
             }
         });
     }

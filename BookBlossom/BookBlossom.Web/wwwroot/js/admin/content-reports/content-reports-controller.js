@@ -5,13 +5,18 @@ class ContentReportsController {
         this.currentReportFilter = 'all';
     }
 
-    init() {
-        this.renderAll();
+    async init() {
+        await this.loadAndRender();
         
         this.view.bindModerationActions(this.handleModerationAction.bind(this));
         this.view.bindFeedbackActions(this.handleFeedbackAction.bind(this));
         this.view.bindReturnActions(this.handleReturnAction.bind(this));
         this.view.bindReportFilterChange(this.handleReportFilterChange.bind(this));
+    }
+
+    async loadAndRender() {
+        await this.model.loadAll();
+        this.renderAll();
     }
 
     renderAll() {
@@ -29,7 +34,7 @@ class ContentReportsController {
     }
 
     updateBadges() {
-        const modCount = this.model.getModerationItems().length;
+        const modCount = this.model.getModerationItems().filter(m => m.status === 'pending').length;
         const feedCount = this.model.getFeedbackItems().filter(f => !f.isReplied).length;
         const returnCount = this.model.getReturnClaims().length;
 
@@ -47,28 +52,32 @@ class ContentReportsController {
         this.renderAll();
     }
 
-    handleModerationAction(action, idStr) {
+    async handleModerationAction(action, idStr, customPenalty = 10) {
         const id = parseInt(idStr);
         const items = this.model.getModerationItems();
-        const index = items.findIndex(i => i.id === id);
+        const item = items.find(i => i.id === id);
         
-        if (index > -1) {
-            const item = items[index];
-            if (action === 'keep') {
-                showPremiumAlert('Content Kept', 'Content kept. Report dismissed.', 'success');
-                this.model.moderationItems.splice(index, 1);
-            } else if (action === 'delete') {
-                showPremiumAlert('Content Deleted', 'Content deleted. Standard penalty points applied to author.', 'success');
-                this.model.moderationItems.splice(index, 1);
-            } else if (action === 'view-book' && item.bookLink) {
-                window.location.href = `/Admin/Inventory?book=${encodeURIComponent(item.bookLink.title)}#books`;
-                return; // no need to re-render
+        if (item) {
+            try {
+                if (action === 'keep') {
+                    await this.model.keepReport(id);
+                    showPremiumAlert('Report Ignored', 'Violation report dismissed successfully.', 'success');
+                } else if (action === 'hide') {
+                    await this.model.hidePost(id, item.postId, customPenalty);
+                    showPremiumAlert('Content Hidden', `Content has been hidden. Penalized the author -${customPenalty} reputation points.`, 'success');
+                } else if (action === 'delete') {
+                    await this.model.deletePost(id, item.postId, customPenalty);
+                    showPremiumAlert('Content Deleted', `Content deleted permanently from the database. Penalized the author -${customPenalty} reputation points.`, 'success');
+                }
+                await this.loadAndRender();
+            } catch (err) {
+                console.error(err);
+                showPremiumAlert('Action Failed', err.message || 'Failed to process moderation action.', 'danger');
             }
-            this.renderAll();
         }
     }
 
-    handleFeedbackAction(action, idStr, replyText = '') {
+    async handleFeedbackAction(action, idStr, replyText = '') {
         const id = parseInt(idStr);
         const items = this.model.getFeedbackItems();
         const item = items.find(i => i.id === id);
@@ -79,8 +88,7 @@ class ContentReportsController {
                     showPremiumAlert('Empty Reply', 'Reply cannot be empty.', 'danger');
                     return;
                 }
-                item.isReplied = true;
-                item.replyContent = replyText;
+                await this.model.replyFeedback(id, replyText);
                 showPremiumAlert('Reply Submitted', 'Reply submitted successfully.', 'success');
                 this.renderAll();
             } else if (action === 'transfer') {
@@ -92,67 +100,33 @@ class ContentReportsController {
                     ModeratorNote: "Transferred from Content Reports."
                 };
  
-                fetch('/Admin/TransferComplaint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).then(res => res.json()).then(data => {
-                    if (data.success) {
-                        showPremiumAlert('Complaint Transferred', 'Review information and stars transferred to Admin/Orders Complaints tab successfully.', 'success');
-                        const index = items.findIndex(i => i.id === id);
-                        if (index > -1) {
-                            this.model.feedbackItems.splice(index, 1);
-                            this.renderAll();
-                        }
-                    } else {
-                        showPremiumAlert('Transfer Failed', 'Failed to transfer complaint.', 'danger');
-                    }
-                }).catch(err => {
-                    console.error('Error:', err);
-                    showPremiumAlert('Error', 'Error transferring complaint.', 'danger');
-                });
+                try {
+                    await window.apiClient.apiPost('/Admin/TransferComplaint', payload);
+                    showPremiumAlert('Complaint Transferred', 'Review information and stars transferred successfully.', 'success');
+                    await this.loadAndRender();
+                } catch (err) {
+                    console.error(err);
+                    showPremiumAlert('Transfer Failed', err.message || 'Failed to transfer complaint.', 'danger');
+                }
             }
         }
     }
 
-    handleReturnAction(action, idStr) {
+    async handleReturnAction(action, idStr) {
         const id = parseInt(idStr);
-        const items = this.model.getReturnClaims();
-        const index = items.findIndex(i => i.id === id);
-        
-        if (index > -1) {
-            const item = items[index];
+        try {
             if (action === 'accept-return') {
-                const payload = {
-                    OrderId: item.orderId,
-                    BookTitle: "Unknown Title", // Dummy since we don't store it in mock data precisely
-                    Quantity: 1,
-                    RefundAmount: 150000, // Dummy
-                    ReturnReason: item.reason
-                };
-
-                fetch('/Admin/TransferReturn', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).then(res => res.json()).then(data => {
-                    if (data.success) {
-                        showPremiumAlert('Refund Approved', 'Refund Accepted. Order moved to Returns tab in Admin/Orders.', 'success');
-                        this.model.returnClaims.splice(index, 1);
-                        this.renderAll();
-                    } else {
-                        showPremiumAlert('Process Failed', 'Failed to process return claim.', 'danger');
-                    }
-                }).catch(err => {
-                    console.error('Error:', err);
-                    showPremiumAlert('Error', 'Error processing return claim.', 'danger');
-                });
-
+                await this.model.reviewReturnClaim(id, true);
+                showPremiumAlert('Return Approved', 'Return Request has been approved and refund processed.', 'success');
             } else if (action === 'reject-return') {
-                showPremiumAlert('Claim Rejected', 'Return Claim Rejected.', 'success');
-                this.model.returnClaims.splice(index, 1);
-                this.renderAll();
+                const rejectReason = prompt("Please enter the reason for rejection:") || "Rejected by moderator";
+                await this.model.reviewReturnClaim(id, false, rejectReason);
+                showPremiumAlert('Return Rejected', 'Return Claim has been rejected successfully.', 'success');
             }
+            await this.loadAndRender();
+        } catch (err) {
+            console.error(err);
+            showPremiumAlert('Review Failed', err.message || 'Failed to review return request.', 'danger');
         }
     }
 }
