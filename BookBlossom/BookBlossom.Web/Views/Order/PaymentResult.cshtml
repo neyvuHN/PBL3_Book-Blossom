@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Kết Quả Thanh Toán";
+    var status = ViewBag.Status as string;
+    var message = ViewBag.Message as string;
+    var orderId = ViewBag.OrderId;
+}
+
+<div class="container mt-5 pt-5 text-center" style="min-height: 60vh;">
+    @if (status == "success")
+    {
+        <div class="card shadow border-0 mx-auto" style="max-width: 500px; border-radius: 12px; background: #f8fafc;">
+            <div class="card-body p-5">
+                <i class="fas fa-check-circle text-success" style="font-size: 80px; color: #38a169;"></i>
+                <h3 class="mt-4 mb-3 fw-bold" style="color: #2d3748;">Thanh Toán Thành Công!</h3>
+                <p class="text-muted mb-4">Đơn hàng <strong>#@orderId</strong> của bạn đã được thanh toán và đang chờ xử lý.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/" class="btn btn-outline-primary" style="border-radius: 8px;">Tiếp tục mua sắm</a>
+                    <a href="/Profile?tab=orders" class="btn btn-primary" style="background-color: #C2185B; border: none; border-radius: 8px;">Xem đơn hàng</a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow border-0 mx-auto" style="max-width: 500px; border-radius: 12px; background: #f8fafc;">
+            <div class="card-body p-5">
+                <i class="fas fa-times-circle text-danger" style="font-size: 80px; color: #e53e3e;"></i>
+                <h3 class="mt-4 mb-3 fw-bold" style="color: #2d3748;">Thanh Toán Thất Bại</h3>
+                <p class="text-muted mb-2">Rất tiếc, giao dịch cho đơn hàng <strong>#@orderId</strong> không thành công.</p>
+                @if (!string.IsNullOrEmpty(message))
+                {
+                    <p class="text-danger small mb-4">Lỗi: @message</p>
+                }
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a href="/" class="btn btn-outline-primary" style="border-radius: 8px;">Về trang chủ</a>
+                    <a href="/Profile?tab=orders" class="btn btn-primary" style="background-color: #C2185B; border: none; border-radius: 8px;">Kiểm tra đơn hàng</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

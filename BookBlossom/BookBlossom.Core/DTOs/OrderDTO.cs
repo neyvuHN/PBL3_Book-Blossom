@@ -14,8 +14,8 @@ namespace BookBlossom.Core.DTOs
         public PaymentMethod PaymentMethod { get; set; }
         public byte PaymentStatus { get; set; }
         public decimal TotalAmount { get; set; }
-        public string ShipReceiverName { get; set; } = string.Empty;
-        public string ShipPhoneNumber { get; set; } = string.Empty;
+        public string? ShipReceiverName { get; set; } = string.Empty;
+        public string? ShipPhoneNumber { get; set; } = string.Empty;
         public string? Note { get; set; }
     }
 
@@ -36,9 +36,9 @@ namespace BookBlossom.Core.DTOs
         public decimal ShippingFee { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal TotalAmount { get; set; }
-        public string ShipReceiverName { get; set; } = string.Empty;
-        public string ShipPhoneNumber { get; set; } = string.Empty;
-        public string ShipDetailAddress { get; set; } = string.Empty;
+        public string? ShipReceiverName { get; set; } = string.Empty;
+        public string? ShipPhoneNumber { get; set; } = string.Empty;
+        public string? ShipDetailAddress { get; set; } = string.Empty;
         public string? Note { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
     }

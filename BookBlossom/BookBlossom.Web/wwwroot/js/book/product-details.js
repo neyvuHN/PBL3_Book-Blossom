@@ -977,7 +977,13 @@
                 subtotal: subtotalVnd,
                 shippingFee: voucherResult.shippingFeeVnd,
                 discount: voucherResult.discountVnd,
-                orderNote: ''
+                orderNote: '',
+                buyNowItem: {
+                    bookID: $('#btn-detail-add-cart').data('book-id'), // Can be undefined for mock
+                    blindBookID: null,
+                    qty: qty,
+                    isBlind: false
+                }
             };
 
             renderCheckoutVoucherBadges(voucherResult.appliedVoucherLines);

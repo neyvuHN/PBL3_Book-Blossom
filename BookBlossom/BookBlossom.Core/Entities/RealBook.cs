@@ -12,7 +12,7 @@ public class RealBook
    public string Publisher {get; set; }
    public string ISBN {get; set; }
    public int PublishYear {get; set;}
-   public string Description {get; set; }
+   public string? Description {get; set; }
    public decimal Price {get; set; }
    public string? SampleFilePath {get; set; }
    public decimal Weight {get; set; }

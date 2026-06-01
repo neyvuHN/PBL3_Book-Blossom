@@ -96,6 +96,9 @@ builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 // Đăng ký IAuditService
 builder.Services.AddScoped<IAuditService, AuditService>();
 
+// Đăng ký IVnPayService
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

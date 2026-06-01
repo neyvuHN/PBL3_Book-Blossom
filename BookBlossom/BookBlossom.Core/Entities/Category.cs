@@ -8,7 +8,7 @@ public class Category
 {
     public long CategoryID { get; set; } 
     public string CategoryName{ get; set; } = string.Empty;
-    public string Description{get; set; } = string.Empty;
+    public string? Description{get; set; }
     public CategoryStatus Status {get; set; }
     public ICollection<CustomerPreference> CustomerPreferences {get; set;} = new List<CustomerPreference>();
     public ICollection<RealBook> RealBooks {get; set; } = new List<RealBook>();

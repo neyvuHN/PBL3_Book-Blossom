@@ -239,7 +239,7 @@ namespace BookBlossom.Infrastructure.Services
                     TotalAmount = order.TotalAmount,
                     OrderStatus = order.OrderStatus,
                     OrderDate = order.OrderDate ?? DateTime.UtcNow,
-                    PaymentUrl = order.PaymentMethod != PaymentMethod.COD ? $"https://vnpay.vn/mock-payment-gateway?orderId={order.OrderID}" : null
+                    PaymentUrl = null // URL thanh toán sẽ được tạo qua PaymentController
                 };
             }
             catch (Exception)
