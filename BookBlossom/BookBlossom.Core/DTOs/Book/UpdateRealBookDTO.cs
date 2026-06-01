@@ -34,5 +34,7 @@ namespace BookBlossom.Core.DTOs.Book
         public int UnitsInStock { get; set; }
 
         public IFormFile? SampleFile { get; set; }
+
+        public List<IFormFile>? BookImages { get; set; }
     }
 }

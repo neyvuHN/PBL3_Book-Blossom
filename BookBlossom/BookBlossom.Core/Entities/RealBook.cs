@@ -14,7 +14,7 @@ public class RealBook
    public int PublishYear {get; set;}
    public string Description {get; set; }
    public decimal Price {get; set; }
-   public string SampleFilePath {get; set; }
+   public string? SampleFilePath {get; set; }
    public decimal Weight {get; set; }
    public int UnitsInStock {get; set; }
    public int ReservedQuantity {get; set; } 
