@@ -5,7 +5,10 @@ using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.DTOs.Book;
 using BookBlossom.DTOs.BlindBook;
+using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace BookBlossom.Web.Controllers
 {
@@ -20,7 +23,6 @@ namespace BookBlossom.Web.Controllers
             _service = service;
         }
 
-        // API 1: Lấy danh sách (Phân trang + Tìm kiếm công khai / Nội bộ)
         // API 1: Lấy danh sách (Chỉ Tìm kiếm + Lọc theo Quyền hạn, KHÔNG PHÂN TRANG)
         [HttpGet]
         public async Task<IActionResult> GetAll(
@@ -35,7 +37,7 @@ namespace BookBlossom.Web.Controllers
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query = query.Where(b => b.Keywords.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
-                                        b.Quotes.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                                         b.Quotes.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
             }
 
             // 2. Bộ lọc tìm kiếm theo thể loại
@@ -55,7 +57,7 @@ namespace BookBlossom.Web.Controllers
                     query = query.Where(b => b.BlindBookRequestStatus == BlindBookRequestStatus.Pending);
                 }
 
-                // Không dùng Skip/Take nữa, lấy tuốt tuột danh sách đã lọc chuyển thành List
+                var idsWithOrders = await _service.GetBlindBookIdsWithOrdersAsync();
                 var staffData = query.ToList(); 
                 var staffResult = staffData.Select(b => new BlindBookAdminDTO
                 {
@@ -71,7 +73,9 @@ namespace BookBlossom.Web.Controllers
                     StockQuantity = b.StockQuantity,
                     Barcode = b.Barcode,
                     RejectReason = b.RejectReason,
-                    Status = b.BlindBookRequestStatus 
+                    Status = b.BlindBookRequestStatus,
+                    IsLocked = b.IsLocked,
+                    HasOrders = idsWithOrders.Contains(b.BlindBookID)
                 });
 
                 return Ok(staffResult);
@@ -80,7 +84,6 @@ namespace BookBlossom.Web.Controllers
             // Trả về dữ liệu bảo mật công khai cho Khách hàng (Buyer công khai)
             query = query.Where(b => b.BlindBookRequestStatus == BlindBookRequestStatus.Approved && !b.IsLocked);
             
-            // Không dùng Skip/Take nữa, lấy toàn bộ danh sách thỏa mãn
             var clientData = query.ToList(); 
             var clientResult = clientData.Select(b => new BlindBookClientDTO
             {
@@ -202,6 +205,60 @@ namespace BookBlossom.Web.Controllers
                 
                 if (!isSuccess) return BadRequest(new { message = "Duyệt bổ sung hàng thất bại." });
                 return Ok(new { message = "Đã duyệt và cập nhật tăng số lượng tồn kho Sách Mù thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // API 7: Store Manager từ chối yêu cầu
+        [HttpPut("reject/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Reject(long id, [FromQuery] string reason)
+        {
+            try
+            {
+                string storeManagerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "System";
+                bool isSuccess = await _service.RejectBlindBookRequestAsync(id, reason, storeManagerId);
+                
+                if (!isSuccess) return BadRequest(new { message = "Từ chối yêu cầu thất bại hoặc gói không tồn tại." });
+                return Ok(new { message = "Từ chối yêu cầu thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // API 8: Admin chuyển đổi trạng thái Khóa
+        [HttpPut("toggle-lock/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToggleLock(long id)
+        {
+            try
+            {
+                bool isSuccess = await _service.ToggleLockStatusAsync(id);
+                if (!isSuccess) return BadRequest(new { message = "Thay đổi trạng thái khóa thất bại hoặc gói không tồn tại." });
+                return Ok(new { message = "Thay đổi trạng thái khóa thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // API 9: Sửa thông tin BlindBook
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(long id, [FromBody] UpdateBlindBookDTO dto)
+        {
+            if (dto == null) return BadRequest("Dữ liệu truyền lên trống.");
+            try
+            {
+                bool isSuccess = await _service.UpdateBlindBookAsync(id, dto);
+                if (!isSuccess) return BadRequest(new { message = "Cập nhật thông tin thất bại hoặc gói không tồn tại." });
+                return Ok(new { message = "Cập nhật thông tin Sách Mù thành công!" });
             }
             catch (Exception ex)
             {

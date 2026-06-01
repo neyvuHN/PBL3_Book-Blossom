@@ -1,4 +1,7 @@
 using BookBlossom.Core.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using BookBlossom.DTOs.BlindBook;
 
 namespace BookBlossom.Core.Interfaces
 {
@@ -21,5 +24,8 @@ namespace BookBlossom.Core.Interfaces
 
         // --- Dành cho Admin (Chủ cửa hàng) ---
         Task<bool> ToggleLockStatusAsync(long blindBookId);
+        Task<bool> UpdateBlindBookAsync(long id, UpdateBlindBookDTO dto);
+        Task<bool> HasOrdersAsync(long blindBookId);
+        Task<HashSet<long>> GetBlindBookIdsWithOrdersAsync();
     }
 }

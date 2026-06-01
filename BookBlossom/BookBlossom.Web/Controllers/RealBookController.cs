@@ -86,9 +86,26 @@ namespace BookBlossom.API.Controllers
         public async Task<IActionResult> GetAll(
             [FromQuery] string searchTerm = "", 
             [FromQuery] string category = "", 
-            [FromQuery] SortOrder sortOrder = SortOrder.Ascending)
+            [FromQuery] SortOrder sortOrder = SortOrder.Ascending,
+            [FromQuery] bool includeDiscontinued = false)
         {
-            var books = await _realBookService.GetAllRealBooksAsync(searchTerm, category, sortOrder);
+            bool finalIncludeDiscontinued = includeDiscontinued;
+            if (includeDiscontinued)
+            {
+                // Chỉ cho phép admin xem các sách đã ngừng kinh doanh
+                var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                var statusClaim = User.FindFirst("AccountStatus")?.Value;
+                
+                bool isAdmin = roleClaim == "Admin" || roleClaim == ((int)UserRole.Admin).ToString();
+                bool isActive = statusClaim == "Active" || statusClaim == "1" || statusClaim == ((int)AccountStatus.Active).ToString();
+                
+                if (!isAdmin || !isActive)
+                {
+                    finalIncludeDiscontinued = false;
+                }
+            }
+
+            var books = await _realBookService.GetAllRealBooksAsync(searchTerm, category, sortOrder, finalIncludeDiscontinued);
             return Ok(books);
         }
 

@@ -8,5 +8,6 @@ namespace BookBlossom.Core.DTOs.Category
         public string CategoryName { get; set; } = string.Empty;
         public string? Description { get; set; }
         public CategoryStatus Status { get; set; }
+        public int BookCount { get; set; }
     }
 }

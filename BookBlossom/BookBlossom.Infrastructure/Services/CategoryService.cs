@@ -35,7 +35,8 @@ namespace BookBlossom.Infrastructure.Services
                     CategoryID = c.CategoryID,
                     CategoryName = c.CategoryName,
                     Description = c.Description,
-                    Status = c.Status
+                    Status = c.Status,
+                    BookCount = _context.RealBooks.Count(b => b.CategoryID == c.CategoryID)
                 })
                 .ToListAsync();
         }
@@ -52,7 +53,8 @@ namespace BookBlossom.Infrastructure.Services
                 CategoryID = c.CategoryID,
                 CategoryName = c.CategoryName,
                 Description = c.Description,
-                Status = c.Status
+                Status = c.Status,
+                BookCount = _context.RealBooks.Count(b => b.CategoryID == categoryId)
             };
         }
 

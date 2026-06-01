@@ -53,10 +53,10 @@ namespace BookBlossom.Infrastructure.Services
             {
                 CategoryID = request.CategoryID,
                 Title = request.Title,
-                Publisher = request.Publisher,
+                Publisher = request.Publisher ?? string.Empty,
                 ISBN = request.ISBN,
                 PublishYear = request.PublishYear,
-                Description = request.Description,
+                Description = request.Description ?? string.Empty,
                 Price = request.Price,
                 SampleFilePath = storedPath,
                 Weight = request.Weight,
@@ -70,6 +70,23 @@ namespace BookBlossom.Infrastructure.Services
 
             if (success)
             {
+                // Save cover image if uploaded
+                if (request.BookImages != null && request.BookImages.Any())
+                {
+                    var file = request.BookImages.First();
+                    if (file.Length > 0)
+                    {
+                        var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "Book");
+                        if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
+
+                        var filePath = Path.Combine(bookImagesFolder, $"cover_{realBook.BookID}.jpg");
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                    }
+                }
+
                 try
                 {
                     // Fetch category name
@@ -86,10 +103,14 @@ namespace BookBlossom.Infrastructure.Services
         }
 
         // 2. HÀM LẤY DANH SÁCH + TÌM KIẾM + PHÂN LOẠI + SẮP XẾP (GET ALL)
-        public async Task<List<RealBookDTO>> GetAllRealBooksAsync(string searchTerm = "", string category = "", SortOrder sortOrder = SortOrder.Ascending)
+        public async Task<List<RealBookDTO>> GetAllRealBooksAsync(string searchTerm = "", string category = "", SortOrder sortOrder = SortOrder.Ascending, bool includeDiscontinued = false)
         {
-            // Chỉ lấy những sách có trạng thái kinh doanh hợp lệ (IsContinued = true)
-            var query = _context.RealBooks.Include(b => b.Category).Where(b => b.IsContinued).AsQueryable();
+            // Lấy danh sách sách, tùy chọn bao gồm cả sách ngừng kinh doanh
+            var query = _context.RealBooks.Include(b => b.Category).AsQueryable();
+            if (!includeDiscontinued)
+            {
+                query = query.Where(b => b.IsContinued);
+            }
 
             // Tìm kiếm theo Tên sách hoặc mã ISBN
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -137,7 +158,7 @@ namespace BookBlossom.Infrastructure.Services
         public async Task<bool> UpdateRealBookAsync(long id, UpdateRealBookDTO request)
         {
             var book = await _context.RealBooks.FindAsync(id);
-            if (book == null || !book.IsContinued) throw new Exception("Không tìm thấy cuốn sách cần cập nhật.");
+            if (book == null) throw new Exception("Không tìm thấy cuốn sách cần cập nhật.");
 
             // Kiểm tra chống trùng mã ISBN với các cuốn sách KHÁC cuốn đang sửa
             if (await _context.RealBooks.AnyAsync(b => b.ISBN == request.ISBN && b.BookID != id))
@@ -159,15 +180,33 @@ namespace BookBlossom.Infrastructure.Services
 
             book.CategoryID = request.CategoryID;
             book.Title = request.Title;
-            book.Publisher = request.Publisher;
+            book.Publisher = request.Publisher ?? string.Empty;
             book.ISBN = request.ISBN;
             book.PublishYear = request.PublishYear;
-            book.Description = request.Description;
+            book.Description = request.Description ?? string.Empty;
             book.Price = request.Price;
             book.Weight = request.Weight;
             book.UnitsInStock = request.UnitsInStock;
 
-            return await _context.SaveChangesAsync() > 0;
+            // Xử lý lưu ảnh bìa mới nếu có tải lên
+            if (request.BookImages != null && request.BookImages.Any())
+            {
+                var file = request.BookImages.First();
+                if (file.Length > 0)
+                {
+                    var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "Book");
+                    if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
+
+                    var filePath = Path.Combine(bookImagesFolder, $"cover_{id}.jpg");
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         // 6. HÀM XÓA MỀM (DELETE)
@@ -176,8 +215,8 @@ namespace BookBlossom.Infrastructure.Services
             var book = await _context.RealBooks.FindAsync(id);
             if (book == null) return false;
 
-            // Xóa mềm: Chuyển cờ IsContinued về false thay vì xóa hẳn bản ghi khỏi database
-            book.IsContinued = false;
+            // Đảo trạng thái kinh doanh thay vì luôn gán false (Toggle IsContinued)
+            book.IsContinued = !book.IsContinued;
             return await _context.SaveChangesAsync() > 0;
         }
 

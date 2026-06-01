@@ -321,3 +321,26 @@
 .search-box-wrapper .form-control:focus+.bi-search {
     color: #E3597D;
 }
+
+/* Compact Actions Buttons with Phosphor Icons */
+.btn-action-sm {
+    padding: 0 !important;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    width: 30px;
+    transition: all 0.2s ease;
+}
+
+.btn-action-sm i {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.btn-action-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}

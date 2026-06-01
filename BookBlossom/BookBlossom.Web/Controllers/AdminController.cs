@@ -201,71 +201,9 @@ namespace BookBlossom.Web.Controllers
         {
             var model = new ViewModels.Admin.OrderManagementViewModel
             {
-                Orders = new List<ViewModels.Admin.AdminOrderItemViewModel>
-                {
-                    new()
-                    {
-                        Id = "ORD-8821",
-                        BookTitle = "The Secret Life of Sunflowers",
-                        Quantity = 1,
-                        Isbn = "978-1400065393",
-                        ImagePreviewUrl = "/images/Book/book1.jpg",
-                        BuyerName = "Sarah Jones",
-                        BuyerAvatarUrl = "https://i.pravatar.cc/150?img=47",
-                        CustomerNote = "Note: Please pack carefully!",
-                        TotalAmount = 250000,
-                        FundsStatus = "Held in Escrow",
-                        Status = "Pending Confirmation",
-                        SubStatus = "",
-                        CreatedAt = "2 hours ago",
-                        RemainingTimeText = "46h 12m",
-                        RemainingHours = 46.2,
-                        IsBlindDate = false
-                    },
-                    new()
-                    {
-                        Id = "ORD-8822",
-                        BookTitle = "Mystery Book",
-                        Quantity = 1,
-                        Isbn = "Blind Date Book",
-                        ImagePreviewUrl = "/images/BlindDateBook/BlindBook.jpg",
-                        BuyerName = "Mike Smith",
-                        BuyerAvatarUrl = "https://i.pravatar.cc/150?img=53",
-                        CustomerNote = "",
-                        TotalAmount = 120000,
-                        FundsStatus = "Held in Escrow",
-                        Status = "To Ship",
-                        SubStatus = "Packing",
-                        CreatedAt = "4 hours ago",
-                        RemainingTimeText = "",
-                        RemainingHours = 0,
-                        IsBlindDate = true,
-                        BlindDateHiddenTitle = "The Silent Patient (hidden from buyer)",
-                        BlindDateNote = "This is a Blind Date order. DO NOT write the title on the external packaging!",
-                        Genre = "#Romance #Cozy"
-                    },
-                    new()
-                    {
-                        Id = "ORD-8823",
-                        BookTitle = "Harry Potter",
-                        Quantity = 1,
-                        Isbn = "978-0439708180",
-                        ImagePreviewUrl = "/images/Book/book2.webp",
-                        BuyerName = "Emily Chen",
-                        BuyerAvatarUrl = "https://i.pravatar.cc/150?img=32",
-                        CustomerNote = "",
-                        TotalAmount = 85000,
-                        FundsStatus = "Held in Escrow",
-                        Status = "In Transit",
-                        SubStatus = "In Transit",
-                        CreatedAt = "1 day ago",
-                        RemainingTimeText = "",
-                        RemainingHours = 0,
-                        IsBlindDate = false
-                    }
-                },
-                ReturnedItems = _returnedItems,
-                Complaints = _complaints
+                Orders = new List<ViewModels.Admin.AdminOrderItemViewModel>(),
+                ReturnedItems = new List<ViewModels.Admin.AdminReturnedItemViewModel>(),
+                Complaints = new List<ViewModels.Admin.AdminEscalatedComplaintViewModel>()
             };
 
             return View(model);

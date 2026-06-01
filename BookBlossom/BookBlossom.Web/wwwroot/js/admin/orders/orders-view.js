@@ -1,6 +1,7 @@
 /**
  * Frontend MVC - View
  * Manages the DOM, dynamic rendering, active status toggles, track bars, and modals.
+ * Configured for real backend data binding.
  */
 class OrdersView {
     constructor() {
@@ -74,8 +75,6 @@ class OrdersView {
         this.chatSidebarName = document.getElementById('chatSidebarName');
         this.chatSidebarOrders = document.getElementById('chatSidebarOrders');
         this.chatMessagesArea = document.getElementById('chatMessagesArea');
-        
-        // Chats Tab Selectors - REMOVED
         
         // Gallery Modal
         this.galleryModal = document.getElementById('galleryModal');
@@ -204,7 +203,7 @@ class OrdersView {
             // Confirm warning deadline text
             const kpiWarningHtml = order.remainingHours > 0 
                 ? `<div class="kpi-warning-tag" title="Confirm within 48h limit to avoid KPI penalty">
-                     <i class="ph ph-alarm-glow animate-pulse"></i> Confirm within 48h (Left: ${order.remainingTimeText})
+                     <i class="ph ph-alarm animate-pulse"></i> Confirm within 48h (Left: ${order.remainingTimeText})
                    </div>`
                 : `<div class="kpi-warning-tag" style="background-color: rgba(235, 87, 87, 0.15);" title="KPI SLA breached!">
                      <i class="ph ph-warning-circle"></i> SLA Expired (KPI Penalized)
@@ -224,7 +223,7 @@ class OrdersView {
                 </div>
                 <div class="footer-buttons">
                     <button class="btn-outline-action btn-print-label" data-id="${order.id}">
-                        <i class="ph ph-printer"></i> Print Label
+                        <i class="ph ph-printer"></i> Print Invoice PDF
                     </button>
                     <button class="btn-primary-action toship btn-start-shipping" data-id="${order.id}">
                         Start Shipping
@@ -310,11 +309,11 @@ class OrdersView {
                             <span class="genre-tag">#BlindDate</span>
                             ${order.genre.split(' ').map(g => `<span class="genre-tag">${g}</span>`).join('')}
                         </div>
-                        <span class="book-title">Mystery Book</span>
+                        <span class="book-title">Mystery Book (${order.bookTitle})</span>
                         <span class="book-qty">Quantity: x${order.quantity}</span>
                         <div class="blind-date-warning">
                             <i class="ph ph-eye-slash"></i> <strong>Blind Date Rules:</strong> DO NOT write the title on the external packaging!
-                            <div class="blind-date-hidden-title">
+                            <div class="blind-date-hidden-title" style="display:block !important;">
                                 🙈 Actual: ${order.blindDateHiddenTitle}
                             </div>
                         </div>
@@ -408,6 +407,22 @@ class OrdersView {
     }
 
     /**
+     * Open Video Player Modal for unbox video proof verification.
+     */
+    openVideoModal(videoUrl) {
+        if (!this.galleryModal) return;
+        this.galleryPreviewImage.style.display = 'none';
+        this.galleryPreviewVideo.style.display = 'block';
+        
+        this.galleryPreviewVideo.innerHTML = `
+            <video src="${videoUrl}" controls autoplay style="width:100%; border-radius:8px; outline:none; max-height:60vh;"></video>
+        `;
+        
+        this.galleryCaption.textContent = "Unboxing Proof Evidence Video";
+        this.galleryModal.style.display = 'flex';
+    }
+
+    /**
      * Renders logistics returned/refunded items inside returned tab table body.
      */
     renderReturns(returnedItems) {
@@ -431,14 +446,22 @@ class OrdersView {
         const tableRowsHtml = returnedItems.map(item => {
             const isPending = item.restockStatus === 'Pending Restock';
             const actionHtml = isPending 
-                ? `<button class="btn-primary-action btn-restock" data-id="${item.id}" style="padding: 6px 14px; font-size:0.8rem; background-color:#E3597D; box-shadow:none;">
-                     <i class="ph ph-warehouse"></i> Restock Stock
-                   </button>`
-                : `<span style="color:#27AE60; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:4px;">
-                     <i class="ph ph-check-circle"></i> Restocked
+                ? `<div style="display:flex; gap:6px; justify-content:flex-end;">
+                     ${item.unboxVideoPath ? `<button class="btn-outline-action btn-play-video" data-video="${item.unboxVideoPath}" style="padding: 6px 12px; font-size:0.75rem; border-color:#82758D; color:#82758D;">
+                         <i class="ph ph-video-camera"></i> Proof Video
+                     </button>` : ''}
+                     <button class="btn-primary-action btn-approve-return" data-id="${item.id}" style="padding: 6px 12px; font-size:0.75rem; background-color:#27AE60; box-shadow:none;">
+                         <i class="ph ph-check"></i> Approve
+                     </button>
+                     <button class="btn-outline-action btn-reject-return" data-id="${item.id}" style="padding: 6px 12px; font-size:0.75rem; border-color:#EB5757; color:#EB5757;">
+                         <i class="ph ph-x"></i> Reject
+                     </button>
+                   </div>`
+                : `<span style="color:#27AE60; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:4px; justify-content:flex-end;">
+                     <i class="ph ph-check-circle"></i> ${item.restockStatus}
                    </span>`;
             
-            const badgeRestockClass = isPending ? 'pending' : 'completed';
+            const badgeRestockClass = isPending ? 'pending' : (item.restockStatus === 'Restocked' ? 'completed' : 'dispute');
             const formattedRefund = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.refundAmount);
 
             return `
@@ -480,7 +503,7 @@ class OrdersView {
                                 <th>Item Details</th>
                                 <th>Refund Total</th>
                                 <th>Moderator Ruling</th>
-                                <th>Date Escarated</th>
+                                <th>Date Escalated</th>
                                 <th>Stock Status</th>
                                 <th style="text-align:right;">Logistics Action</th>
                             </tr>
@@ -519,18 +542,24 @@ class OrdersView {
             const isPending = c.status === 'Pending Support';
             const actionHtml = isPending 
                 ? `<div style="display:flex; gap:6px; justify-content:flex-end;">
-                     <button class="btn-outline-action btn-contact-buyer" data-email="${c.contactEmail}" data-id="${c.id}" style="padding: 6px 12px; font-size:0.75rem;">
+                     ${c.raw && c.raw.unboxVideoPath ? `<button class="btn-outline-action btn-play-video" data-video="${c.raw.unboxVideoPath}" style="padding: 6px 12px; font-size:0.75rem; border-color:#82758D; color:#82758D;">
+                         <i class="ph ph-video-camera"></i> Proof
+                     </button>` : ''}
+                     <button class="btn-outline-action btn-contact-buyer" data-buyer="${c.buyerName}" style="padding: 6px 12px; font-size:0.75rem;">
                          Contact
                      </button>
                      <button class="btn-primary-action btn-resolve-complaint" data-id="${c.id}" style="padding: 6px 12px; font-size:0.75rem; background-color:#27AE60; box-shadow:none;">
-                         Resolve
+                         Approve
+                     </button>
+                     <button class="btn-outline-action btn-reject-complaint" data-id="${c.id}" style="padding: 6px 12px; font-size:0.75rem; border-color:#EB5757; color:#EB5757;">
+                         Reject
                      </button>
                    </div>`
                 : `<span style="color:#27AE60; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:4px; justify-content:flex-end;">
                      <i class="ph ph-check-circle"></i> Resolved & Closed
                    </span>`;
             
-            const badgeTypeClass = c.type.toLowerCase();
+            const badgeTypeClass = c.type.toLowerCase().replace(' ', '-');
             const badgeStatusClass = isPending ? 'pending' : 'completed';
 
             // Star rating display helper
@@ -605,22 +634,24 @@ class OrdersView {
      * Updates counting badges inside tabs and sets red alert notification dots.
      */
     updateTabBadges(counts) {
-        this.badges.all.textContent = counts.all;
-        this.badges.pending.textContent = counts.pending;
-        this.badges.toship.textContent = counts.toship;
-        this.badges.intransit.textContent = counts.intransit;
-        this.badges.completed.textContent = counts.completed;
-        this.badges.returns.textContent = counts.returns;
-        this.badges.complaints.textContent = counts.complaints;
+        if (this.badges.all) this.badges.all.textContent = counts.all;
+        if (this.badges.pending) this.badges.pending.textContent = counts.pending;
+        if (this.badges.toship) this.badges.toship.textContent = counts.toship;
+        if (this.badges.intransit) this.badges.intransit.textContent = counts.intransit;
+        if (this.badges.completed) this.badges.completed.textContent = counts.completed;
+        if (this.badges.returns) this.badges.returns.textContent = counts.returns;
+        if (this.badges.complaints) this.badges.complaints.textContent = counts.complaints;
 
         // Pending critical warning dot
         if (counts.pending > 0) {
-            this.pendingRedDot.style.display = 'inline-block';
-            this.btnBatchConfirmHeader.style.display = 'inline-flex';
-            this.btnBatchConfirmHeader.innerHTML = `<i class="ph ph-lightning"></i> Auto-Confirm Pending (${counts.pending})`;
+            if (this.pendingRedDot) this.pendingRedDot.style.display = 'inline-block';
+            if (this.btnBatchConfirmHeader) {
+                this.btnBatchConfirmHeader.style.display = 'inline-flex';
+                this.btnBatchConfirmHeader.innerHTML = `<i class="ph ph-lightning"></i> Auto-Confirm Pending (${counts.pending})`;
+            }
         } else {
-            this.pendingRedDot.style.display = 'none';
-            this.btnBatchConfirmHeader.style.display = 'none';
+            if (this.pendingRedDot) this.pendingRedDot.style.display = 'none';
+            if (this.btnBatchConfirmHeader) this.btnBatchConfirmHeader.style.display = 'none';
         }
     }
 
@@ -660,89 +691,15 @@ class OrdersView {
     }
 
     /**
-     * Opens modal panel showing simulated printable label of an order (Invoice & shipping data).
+     * Reveals a downloadable PDF invoice preview.
      */
     openPrintLabelModal(order) {
-        const formattedTotal = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalAmount);
-        
-        let blindDateRowHtml = '';
-        if (order.isBlindDate) {
-            blindDateRowHtml = `
-                <div class="invoice-row" style="color:#EB5757; font-weight:bold;">
-                    <span>[!] BARCODE TYPE:</span>
-                    <span>BLIND DATE ORDER (HIDE TITLE)</span>
-                </div>
-                <div class="invoice-row" style="color:#EB5757; font-style:italic;">
-                    <span>[!] PACKAGING DIRECTIVE:</span>
-                    <span>DO NOT write the book title on external box!</span>
-                </div>
-            `;
-        }
-
-        this.invoicePrintArea.innerHTML = `
-            <div class="invoice-container">
-                <div class="invoice-header">
-                    <div class="invoice-title">🌸 BOOK BLOSSOM CO. 🌸</div>
-                    <div>SHIPPING LABEL & SALES MANIFEST</div>
-                    <div style="font-size:0.75rem; color:#82758D; margin-top:4px;">Invoice ref: INV-${order.id} | Printed: ${new Date().toLocaleDateString()}</div>
-                </div>
-                
-                <div class="invoice-row">
-                    <span><strong>ORDER ID:</strong></span>
-                    <span>#${order.id}</span>
-                </div>
-                <div class="invoice-row">
-                    <span><strong>DATE PLACED:</strong></span>
-                    <span>${order.createdAt}</span>
-                </div>
-                <div class="invoice-row">
-                    <span><strong>BUYER:</strong></span>
-                    <span>${order.buyerName}</span>
-                </div>
-                <div class="invoice-row">
-                    <span><strong>FUNDS STATE:</strong></span>
-                    <span>${order.fundsStatus}</span>
-                </div>
-                
-                <div class="invoice-divider"></div>
-                
-                <div class="invoice-row" style="font-weight:700;">
-                    <span>ITEM DETAILS</span>
-                    <span>QTY</span>
-                </div>
-                <div class="invoice-row">
-                    <span>${order.isBlindDate ? 'Mystery Blind Date Book' : order.bookTitle}</span>
-                    <span>x${order.quantity}</span>
-                </div>
-                <div class="invoice-row" style="font-size: 0.75rem; color:#82758D;">
-                    <span>${order.isBlindDate ? order.genre : 'ISBN: ' + order.isbn}</span>
-                    <span></span>
-                </div>
-                
-                ${blindDateRowHtml}
-
-                <div class="invoice-divider"></div>
-                
-                <div class="invoice-row" style="font-size:1.1rem; font-weight:700;">
-                    <span>TOTAL AMOUNT:</span>
-                    <span>${formattedTotal}</span>
-                </div>
-                
-                <div class="invoice-divider"></div>
-                
-                <div style="text-align:center; font-size:0.75rem; color:#82758D; margin-top:10px;">
-                    <div>|||||||||||||||||||||||||||||||||||||||||||||</div>
-                    <div>*${order.id}*</div>
-                    <div style="margin-top:6px;">Thank you for shopping with Book Blossom!</div>
-                </div>
-            </div>
-        `;
-        
-        this.printInvoiceModal.style.display = 'flex';
+        // PDF handles on a new tab via QuestPDF. Fallback if needed.
+        window.open(`/api/order/store/${order.id}/invoice`, '_blank');
     }
 
     /**
-     * Closes the printable invoice modal.
+     * Closes printable invoice modal.
      */
     closePrintLabelModal() {
         this.printInvoiceModal.style.display = 'none';
@@ -817,9 +774,6 @@ class OrdersView {
 
     /**
      * Triggers a highly aesthetic, premium toast notification that auto-decays in 4 seconds.
-     * @param {string} title Toast headline.
-     * @param {string} desc Toast description text.
-     * @param {string} type Notification type: 'success', 'info', 'warning', 'error'.
      */
     showToast(title, desc, type = 'success') {
         if (!this.toastContainer) return;
@@ -872,11 +826,6 @@ class OrdersView {
 
     /**
      * Opens a gorgeous, glassmorphic modal for visual confirmations.
-     * @param {string} title Confirmation title.
-     * @param {string} message Confirmation warning details.
-     * @param {string} type Alert visual flavor: 'warning', 'info', 'success', 'error'.
-     * @param {function} onYes Success callback trigger.
-     * @param {function} onNo Cancel callback trigger.
      */
     showConfirmDialog(title, message, type = 'warning', onYes = null, onNo = null) {
         if (!this.confirmOverlay) return;
@@ -965,18 +914,5 @@ class OrdersView {
         if (this.chatModal) {
             this.chatModal.style.display = 'none';
         }
-    }
-
-    /**
-     * Updates badge counts on the tab navigation.
-     */
-    updateTabBadges(counts) {
-        if (this.badges.all) this.badges.all.textContent = counts.all;
-        if (this.badges.pending) this.badges.pending.textContent = counts.pending;
-        if (this.badges.toship) this.badges.toship.textContent = counts.toship;
-        if (this.badges.intransit) this.badges.intransit.textContent = counts.intransit;
-        if (this.badges.completed) this.badges.completed.textContent = counts.completed;
-        if (this.badges.returns) this.badges.returns.textContent = counts.returns;
-        if (this.badges.complaints) this.badges.complaints.textContent = counts.complaints;
     }
 }

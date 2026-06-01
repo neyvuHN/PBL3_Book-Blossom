@@ -1,6 +1,7 @@
 /**
  * Frontend MVC - Controller
  * Binds DOM events, coordinates data flow between Model and View, and handles user interactions.
+ * Connects Frontend Actions directly with Live Backend APIs.
  */
 class OrdersController {
     constructor(model, view) {
@@ -11,10 +12,22 @@ class OrdersController {
     /**
      * Entry point: initializes data rendering and binds event handlers.
      */
-    init() {
+    async init() {
         console.log("Orders MVC Controller initialized.");
-        this.renderCurrentView();
+        await this.loadAllData();
         this.bindEvents();
+    }
+
+    /**
+     * Helper to load all dynamic data from database APIs.
+     */
+    async loadAllData() {
+        try {
+            await this.model.fetchAllDataFromApi();
+            this.renderCurrentView();
+        } catch (err) {
+            this.view.showToast("Data Sync Error", err.message || "Failed to load dynamic data from APIs.", "error");
+        }
     }
 
     /**
@@ -111,7 +124,7 @@ class OrdersController {
 
         // --- 4. Dynamic Order List Button Event Delegation ---
         if (this.view.ordersContentArea) {
-            this.view.ordersContentArea.addEventListener('click', (e) => {
+            this.view.ordersContentArea.addEventListener('click', async (e) => {
                 const btnConfirm = e.target.closest('.btn-confirm-order');
                 const btnCancel = e.target.closest('.btn-cancel-order');
                 const btnStartShip = e.target.closest('.btn-start-shipping');
@@ -135,16 +148,20 @@ class OrdersController {
                     return;
                 }
 
-                // B. Confirm Pending Order (Within 48h deadline)
+                // B. Confirm Pending Order
                 if (btnConfirm) {
                     const orderId = btnConfirm.getAttribute('data-id');
-                    if (this.model.confirmOrder(orderId)) {
+                    this.view.showToast('Processing', `Confirming Order #${orderId}...`, 'info');
+                    try {
+                        await this.model.confirmOrder(orderId);
                         this.view.showToast(
                             'Order Confirmed', 
-                            `Order #${orderId} has been successfully approved within the 48h SLA window to preserve shop KPI. Moved to 'To Ship'.`, 
+                            `Order #${orderId} has been successfully approved!`, 
                             'success'
                         );
-                        this.renderCurrentView();
+                        await this.loadAllData();
+                    } catch (err) {
+                        this.view.showToast('Confirmation Failed', err.message, 'error');
                     }
                     return;
                 }
@@ -154,12 +171,16 @@ class OrdersController {
                     const orderId = btnCancel.getAttribute('data-id');
                     this.view.showConfirmDialog(
                         'Cancel Order?',
-                        `Are you sure you want to cancel Order #${orderId}? Escrow funds will be automatically returned to the buyer's balance.`,
+                        `Are you sure you want to cancel Order #${orderId}? Escrow funds will be automatically returned to the buyer.`,
                         'error',
-                        () => {
-                            if (this.model.cancelOrder(orderId)) {
-                                this.view.showToast('Order Cancelled', `Order #${orderId} was successfully cancelled and buyer refunded.`, 'error');
-                                this.renderCurrentView();
+                        async () => {
+                            this.view.showToast('Cancelling', `Cancelling Order #${orderId}...`, 'info');
+                            try {
+                                await this.model.cancelOrder(orderId);
+                                this.view.showToast('Order Cancelled', `Order #${orderId} was successfully cancelled.`, 'error');
+                                await this.loadAllData();
+                            } catch (err) {
+                                this.view.showToast('Cancellation Failed', err.message, 'error');
                             }
                         }
                     );
@@ -169,24 +190,44 @@ class OrdersController {
                 // D. Start Shipping (Packing -> In Transit)
                 if (btnStartShip) {
                     const orderId = btnStartShip.getAttribute('data-id');
-                    if (this.model.startShippingOrder(orderId)) {
+                    this.view.showToast('Shipping', `Starting shipping process for Order #${orderId}...`, 'info');
+                    try {
+                        await this.model.startShippingOrder(orderId);
                         this.view.showToast(
                             'Shipping Initiated', 
-                            `Order #${orderId} handed over to logistics. Courier notified and tracking links activated!`, 
+                            `Order #${orderId} handed over to logistics courier successfully!`, 
                             'info'
                         );
-                        this.renderCurrentView();
+                        await this.loadAllData();
+                    } catch (err) {
+                        this.view.showToast('Shipping Failed', err.message, 'error');
                     }
                     return;
                 }
 
-                // E. Print Shipping Label
+                // E. Print Shipping Label (QuestPDF generation and rendering)
                 if (btnPrintLabel) {
                     const orderId = btnPrintLabel.getAttribute('data-id');
-                    const order = this.model.findOrderById(orderId);
-                    if (order) {
-                        this.view.openPrintLabelModal(order);
-                    }
+                    const token = localStorage.getItem('accessToken');
+                    
+                    this.view.showToast("Generating PDF", "Rendering invoice with QuestPDF on server...", "info");
+                    
+                    const headers = {};
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+                    
+                    fetch(`/api/order/store/${orderId}/invoice`, { headers })
+                        .then(res => {
+                            if (!res.ok) throw new Error("Failed to render invoice PDF.");
+                            return res.blob();
+                        })
+                        .then(blob => {
+                            const blobUrl = URL.createObjectURL(blob);
+                            window.open(blobUrl, '_blank');
+                            this.view.showToast("PDF Ready", "QuestPDF invoice loaded successfully.", "success");
+                        })
+                        .catch(err => {
+                            this.view.showToast("PDF Rendering Error", err.message, "error");
+                        });
                     return;
                 }
 
@@ -195,16 +236,20 @@ class OrdersController {
                     const orderId = btnMarkDelivered.getAttribute('data-id');
                     this.view.showConfirmDialog(
                         'Mark as Delivered?',
-                        `Mark Order #${orderId} as Delivered? This will clear transit states, trigger customer notification, and release escrow funds.`,
+                        `Mark Order #${orderId} as Delivered? This will release escrow funds and finalize payout.`,
                         'success',
-                        () => {
-                            if (this.model.updateMockStatus(orderId, 'Delivered')) {
+                        async () => {
+                            this.view.showToast('Delivering', `Completing delivery for Order #${orderId}...`, 'info');
+                            try {
+                                await this.model.updateOrderStatusInDb(orderId, 'Delivered');
                                 this.view.showToast(
                                     'Order Delivered', 
                                     `Order #${orderId} marked as Delivered. Escrow payout finalized!`, 
                                     'success'
                                 );
-                                this.renderCurrentView();
+                                await this.loadAllData();
+                            } catch (err) {
+                                this.view.showToast('Delivery Completion Failed', err.message, 'error');
                             }
                         }
                     );
@@ -213,7 +258,7 @@ class OrdersController {
             });
 
             // G. Change Event Delegation for In Transit dropdowns
-            this.view.ordersContentArea.addEventListener('change', (e) => {
+            this.view.ordersContentArea.addEventListener('change', async (e) => {
                 const selectLogistic = e.target.closest('.select-logistic-mock');
                 if (selectLogistic) {
                     const orderId = selectLogistic.getAttribute('data-id');
@@ -225,9 +270,14 @@ class OrdersController {
                             'Mark as Delivered?',
                             `Mark Order #${orderId} as Delivered? This will release escrow funds.`,
                             'success',
-                            () => {
-                                if (this.model.updateMockStatus(orderId, 'Delivered')) {
+                            async () => {
+                                this.view.showToast('Delivering', 'Updating status on server...', 'info');
+                                try {
+                                    await this.model.updateOrderStatusInDb(orderId, 'Delivered');
                                     this.view.showToast('Order Delivered', `Order #${orderId} marked as Delivered. Escrow payout finalized!`, 'success');
+                                    await this.loadAllData();
+                                } catch (err) {
+                                    this.view.showToast('Update Failed', err.message, 'error');
                                     this.renderCurrentView();
                                 }
                             },
@@ -236,8 +286,13 @@ class OrdersController {
                             }
                         );
                     } else {
-                        if (this.model.updateMockStatus(orderId, newSub)) {
+                        this.view.showToast('Updating', 'Updating status on server...', 'info');
+                        try {
+                            await this.model.updateOrderStatusInDb(orderId, newSub);
                             this.view.showToast('Status Updated', `Logistics status for Order #${orderId} set to [${newSub}].`, 'info');
+                            await this.loadAllData();
+                        } catch (err) {
+                            this.view.showToast('Update Failed', err.message, 'error');
                             this.renderCurrentView();
                         }
                     }
@@ -247,63 +302,112 @@ class OrdersController {
 
         // --- 5. Return Logistics Tab Event Delegation ---
         if (this.view.returnsContentArea) {
-            this.view.returnsContentArea.addEventListener('click', (e) => {
-                const btnRestock = e.target.closest('.btn-restock');
-                if (btnRestock) {
-                    const id = btnRestock.getAttribute('data-id');
+            this.view.returnsContentArea.addEventListener('click', async (e) => {
+                const btnApprove = e.target.closest('.btn-approve-return');
+                const btnReject = e.target.closest('.btn-reject-return');
+                const btnPlayVideo = e.target.closest('.btn-play-video');
+
+                if (btnPlayVideo) {
+                    const videoUrl = btnPlayVideo.getAttribute('data-video');
+                    this.view.openVideoModal(videoUrl);
+                    return;
+                }
+
+                if (btnApprove) {
+                    const id = btnApprove.getAttribute('data-id');
                     const item = this.model.findReturnedItemById(id);
                     if (item) {
                         this.view.showConfirmDialog(
-                            'Process Return & Restock?',
-                            `Confirm warehouse restocking for returned item "${item.bookTitle}" (Qty: ${item.quantity})? Stock levels will adjust automatically.`,
-                            'info',
-                            () => {
-                                if (this.model.restockItem(id)) {
+                            'Approve Return & Restock?',
+                            `Confirm warehouse restocking and refund payout for "${item.bookTitle}" (Qty: ${item.quantity})?`,
+                            'success',
+                            async () => {
+                                this.view.showToast('Approving', 'Processing return approval & warehouse stocking...', 'info');
+                                try {
+                                    await this.model.reviewReturnRequest(id, true);
                                     this.view.showToast(
-                                        'Inventory Restocked', 
-                                        `Stocking complete! Inflowed ${item.quantity} unit(s) of "${item.bookTitle}" back to warehouse stock.`, 
+                                        'Return Approved', 
+                                        `Approval success! ${item.quantity} unit(s) of "${item.bookTitle}" returned to stock.`, 
                                         'success'
                                     );
-                                    this.renderCurrentView();
+                                    await this.loadAllData();
+                                } catch (err) {
+                                    this.view.showToast('Approval Failed', err.message, 'error');
                                 }
                             }
                         );
                     }
+                    return;
+                }
+
+                if (btnReject) {
+                    const id = btnReject.getAttribute('data-id');
+                    const item = this.model.findReturnedItemById(id);
+                    if (item) {
+                        const rejectReason = prompt("Please enter the reason for rejecting this refund request:", "Uploaded video proof is incomplete or missing.");
+                        if (rejectReason === null) return; // cancelled prompt
+                        
+                        this.view.showToast('Rejecting', 'Processing rejection on server...', 'info');
+                        try {
+                            await this.model.reviewReturnRequest(id, false, rejectReason);
+                            this.view.showToast('Return Rejected', `Refund request #${id} has been rejected.`, 'error');
+                            await this.loadAllData();
+                        } catch (err) {
+                            this.view.showToast('Rejection Failed', err.message, 'error');
+                        }
+                    }
+                    return;
                 }
             });
         }
 
         // --- 6. Complaints & Reviews Tab Event Delegation ---
         if (this.view.complaintsContentArea) {
-            this.view.complaintsContentArea.addEventListener('click', (e) => {
+            this.view.complaintsContentArea.addEventListener('click', async (e) => {
                 const btnContact = e.target.closest('.btn-contact-buyer');
                 const btnResolve = e.target.closest('.btn-resolve-complaint');
+                const btnReject = e.target.closest('.btn-reject-complaint');
 
                 if (btnContact) {
-                    const email = btnContact.getAttribute('data-email');
-                    const ticketId = btnContact.getAttribute('data-id');
-                    
-                    const row = btnContact.closest('tr');
-                    const buyerNameElement = row.querySelector('div[style*="font-weight:600; color:#2C2630;"]');
-                    const buyerName = buyerNameElement ? buyerNameElement.textContent : 'Customer';
-                    
-                    // Redirect to Messages page with buyer name parameter
+                    const buyerName = btnContact.getAttribute('data-buyer');
                     window.location.href = '/Admin/Messages?buyer=' + encodeURIComponent(buyerName);
+                    return;
                 }
 
                 if (btnResolve) {
                     const id = btnResolve.getAttribute('data-id');
                     this.view.showConfirmDialog(
-                        'Resolve Complaint?',
-                        `Mark support ticket #${id} as resolved and closed? Escalation records will be archived.`,
+                        'Approve Refund Request?',
+                        `Approve this Refund Only ticket #${id} and release transaction funds?`,
                         'success',
-                        () => {
-                            if (this.model.resolveComplaint(id)) {
-                                this.view.showToast('Ticket Resolved', `Support Ticket #${id} marked as Resolved and closed.`, 'success');
-                                this.renderCurrentView();
+                        async () => {
+                            this.view.showToast('Resolving', 'Approving refund on server...', 'info');
+                            try {
+                                await this.model.reviewReturnRequest(id, true);
+                                this.view.showToast('Ticket Resolved', `Refund approved & ticket #${id} resolved successfully.`, 'success');
+                                await this.loadAllData();
+                            } catch (err) {
+                                this.view.showToast('Failed to Resolve', err.message, 'error');
                             }
                         }
                     );
+                    return;
+                }
+
+                if (btnReject) {
+                    const id = btnReject.getAttribute('data-id');
+                    const rejectReason = prompt("Please enter the reason for rejecting this refund:", "Invalid refund claim.");
+                    if (rejectReason === null) return; // cancelled prompt
+                    
+                    this.view.showToast('Rejecting', 'Processing rejection on server...', 'info');
+                    try {
+                        await this.model.reviewReturnRequest(id, false, rejectReason);
+                        this.view.showToast('Refund Rejected', `Refund request #${id} has been rejected.`, 'error');
+                        await this.loadAllData();
+                    } catch (err) {
+                        this.view.showToast('Rejection Failed', err.message, 'error');
+                    }
+                    return;
                 }
             });
         }
@@ -313,7 +417,6 @@ class OrdersController {
             this.view.btnCloseChatModal.addEventListener('click', () => this.view.closeChatModal());
         }
 
-        // A. Print invoice modal closes
         if (this.view.btnClosePrintModal) {
             this.view.btnClosePrintModal.addEventListener('click', () => this.view.closePrintLabelModal());
         }
@@ -340,14 +443,48 @@ class OrdersController {
             this.view.btnCancelExport.addEventListener('click', () => this.view.closeExportPdfModal());
         }
 
+        // Trigger merging QuestPDF manifest for export
         if (this.view.btnTriggerPdfDownload) {
             this.view.btnTriggerPdfDownload.addEventListener('click', () => {
-                this.view.showToast(
-                    'Download Started', 
-                    "Generating PDF manifest... 'Book_Blossom_Order_Manifest.pdf' downloaded successfully.", 
-                    'success'
-                );
-                this.view.closeExportPdfModal();
+                const selectedIds = Array.from(this.model.selectedOrderIds);
+                if (selectedIds.length === 0) {
+                    // Export all active orders
+                    const activeOrders = this.model.getFilteredOrders();
+                    selectedIds.push(...activeOrders.map(o => o.id));
+                }
+                if (selectedIds.length === 0) return;
+
+                const token = localStorage.getItem('accessToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const rawIds = selectedIds.map(id => {
+                    const o = this.model.findOrderById(id);
+                    return o ? o.orderIDRaw : null;
+                }).filter(id => id !== null);
+
+                this.view.showToast("Generating PDF Manifest", "Merging invoices with QuestPDF...", "info");
+                
+                fetch('/api/order/store/invoices', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(rawIds)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to merge invoices.");
+                    return res.blob();
+                })
+                .then(blob => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    window.open(blobUrl, '_blank');
+                    this.view.showToast("Manifest Ready", "QuestPDF manifest opened in a new window.", "success");
+                    this.view.closeExportPdfModal();
+                    this.model.clearOrderSelection();
+                    this.renderCurrentView();
+                })
+                .catch(err => {
+                    this.view.showToast("Export Failed", err.message, "error");
+                });
             });
         }
 
@@ -364,10 +501,15 @@ class OrdersController {
                         'Batch Confirm Orders?',
                         `Approve and confirm all ${selectedIds.length} selected orders in bulk? Checked items will transition to 'To Ship'.`,
                         'success',
-                        () => {
-                            const confirmedCount = this.model.batchConfirmOrders(selectedIds);
-                            this.view.showToast('Batch Confirmed', `Successfully approved and confirmed ${confirmedCount} orders!`, 'success');
-                            this.renderCurrentView();
+                        async () => {
+                            this.view.showToast('Confirming', `Confirming ${selectedIds.length} orders...`, 'info');
+                            try {
+                                const confirmedCount = await this.model.batchConfirmOrders(selectedIds);
+                                this.view.showToast('Batch Confirmed', `Successfully approved and confirmed ${confirmedCount} orders!`, 'success');
+                                await this.loadAllData();
+                            } catch (err) {
+                                this.view.showToast('Batch Failed', err.message, 'error');
+                            }
                         }
                     );
                 } else if (activeTab === 'toship') {
@@ -375,10 +517,15 @@ class OrdersController {
                         'Batch Start Shipping?',
                         `Issue shipping labels and start carrier delivery for all ${selectedIds.length} selected orders?`,
                         'info',
-                        () => {
-                            const shippedCount = this.model.batchStartShippingOrders(selectedIds);
-                            this.view.showToast('Batch Shipped', `Successfully handed over ${shippedCount} orders to logistics courier!`, 'info');
-                            this.renderCurrentView();
+                        async () => {
+                            this.view.showToast('Shipping', `Starting shipping for ${selectedIds.length} orders...`, 'info');
+                            try {
+                                const shippedCount = await this.model.batchStartShippingOrders(selectedIds);
+                                this.view.showToast('Batch Shipped', `Successfully handed over ${shippedCount} orders to courier!`, 'info');
+                                await this.loadAllData();
+                            } catch (err) {
+                                this.view.showToast('Batch Failed', err.message, 'error');
+                            }
                         }
                     );
                 } else if (activeTab === 'intransit') {
@@ -386,14 +533,19 @@ class OrdersController {
                         'Batch Mark Delivered?',
                         `Mark all ${selectedIds.length} selected transit orders as Delivered? This releases escrow funds.`,
                         'success',
-                        () => {
-                            const deliveredCount = this.model.batchUpdateMockStatus(selectedIds, 'Delivered');
-                            this.view.showToast('Batch Delivered', `Successfully completed delivery and released funds for ${deliveredCount} orders!`, 'success');
-                            this.renderCurrentView();
+                        async () => {
+                            this.view.showToast('Delivering', `Completing delivery for ${selectedIds.length} orders...`, 'info');
+                            try {
+                                const deliveredCount = await this.model.batchUpdateOrderStatusInDb(selectedIds, 'Delivered');
+                                this.view.showToast('Batch Delivered', `Successfully completed delivery and released funds for ${deliveredCount} orders!`, 'success');
+                                await this.loadAllData();
+                            } catch (err) {
+                                this.view.showToast('Batch Failed', err.message, 'error');
+                            }
                         }
                     );
                 } else {
-                    // Export select orders
+                    // Export selected orders
                     const ordersToExport = this.model.orders.filter(o => selectedIds.includes(o.id));
                     this.view.openExportPdfModal(ordersToExport);
                     this.model.clearOrderSelection();
@@ -419,13 +571,25 @@ class OrdersController {
                     'Auto-Confirm All Pending?',
                     `Instantly approve all ${pendingOrders.length} pending orders?`,
                     'success',
-                    () => {
+                    async () => {
                         const ids = pendingOrders.map(o => o.id);
-                        const confirmedCount = this.model.batchConfirmOrders(ids);
-                        this.view.showToast('Auto-Confirm Complete', `Successfully approved ${confirmedCount} orders!`, 'success');
-                        this.renderCurrentView();
+                        this.view.showToast('Confirming', `Confirming all ${ids.length} pending orders...`, 'info');
+                        try {
+                            const confirmedCount = await this.model.batchConfirmOrders(ids);
+                            this.view.showToast('Auto-Confirm Complete', `Successfully approved ${confirmedCount} orders!`, 'success');
+                            await this.loadAllData();
+                        } catch (err) {
+                            this.view.showToast('Confirmation Failed', err.message, 'error');
+                        }
                     }
                 );
+            });
+        }
+
+        // Gallery Modal Closes
+        if (this.view.btnCloseGallery) {
+            this.view.btnCloseGallery.addEventListener('click', () => {
+                this.view.galleryModal.style.display = 'none';
             });
         }
     }
