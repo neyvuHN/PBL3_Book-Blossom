@@ -112,15 +112,24 @@ class UsersController {
                 const newStatus = isChecked ? 'Active' : 'Banned';
                 
                 // Commit to model
-                this.model.updateUserStatus(userId, newStatus);
-                
-                // Trigger view updates
-                this.view.updateRowStatusVisual(tr, isChecked, newStatus);
-                
-                // Row moves tabs dynamically: redraw table after small visual toggle transition
-                setTimeout(() => {
-                    this.redrawActiveTable();
-                }, 250);
+                this.model.updateUserStatus(userId, newStatus).then(success => {
+                    if (success) {
+                        // Trigger view updates
+                        this.view.updateRowStatusVisual(tr, isChecked, newStatus);
+                        
+                        // Row moves tabs dynamically: redraw table after small visual toggle transition
+                        setTimeout(() => {
+                            this.redrawActiveTable();
+                        }, 250);
+                    } else {
+                        e.target.checked = !isChecked;
+                    }
+                }).catch(err => {
+                    e.target.checked = !isChecked;
+                    if (window.apiClient && window.apiClient.showToast) {
+                        window.apiClient.showToast("Failed to update status: " + (err.message || err), "error");
+                    }
+                });
                 return;
             }
 
@@ -140,6 +149,16 @@ class UsersController {
                 this.isUpdateMode = true;
                 this.selectedStaffId = userId;
                 this.view.openEditStaffModal(user);
+                return;
+            }
+
+            // 4. Check if they clicked the Edit Role Button (btn-dots-action)
+            const editRoleBtn = e.target.closest('.btn-dots-action');
+            if (editRoleBtn) {
+                e.stopPropagation();
+                this.model.selectedUserId = userId;
+                this.model.selectedUserRole = user.role;
+                this.view.openEditRolePopover(user.username, user.role, editRoleBtn);
                 return;
             }
         };
@@ -175,31 +194,41 @@ class UsersController {
         });
 
         // Submit Save changes click
-        this.view.btnSaveRole.addEventListener('click', () => {
+        this.view.btnSaveRole.addEventListener('click', async () => {
             const userId = this.model.selectedUserId;
             const newRole = this.model.selectedUserRole;
             const enteredPassword = this.view.popoverPassword.value;
 
             if (userId && newRole && enteredPassword.length > 0) {
-                // Call model update
-                const success = this.model.updateUserRole(userId, newRole);
+                this.view.toggleSaveRoleButton(false);
+                try {
+                    // Call model update
+                    const success = await this.model.updateUserRole(userId, newRole, enteredPassword);
 
-                if (success) {
-                    const user = this.model.findUserById(userId);
-                    this.view.closeEditRolePopover();
-                    this.redrawActiveTable();
+                    if (success) {
+                        const user = this.model.findUserById(userId);
+                        this.view.closeEditRolePopover();
+                        this.redrawActiveTable();
 
-                    // Beautiful premium notification banner
-                    const successHtml = `
-                        <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:12px 24px; border-radius:8px; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-size:0.9rem; font-weight:600; display:flex; align-items:center; gap:8px;">
-                            ✅ Success! Role for @${user.username} has been updated to ${newRole}.
-                        </div>
-                    `;
-                    document.body.insertAdjacentHTML('beforeend', successHtml);
-                    setTimeout(() => {
-                        const toast = document.querySelector('.buyer-actions-toast');
-                        if (toast) toast.remove();
-                    }, 4000);
+                        // Beautiful premium notification banner
+                        const successHtml = `
+                            <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:12px 24px; border-radius:8px; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-size:0.9rem; font-weight:600; display:flex; align-items:center; gap:8px;">
+                                ✅ Success! Role for @${user.username} has been updated to ${newRole}.
+                            </div>
+                        `;
+                        document.body.insertAdjacentHTML('beforeend', successHtml);
+                        setTimeout(() => {
+                            const toast = document.querySelector('.buyer-actions-toast');
+                            if (toast) toast.remove();
+                        }, 4000);
+                    }
+                } catch (error) {
+                    if (window.apiClient && window.apiClient.showToast) {
+                        window.apiClient.showToast(error.message || "Failed to update role", "error");
+                    } else {
+                        alert(error.message || "Failed to update role");
+                    }
+                    this.view.toggleSaveRoleButton(true);
                 }
             }
         });
@@ -399,29 +428,81 @@ class UsersController {
                 
                 validateForm();
             });
-        });
-
-        // Submit Action
-        this.view.btnSaveNewStaff.addEventListener('click', () => {
+                // Submit Action
+        this.view.btnSaveNewStaff.addEventListener('click', async () => {
             const formData = this.view.getAddStaffFormData();
+            this.view.toggleSaveStaffButton(false);
             
-            if (this.isUpdateMode) {
-                // STAFF UPDATE FLOW
-                const staffId = this.selectedStaffId;
-                if (staffId) {
-                    const updatedStaffObj = this.model.updateStaffMember(staffId, formData);
-                    if (updatedStaffObj) {
+            try {
+                if (this.isUpdateMode) {
+                    // STAFF UPDATE FLOW
+                    const staffId = this.selectedStaffId;
+                    if (staffId) {
+                        const updatedStaffObj = await this.model.updateStaffMember(staffId, formData);
+                        if (updatedStaffObj) {
+                            this.redrawActiveTable();
+                            this.view.closeAddStaffModal();
+
+                            // Premium update notification toast
+                            const toastHtml = `
+                                <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#2F80ED; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(47,128,237,0.25); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                                    <i class="ph ph-note-pencil" style="font-size:1.3rem;"></i>
+                                    <div>
+                                        <div style="font-weight:700; margin-bottom:2px;">Staff Profile Updated!</div>
+                                        <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
+                                            Records for @${updatedStaffObj.username} successfully modified.
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            const styleId = 'success-toast-animation';
+                            if (!document.getElementById(styleId)) {
+                                const style = document.createElement('style');
+                                style.id = styleId;
+                                style.innerHTML = `
+                                    @keyframes slideInUp {
+                                        from { transform: translateY(100%) scale(0.9); opacity: 0; }
+                                        to { transform: translateY(0) scale(1); opacity: 1; }
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                            }
+
+                            document.body.insertAdjacentHTML('beforeend', toastHtml);
+                            setTimeout(() => {
+                                const toast = document.querySelector('.buyer-actions-toast');
+                                if (toast) {
+                                    toast.style.transition = 'all 0.4s ease';
+                                    toast.style.opacity = '0';
+                                    toast.style.transform = 'translateY(20px)';
+                                    setTimeout(() => toast.remove(), 400);
+                                }
+                            }, 4000);
+                        }
+                    }
+                } else {
+                    // STAFF CREATE FLOW
+                    const newStaffObj = await this.model.addStaffMember(formData);
+
+                    if (newStaffObj) {
+                        // Switch model tab & redraw
+                        this.model.activeTab = 'staff';
+                        this.view.updateFiltersForTab('staff');
+                        this.view.showTab('staff');
                         this.redrawActiveTable();
+
+                        // Close Modal
                         this.view.closeAddStaffModal();
 
-                        // Premium update notification toast
-                        const toastHtml = `
-                            <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#2F80ED; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(47,128,237,0.25); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                                <i class="ph ph-note-pencil" style="font-size:1.3rem;"></i>
+                        // Gorgeous Premium Success Toast
+                        const successToastHtml = `
+                            <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(39,174,96,0.3); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                                <i class="ph ph-check-circle" style="font-size:1.3rem;"></i>
                                 <div>
-                                    <div style="font-weight:700; margin-bottom:2px;">Staff Profile Updated!</div>
+                                    <div style="font-weight:700; margin-bottom:2px;">Staff Profile Created!</div>
                                     <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
-                                        Records for @${updatedStaffObj.username} successfully modified.
+                                        Account @${newStaffObj.username} initialized with 100 KPI Score.
                                     </div>
                                 </div>
                             </div>
@@ -440,7 +521,7 @@ class UsersController {
                             document.head.appendChild(style);
                         }
 
-                        document.body.insertAdjacentHTML('beforeend', toastHtml);
+                        document.body.insertAdjacentHTML('beforeend', successToastHtml);
                         setTimeout(() => {
                             const toast = document.querySelector('.buyer-actions-toast');
                             if (toast) {
@@ -449,60 +530,16 @@ class UsersController {
                                 toast.style.transform = 'translateY(20px)';
                                 setTimeout(() => toast.remove(), 400);
                             }
-                        }, 4000);
+                        }, 4500);
                     }
                 }
-            } else {
-                // STAFF CREATE FLOW
-                const newStaffObj = this.model.addStaffMember(formData);
-
-                if (newStaffObj) {
-                    // Switch model tab & redraw
-                    this.model.activeTab = 'staff';
-                    this.view.updateFiltersForTab('staff');
-                    this.view.showTab('staff');
-                    this.redrawActiveTable();
-
-                    // Close Modal
-                    this.view.closeAddStaffModal();
-
-                    // Gorgeous Premium Success Toast
-                    const successToastHtml = `
-                        <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(39,174,96,0.3); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                            <i class="ph ph-check-circle" style="font-size:1.3rem;"></i>
-                            <div>
-                                <div style="font-weight:700; margin-bottom:2px;">Staff Profile Created!</div>
-                                <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
-                                    Account @${newStaffObj.username} initialized with 100 KPI Score.
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    const styleId = 'success-toast-animation';
-                    if (!document.getElementById(styleId)) {
-                        const style = document.createElement('style');
-                        style.id = styleId;
-                        style.innerHTML = `
-                            @keyframes slideInUp {
-                                from { transform: translateY(100%) scale(0.9); opacity: 0; }
-                                to { transform: translateY(0) scale(1); opacity: 1; }
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-
-                    document.body.insertAdjacentHTML('beforeend', successToastHtml);
-                    setTimeout(() => {
-                        const toast = document.querySelector('.buyer-actions-toast');
-                        if (toast) {
-                            toast.style.transition = 'all 0.4s ease';
-                            toast.style.opacity = '0';
-                            toast.style.transform = 'translateY(20px)';
-                            setTimeout(() => toast.remove(), 400);
-                        }
-                    }, 4500);
+            } catch (error) {
+                if (window.apiClient && window.apiClient.showToast) {
+                    window.apiClient.showToast(error.message || "Operation failed", "error");
+                } else {
+                    alert(error.message || "Operation failed");
                 }
+                this.view.toggleSaveStaffButton(true);
             }
         });
     }

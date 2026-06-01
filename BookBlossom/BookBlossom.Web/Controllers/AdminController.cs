@@ -1,29 +1,57 @@
-using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
+using System.Threading.Tasks;
 using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
+using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookBlossom.Web.Controllers
 {
     [Authorize(Policy = "AdminOnly")]
     public class AdminController : Controller
     {
-        
-        public IActionResult SystemLogs()
+        private readonly ApplicationDbContext _context;
+        private readonly IReputationService _reputationService;
+        private readonly IAuditService _auditService;
+
+        public AdminController(
+            ApplicationDbContext context,
+            IReputationService reputationService,
+            IAuditService auditService)
         {
-            var adminNames = new Dictionary<long, string> { { 1, "admin_sarah" } };
-            var targetNames = new Dictionary<long, string> { { 2, "user_john_d" }, { 3, "buyer_alice" } };
+            _context = context;
+            _reputationService = reputationService;
+            _auditService = auditService;
+        }
+
+        public async Task<IActionResult> SystemLogs()
+        {
+            var logs = await _context.AuditLogs.ToListAsync();
+
+            var adminIds = logs.Select(l => l.SystemAdminID).Distinct().ToList();
+            var userIds = logs.Where(l => l.UserID.HasValue).Select(l => l.UserID.Value).Distinct().ToList();
+            var allUserIds = adminIds.Concat(userIds).Distinct().ToList();
+
+            var usernames = await _context.Users
+                .Where(u => allUserIds.Contains(u.UserID))
+                .ToDictionaryAsync(u => u.UserID, u => u.UserName);
 
             var model = new ViewModels.Admin.SystemLogsViewModel
             {
-                Logs = _auditLogs.Select(l => new ViewModels.Admin.AuditLogItemViewModel
+                Logs = logs.Select(l => new ViewModels.Admin.AuditLogItemViewModel
                 {
                     LogID = l.LogID,
                     SystemAdminID = l.SystemAdminID,
-                    AdminUsername = adminNames.ContainsKey(l.SystemAdminID) ? adminNames[l.SystemAdminID] : "Unknown Admin",
+                    AdminUsername = usernames.ContainsKey(l.SystemAdminID) ? usernames[l.SystemAdminID] : "Unknown Admin",
                     UserID = l.UserID,
-                    TargetUsername = l.UserID.HasValue && targetNames.ContainsKey(l.UserID.Value) ? targetNames[l.UserID.Value] : null,
+                    TargetUsername = l.UserID.HasValue && usernames.ContainsKey(l.UserID.Value) ? usernames[l.UserID.Value] : null,
                     ActionType = (byte)l.ActionType,
                     ActionTypeName = l.ActionType.ToString(),
                     TableName = l.TableName,
@@ -31,7 +59,9 @@ namespace BookBlossom.Web.Controllers
                     NewData = l.NewData,
                     IPAddress = l.IPAddress,
                     CreatedAt = l.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")
-                }).ToList()
+                })
+                .OrderByDescending(x => x.LogID)
+                .ToList()
             };
             return View(model);
         }
@@ -40,161 +70,370 @@ namespace BookBlossom.Web.Controllers
         {
             return View();
         }
-        
-        public IActionResult Users()
+
+        public async Task<IActionResult> Users()
         {
-            // Populate mock data matching the new reputation score rules and specific staff roles
+            var allUsers = await _context.Users
+                .Include(u => u.CustomerDetail)
+                .Include(u => u.StaffDetail)
+                .Include(u => u.CustomerService)
+                    .ThenInclude(cs => cs.ServicePackage)
+                .ToListAsync();
+
+            var reputations = await _context.CustomerReputations.ToDictionaryAsync(r => r.CustomerID, r => r.ReputationPoint ?? 100);
+
+            var buyersList = new List<ViewModels.Admin.AdminUserItemViewModel>();
+            var staffList = new List<ViewModels.Admin.AdminUserItemViewModel>();
+            var bannedList = new List<ViewModels.Admin.AdminUserItemViewModel>();
+
+            foreach (var u in allUsers)
+            {
+                if (u.RoleID == UserRole.Guest) continue;
+
+                var score = u.RoleID == UserRole.Admin 
+                    ? (int)(u.StaffDetail?.KPIScore ?? 100) 
+                    : (reputations.ContainsKey(u.UserID) ? reputations[u.UserID] : 100);
+
+                var joinDate = u.RoleID == UserRole.Admin && u.StaffDetail != null 
+                    ? u.StaffDetail.HireDate.ToString("MMM dd, yyyy") 
+                    : "Jan 05, 2024";
+
+                var plan = u.CustomerService?.ServicePackage?.PackageName ?? "Free";
+
+                var item = new ViewModels.Admin.AdminUserItemViewModel
+                {
+                    Id = u.UserID.ToString(),
+                    Username = u.UserName,
+                    Email = u.Email,
+                    Role = u.RoleID.ToString(),
+                    Plan = plan,
+                    InternalScore = score,
+                    JoinDate = joinDate,
+                    Status = u.AccountStatus.ToString(),
+                    AvatarUrl = u.Avatar ?? "https://i.pravatar.cc/150?img=9"
+                };
+
+                if (u.AccountStatus == AccountStatus.Banned || u.IsActive == false)
+                {
+                    item.Status = "Banned";
+                    bannedList.Add(item);
+                }
+                else if (u.RoleID == UserRole.Admin)
+                {
+                    staffList.Add(item);
+                }
+                else if (u.RoleID == UserRole.Customer)
+                {
+                    buyersList.Add(item);
+                }
+            }
+
             var model = new ViewModels.Admin.UserManagementViewModel
             {
-                Buyers = new List<ViewModels.Admin.AdminUserItemViewModel>
-                {
-                    new()
-                    {
-                        Id = "buyer_2",
-                        Username = "user_john_d",
-                        Email = "joh.d@email.com",
-                        Role = "User",
-                        Plan = "Basic",
-                        InternalScore = 45, // Under 60 (Threshold B) -> COD disabled, comments muted
-                        JoinDate = "Jan 05, 2024",
-                        Status = "Active",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=4"
-                    },
-                    new()
-                    {
-                        Id = "buyer_3",
-                        Username = "buyer_alice",
-                        Email = "alice@reading.com",
-                        Role = "User",
-                        Plan = "Free",
-                        InternalScore = 94, // Above 80 -> Active/Excellent
-                        JoinDate = "Feb 12, 2024",
-                        Status = "Active",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=5"
-                    },
-                    new()
-                    {
-                        Id = "buyer_4",
-                        Username = "buyer_restricted_a",
-                        Email = "restricted_a@gmail.com",
-                        Role = "User",
-                        Plan = "Basic",
-                        InternalScore = 75, // Under 80 (Threshold A) -> post & comment muted
-                        JoinDate = "Mar 10, 2024",
-                        Status = "Active",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=12"
-                    }
-                },
-                Staff = new List<ViewModels.Admin.AdminUserItemViewModel>
-                {
-                    new()
-                    {
-                        Id = "staff_1",
-                        Username = "admin_sarah",
-                        Email = "sarah@bookblossom.com",
-                        Role = "Admin",
-                        Plan = "Pro",
-                        InternalScore = 98,
-                        JoinDate = "Oct 24, 2023",
-                        Status = "Active",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=1"
-                    },
-                    /*
-                    new()
-                    {
-                        Id = "staff_2",
-                        Username = "mod_mike",
-                        Email = "mike@bookblossom.com",
-                        Role = "Moderator",
-                        Plan = "Pro",
-                        InternalScore = 92,
-                        JoinDate = "Nov 01, 2023",
-                        Status = "Active",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=2"
-                    },
-                    new()
-                    {
-                        Id = "staff_3",
-                        Username = "mkt_manager_lee",
-                        Email = "lee.mkt@bookblossom.com",
-                        Role = "Marketing Manager",
-                        Plan = "Pro",
-                        InternalScore = 87,
-                        JoinDate = "Jan 12, 2024",
-                        Status = "Active",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=11"
-                    },
-                    new()
-                    {
-                        Id = "staff_4",
-                        Username = "store_mgr_anna",
-                        Email = "anna.store@bookblossom.com",
-                        Role = "Store Manager",
-                        Plan = "Pro",
-                        InternalScore = 91,
-                        JoinDate = "Feb 05, 2024",
-                        Status = "Active",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=10"
-                    }
-                    */
-                },
-                Banned = new List<ViewModels.Admin.AdminUserItemViewModel>
-                {
-                    new()
-                    {
-                        Id = "banned_1",
-                        Username = "spammer_bob",
-                        Email = "bob@spambot.com",
-                        Role = "User",
-                        Plan = "Free",
-                        InternalScore = 15, // Under 30 (Threshold C) -> Khai trừ / Banned
-                        JoinDate = "Mar 02, 2024",
-                        Status = "Banned",
-                        AvatarUrl = "https://i.pravatar.cc/150?img=6"
-                    }
-                }
+                Buyers = buyersList,
+                Staff = staffList,
+                Banned = bannedList
             };
 
             return View(model);
         }
 
-        
-        private static List<AuditLog>? _auditLogsList;
-        private static List<AuditLog> _auditLogs
+        [HttpPost]
+        public async Task<IActionResult> ToggleLock([FromQuery] long userId, [FromQuery] bool isBanned)
         {
-            get
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound(new { success = false, message = "User not found" });
+
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(adminIdStr) || !long.TryParse(adminIdStr, out long adminId))
             {
-                if (_auditLogsList == null)
-                {
-                    _auditLogsList = new List<AuditLog>
-                    {
-                        new AuditLog { LogID = 1, SystemAdminID = 1, UserID = 2, ActionType = ActionType.ADMIN_LOGIN, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-5) },
-                        new AuditLog { LogID = 2, SystemAdminID = 1, UserID = null, ActionType = ActionType.LOGIN_FAILED, TableName = "Users", OldData = null, NewData = "{\"Reason\": \"Invalid Password\"}", IPAddress = "192.168.1.15", CreatedAt = DateTime.Now.AddMinutes(-10) },
-                        new AuditLog { LogID = 3, SystemAdminID = 1, UserID = 2, ActionType = ActionType.ADMIN_LOGOUT, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-1) },
-                        new AuditLog { LogID = 4, SystemAdminID = 1, UserID = 3, ActionType = ActionType.LOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Active\"}", NewData = "{\"Status\": \"Locked\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-2) },
-                        new AuditLog { LogID = 5, SystemAdminID = 1, UserID = 3, ActionType = ActionType.UNLOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Locked\"}", NewData = "{\"Status\": \"Active\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-1) },
-                        new AuditLog { LogID = 6, SystemAdminID = 1, UserID = null, ActionType = ActionType.EXPORT, TableName = "Orders", OldData = null, NewData = "{\"Format\": \"PDF\", \"Range\": \"Last 30 Days\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-3) }
-                    };
-                }
-                return _auditLogsList;
+                return Unauthorized(new { success = false, message = "Unauthorized admin" });
             }
+
+            var oldStatus = user.AccountStatus.ToString();
+            user.AccountStatus = isBanned ? AccountStatus.Banned : AccountStatus.Active;
+            user.IsActive = !isBanned;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            var action = isBanned ? ActionType.LOCK_ACCOUNT : ActionType.UNLOCK_ACCOUNT;
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+
+            await _auditService.LogActionAsync(
+                adminId,
+                user.UserID,
+                action,
+                "Users",
+                JsonSerializer.Serialize(new { Status = oldStatus }),
+                JsonSerializer.Serialize(new { Status = user.AccountStatus.ToString() }),
+                ipAddress
+            );
+
+            return Json(new { success = true, status = user.AccountStatus.ToString() });
         }
 
-        private void LogAction(long adminId, long? userId, ActionType actionType, string tableName, object oldData, object newData)
+        [HttpPost]
+        public async Task<IActionResult> UpdateRole([FromQuery] long userId, [FromQuery] string newRole, [FromQuery] string adminPassword)
         {
-            var log = new AuditLog
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(adminIdStr) || !long.TryParse(adminIdStr, out long adminId))
             {
-                LogID = _auditLogs.Any() ? _auditLogs.Max(l => l.LogID) + 1 : 1,
-                SystemAdminID = adminId,
-                UserID = userId,
-                ActionType = actionType,
-                TableName = tableName,
-                OldData = oldData != null ? JsonSerializer.Serialize(oldData) : null,
-                NewData = newData != null ? JsonSerializer.Serialize(newData) : null,
-                IPAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "127.0.0.1",
-                CreatedAt = DateTime.Now
+                return Unauthorized(new { success = false, message = "Unauthorized admin" });
+            }
+
+            var adminUser = await _context.Users.FindAsync(adminId);
+            if (adminUser == null || !BCrypt.Net.BCrypt.Verify(adminPassword, adminUser.Password))
+            {
+                return BadRequest(new { success = false, message = "Mật khẩu xác thực không đúng!" });
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound(new { success = false, message = "User not found" });
+
+            if (newRole != "Admin" && newRole != "User" && newRole != "Customer")
+            {
+                return BadRequest(new { success = false, message = "Vai trò không hợp lệ" });
+            }
+
+            var oldRole = user.RoleID.ToString();
+            var targetRole = (newRole == "Admin") ? UserRole.Admin : UserRole.Customer;
+
+            user.RoleID = targetRole;
+
+            if (targetRole == UserRole.Admin)
+            {
+                var staff = await _context.StaffDetails.FindAsync(user.UserID);
+                if (staff == null)
+                {
+                    staff = new StaffDetail
+                    {
+                        StaffID = user.UserID,
+                        Address = "N/A",
+                        IsOnboardingCompleted = false,
+                        Department = Department.SystemAdmin,
+                        Position = StaffPosition.Leader,
+                        HireDate = DateTime.Today,
+                        ContractType = ContractType.FullTime,
+                        Salary = 15000000
+                    };
+                    _context.StaffDetails.Add(staff);
+                }
+            }
+            else
+            {
+                var customer = await _context.CustomerDetails.FindAsync(user.UserID);
+                if (customer == null)
+                {
+                    customer = new CustomerDetail
+                    {
+                        CustomerID = user.UserID,
+                        IsOnboardingCompleted = true,
+                        TotalSpending = 0,
+                        DailyUndoCount = 0,
+                        CurrentMonthThreadCount = 0,
+                        CurrentOrderStreak = 0
+                    };
+                    _context.CustomerDetails.Add(customer);
+                }
+            }
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            await _auditService.LogActionAsync(
+                adminId,
+                user.UserID,
+                ActionType.LOCK_ACCOUNT,
+                "Users",
+                JsonSerializer.Serialize(new { Role = oldRole }),
+                JsonSerializer.Serialize(new { Role = user.RoleID.ToString() }),
+                ipAddress
+            );
+
+            return Json(new { success = true, role = (targetRole == UserRole.Admin) ? "Admin" : "User" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddAdmin([FromBody] AddAdminDTO dto)
+        {
+            if (dto == null) return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+
+            if (await _context.Users.AnyAsync(u => u.UserName == dto.Username))
+            {
+                return BadRequest(new { success = false, message = "Username đã tồn tại!" });
+            }
+
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(adminIdStr) || !long.TryParse(adminIdStr, out long adminId))
+            {
+                return Unauthorized(new { success = false, message = "Unauthorized admin" });
+            }
+
+            var user = new User
+            {
+                UserName = dto.Username,
+                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Gender = dto.Gender,
+                Avatar = dto.AvatarUrl,
+                Birthday = DateTime.TryParse(dto.Birthday, out var bday) ? bday : (DateTime?)null,
+                RoleID = UserRole.Admin,
+                AccountStatus = AccountStatus.Active,
+                IsActive = true
             };
-            _auditLogs.Insert(0, log);
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var contract = Enum.TryParse<ContractType>(dto.ContractType.Replace("-", ""), true, out var ct) ? ct : ContractType.FullTime;
+
+            var staff = new StaffDetail
+            {
+                StaffID = user.UserID,
+                Address = "N/A",
+                IsOnboardingCompleted = false,
+                Department = Department.SystemAdmin,
+                Position = StaffPosition.Leader,
+                HireDate = DateTime.Today,
+                ContractType = contract,
+                Salary = dto.Salary,
+                BankAccount = dto.BankAccount,
+                Experience = dto.Qualifications,
+                KPIScore = 100
+            };
+
+            _context.StaffDetails.Add(staff);
+            await _context.SaveChangesAsync();
+
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            await _auditService.LogActionAsync(
+                adminId,
+                user.UserID,
+                ActionType.LOCK_ACCOUNT,
+                "Users",
+                null,
+                JsonSerializer.Serialize(new { Action = "AddAdmin", Username = user.UserName }),
+                ipAddress
+            );
+
+            var item = new ViewModels.Admin.AdminUserItemViewModel
+            {
+                Id = user.UserID.ToString(),
+                Username = user.UserName,
+                Email = user.Email,
+                Role = "Admin",
+                Plan = "Pro",
+                InternalScore = 100,
+                JoinDate = staff.HireDate.ToString("MMM dd, yyyy"),
+                Status = "Active",
+                AvatarUrl = user.Avatar ?? "https://i.pravatar.cc/150?img=1"
+            };
+
+            return Json(new { success = true, user = item });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditAdmin(long userId, [FromBody] AddAdminDTO dto)
+        {
+            if (dto == null) return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound(new { success = false, message = "Staff member not found" });
+
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(adminIdStr) || !long.TryParse(adminIdStr, out long adminId))
+            {
+                return Unauthorized(new { success = false, message = "Unauthorized admin" });
+            }
+
+            var oldData = JsonSerializer.Serialize(new { user.UserName, user.Email, user.PhoneNumber, user.FirstName, user.LastName });
+
+            user.UserName = dto.Username;
+            user.Email = dto.Email;
+            user.PhoneNumber = dto.PhoneNumber;
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.Gender = dto.Gender;
+            user.Avatar = dto.AvatarUrl;
+            user.Birthday = DateTime.TryParse(dto.Birthday, out var bday) ? bday : (DateTime?)null;
+
+            if (!string.IsNullOrEmpty(dto.Password) && dto.Password != "123456")
+            {
+                user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            }
+
+            var staff = await _context.StaffDetails.FindAsync(userId);
+            if (staff == null)
+            {
+                staff = new StaffDetail
+                {
+                    StaffID = user.UserID,
+                    Address = "N/A",
+                    IsOnboardingCompleted = false,
+                    Department = Department.SystemAdmin,
+                    Position = StaffPosition.Leader,
+                    HireDate = DateTime.Today,
+                    KPIScore = 100
+                };
+                _context.StaffDetails.Add(staff);
+            }
+
+            staff.ContractType = Enum.TryParse<ContractType>(dto.ContractType.Replace("-", ""), true, out var ct) ? ct : ContractType.FullTime;
+            staff.Salary = dto.Salary;
+            staff.BankAccount = dto.BankAccount;
+            staff.Experience = dto.Qualifications;
+
+            _context.Users.Update(user);
+            _context.StaffDetails.Update(staff);
+            await _context.SaveChangesAsync();
+
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            await _auditService.LogActionAsync(
+                adminId,
+                user.UserID,
+                ActionType.LOCK_ACCOUNT,
+                "Users",
+                oldData,
+                JsonSerializer.Serialize(new { user.UserName, user.Email, user.PhoneNumber, user.FirstName, user.LastName }),
+                ipAddress
+            );
+
+            var item = new ViewModels.Admin.AdminUserItemViewModel
+            {
+                Id = user.UserID.ToString(),
+                Username = user.UserName,
+                Email = user.Email,
+                Role = "Admin",
+                Plan = "Pro",
+                InternalScore = (int)staff.KPIScore,
+                JoinDate = staff.HireDate.ToString("MMM dd, yyyy"),
+                Status = user.AccountStatus.ToString(),
+                AvatarUrl = user.Avatar ?? "https://i.pravatar.cc/150?img=1"
+            };
+
+            return Json(new { success = true, user = item });
+        }
+
+        public class AddAdminDTO
+        {
+            public string Username { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+            public string Password { get; set; } = string.Empty;
+            public string LastName { get; set; } = string.Empty;
+            public string FirstName { get; set; } = string.Empty;
+            public string PhoneNumber { get; set; } = string.Empty;
+            public string Gender { get; set; } = "Male";
+            public string Birthday { get; set; } = string.Empty;
+            public string ContractType { get; set; } = "FullTime";
+            public decimal Salary { get; set; }
+            public string BankAccount { get; set; } = string.Empty;
+            public string AvatarUrl { get; set; } = string.Empty;
+            public string Qualifications { get; set; } = string.Empty;
         }
 
         public IActionResult Orders()

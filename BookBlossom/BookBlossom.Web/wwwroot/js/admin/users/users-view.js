@@ -174,8 +174,11 @@ class UsersView {
                     </div>
                 </td>
                 <td style="position: relative; text-align: center;">
-                    <button class="action-trigger-btn btn-buyer-note" title="${user.note && user.note.trim().length > 0 ? 'Edit Note' : 'Add Note'}">
+                    <button class="action-trigger-btn btn-buyer-note" title="${user.note && user.note.trim().length > 0 ? 'Edit Note' : 'Add Note'}" style="margin-right: 6px;">
                         <i class="ph ${user.note && user.note.trim().length > 0 ? 'ph-note-pencil note-active' : 'ph-note'}"></i>
+                    </button>
+                    <button class="action-trigger-btn btn-dots-action" title="Edit Role">
+                        <i class="ph ph-user-gear"></i>
                     </button>
                 </td>
             </tr>
@@ -226,8 +229,11 @@ class UsersView {
                     </div>
                 </td>
                 <td style="position: relative; text-align: center;">
-                    <button class="action-trigger-btn btn-update-staff" title="Update Staff Info">
+                    <button class="action-trigger-btn btn-update-staff" title="Update Staff Info" style="margin-right: 6px;">
                         <i class="ph ph-pencil-simple"></i>
+                    </button>
+                    <button class="action-trigger-btn btn-dots-action" title="Edit Role">
+                        <i class="ph ph-user-gear"></i>
                     </button>
                 </td>
             </tr>

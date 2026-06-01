@@ -96,12 +96,21 @@ class UsersModel {
     }
 
     /**
-     * Simulates updating a user's status (Active vs Banned).
+     * Updates a user's status (Active vs Banned) via backend API.
      * Moves users between active lists and the banned list if status changes.
      */
-    updateUserStatus(userId, newStatus) {
+    async updateUserStatus(userId, newStatus) {
         const user = this.findUserById(userId);
         if (!user) return false;
+
+        const isBanned = newStatus === 'Banned';
+        
+        if (window.apiClient) {
+            const resp = await window.apiClient.apiPost(`/Admin/ToggleLock?userId=${userId}&isBanned=${isBanned}`);
+            if (!resp || !resp.success) {
+                throw new Error(resp?.message || "Failed to update user status on server");
+            }
+        }
 
         user.status = newStatus;
 
@@ -120,7 +129,7 @@ class UsersModel {
             this.banned = this.banned.filter(u => u.id !== userId);
             
             // Re-allocate based on Role
-            const isStaffRole = user.role !== 'User';
+            const isStaffRole = user.role !== 'User' && user.role !== 'Customer';
             if (isStaffRole) {
                 if (!this.staff.some(u => u.id === userId)) {
                     this.staff.push(user);
@@ -135,18 +144,25 @@ class UsersModel {
     }
 
     /**
-     * Simulates updating a user's role.
+     * Updates a user's role via backend API.
      * Moves users between Buyers and Staff if role transitions across categories.
      */
-    updateUserRole(userId, newRole) {
+    async updateUserRole(userId, newRole, adminPassword) {
         const user = this.findUserById(userId);
         if (!user) return false;
+
+        if (window.apiClient) {
+            const resp = await window.apiClient.apiPost(`/Admin/UpdateRole?userId=${userId}&newRole=${newRole}&adminPassword=${encodeURIComponent(adminPassword)}`);
+            if (!resp || !resp.success) {
+                throw new Error(resp?.message || "Failed to update user role on server");
+            }
+        }
 
         const oldRole = user.role;
         user.role = newRole;
 
-        const wasStaff = oldRole !== 'User';
-        const isStaff = newRole !== 'User';
+        const wasStaff = oldRole !== 'User' && oldRole !== 'Customer';
+        const isStaff = newRole !== 'User' && newRole !== 'Customer';
 
         // Check if user is active (not currently banned)
         if (user.status === 'Active') {
@@ -168,44 +184,48 @@ class UsersModel {
     }
 
     /**
-     * Creates and adds a new staff member to the model.
-     * Generates standard internal values: Join Date = Today, Internal Score = 100, Status = Active.
+     * Creates and adds a new staff member to the database via API.
      */
-    addStaffMember(staffData) {
-        const today = new Date();
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const formattedDate = `${months[today.getMonth()]} ${String(today.getDate()).padStart(2, '0')}, ${today.getFullYear()}`;
+    async addStaffMember(staffData) {
+        let newStaff = null;
+        if (window.apiClient) {
+            const resp = await window.apiClient.apiPost('/Admin/AddAdmin', {
+                username: staffData.username,
+                email: staffData.email,
+                password: staffData.password,
+                lastName: staffData.lastName,
+                firstName: staffData.firstName,
+                phoneNumber: staffData.phoneNumber,
+                gender: staffData.gender,
+                birthday: staffData.birthday,
+                contractType: staffData.contractType,
+                salary: parseFloat(staffData.salary),
+                bankAccount: staffData.bankAccount,
+                avatarUrl: staffData.avatarUrl || 'https://i.pravatar.cc/150?img=1',
+                qualifications: staffData.qualifications || ''
+            });
 
-        const newStaff = {
-            id: `staff_${Date.now()}`,
-            username: staffData.username,
-            email: staffData.email,
-            role: 'Admin', /* staffData.role commented out per request to only allow Admin role */
-            plan: 'Pro', // Default for staff
-            internalScore: 100, // Automatically 100 KPI score (KPIScore in DB)
-            joinDate: formattedDate, // Automatically saves current date (HireDate in DB)
-            status: 'Active', // Active on creation
-            avatarUrl: staffData.avatarUrl || 'https://i.pravatar.cc/150?img=1',
-            
-            // New database columns mapped from schema
-            lastName: staffData.lastName,
-            firstName: staffData.firstName,
-            phoneNumber: staffData.phoneNumber,
-            gender: staffData.gender,
-            birthday: staffData.birthday,
-            department: 'Administration', /* staffData.department commented out per request */
-            position: 'Staff', /* staffData.position commented out per request */
-            contractType: staffData.contractType,
-            salary: staffData.salary,
-            bankAccount: staffData.bankAccount,
-
-            // Automatically initialized system states
-            isOnboardingCompleted: false, // Guide will trigger upon first logon
-            isActive: true, // Account active state (IsActive in DB)
-            accountStatus: 'Active', // AccountStatus in DB
-
-            qualifications: staffData.qualifications || '' // Experience in DB
-        };
+            if (!resp || !resp.success || !resp.user) {
+                throw new Error(resp?.message || "Failed to create staff member on server");
+            }
+            newStaff = resp.user;
+        } else {
+            // Fallback for visual mock
+            const today = new Date();
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const formattedDate = `${months[today.getMonth()]} ${String(today.getDate()).padStart(2, '0')}, ${today.getFullYear()}`;
+            newStaff = {
+                id: `staff_${Date.now()}`,
+                username: staffData.username,
+                email: staffData.email,
+                role: 'Admin',
+                plan: 'Pro',
+                internalScore: 100,
+                joinDate: formattedDate,
+                status: 'Active',
+                avatarUrl: staffData.avatarUrl || 'https://i.pravatar.cc/150?img=1'
+            };
+        }
 
         this.staff.push(newStaff);
         return newStaff;
@@ -223,30 +243,52 @@ class UsersModel {
     }
 
     /**
-     * Updates an existing staff member's administrative records.
-     * Preserves un-editable systems values (such as id, joinDate, internalScore).
+     * Updates an existing staff member's administrative records via backend API.
      */
-    updateStaffMember(userId, updatedData) {
+    async updateStaffMember(userId, updatedData) {
         const staffObj = this.findUserById(userId);
         if (!staffObj) return null;
 
-        // Update fields
-        staffObj.username = updatedData.username;
-        staffObj.email = updatedData.email;
-        staffObj.role = 'Admin'; /* updatedData.role commented out per request to only allow Admin role */
-        staffObj.avatarUrl = updatedData.avatarUrl;
-        
-        staffObj.lastName = updatedData.lastName;
-        staffObj.firstName = updatedData.firstName;
-        staffObj.phoneNumber = updatedData.phoneNumber;
-        staffObj.gender = updatedData.gender;
-        staffObj.birthday = updatedData.birthday;
-        staffObj.department = 'Administration'; /* updatedData.department commented out per request */
-        staffObj.position = 'Staff'; /* updatedData.position commented out per request */
-        staffObj.contractType = updatedData.contractType;
-        staffObj.salary = updatedData.salary;
-        staffObj.bankAccount = updatedData.bankAccount;
-        staffObj.qualifications = updatedData.qualifications;
+        if (window.apiClient) {
+            const resp = await window.apiClient.apiPost(`/Admin/EditAdmin?userId=${userId}`, {
+                username: updatedData.username,
+                email: updatedData.email,
+                password: updatedData.password || "123456",
+                lastName: updatedData.lastName,
+                firstName: updatedData.firstName,
+                phoneNumber: updatedData.phoneNumber,
+                gender: updatedData.gender,
+                birthday: updatedData.birthday,
+                contractType: updatedData.contractType,
+                salary: parseFloat(updatedData.salary),
+                bankAccount: updatedData.bankAccount,
+                avatarUrl: updatedData.avatarUrl || staffObj.avatarUrl,
+                qualifications: updatedData.qualifications || ''
+            });
+
+            if (!resp || !resp.success || !resp.user) {
+                throw new Error(resp?.message || "Failed to update staff member on server");
+            }
+
+            // Sync updated details from backend response
+            Object.assign(staffObj, resp.user);
+        } else {
+            // Update fields locally
+            staffObj.username = updatedData.username;
+            staffObj.email = updatedData.email;
+            staffObj.role = 'Admin';
+            staffObj.avatarUrl = updatedData.avatarUrl;
+            
+            staffObj.lastName = updatedData.lastName;
+            staffObj.firstName = updatedData.firstName;
+            staffObj.phoneNumber = updatedData.phoneNumber;
+            staffObj.gender = updatedData.gender;
+            staffObj.birthday = updatedData.birthday;
+            staffObj.contractType = updatedData.contractType;
+            staffObj.salary = updatedData.salary;
+            staffObj.bankAccount = updatedData.bankAccount;
+            staffObj.qualifications = updatedData.qualifications;
+        }
 
         return staffObj;
     }

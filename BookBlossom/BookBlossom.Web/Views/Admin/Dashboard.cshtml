@@ -196,7 +196,7 @@
         }
 
         function updateAlertsAndConfig(data) {
-            // 1. Cảnh báo sách sắp hết hàng
+            // 1. Low stock alert
             const lowStockList = document.getElementById('lowStockAlertsList');
             if (lowStockList) {
                 lowStockList.innerHTML = '';
@@ -209,16 +209,16 @@
                                 <span class="alert-item-title" title="${b.title}">${b.title}</span>
                                 <span class="alert-item-badge danger">${b.unitsInStock} left</span>
                             </div>
-                            <div class="alert-item-desc">ID Sách: #${b.bookId} - Tồn kho dưới mức tối thiểu</div>
+                            <div class="alert-item-desc">Book ID: #${b.bookId} - Inventory below minimum threshold</div>
                         `;
                         lowStockList.appendChild(li);
                     });
                 } else {
-                    lowStockList.innerHTML = '<li class="empty-state-alert">Không có cảnh báo tồn kho.</li>';
+                    lowStockList.innerHTML = '<li class="empty-state-alert">No low stock alerts.</li>';
                 }
             }
 
-            // 2. Cảnh báo bài viết bị báo cáo nhiều
+            // 2. Flags / Reports alert
             const highReportList = document.getElementById('highReportAlertsList');
             if (highReportList) {
                 highReportList.innerHTML = '';
@@ -229,18 +229,18 @@
                         li.innerHTML = `
                             <div class="alert-item-header">
                                 <span class="alert-item-title" title="${p.title}">${p.title}</span>
-                                <span class="alert-item-badge danger">${p.reportCount}/${p.threshold} báo cáo</span>
+                                <span class="alert-item-badge danger">${p.reportCount}/${p.threshold} reports</span>
                             </div>
-                            <div class="alert-item-desc">ID Bài viết: #${p.postId} - Vượt ngưỡng báo cáo cho phép</div>
+                            <div class="alert-item-desc">Thread ID: #${p.postId} - Exceeded report threshold limit</div>
                         `;
                         highReportList.appendChild(li);
                     });
                 } else {
-                    highReportList.innerHTML = '<li class="empty-state-alert">Không có bài viết vi phạm vượt ngưỡng.</li>';
+                    highReportList.innerHTML = '<li class="empty-state-alert">No flagged threads exceeding limit.</li>';
                 }
             }
 
-            // 3. Cảnh báo đơn hàng pending trễ hạn
+            // 3. Delayed pending orders
             const delayedOrdersList = document.getElementById('delayedOrdersAlertsList');
             if (delayedOrdersList) {
                 delayedOrdersList.innerHTML = '';
@@ -251,19 +251,19 @@
                         li.className = 'alert-item-custom';
                         li.innerHTML = `
                             <div class="alert-item-header">
-                                <span class="alert-item-title">Đơn hàng #${o.orderId}</span>
-                                <span class="alert-item-badge warning">${formatCurrency(o.totalAmount)}đ</span>
+                                <span class="alert-item-title">Order #${o.orderId}</span>
+                                <span class="alert-item-badge warning">${formatCurrency(o.totalAmount)} VND</span>
                             </div>
-                            <div class="alert-item-desc">Người nhận: ${o.shipReceiverName} - Nhận lúc: ${dateStr}</div>
+                            <div class="alert-item-desc">Recipient: ${o.shipReceiverName} - Received: ${dateStr}</div>
                         `;
                         delayedOrdersList.appendChild(li);
                     });
                 } else {
-                    delayedOrdersList.innerHTML = '<li class="empty-state-alert">Không có đơn hàng chờ xử lý trễ hạn.</li>';
+                    delayedOrdersList.innerHTML = '<li class="empty-state-alert">No delayed pending orders.</li>';
                 }
             }
 
-            // 4. Cấu hình hệ thống (Chỉ đọc)
+            // 4. System Configurations (Read-only)
             const configList = document.getElementById('systemConfigList');
             if (configList) {
                 configList.innerHTML = '';
@@ -278,7 +278,7 @@
                         configList.appendChild(li);
                     });
                 } else {
-                    configList.innerHTML = '<li class="empty-state-alert">Không có cấu hình nào trong DB.</li>';
+                    configList.innerHTML = '<li class="empty-state-alert">No system configurations in database.</li>';
                 }
             }
         }

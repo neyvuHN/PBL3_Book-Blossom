@@ -36,5 +36,6 @@ namespace BookBlossom.Web.ViewModels.Admin
         public string JoinDate { get; set; } = string.Empty;
         public string Status { get; set; } = "Active"; // "Active", "Banned"
         public string AvatarUrl { get; set; } = string.Empty;
+        public string? Note { get; set; } = string.Empty;
     }
 }

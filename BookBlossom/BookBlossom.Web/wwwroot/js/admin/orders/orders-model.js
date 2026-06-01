@@ -120,7 +120,7 @@ class OrdersModel {
                 }
 
                 // Gather items info
-                let bookTitle = "Sách không xác định";
+                let bookTitle = "Unknown book";
                 let quantity = 1;
                 let isbn = "N/A";
                 let blindDateHiddenTitle = "";
@@ -146,7 +146,7 @@ class OrdersModel {
                 return {
                     id: detail.orderID.toString(),
                     orderIDRaw: detail.orderID,
-                    buyerName: detail.customerName || "Khách hàng ẩn danh",
+                    buyerName: detail.customerName || "Anonymous Customer",
                     buyerAvatarUrl: `https://i.pravatar.cc/150?img=${(detail.customerID % 70) + 1}`,
                     customerNote: detail.note || "",
                     totalAmount: detail.totalAmount,
@@ -187,7 +187,7 @@ class OrdersModel {
                     return {
                         id: r.returnRequestID.toString(),
                         orderId: r.orderID.toString(),
-                        bookTitle: r.bookTitle || "Sách không xác định",
+                        bookTitle: r.bookTitle || "Unknown book",
                         quantity: r.returnQuantity,
                         refundAmount: r.refundAmount || 0,
                         moderatorDecision: "Approve Return & Refund",
