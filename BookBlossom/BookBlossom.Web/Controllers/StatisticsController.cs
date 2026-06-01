@@ -27,7 +27,7 @@ namespace BookBlossom.Web.Controllers
         /// API Lấy dữ liệu thống kê tổng hợp hiển thị lên màn hình Web Dashboard
         /// </summary>
         [HttpGet("dashboard-overview")]
-        public async Task<IActionResult> GetDashboardOverview([FromQuery] DateTime from, [FromQuery] DateTime to)
+        public async Task<IActionResult> GetDashboardOverview([FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] string model = "All")
         {
             if (from > to)
             {
@@ -36,7 +36,7 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
-                var result = await _statisticsService.GetDashboardDataAsync(from, to);
+                var result = await _statisticsService.GetDashboardDataAsync(from, to, model);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -50,7 +50,7 @@ namespace BookBlossom.Web.Controllers
         /// API Kết xuất và tải về file báo cáo PDF theo thời gian thực
         /// </summary>
         [HttpGet("export-pdf")]
-        public async Task<IActionResult> ExportDashboardPdf([FromQuery] DateTime from, [FromQuery] DateTime to)
+        public async Task<IActionResult> ExportDashboardPdf([FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] string model = "All")
         {
             if (from > to)
             {
@@ -59,7 +59,7 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
-                byte[] pdfFileBytes = await _statisticsService.GenerateDashboardPdfAsync(from, to);
+                byte[] pdfFileBytes = await _statisticsService.GenerateDashboardPdfAsync(from, to, model);
                 
                 // Ghi Audit Log cho hành động xuất báo cáo doanh thu PDF
                 var adminIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

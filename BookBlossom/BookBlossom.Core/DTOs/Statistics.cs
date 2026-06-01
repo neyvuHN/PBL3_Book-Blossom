@@ -43,6 +43,7 @@ namespace BookBlossom.Core.DTOs
         public int SoldCount { get; set; }        
         public decimal TotalRevenue { get; set; } 
         public int StockCount { get; set; }       
+        public long BookID { get; set; }
     }
 
     public class LowStockBookDto
