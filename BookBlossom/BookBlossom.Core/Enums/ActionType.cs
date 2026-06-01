@@ -3,17 +3,11 @@ namespace BookBlossom.Core.Enums
 {
     public enum ActionType : byte
     {
-        USER_LOGIN = 0,
+        ADMIN_LOGIN = 0,
         LOGIN_FAILED = 1,
-        USER_LOGOUT = 2,
-        CREATE_STAFF_ACCOUNT = 3,
-        UPDATE_STAFF_ACCOUNT = 4,
-        DELETE_STAFF_ACCOUNT = 5,
-        LOCK_ACCOUNT = 6,
-        UNLOCK_ACCOUNT = 7,
-        EXPORT = 8,
-        CREATE = 9,
-        UPDATE = 10,
-        DELETE = 11
+        ADMIN_LOGOUT = 2,
+        LOCK_ACCOUNT = 3,
+        UNLOCK_ACCOUNT = 4,
+        EXPORT = 5
     }
 }

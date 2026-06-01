@@ -45,6 +45,9 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<CustomerVoucher> CustomerVouchers { get; set; }
         public DbSet<VoucherCategory> VoucherCategories { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
