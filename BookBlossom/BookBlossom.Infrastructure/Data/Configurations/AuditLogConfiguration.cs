@@ -8,8 +8,8 @@ namespace BookBlossom.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<AuditLog> builder)
         {
-            // Ánh xạ bảng UserSystem.AuditLog
-            builder.ToTable("AuditLog", "UserSystem");
+            // Ánh xạ bảng UserSystem.AuditLogs
+            builder.ToTable("AuditLogs", "UserSystem");
 
             builder.HasKey(a => a.LogID);
 

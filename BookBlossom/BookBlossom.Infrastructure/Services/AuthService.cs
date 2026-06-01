@@ -54,6 +54,7 @@ namespace BookBlossom.Infrastructure.Services
                     );
                 }
                 throw new UnauthorizedActionException("Số điện thoại hoặc mật khẩu không chính xác.");
+            }
 
             // 1. Nếu tài khoản chưa xác thực (Unverified)
             if (user.AccountStatus == AccountStatus.Unverified)

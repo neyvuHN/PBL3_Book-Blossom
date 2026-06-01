@@ -170,15 +170,9 @@ namespace BookBlossom.Web.Controllers
                         new AuditLog { LogID = 1, SystemAdminID = 1, UserID = 2, ActionType = ActionType.ADMIN_LOGIN, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-5) },
                         new AuditLog { LogID = 2, SystemAdminID = 1, UserID = null, ActionType = ActionType.LOGIN_FAILED, TableName = "Users", OldData = null, NewData = "{\"Reason\": \"Invalid Password\"}", IPAddress = "192.168.1.15", CreatedAt = DateTime.Now.AddMinutes(-10) },
                         new AuditLog { LogID = 3, SystemAdminID = 1, UserID = 2, ActionType = ActionType.ADMIN_LOGOUT, TableName = "Users", OldData = null, NewData = null, IPAddress = "192.168.1.10", CreatedAt = DateTime.Now.AddMinutes(-1) },
-                        new AuditLog { LogID = 4, SystemAdminID = 1, UserID = 4, ActionType = ActionType.CREATE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = null, NewData = "{\"Username\": \"new_staff\", \"Role\": \"Moderator\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddHours(-1) },
-                        new AuditLog { LogID = 5, SystemAdminID = 1, UserID = 4, ActionType = ActionType.UPDATE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = "{\"Role\": \"Moderator\"}", NewData = "{\"Role\": \"Admin\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddHours(-2) },
-                        new AuditLog { LogID = 6, SystemAdminID = 1, UserID = 5, ActionType = ActionType.DELETE_STAFF_ACCOUNT, TableName = "StaffDetail", OldData = "{\"Username\": \"old_staff\"}", NewData = null, IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-1) },
-                        new AuditLog { LogID = 7, SystemAdminID = 1, UserID = 3, ActionType = ActionType.LOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Active\"}", NewData = "{\"Status\": \"Locked\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-2) },
-                        new AuditLog { LogID = 8, SystemAdminID = 1, UserID = 3, ActionType = ActionType.UNLOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Locked\"}", NewData = "{\"Status\": \"Active\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-1) },
-                        new AuditLog { LogID = 9, SystemAdminID = 1, UserID = null, ActionType = ActionType.EXPORT, TableName = "Orders", OldData = null, NewData = "{\"Format\": \"PDF\", \"Range\": \"Last 30 Days\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-3) },
-                        new AuditLog { LogID = 10, SystemAdminID = 1, UserID = null, ActionType = ActionType.CREATE, TableName = "Books", OldData = null, NewData = "{\"Title\": \"The Great Novel\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-4) },
-                        new AuditLog { LogID = 11, SystemAdminID = 1, UserID = null, ActionType = ActionType.UPDATE, TableName = "Books", OldData = "{\"Price\": 100}", NewData = "{\"Price\": 150}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-5) },
-                        new AuditLog { LogID = 12, SystemAdminID = 1, UserID = null, ActionType = ActionType.DELETE, TableName = "Categories", OldData = "{\"Name\": \"Old Category\"}", NewData = null, IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-6) }
+                        new AuditLog { LogID = 4, SystemAdminID = 1, UserID = 3, ActionType = ActionType.LOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Active\"}", NewData = "{\"Status\": \"Locked\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-2) },
+                        new AuditLog { LogID = 5, SystemAdminID = 1, UserID = 3, ActionType = ActionType.UNLOCK_ACCOUNT, TableName = "Users", OldData = "{\"Status\": \"Locked\"}", NewData = "{\"Status\": \"Active\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-1) },
+                        new AuditLog { LogID = 6, SystemAdminID = 1, UserID = null, ActionType = ActionType.EXPORT, TableName = "Orders", OldData = null, NewData = "{\"Format\": \"PDF\", \"Range\": \"Last 30 Days\"}", IPAddress = "127.0.0.1", CreatedAt = DateTime.Now.AddDays(-3) }
                     };
                 }
                 return _auditLogsList;
@@ -596,8 +590,6 @@ namespace BookBlossom.Web.Controllers
             };
 
             _books.Add(newBook);
-            
-            LogAction(1, null, ActionType.CREATE, "Books", null, newBook);
 
             // Increment category book count
             var cat = _categories.FirstOrDefault(c => c.CategoryID == bookInput.CategoryID);
@@ -641,8 +633,6 @@ namespace BookBlossom.Web.Controllers
                 book.PublishYear = bookInput.PublishYear;
                 book.Authors = bookInput.Authors ?? string.Empty;
 
-                LogAction(1, null, ActionType.UPDATE, "Books", JsonSerializer.Deserialize<object>(oldBookData), book);
-
                 TempData["SuccessMessage"] = "Book updated successfully!";
             }
             return RedirectToAction("Inventory");
@@ -655,7 +645,6 @@ namespace BookBlossom.Web.Controllers
             if (book != null)
             {
                 _books.Remove(book);
-                LogAction(1, null, ActionType.DELETE, "Books", book, null);
 
                 // Decrement category book count
                 var cat = _categories.FirstOrDefault(c => c.CategoryID == book.CategoryID);
@@ -682,7 +671,6 @@ namespace BookBlossom.Web.Controllers
                 BookCount = 0
             };
             _categories.Add(newCat);
-            LogAction(1, null, ActionType.CREATE, "Categories", null, newCat);
             TempData["SuccessMessage"] = "Category added successfully!";
             return RedirectToAction("Inventory");
         }
@@ -702,7 +690,6 @@ namespace BookBlossom.Web.Controllers
                 {
                     book.CategoryName = catInput.CategoryName;
                 }
-                LogAction(1, null, ActionType.UPDATE, "Categories", null, catInput);
                 TempData["SuccessMessage"] = "Category updated successfully!";
             }
             return RedirectToAction("Inventory");
@@ -723,7 +710,6 @@ namespace BookBlossom.Web.Controllers
                 else
                 {
                     _categories.Remove(cat);
-                    LogAction(1, null, ActionType.DELETE, "Categories", cat, null);
                     TempData["SuccessMessage"] = "Category deleted successfully!";
                 }
             }

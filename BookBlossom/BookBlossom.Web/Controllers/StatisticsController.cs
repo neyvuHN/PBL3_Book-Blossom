@@ -1,7 +1,9 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BookBlossom.Core.Enums;
 // SỬA TẠI ĐÂY: Đảm bảo đúng namespace nơi bạn định nghĩa IStatisticsService
 using BookBlossom.Core.Interfaces.Services; 
 
@@ -13,10 +15,12 @@ namespace BookBlossom.Web.Controllers
     public class StatisticsController : ControllerBase
     {
         private readonly IStatisticsService _statisticsService;
+        private readonly IAuditService _auditService;
 
-        public StatisticsController(IStatisticsService statisticsService)
+        public StatisticsController(IStatisticsService statisticsService, IAuditService auditService)
         {
             _statisticsService = statisticsService;
+            _auditService = auditService;
         }
 
         /// <summary>
@@ -57,6 +61,22 @@ namespace BookBlossom.Web.Controllers
             {
                 byte[] pdfFileBytes = await _statisticsService.GenerateDashboardPdfAsync(from, to);
                 
+                // Ghi Audit Log cho hành động xuất báo cáo doanh thu PDF
+                var adminIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(adminIdStr) && long.TryParse(adminIdStr, out long adminId))
+                {
+                    var ipAddress = GetClientIpAddress();
+                    await _auditService.LogActionAsync(
+                        adminId,
+                        null,
+                        ActionType.EXPORT,
+                        "Orders",
+                        null,
+                        $"Xuất báo cáo doanh thu PDF từ {from:yyyy-MM-dd} đến {to:yyyy-MM-dd}",
+                        ipAddress
+                    );
+                }
+
                 // SỬA TẠI ĐÂY: Thay ddMMffffff bằng yyyyMMdd để tên file tải về đẹp và rõ ràng (Ví dụ: BaoCao_KinhDoanh_BookBlossom_20260531_To_20260601.pdf)
                 string downloadFileName = $"BaoCao_KinhDoanh_BookBlossom_{from:yyyyMMdd}_To_{to:yyyyMMdd}.pdf";
                 
@@ -66,6 +86,20 @@ namespace BookBlossom.Web.Controllers
             {
                 return StatusCode(500, new { Message = "Lỗi hệ thống trong quá trình đóng gói tệp PDF báo cáo.", Detail = ex.Message });
             }
+        }
+
+        private string GetClientIpAddress()
+        {
+            var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
+            if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1")
+            {
+                ipAddress = "127.0.0.1";
+            }
+            return ipAddress;
         }
     }
 }

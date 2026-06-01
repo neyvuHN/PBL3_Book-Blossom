@@ -82,7 +82,7 @@ namespace BookBlossom.Web.Controllers
         {
             try
             {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var ipAddress = GetClientIpAddress();
                 var result = await _authService.LoginAsync(request, ipAddress);
 
                 // Migrate Guest Cart and Wishlist if GuestID is present
@@ -120,7 +120,7 @@ namespace BookBlossom.Web.Controllers
                 // Lấy thông tin ID tài khoản từ Claims Token hiện tại
                 var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var roleClaim = User.FindFirstValue(ClaimTypes.Role);
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var ipAddress = GetClientIpAddress();
 
                 if (!string.IsNullOrEmpty(userIdClaim))
                 {
@@ -229,7 +229,7 @@ namespace BookBlossom.Web.Controllers
                     PhoneNumber = cachedRequest.PhoneNumber,
                     Password = cachedRequest.Password
                 };
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var ipAddress = GetClientIpAddress();
                 var authResponse = await _authService.LoginAsync(loginRequest, ipAddress);
 
                 return Ok(authResponse);
@@ -340,6 +340,20 @@ namespace BookBlossom.Web.Controllers
             {
                 return BadRequest(new { Message = ex.Message });
             }
+        }
+
+        private string GetClientIpAddress()
+        {
+            var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
+            if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1")
+            {
+                ipAddress = "127.0.0.1";
+            }
+            return ipAddress;
         }
     }
 }

@@ -56,14 +56,17 @@ namespace BookBlossom.Web.Areas.Management.Controllers
             return Ok(configs);
         }
 
-        // 3. Cập nhật giá trị cấu hình hệ thống (đồng thời ghi Audit Log)
-        [HttpPut("configurations/{id:long}")]
-        public async Task<IActionResult> UpdateConfiguration(long id, [FromBody] UpdateConfigDTO dto)
+        // 3. Khóa tài khoản người dùng chủ động
+        [HttpPut("users/{userId:long}/lock")]
+        public async Task<IActionResult> LockUser(long userId)
         {
-            if (dto == null) return BadRequest("Dữ liệu cấu hình trống.");
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound($"Không tìm thấy người dùng với ID {userId}.");
 
-            var config = await _context.SystemConfigurations.FindAsync(id);
-            if (config == null) return NotFound($"Không tìm thấy cấu hình với ID {id}.");
+            if (user.AccountStatus == AccountStatus.Banned)
+            {
+                return BadRequest("Tài khoản này đã bị khóa từ trước.");
+            }
 
             var adminIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(adminIdStr) || !long.TryParse(adminIdStr, out long adminId))
@@ -71,31 +74,80 @@ namespace BookBlossom.Web.Areas.Management.Controllers
                 return Unauthorized(new { message = "Không xác thực được quản trị viên." });
             }
 
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
-            var oldVal = config.ConfigValue;
+            var ipAddress = GetClientIpAddress();
+            var oldStatus = user.AccountStatus.ToString();
 
-            config.ConfigValue = dto.ConfigValue;
-            config.UpdatedAt = DateTime.UtcNow;
+            user.AccountStatus = AccountStatus.Banned;
+            user.IsActive = false;
 
             await _context.SaveChangesAsync();
 
-            // Ghi Audit Log cho hành động cập nhật cấu hình
+            // Ghi Audit Log cho hành động khóa tài khoản (Ghi rõ tên tài khoản)
             await _auditService.LogActionAsync(
                 adminId,
-                null,
-                ActionType.UPDATE,
-                "SystemConfiguration",
-                $"ConfigName: {config.ConfigName}, Giá trị cũ: {oldVal}",
-                $"Giá trị mới: {dto.ConfigValue}",
+                user.UserID,
+                ActionType.LOCK_ACCOUNT,
+                "Users",
+                $"Trạng thái cũ: {oldStatus}",
+                $"Khóa tài khoản '{user.UserName}' (Trạng thái mới: Banned/Locked)",
                 ipAddress
             );
 
-            return Ok(config);
+            return Ok(new { message = $"Khóa tài khoản {user.UserName} thành công." });
         }
-    }
 
-    public class UpdateConfigDTO
-    {
-        public string ConfigValue { get; set; } = string.Empty;
+        // 4. Mở khóa tài khoản người dùng chủ động
+        [HttpPut("users/{userId:long}/unlock")]
+        public async Task<IActionResult> UnlockUser(long userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound($"Không tìm thấy người dùng với ID {userId}.");
+
+            if (user.AccountStatus == AccountStatus.Active)
+            {
+                return BadRequest("Tài khoản này đang ở trạng thái hoạt động.");
+            }
+
+            var adminIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(adminIdStr) || !long.TryParse(adminIdStr, out long adminId))
+            {
+                return Unauthorized(new { message = "Không xác thực được quản trị viên." });
+            }
+
+            var ipAddress = GetClientIpAddress();
+            var oldStatus = user.AccountStatus.ToString();
+
+            user.AccountStatus = AccountStatus.Active;
+            user.IsActive = true;
+
+            await _context.SaveChangesAsync();
+
+            // Ghi Audit Log cho hành động mở khóa tài khoản (Ghi rõ tên tài khoản)
+            await _auditService.LogActionAsync(
+                adminId,
+                user.UserID,
+                ActionType.UNLOCK_ACCOUNT,
+                "Users",
+                $"Trạng thái cũ: {oldStatus}",
+                $"Mở khóa tài khoản '{user.UserName}' (Trạng thái mới: Active/Unlocked)",
+                ipAddress
+            );
+
+            return Ok(new { message = $"Mở khóa tài khoản {user.UserName} thành công." });
+        }
+
+        private string GetClientIpAddress()
+        {
+            var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
+            if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1")
+            {
+                ipAddress = "127.0.0.1";
+            }
+            return ipAddress;
+        }
     }
 }
