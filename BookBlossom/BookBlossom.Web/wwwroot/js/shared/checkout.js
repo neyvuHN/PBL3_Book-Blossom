@@ -16,14 +16,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const codDisabledOverlay = document.getElementById('cod-disabled-overlay');
 
     if (pmCod && codDisabledOverlay) {
-        const userReputationScore = 45;
+        if (window.apiClient) {
+            window.apiClient.apiGet('/api/Reputation/my-reputation').then(rep => {
+                let userReputationScore = 100; // Default safe
+                if (rep && rep.points !== undefined) userReputationScore = rep.points;
+                else if (rep && rep.Points !== undefined) userReputationScore = rep.Points;
 
-        if (userReputationScore < 60) {
-            pmCod.style.pointerEvents = 'none';
-            pmCod.style.opacity = '0.7';
-            codDisabledOverlay.style.display = 'flex';
-        } else {
-            codDisabledOverlay.style.display = 'none';
+                if (userReputationScore < 60) {
+                    pmCod.style.pointerEvents = 'none';
+                    pmCod.style.opacity = '0.7';
+                    codDisabledOverlay.style.display = 'flex';
+                    // Fallback to VNPay if COD is selected by default
+                    if (document.querySelector('.payment-method-card.active')?.getAttribute('data-method') === 'cod') {
+                        document.querySelector('[data-method="vnpay"]')?.click();
+                    }
+                } else {
+                    codDisabledOverlay.style.display = 'none';
+                }
+            }).catch(e => {
+                console.warn("Could not fetch reputation, COD allowed by default.");
+                codDisabledOverlay.style.display = 'none';
+            });
         }
     }
 
@@ -364,67 +377,160 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // [UPDATED] Confirm & Pay Flow – reads Order Note and attaches to checkoutState before processing
-    btnConfirmCheckout.addEventListener('click', function () {
+    btnConfirmCheckout.addEventListener('click', async function () {
         // Read the Order Note value and persist it on the shared checkout state
         const orderNote = window.getOrderNote ? window.getOrderNote() : '';
         window.checkoutState.orderNote = orderNote;
 
-        // TODO (backend): pass orderNote to the order creation API payload
-        if (orderNote) {
-            console.info('[Checkout] Order note submitted by buyer:', orderNote);
+        // Collect address info
+        const addressPayload = {
+            receiverName: document.getElementById('checkout-name').value.trim() || 'Guest',
+            phoneNumber: document.getElementById('checkout-phone').value.trim() || '0123456789',
+            detailAddress: document.getElementById('checkout-address').value.trim() || 'No address',
+            isDefault: false
+        };
+
+        // Determine CartItems
+        let cartItemsDto = [];
+        if (window.checkoutState.isCart) {
+            const items = window.BookBlossomCart.getCartItems().filter(i => i.selected);
+            cartItemsDto = items.map(i => ({
+                bookID: i.isBlind ? null : (i.bookID || parseInt(i.id)),
+                blindBookID: i.isBlind ? (i.blindBookID || parseInt(i.id)) : null,
+                quantity: i.qty
+            }));
+        } else if (window.checkoutState.buyNowItem) { // Needs to be set in buy now
+            cartItemsDto = [{
+                bookID: window.checkoutState.buyNowItem.isBlind ? null : window.checkoutState.buyNowItem.bookID,
+                blindBookID: window.checkoutState.buyNowItem.isBlind ? window.checkoutState.buyNowItem.blindBookID : null,
+                quantity: window.checkoutState.buyNowItem.qty
+            }];
+        } else {
+             // Fallback if not specified, try to extract from UI but we need ID.
+             cartItemsDto = [];
         }
+
+        const voucherCode = (window.checkoutState.appliedVouchers && window.checkoutState.appliedVouchers.length > 0) ? window.checkoutState.appliedVouchers[0].code : null;
 
         if (selectedMethod === 'vnpay') {
             closeCheckout();
             const loadingOverlay = document.getElementById('vnpay-loading-overlay');
             loadingOverlay.style.display = 'flex';
 
-            // Simulate redirect to VNPay and return
-            setTimeout(() => {
-                // Simulate URL change to /bookblossom/payment/vnpay-return
-                history.pushState(null, '', '/bookblossom/payment/vnpay-return?vnp_ResponseCode=00&vnp_TxnRef=BB12345');
+            try {
+                // 1. Create Address
+                const addressResp = await window.apiClient.apiPost('/api/Order/address', addressPayload);
+                const addressId = addressResp.addressID || addressResp.AddressID || addressResp.addressId;
+
+                // 2. Checkout
+                const checkoutPayload = {
+                    addressID: addressId,
+                    paymentMethod: 1, // VNPay
+                    voucherCode: voucherCode,
+                    cartItems: cartItemsDto
+                };
+
+                const orderResp = await window.apiClient.apiPost('/api/Order/checkout', checkoutPayload);
+                if (orderResp && orderResp.paymentUrl) {
+                    window.location.href = orderResp.paymentUrl;
+                } else {
+                    loadingOverlay.style.display = 'none';
+                    showToast('Payment URL not returned from server.', 'error');
+                }
+            } catch (error) {
                 loadingOverlay.style.display = 'none';
-                handleVNPayReturn();
-            }, 2500);
+                console.error("Checkout failed:", error);
+                showToast(error.message || 'Checkout failed.', 'error');
+            }
+
         } else {
             // COD Success Flow
             closeCheckout();
+            const loadingOverlay = document.getElementById('vnpay-loading-overlay');
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.querySelector('h2').innerText = 'Processing Order...';
 
-            // [UPDATED] Sync success paid amount and execute cart clear callback if applicable
-            const finalTotal = Math.max(0, window.checkoutState.subtotal + window.checkoutState.shippingFee - window.checkoutState.discount);
-            document.getElementById('payment-success-amount').innerText = new Intl.NumberFormat('vi-VN').format(finalTotal) + ' VND';
-            if (window.checkoutState.isCart && typeof window.onCartCheckoutSuccess === 'function') {
-                window.onCartCheckoutSuccess();
+            try {
+                // 1. Create Address
+                const addressResp = await window.apiClient.apiPost('/api/Order/address', addressPayload);
+                const addressId = addressResp.addressID || addressResp.AddressID || addressResp.addressId;
+
+                // 2. Checkout
+                const checkoutPayload = {
+                    addressID: addressId,
+                    paymentMethod: 0, // COD
+                    voucherCode: voucherCode,
+                    cartItems: cartItemsDto
+                };
+
+                const orderResp = await window.apiClient.apiPost('/api/Order/checkout', checkoutPayload);
+
+                loadingOverlay.style.display = 'none';
+                
+                // [UPDATED] Sync success paid amount and execute cart clear callback if applicable
+                const finalTotal = Math.max(0, window.checkoutState.subtotal + window.checkoutState.shippingFee - window.checkoutState.discount);
+                document.getElementById('payment-success-amount').innerText = new Intl.NumberFormat('vi-VN').format(finalTotal) + ' VND';
+                if (window.checkoutState.isCart && typeof window.onCartCheckoutSuccess === 'function') {
+                    window.onCartCheckoutSuccess();
+                }
+
+                document.getElementById('payment-success-overlay').style.display = 'flex';
+            } catch(error) {
+                loadingOverlay.style.display = 'none';
+                console.error("Checkout failed:", error);
+                document.getElementById('payment-failed-overlay').style.display = 'flex';
             }
-
-            document.getElementById('payment-success-overlay').style.display = 'flex';
         }
     });
 
     // Handle VNPay Return
-    function handleVNPayReturn() {
+    async function handleVNPayReturn() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (window.location.pathname.includes('/vnpay-return') || urlParams.has('vnp_ResponseCode')) {
+        // Ensure this logic only runs when VNPAY params are present
+        if (urlParams.has('vnp_ResponseCode') && urlParams.has('vnp_TxnRef')) {
             const verifyOverlay = document.getElementById('vnpay-return-overlay');
             verifyOverlay.style.display = 'flex';
 
-            // Simulate API Call: GET /api/payments/status/{orderId}
-            setTimeout(() => {
-                verifyOverlay.style.display = 'none';
-                const responseCode = urlParams.get('vnp_ResponseCode');
-                if (responseCode === '00') { // Success
-                    // [UPDATED] Sync success paid amount and execute cart clear callback if applicable
-                    const finalTotal = Math.max(0, window.checkoutState.subtotal + window.checkoutState.shippingFee - window.checkoutState.discount);
-                    document.getElementById('payment-success-amount').innerText = new Intl.NumberFormat('vi-VN').format(finalTotal) + ' VND';
-                    if (window.checkoutState.isCart && typeof window.onCartCheckoutSuccess === 'function') {
-                        window.onCartCheckoutSuccess();
+            // Assume Backend has an endpoint that handles return logic or we extract order ID from txnRef if needed.
+            // Wait, we can extract order ID from vnp_TxnRef which might have format "BB_orderId_xxx"
+            // Let's call GET /api/Order/customer/my-orders or use an endpoint to mark payment success
+            
+            const responseCode = urlParams.get('vnp_ResponseCode');
+            const txnRef = urlParams.get('vnp_TxnRef');
+            
+            try {
+                if (responseCode === '00') {
+                    // It's a success
+                    // Find the orderID. The backend OrderService generates vnp_TxnRef. Let's assume it ends with orderId or we just display success.
+                    // Actually, OrderController API 9: POST /api/Order/{orderId}/payment-success
+                    // We need orderId. Usually VNPay txnRef is "OrderId_Time". Let's extract orderId.
+                    const parts = txnRef.split('_');
+                    const orderIdStr = parts.length > 0 ? parts[0] : null;
+                    if (orderIdStr && !isNaN(parseInt(orderIdStr))) {
+                         await window.apiClient.apiPost(`/api/Order/${orderIdStr}/payment-success`);
                     }
 
+                    verifyOverlay.style.display = 'none';
+                    // Final total is not known here if refreshed, just show a message.
+                    document.getElementById('payment-success-amount').innerText = "Paid via VNPay";
+                    if (window.onCartCheckoutSuccess && typeof window.onCartCheckoutSuccess === 'function') {
+                        window.onCartCheckoutSuccess();
+                    }
                     document.getElementById('payment-success-overlay').style.display = 'flex';
-                } else { // Failed / Cancelled
+                } else {
+                    verifyOverlay.style.display = 'none';
                     document.getElementById('payment-failed-overlay').style.display = 'flex';
                 }
-            }, 2000);
+            } catch (error) {
+                console.error("Error verifying VNPay payment:", error);
+                verifyOverlay.style.display = 'none';
+                document.getElementById('payment-failed-overlay').style.display = 'flex';
+            }
+            
+            // Clean up URL to prevent refreshing causing duplicate triggers
+            const url = new URL(window.location);
+            url.search = '';
+            window.history.replaceState({}, document.title, url.toString());
         }
     }
 

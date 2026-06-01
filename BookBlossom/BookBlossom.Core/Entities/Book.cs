@@ -26,9 +26,8 @@ namespace BookBlossom.Core.Entities
         [MaxLength(50)]
         public string ISBN { get; set; } = string.Empty;
 
-        [Required]
         [MaxLength(2000)]
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; }

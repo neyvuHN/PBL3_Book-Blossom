@@ -97,7 +97,7 @@ namespace BookBlossom.Infrastructure.Services
                     Title = "Sách Bí Ẩn (Blind Book)", // Tên giả lập bí ẩn
                     Publisher = "Nhà xuất bản Bí Ẩn",
                     Price = b.Price, // Lấy giá của chiến dịch BlindBook
-                    Description = "💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\"", // Đưa Keywords và Quotes lên thay mô tả thực
+                    Description = (string?)("💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\""), // Đưa Keywords và Quotes lên thay mô tả thực
                     Priority = (b.RealBook != null && userPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
                 });
 
@@ -337,7 +337,7 @@ namespace BookBlossom.Infrastructure.Services
                     Title = "Sách Bí Ẩn (Blind Book)",
                     Publisher = "Nhà xuất bản Bí Ẩn",
                     Price = b.Price,
-                    Description = "💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\"",
+                    Description = (string?)("💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\""),
                     Priority = (b.RealBook != null && guestPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
                 });
 

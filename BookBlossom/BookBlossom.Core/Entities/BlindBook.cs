@@ -28,9 +28,8 @@ namespace BookBlossom.Core.Entities
         [StringLength(255)]
         public string Category { get; set; } = string.Empty;
 
-        [Required]
         [StringLength(255)]
-        public string Hashtags { get; set; } = string.Empty;
+        public string? Hashtags { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]

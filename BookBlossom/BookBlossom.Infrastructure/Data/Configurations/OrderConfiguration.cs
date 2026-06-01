@@ -20,9 +20,9 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.Property(o => o.ShippingFee).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
             builder.Property(o => o.DiscountAmount).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
             
-            builder.Property(o => o.ShipReceiverName).HasMaxLength(100).IsRequired();
-            builder.Property(o => o.ShipPhoneNumber).HasMaxLength(20).IsUnicode(false).IsRequired();
-            builder.Property(o => o.ShipDetailAddress).IsRequired();
+            builder.Property(o => o.ShipReceiverName).HasMaxLength(100);
+            builder.Property(o => o.ShipPhoneNumber).HasMaxLength(20).IsUnicode(false);
+            builder.Property(o => o.ShipDetailAddress);
             builder.Property(o => o.Note).HasMaxLength(500);
 
             // 4. Ép kiểu Tinyint cho Enum và Trạng thái thanh toán theo đúng DB
