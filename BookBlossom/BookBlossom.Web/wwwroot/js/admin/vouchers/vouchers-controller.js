@@ -11,6 +11,13 @@ class VouchersController {
         this.view.bindDeleteVoucher(this.handleDeleteVoucher.bind(this));
         this.view.bindFilters(this.handleFilters.bind(this));
 
+        // Initial render
+        this.init();
+    }
+
+    async init() {
+        await this.model.init();
+
         // Bind Selection Modals
         this.view.bindSelectCategories(() => {
             this.view.openSelectionModal('Categories', this.model.mockCategories);
@@ -19,12 +26,11 @@ class VouchersController {
             this.view.openSelectionModal('Books', this.model.mockBooks);
         });
 
-        // Initial render
-        this.refreshGrid();
+        await this.refreshGrid();
     }
 
-    refreshGrid() {
-        let vouchers = this.model.getAllVouchers();
+    async refreshGrid() {
+        let vouchers = await this.model.getAllVouchers();
         const filters = this.view.getFilterValues();
 
         // Apply Status Filter
@@ -40,30 +46,34 @@ class VouchersController {
         this.view.renderVouchers(vouchers, this.model.mockCategories, this.model.mockBooks);
     }
 
-    handleSaveVoucher(voucher) {
-        if (voucher.id) {
-            this.model.updateVoucher(voucher);
-        } else {
-            this.model.addVoucher(voucher);
+    async handleSaveVoucher(voucher) {
+        try {
+            if (voucher.id) {
+                await this.model.updateVoucher(voucher);
+            } else {
+                await this.model.addVoucher(voucher);
+            }
+            this.view.closeModal();
+            await this.refreshGrid();
+        } catch (e) {
+            console.error("Failed to save voucher", e);
         }
-        this.view.closeModal();
-        this.refreshGrid();
     }
 
-    handleEditVoucher(id) {
-        const voucher = this.model.getVoucherById(id);
+    async handleEditVoucher(id) {
+        const voucher = await this.model.getVoucherById(id);
         if (voucher) {
             this.view.openEditModal(voucher);
         }
     }
 
-    handleDeleteVoucher(id) {
-        if (this.model.deleteVoucher(id)) {
-            this.refreshGrid();
+    async handleDeleteVoucher(id) {
+        if (await this.model.deleteVoucher(id)) {
+            await this.refreshGrid();
         }
     }
 
-    handleFilters() {
-        this.refreshGrid();
+    async handleFilters() {
+        await this.refreshGrid();
     }
 }

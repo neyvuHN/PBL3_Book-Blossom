@@ -106,21 +106,56 @@ class VouchersView {
                 return;
             }
 
+            const type = document.getElementById('vType').value;
+            const value = parseFloat(document.getElementById('vValue').value);
+            const budget = parseInt(document.getElementById('vBudget').value);
+            const minOrder = parseFloat(document.getElementById('vMinOrder').value);
+            const maxDiscount = parseFloat(document.getElementById('vMaxDiscount').value || 0);
+            const startDate = document.getElementById('vStartDate').value;
+            const endDate = document.getElementById('vEndDate').value;
+
+            // Validation rules
+            if (value <= 0) {
+                if (window.apiClient && window.apiClient.showToast) window.apiClient.showToast("Discount value must be greater than 0.", "error");
+                else alert("Discount value must be greater than 0.");
+                return;
+            }
+            if (type === 'Percentage' && value > 100) {
+                if (window.apiClient && window.apiClient.showToast) window.apiClient.showToast("Percentage discount cannot exceed 100%.", "error");
+                else alert("Percentage discount cannot exceed 100%.");
+                return;
+            }
+            if (budget <= 0) {
+                if (window.apiClient && window.apiClient.showToast) window.apiClient.showToast("Total budget/quantity must be greater than 0.", "error");
+                else alert("Total budget/quantity must be greater than 0.");
+                return;
+            }
+            if (minOrder < 0) {
+                if (window.apiClient && window.apiClient.showToast) window.apiClient.showToast("Minimum order value cannot be negative.", "error");
+                else alert("Minimum order value cannot be negative.");
+                return;
+            }
+            if (new Date(startDate) >= new Date(endDate)) {
+                if (window.apiClient && window.apiClient.showToast) window.apiClient.showToast("End date must be strictly after the start date.", "error");
+                else alert("End date must be strictly after the start date.");
+                return;
+            }
+
             const voucher = {
                 id: document.getElementById('vId').value ? parseInt(document.getElementById('vId').value) : null,
                 campaignName: document.getElementById('vCampaignName').value,
                 code: document.getElementById('vCode').value,
-                type: document.getElementById('vType').value,
-                value: parseFloat(document.getElementById('vValue').value),
-                maxDiscount: parseFloat(document.getElementById('vMaxDiscount').value || 0),
-                minOrder: parseFloat(document.getElementById('vMinOrder').value),
+                type: type,
+                value: value,
+                maxDiscount: maxDiscount,
+                minOrder: minOrder,
                 minPlan: document.getElementById('vMinPlan').value,
                 minScore: parseInt(document.getElementById('vMinScore').value || 0),
                 minRank: document.getElementById('vMinRank').value,
-                budget: parseInt(document.getElementById('vBudget').value),
+                budget: budget,
                 scope: document.getElementById('vScope').value,
-                startDate: document.getElementById('vStartDate').value,
-                endDate: document.getElementById('vEndDate').value,
+                startDate: startDate,
+                endDate: endDate,
                 stackable: document.getElementById('vStackable').checked,
                 autoRestore: document.getElementById('vAutoRestore').checked,
                 status: document.getElementById('vStatus').value,

@@ -206,6 +206,132 @@
                 syncCartBadge();
             }
 
+            // [NEW] Dynamically load and calculate vouchers from backend API
+            window.myClaimedVouchers = [];
+
+            async function fetchWalletVouchers() {
+                if (window.apiClient) {
+                    try {
+                        const myVouchers = await window.apiClient.apiGet('/api/management/Voucher/my-vouchers');
+                        window.myClaimedVouchers = myVouchers.filter(cv => !cv.isUsed);
+                    } catch (e) {
+                        console.error("Failed to prefetch wallet vouchers", e);
+                    }
+                }
+            }
+            fetchWalletVouchers();
+
+            function getVoucherDiscount(v, subtotalVnd, isMystery) {
+                const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === v.code) : null;
+                if (!detail) {
+                    // Fallback to legacy hardcoded rules if not found in wallet cache
+                    const code = v.code;
+                    if (isMystery) {
+                        if (code === 'MYSTERY15') return 15000;
+                        if (code === 'BLOSSOM70') return 70000;
+                        if (code === 'READMORE30') return 30000;
+                        if (code === 'SECRET50') return 50000;
+                        if (code === 'UNBOX20') return 20000;
+                        if (code === 'VIPMYSTERY') return 100000;
+                    } else {
+                        if (code === 'BLOSSOM70') return 70000;
+                        if (code === 'READMORE30') return 30000;
+                        if (code === 'ZALOPAY50') return 50000;
+                        if (code === 'MOMO12') return 12000;
+                        if (code === 'SUMMER20') return Math.min(Math.round(subtotalVnd * 0.20), 50000);
+                        if (code === 'FREESHIP') return 0;
+                    }
+                    return 0;
+                }
+
+                if (detail.discountType === 'Fixed') {
+                    return Number(detail.discountValue) || 0;
+                } else { // 'Percentage'
+                    const discount = Math.round(subtotalVnd * (Number(detail.discountValue) || 0) / 100);
+                    if (detail.maxDiscountAmount > 0 && discount > detail.maxDiscountAmount) {
+                        return detail.maxDiscountAmount;
+                    }
+                    return discount;
+                }
+            }
+
+            async function loadCustomerVouchers() {
+                if (!window.apiClient) return;
+                try {
+                    const myVouchers = await window.apiClient.apiGet('/api/management/Voucher/my-vouchers');
+                    window.myClaimedVouchers = myVouchers.filter(cv => !cv.isUsed);
+
+                    const $blossomList = $('#blossom-vouchers-list');
+                    const $mysteryList = $('#mystery-vouchers-list');
+
+                    $blossomList.empty();
+                    $mysteryList.empty();
+
+                    if (window.myClaimedVouchers.length === 0) {
+                        $blossomList.html('<div style="text-align: center; padding: 20px; color: #888;">You have no active BookBlossom vouchers in your wallet.</div>');
+                        $mysteryList.html('<div style="text-align: center; padding: 20px; color: #888;">You have no active mystery vouchers in your wallet.</div>');
+                        return;
+                    }
+
+                    let blossomCount = 0;
+                    let mysteryCount = 0;
+
+                    window.myClaimedVouchers.forEach(v => {
+                        const code = v.voucherCode;
+                        const name = v.voucherName || 'Special Discount';
+                        const valueDisplay = v.discountType === 'Percentage' ? `${v.discountValue}%` : `${new Intl.NumberFormat('vi-VN').format(v.discountValue)} VND`;
+                        
+                        const isMystery = code.toLowerCase().includes('mystery') || 
+                                          code.toLowerCase().includes('secret') || 
+                                          code.toLowerCase().includes('unbox') ||
+                                          code.toLowerCase().includes('blind');
+
+                        const bg = isMystery ? '#faf8fc' : '#fffdfb';
+                        const border = isMystery ? '1.5px dashed #a291b5' : '1.5px dashed #f07c7c';
+                        const leftBg = isMystery ? '#e8e3f0' : '#ffebee';
+                        const textCol = isMystery ? '#6a4f8c' : '#f07c7c';
+                        const badgeClass = isMystery ? 'modal-blind-voucher-item' : 'modal-voucher-item';
+                        const btnClass = isMystery ? 'btn-modal-apply-blind-voucher' : 'btn-modal-apply-voucher';
+                        const btnBorder = isMystery ? '1.5px solid #6a4f8c' : '1.5px solid #C2185B';
+                        const btnTextCol = isMystery ? '#6a4f8c' : '#C2185B';
+
+                        const itemHtml = `
+                            <div class="${badgeClass}" data-code="${code}" style="display: flex; border: ${border}; border-radius: 12px; overflow: hidden; background: ${bg}; transition: all 0.25s; cursor: pointer; position: relative;">
+                                <div style="background: ${leftBg}; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: ${border}; text-align: center;">
+                                    <span style="font-size: 0.85rem; font-weight: 700; color: ${textCol}; letter-spacing: 0.5px;">${code}</span>
+                                    <span style="font-size: 0.65rem; color: ${textCol}; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                                </div>
+                                <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                                    <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">${name} (Save ${valueDisplay})</h4>
+                                    <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min order ${new Intl.NumberFormat('vi-VN').format(v.minOrderValue)} VND.${v.maxDiscountAmount > 0 ? ' Max discount ' + new Intl.NumberFormat('vi-VN').format(v.maxDiscountAmount) + ' VND.' : ''}</p>
+                                    <span style="font-size: 0.7rem; color: #aaa;">Expiry: ${new Date(v.endDate).toLocaleDateString()}</span>
+                                </div>
+                                <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                                    <button class="${btnClass}" style="background: #fff; color: ${btnTextCol}; border: ${btnBorder}; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                                </div>
+                            </div>
+                        `;
+
+                        if (isMystery) {
+                            $mysteryList.append(itemHtml);
+                            mysteryCount++;
+                        } else {
+                            $blossomList.append(itemHtml);
+                            blossomCount++;
+                        }
+                    });
+
+                    if (blossomCount === 0) {
+                        $blossomList.html('<div style="text-align: center; padding: 20px; color: #888;">You have no BookBlossom vouchers in your wallet.</div>');
+                    }
+                    if (mysteryCount === 0) {
+                        $mysteryList.html('<div style="text-align: center; padding: 20px; color: #888;">You have no active mystery vouchers in your wallet.</div>');
+                    }
+                } catch (e) {
+                    console.error("Failed to load customer vouchers", e);
+                }
+            }
+
             // [UPDATED] Calculate totals dynamically in VND only based on selected cart items and standard or mystery vouchers
             function calculateTotals() {
                 let subtotalVnd = 0;
@@ -236,88 +362,38 @@
                         const isMystery = v.isMystery;
                         let isVoucherValid = true;
 
+                        const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === code) : null;
+                        const minOrderVal = detail ? detail.minOrderValue : (code === 'BLOSSOM70' ? 500000 : (code === 'FREESHIP' ? 150000 : 0));
+
                         if (isMystery) {
                             // Enforce that mystery vouchers require Blind Date Books
                             if (!hasBlindBooks) {
                                 isVoucherValid = false;
                                 showToast(`Mystery Voucher "${code}" requires Blind Date Books in cart!`);
                             } else {
-                                if (code === 'MYSTERY15') {
-                                    if (blindSubtotalVnd >= 150000) { // 150,000 VND
-                                        discountVnd += 15000;
-                                        discountLines.push("MYSTERY15 (-15,000 VND)");
-                                    } else {
-                                        isVoucherValid = false;
-                                        showToast("Min purchase of Blind Date Books for MYSTERY15 is 150,000 VND!");
-                                    }
-                                } else if (code === 'BLOSSOM70') {
-                                    if (blindSubtotalVnd >= 500000) { // 500,000 VND
-                                        discountVnd += 70000;
-                                        discountLines.push("BLOSSOM70 (Mystery) (-70,000 VND)");
-                                    } else {
-                                        isVoucherValid = false;
-                                        showToast("Min purchase of Blind Date Books for BLOSSOM70 is 500,000 VND!");
-                                    }
-                                } else if (code === 'READMORE30') {
-                                    discountVnd += 30000; // 30,000 VND
-                                    discountLines.push("READMORE30 (Mystery) (-30,000 VND)");
-                                } else if (code === 'SECRET50') {
-                                    if (blindSubtotalVnd >= 350000) { // 350,000 VND
-                                        discountVnd += 50000;
-                                        discountLines.push("SECRET50 (-50,000 VND)");
-                                    } else {
-                                        isVoucherValid = false;
-                                        showToast("Min purchase of Blind Date Books for SECRET50 is 350,000 VND!");
-                                    }
-                                } else if (code === 'UNBOX20') {
-                                    if (blindSubtotalVnd >= 200000) { // 200,000 VND
-                                        discountVnd += 20000;
-                                        discountLines.push("UNBOX20 (-20,000 VND)");
-                                    } else {
-                                        isVoucherValid = false;
-                                        showToast("Min purchase of Blind Date Books for UNBOX20 is 200,000 VND!");
-                                    }
-                                } else if (code === 'VIPMYSTERY') {
-                                    if (blindSubtotalVnd >= 800000) { // 800,000 VND
-                                        discountVnd += 100000;
-                                        discountLines.push("VIPMYSTERY (-100,000 VND)");
-                                    } else {
-                                        isVoucherValid = false;
-                                        showToast("Min purchase of Blind Date Books for VIPMYSTERY is 800,000 VND!");
-                                    }
+                                if (blindSubtotalVnd >= minOrderVal) {
+                                    const disc = getVoucherDiscount(v, blindSubtotalVnd, true);
+                                    discountVnd += disc;
+                                    discountLines.push(`${code} (-${new Intl.NumberFormat('vi-VN').format(disc)} VND)`);
+                                } else {
+                                    isVoucherValid = false;
+                                    showToast(`Min purchase of Blind Date Books for ${code} is ${new Intl.NumberFormat('vi-VN').format(minOrderVal)} VND!`);
                                 }
                             }
                         } else {
                             // Standard BookBlossom Vouchers
-                            if (code === 'BLOSSOM70') {
-                                if (subtotalVnd >= 500000) {
-                                    discountVnd += 70000;
-                                    discountLines.push("BLOSSOM70 (-70,000 VND)");
-                                } else {
-                                    isVoucherValid = false;
-                                    showToast("Min order for BLOSSOM70 is 500,000 VND!");
-                                }
-                            } else if (code === 'READMORE30') {
-                                discountVnd += 30000;
-                                discountLines.push("READMORE30 (-30,000 VND)");
-                            } else if (code === 'ZALOPAY50') {
-                                discountVnd += 50000;
-                                discountLines.push("ZALOPAY50 (-50,000 VND)");
-                            } else if (code === 'MOMO12') {
-                                discountVnd += 12000;
-                                discountLines.push("MOMO12 (-12,000 VND)");
-                            } else if (code === 'SUMMER20') {
-                                const summerDiscount = Math.min(Math.round(subtotalVnd * 0.20), 50000);
-                                discountVnd += summerDiscount;
-                                discountLines.push("SUMMER20 (-" + new Intl.NumberFormat('vi-VN').format(summerDiscount) + " VND)");
-                            } else if (code === 'FREESHIP') {
-                                if (subtotalVnd >= 150000) {
+                            if (subtotalVnd >= minOrderVal) {
+                                if (code === 'FREESHIP') {
                                     hasFreeShipVoucher = true;
                                     discountLines.push("FREESHIP (Free Shipping)");
                                 } else {
-                                    isVoucherValid = false;
-                                    showToast("Min order for FREESHIP is 150,000 VND!");
+                                    const disc = getVoucherDiscount(v, subtotalVnd, false);
+                                    discountVnd += disc;
+                                    discountLines.push(`${code} (-${new Intl.NumberFormat('vi-VN').format(disc)} VND)`);
                                 }
+                            } else {
+                                isVoucherValid = false;
+                                showToast(`Min order for ${code} is ${new Intl.NumberFormat('vi-VN').format(minOrderVal)} VND!`);
                             }
                         }
 
@@ -639,20 +715,13 @@
                     appliedVouchers.forEach(v => {
                         const code = v.code;
                         const isMystery = v.isMystery;
-                        if (isMystery) {
-                            if (code === 'MYSTERY15') discountVnd += 15000;
-                            else if (code === 'BLOSSOM70') discountVnd += 70000;
-                            else if (code === 'READMORE30') discountVnd += 30000;
-                            else if (code === 'SECRET50') discountVnd += 50000;
-                            else if (code === 'UNBOX20') discountVnd += 20000;
-                            else if (code === 'VIPMYSTERY') discountVnd += 100000;
+                        
+                        const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === code) : null;
+                        if (code === 'FREESHIP' || (detail && detail.voucherCode === 'FREESHIP')) {
+                            hasFreeShip = true;
                         } else {
-                            if (code === 'BLOSSOM70') discountVnd += 70000;
-                            else if (code === 'READMORE30') discountVnd += 30000;
-                            else if (code === 'ZALOPAY50') discountVnd += 50000;
-                            else if (code === 'MOMO12') discountVnd += 12000;
-                            else if (code === 'SUMMER20') discountVnd += Math.min(Math.round(subtotalVnd * 0.20), 50000);
-                            else if (code === 'FREESHIP') hasFreeShip = true;
+                            const itemSub = isMystery ? selectedItems.filter(i => i.isBlind).reduce((sum, i) => sum + getItemPriceVnd(i) * i.qty, 0) : subtotalVnd;
+                            discountVnd += getVoucherDiscount(v, itemSub, isMystery);
                         }
                     });
                 }
@@ -667,7 +736,8 @@
                     isBlind: hasBlind,
                     subtotal: subtotalVnd,
                     shippingFee: shippingFeeVnd,
-                    discount: discountVnd
+                    discount: discountVnd,
+                    appliedVouchers: appliedVouchers
                 };
 
                 const container = document.getElementById('checkout-applied-vouchers-container');
@@ -683,20 +753,11 @@
                         const textCol = isMystery ? '#6a4f8c' : '#C2185B';
 
                         let valVnd = 0;
-                        if (isMystery) {
-                            if (v.code === 'MYSTERY15') valVnd = 15000;
-                            else if (v.code === 'BLOSSOM70') valVnd = 70000;
-                            else if (v.code === 'READMORE30') valVnd = 30000;
-                            else if (v.code === 'SECRET50') valVnd = 50000;
-                            else if (v.code === 'UNBOX20') valVnd = 20000;
-                            else if (v.code === 'VIPMYSTERY') valVnd = 100000;
+                        if (v.code === 'FREESHIP') {
+                            valVnd = 0;
                         } else {
-                            if (v.code === 'BLOSSOM70') valVnd = 70000;
-                            else if (v.code === 'READMORE30') valVnd = 30000;
-                            else if (v.code === 'ZALOPAY50') valVnd = 50000;
-                            else if (v.code === 'MOMO12') valVnd = 12000;
-                            else if (v.code === 'SUMMER20') valVnd = Math.min(Math.round(subtotalVnd * 0.20), 50000);
-                            else if (v.code === 'FREESHIP') valVnd = 0;
+                            const itemSub = isMystery ? selectedItems.filter(i => i.isBlind).reduce((sum, i) => sum + getItemPriceVnd(i) * i.qty, 0) : subtotalVnd;
+                            valVnd = getVoucherDiscount(v, itemSub, isMystery);
                         }
 
                         badge.style.cssText = `background: ${bg}; border: ${border}; color: ${textCol}; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px;`;

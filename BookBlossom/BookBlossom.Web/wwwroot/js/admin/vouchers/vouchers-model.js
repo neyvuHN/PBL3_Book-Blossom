@@ -1,133 +1,217 @@
 class VouchersModel {
     constructor() {
-        this.vouchers = [
-            {
-                id: 1,
-                campaignName: 'Summer Sale 2024',
-                code: 'SUMMER2024',
-                type: 'Percentage',
-                value: 20,
-                maxDiscount: 50000,
-                minOrder: 150000,
-                minPlan: 'Basic',
-                minScore: 50,
-                minRank: 'Bronze',
-                budget: 100,
-                limitPerUser: 1,
-                used: 45,
-                scope: 'All',
-                startDate: '2024-06-01T00:00',
-                endDate: '2024-06-30T23:59',
-                stackable: false,
-                autoRestore: true,
-                status: 'Active',
-                roi: '12.5M',
-                selectedCategories: [],
-                selectedBooks: []
-            },
-            {
-                id: 2,
-                campaignName: 'Welcome New Members',
-                code: 'WELCOMEBK',
-                type: 'Fixed',
-                value: 30000,
-                maxDiscount: 30000,
-                minOrder: 100000,
-                minPlan: 'None',
-                minScore: 0,
-                minRank: 'None',
-                budget: 500,
-                limitPerUser: 2,
-                used: 0,
-                scope: 'SpecificCategory',
-                startDate: '2024-07-01T00:00',
-                endDate: '2024-07-31T23:59',
-                stackable: true,
-                autoRestore: false,
-                status: 'Schedule',
-                roi: '0',
-                selectedCategories: [],
-                selectedBooks: []
-            },
-            {
-                id: 3,
-                campaignName: 'VIP Appreciation',
-                code: 'VIPONLY50',
-                type: 'Percentage',
-                value: 50,
-                maxDiscount: 200000,
-                minOrder: 500000,
-                minPlan: 'Premium',
-                minScore: 90,
-                minRank: 'Gold',
-                budget: 50,
-                limitPerUser: 1,
-                used: 50,
-                scope: 'All',
-                startDate: '2024-01-01T00:00',
-                endDate: '2024-01-31T23:59',
-                stackable: true,
-                autoRestore: true,
-                status: 'End',
-                roi: '45.2M',
-                selectedCategories: [],
-                selectedBooks: []
+        this.vouchers = [];
+        this.mockCategories = [];
+        this.mockBooks = [];
+    }
+
+    async init() {
+        try {
+            if (window.apiClient) {
+                // Fetch real categories and books
+                const cats = await window.apiClient.apiGet('/api/category');
+                this.mockCategories = cats.map(c => ({ id: c.categoryID, name: c.categoryName }));
+
+                const books = await window.apiClient.apiGet('/api/realbook?includeDiscontinued=true');
+                this.mockBooks = books.map(b => ({ id: b.bookID, title: b.title }));
             }
-        ];
-
-        this.mockCategories = [
-            { id: 1, name: 'Literature & Fiction' },
-            { id: 2, name: 'Business & Economics' },
-            { id: 3, name: 'Self-Help & Skills' },
-            { id: 4, name: 'Science Fiction' }
-        ];
-
-        this.mockBooks = [
-            { id: 9001, title: 'The Great Gatsby' },
-            { id: 9002, title: 'Atomic Habits' },
-            { id: 9003, title: 'Dune' },
-            { id: 9004, title: 'The Secret Garden' }
-        ];
-    }
-
-    getAllVouchers() {
-        return this.vouchers;
-    }
-
-    getVoucherById(id) {
-        return this.vouchers.find(v => v.id === parseInt(id));
-    }
-
-    addVoucher(voucher) {
-        voucher.id = this.vouchers.length ? Math.max(...this.vouchers.map(v => v.id)) + 1 : 1;
-        voucher.used = 0;
-        voucher.roi = '0';
-        voucher.selectedCategories = voucher.selectedCategories || [];
-        voucher.selectedBooks = voucher.selectedBooks || [];
-        this.vouchers.push(voucher);
-        return voucher;
-    }
-
-    updateVoucher(updatedVoucher) {
-        const index = this.vouchers.findIndex(v => v.id === parseInt(updatedVoucher.id));
-        if (index !== -1) {
-            // Keep used and roi properties
-            updatedVoucher.used = this.vouchers[index].used;
-            updatedVoucher.roi = this.vouchers[index].roi;
-            updatedVoucher.selectedCategories = updatedVoucher.selectedCategories || [];
-            updatedVoucher.selectedBooks = updatedVoucher.selectedBooks || [];
-            this.vouchers[index] = updatedVoucher;
-            return true;
+        } catch (e) {
+            console.error("Failed to load categories or books from API, falling back to static lists", e);
+            this.mockCategories = [
+                { id: 1, name: 'Literature & Fiction' },
+                { id: 2, name: 'Business & Economics' },
+                { id: 3, name: 'Self-Help & Skills' },
+                { id: 4, name: 'Science Fiction' }
+            ];
+            this.mockBooks = [
+                { id: 9001, title: 'The Great Gatsby' },
+                { id: 9002, title: 'Atomic Habits' },
+                { id: 9003, title: 'Dune' },
+                { id: 9004, title: 'The Secret Garden' }
+            ];
         }
-        return false;
     }
 
-    deleteVoucher(id) {
-        const index = this.vouchers.findIndex(v => v.id === parseInt(id));
-        if (index !== -1) {
-            this.vouchers.splice(index, 1);
-            return true;
+    async getAllVouchers() {
+        if (!window.apiClient) return [];
+        try {
+            const rawVouchers = await window.apiClient.apiGet('/api/management/Voucher');
+            
+            // Map raw vouchers to frontend DTO structure
+            const mapped = [];
+            for (const v of rawVouchers) {
+                let stats = { roi: 0, usageRate: 0, totalRevenueGenerated: 0, totalDiscountGranted: 0 };
+                try {
+                    stats = await window.apiClient.apiGet(`/api/management/Voucher/${v.voucherID}/stats`);
+                } catch (err) {
+                    console.warn(`Could not load stats for voucher ${v.voucherID}`, err);
+                }
+
+                const invStatusMap = { 0: 'Draft', 1: 'Schedule', 2: 'Active', 3: 'Pause', 4: 'End' };
+                const invRankMap = { 0: 'None', 1: 'Bronze', 2: 'Silver', 3: 'Gold', 4: 'Diamond' };
+
+                mapped.push({
+                    id: v.voucherID,
+                    campaignName: v.voucherName,
+                    code: v.voucherCode,
+                    type: v.discountType,
+                    value: v.discountValue,
+                    maxDiscount: v.maxDiscountAmount,
+                    minOrder: v.minOrderValue,
+                    minPlan: 'None', // Keep as static none
+                    minScore: v.minReputationRequired,
+                    minRank: invRankMap[v.membershipRankRequired] || 'None',
+                    budget: v.totalLimit,
+                    used: v.usedCount,
+                    scope: v.applicableCategoryIDs && v.applicableCategoryIDs.length > 0 ? 'SpecificCategory' : 'All',
+                    startDate: v.startDate ? v.startDate.substring(0, 16) : '',
+                    endDate: v.endDate ? v.endDate.substring(0, 16) : '',
+                    stackable: v.isStackable,
+                    autoRestore: v.isAutoRefundable,
+                    status: invStatusMap[v.statusVoucher] || 'Draft',
+                    roi: stats.roi > 0 ? `${stats.roi}x` : '0x',
+                    selectedCategories: v.applicableCategoryIDs || [],
+                    selectedBooks: [],
+                    stats: stats
+                });
+            }
+            this.vouchers = mapped;
+            return this.vouchers;
+        } catch (e) {
+            console.error("Failed to load vouchers", e);
+            if (window.apiClient && window.apiClient.showToast) {
+                window.apiClient.showToast("Failed to load vouchers from API.", "error");
+            }
+            return [];
         }
-        return false;
+    }
+
+    async getVoucherById(id) {
+        if (!window.apiClient) return null;
+        try {
+            const v = await window.apiClient.apiGet(`/api/management/Voucher/${id}`);
+            const invStatusMap = { 0: 'Draft', 1: 'Schedule', 2: 'Active', 3: 'Pause', 4: 'End' };
+            const invRankMap = { 0: 'None', 1: 'Bronze', 2: 'Silver', 3: 'Gold', 4: 'Diamond' };
+
+            return {
+                id: v.voucherID,
+                campaignName: v.voucherName,
+                code: v.voucherCode,
+                type: v.discountType,
+                value: v.discountValue,
+                maxDiscount: v.maxDiscountAmount,
+                minOrder: v.minOrderValue,
+                minPlan: 'None',
+                minScore: v.minReputationRequired,
+                minRank: invRankMap[v.membershipRankRequired] || 'None',
+                budget: v.totalLimit,
+                used: v.usedCount,
+                scope: v.applicableCategoryIDs && v.applicableCategoryIDs.length > 0 ? 'SpecificCategory' : 'All',
+                startDate: v.startDate ? v.startDate.substring(0, 16) : '',
+                endDate: v.endDate ? v.endDate.substring(0, 16) : '',
+                stackable: v.isStackable,
+                autoRestore: v.isAutoRefundable,
+                status: invStatusMap[v.statusVoucher] || 'Draft',
+                selectedCategories: v.applicableCategoryIDs || [],
+                selectedBooks: []
+            };
+        } catch (e) {
+            console.error("Failed to get voucher by ID", e);
+            return null;
+        }
+    }
+
+    async addVoucher(voucher) {
+        if (!window.apiClient) return null;
+        const rankMap = { 'None': 0, 'Bronze': 1, 'Silver': 2, 'Gold': 3, 'Diamond': 4 };
+        const payload = {
+            voucherName: voucher.campaignName,
+            voucherCode: voucher.code,
+            discountType: voucher.type, // "Fixed" or "Percentage"
+            discountValue: parseFloat(voucher.value),
+            maxDiscountAmount: parseFloat(voucher.maxDiscount || 0),
+            minOrderValue: parseFloat(voucher.minOrder || 0),
+            totalLimit: parseInt(voucher.budget),
+            startDate: new Date(voucher.startDate).toISOString(),
+            endDate: new Date(voucher.endDate).toISOString(),
+            minReputationRequired: parseInt(voucher.minScore || 0),
+            membershipRankRequired: rankMap[voucher.minRank] || 0,
+            isForNewUser: false,
+            requiredBadgeID: null,
+            isStackable: !!voucher.stackable,
+            isAutoRefundable: !!voucher.autoRestore,
+            maxUsagePerUser: 1,
+            applicableCategoryIDs: voucher.scope === 'SpecificCategory' || voucher.scope === 'Both' ? voucher.selectedCategories : []
+        };
+
+        try {
+            const created = await window.apiClient.apiPost('/api/management/Voucher', payload);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast("Voucher created successfully!", "success");
+            }
+            return created;
+        } catch (e) {
+            console.error("Failed to create voucher", e);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast(e.message || "Failed to create voucher.", "error");
+            }
+            throw e;
+        }
+    }
+
+    async updateVoucher(voucher) {
+        if (!window.apiClient) return false;
+        const rankMap = { 'None': 0, 'Bronze': 1, 'Silver': 2, 'Gold': 3, 'Diamond': 4 };
+        const statusMap = { 'Draft': 0, 'Schedule': 1, 'Active': 2, 'Pause': 3, 'End': 4 };
+        
+        const payload = {
+            voucherName: voucher.campaignName,
+            discountValue: parseFloat(voucher.value),
+            maxDiscountAmount: parseFloat(voucher.maxDiscount || 0),
+            minOrderValue: parseFloat(voucher.minOrder || 0),
+            totalLimit: parseInt(voucher.budget),
+            startDate: new Date(voucher.startDate).toISOString(),
+            endDate: new Date(voucher.endDate).toISOString(),
+            statusVoucher: statusMap[voucher.status] ?? 0,
+            minReputationRequired: parseInt(voucher.minScore || 0),
+            membershipRankRequired: rankMap[voucher.minRank] || 0,
+            isForNewUser: false,
+            requiredBadgeID: null,
+            isStackable: !!voucher.stackable,
+            isAutoRefundable: !!voucher.autoRestore,
+            maxUsagePerUser: 1,
+            applicableCategoryIDs: voucher.scope === 'SpecificCategory' || voucher.scope === 'Both' ? voucher.selectedCategories : []
+        };
+
+        try {
+            await window.apiClient.apiPut(`/api/management/Voucher/${voucher.id}`, payload);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast("Voucher updated successfully!", "success");
+            }
+            return true;
+        } catch (e) {
+            console.error("Failed to update voucher", e);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast(e.message || "Failed to update voucher.", "error");
+            }
+            throw e;
+        }
+    }
+
+    async deleteVoucher(id) {
+        if (!window.apiClient) return false;
+        try {
+            await window.apiClient.apiDelete(`/api/management/Voucher/${id}`);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast("Voucher deleted successfully!", "success");
+            }
+            return true;
+        } catch (e) {
+            console.error("Failed to delete voucher", e);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast(e.message || "Failed to delete voucher.", "error");
+            }
+            return false;
+        }
     }
 }
