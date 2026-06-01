@@ -2,7 +2,12 @@ using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.Interfaces;
 using BookBlossom.Infrastructure.Data;
+using BookBlossom.DTOs.BlindBook;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BookBlossom.Infrastructure.Services
 {
@@ -124,6 +129,41 @@ namespace BookBlossom.Infrastructure.Services
 
             book.IsLocked = !book.IsLocked;
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> HasOrdersAsync(long blindBookId)
+        {
+            return await _context.OrderDetails.AnyAsync(od => od.BlindBookID == blindBookId);
+        }
+
+        public async Task<bool> UpdateBlindBookAsync(long id, UpdateBlindBookDTO dto)
+        {
+            var book = await _context.BlindBooks.FindAsync(id);
+            if (book == null) return false;
+
+            var hasOrders = await HasOrdersAsync(id);
+            if (hasOrders && book.Price != dto.Price)
+            {
+                throw new Exception("Không thể sửa giá bán của Sách Mù khi đã có đơn hàng phát sinh.");
+            }
+
+            book.Keywords = dto.Keywords;
+            book.Quotes = dto.Quotes;
+            book.Category = dto.Category;
+            book.Hashtags = dto.Hashtags;
+            book.Price = dto.Price;
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<HashSet<long>> GetBlindBookIdsWithOrdersAsync()
+        {
+            var ids = await _context.OrderDetails
+                .Where(od => od.BlindBookID.HasValue)
+                .Select(od => od.BlindBookID!.Value)
+                .Distinct()
+                .ToListAsync();
+            return new HashSet<long>(ids);
         }
     }
 }

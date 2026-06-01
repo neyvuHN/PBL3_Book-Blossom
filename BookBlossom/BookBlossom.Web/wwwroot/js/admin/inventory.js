@@ -416,10 +416,10 @@ async function loadInventoryBooks() {
     const category = document.getElementById('filterCategory')?.value || '';
     const filterStatus = document.getElementById('filterBookStatus')?.value || '';
 
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Đang tải dữ liệu kho sách từ API...</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading book inventory data from API...</div></td></tr>';
 
     try {
-        // Gọi API bao gồm cả sách đã ngừng kinh doanh (includeDiscontinued=true)
+        // Calling API including discontinued books (includeDiscontinued=true)
         const url = `/api/realbook?searchTerm=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&includeDiscontinued=true`;
         
         const response = await fetch(url, {
@@ -431,7 +431,7 @@ async function loadInventoryBooks() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         let books = await response.json();
 
-        // Lọc theo trạng thái ở Client
+        // Client-side filtering by status
         if (filterStatus) {
             books = books.filter(book => {
                 if (filterStatus === 'Discontinued') return !book.isContinued;
@@ -445,7 +445,7 @@ async function loadInventoryBooks() {
         tbody.innerHTML = '';
 
         if (books.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Không tìm thấy cuốn sách nào phù hợp với điều kiện lọc.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No books found matching the filter criteria.</td></tr>';
             return;
         }
 
@@ -462,7 +462,6 @@ async function loadInventoryBooks() {
                 stockBadgeHtml = '<span class="badge bg-success status-badge">In Stock</span>';
             }
 
-            // Thử hiển thị ảnh bìa custom trước, nếu không có sẽ tự động fallback sang ảnh mặc định
             const imgUrl = `/images/Book/cover_${book.bookID}.jpg`;
             const formattedPrice = new Intl.NumberFormat('vi-VN').format(book.price) + ' ₫';
 
@@ -475,7 +474,7 @@ async function loadInventoryBooks() {
                             <div>
                                 <div class="fw-bold text-dark text-truncate" style="max-width: 250px;" title="${book.title}">${book.title}</div>
                                 <div class="text-muted small">${book.isbn}</div>
-                                <div class="book-authors-list text-muted small" title="${book.publisher || ''}">Nhà XB: ${book.publisher || 'N/A'}</div>
+                                <div class="book-authors-list text-muted small" title="${book.publisher || ''}">Publisher: ${book.publisher || 'N/A'}</div>
                             </div>
                         </div>
                     </td>
@@ -485,10 +484,20 @@ async function loadInventoryBooks() {
                     <td class="align-middle text-danger fw-semibold">${formattedPrice}</td>
                     <td class="align-middle">${stockBadgeHtml}</td>
                     <td class="align-middle text-end text-nowrap">
+                        <button class="btn btn-sm btn-outline-danger btn-action-sm btn-create-blind-date me-1" 
+                                data-book-id="${book.bookID}"
+                                data-title="${book.title.replace(/"/g, '&quot;')}"
+                                data-price="${book.price}"
+                                data-stock="${book.unitsInStock}"
+                                data-mainimage="${imgUrl}"
+                                data-category-name="${book.categoryName}"
+                                title="Create Blind Date Package">
+                            <i class="ph ph-heart"></i>
+                        </button>
                         <button class="btn btn-sm btn-outline-success btn-action-sm btn-restock-book me-1" 
                                 data-book-id="${book.bookID}"
                                 data-title="${book.title.replace(/"/g, '&quot;')}"
-                                title="Nhập kho Sách (Restock)">
+                                title="Restock Book">
                             <i class="ph ph-cube"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-primary btn-action-sm btn-edit-book me-1" 
@@ -508,8 +517,8 @@ async function loadInventoryBooks() {
                         </button>
                         <button class="btn btn-sm ${book.isContinued ? 'btn-outline-danger' : 'btn-outline-success'} btn-action-sm btn-delete-item" 
                                 data-url="/api/realbook/${book.bookID}" 
-                                data-title="${book.isContinued ? 'Ngừng kinh doanh sách?' : 'Tiếp tục kinh doanh?'}" 
-                                data-message="Bạn có chắc muốn ${book.isContinued ? 'ngừng' : 'tiếp tục'} kinh doanh cuốn sách này?">
+                                data-title="${book.isContinued ? 'Discontinue selling book?' : 'Resume selling book?'}" 
+                                data-message="Are you sure you want to ${book.isContinued ? 'discontinue' : 'resume'} selling this book?">
                             <i class="ph ${book.isContinued ? 'ph-minus-circle' : 'ph-check-circle'}"></i>
                         </button>
                     </td>
@@ -520,29 +529,29 @@ async function loadInventoryBooks() {
         tbody.innerHTML = htmlContent;
 
     } catch (error) {
-        console.error("Lỗi khi load danh sách sách:", error);
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Có lỗi xảy ra khi gọi API tải dữ liệu.</td></tr>`;
+        console.error("Error loading books:", error);
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">An error occurred while loading book data.</td></tr>`;
     }
 }
 
-// 2. TẢI DANH SÁCH THỂ LOẠI TỪ API THẬT
+// 2. LOAD CATEGORIES LIST FROM REAL API
 async function loadInventoryCategories() {
     const tbody = document.getElementById('categoriesTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border" style="color: #E3597D;" role="status"></div><div class="text-muted small mt-2">Đang tải danh mục từ API...</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border" style="color: #E3597D;" role="status"></div><div class="text-muted small mt-2">Loading categories from API...</div></td></tr>';
 
     try {
         const response = await fetch('/api/category');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const categories = await response.json();
 
-        // Đồng bộ hóa các dropdown thể loại trên toàn bộ trang
+        // Synchronize category dropdowns across the page
         updateCategoryDropdowns(categories);
 
         tbody.innerHTML = '';
         if (categories.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy danh mục nào.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No categories found.</td></tr>';
             return;
         }
 
@@ -568,8 +577,8 @@ async function loadInventoryCategories() {
                         </button>
                         <button class="btn btn-sm btn-outline-danger btn-action-sm btn-delete-item" 
                                 data-url="/api/category/${cat.categoryID}" 
-                                data-title="Xóa danh mục?" 
-                                data-message="Bạn có chắc muốn xóa danh mục &quot;${cat.categoryName}&quot;? Hành động này sẽ chuyển danh mục thành Inactive nếu hợp lệ.">
+                                data-title="Delete category?" 
+                                data-message="Are you sure you want to delete category &quot;${cat.categoryName}&quot;? This action will set the category to Inactive if valid.">
                             <i class="ph ph-trash"></i>
                         </button>
                     </td>
@@ -580,8 +589,8 @@ async function loadInventoryCategories() {
         tbody.innerHTML = htmlContent;
 
     } catch (error) {
-        console.error("Lỗi khi load danh mục:", error);
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Có lỗi xảy ra khi gọi API tải danh mục.</td></tr>';
+        console.error("Error loading categories:", error);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">An error occurred while loading category data from API.</td></tr>';
     }
 }
 
@@ -734,14 +743,14 @@ if (confirmBtnElem) {
                 loadInventoryCategories();
                 
                 if (window.apiClient) {
-                    window.apiClient.showToast("Cập nhật trạng thái thành công!", "success");
+                    window.apiClient.showToast("Status updated successfully!", "success");
                 }
             } else {
-                alert("Lỗi từ server: " + (result.message || "Không thể hoàn tất tác vụ."));
+                alert("Server error: " + (result.message || "Failed to complete action."));
             }
         } catch (error) {
             console.error(error);
-            alert("Lỗi kết nối hoặc xử lý yêu cầu.");
+            alert("Error connecting or processing request.");
         }
     });
 }
@@ -759,15 +768,15 @@ if (restockBookForm) {
         const unitPrice = parseFloat(document.getElementById('restockUnitPrice').value);
 
         if (!supplierName) {
-            alert("Vui lòng nhập tên nhà cung cấp.");
+            alert("Please enter the supplier name.");
             return;
         }
 
         const submitBtn = document.querySelector(`button[form="restockBookForm"]`);
-        let originalText = "Nhập kho";
+        let originalText = "Restock";
         if (submitBtn) {
             originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
             submitBtn.disabled = true;
         }
 
@@ -801,16 +810,16 @@ if (restockBookForm) {
                 loadInventoryBooks();
                 
                 if (window.apiClient) {
-                    window.apiClient.showToast("Tạo phiếu nhập và restock sách thành công!", "success");
+                    window.apiClient.showToast("Import receipt and book restock created successfully!", "success");
                 } else {
-                    alert("Restock thành công!");
+                    alert("Restocked successfully!");
                 }
             } else {
-                alert("Lỗi: " + (result.message || "Không thể nhập kho sách. Vui lòng kiểm tra lại."));
+                alert("Error: " + (result.message || "Failed to restock book. Please check again."));
             }
         } catch (error) {
             console.error(error);
-            alert("Lỗi kết nối đến Server.");
+            alert("Error connecting to server.");
         } finally {
             if (submitBtn) {
                 submitBtn.innerHTML = originalText;
@@ -829,14 +838,14 @@ if (addBookForm) {
         const fileInput = document.querySelector('input[name="SampleFile"]');
         if (fileInput && fileInput.files.length > 0) {
             if (fileInput.files[0].size > 10 * 1024 * 1024) {
-                alert("Lỗi: File PDF đọc thử không được vượt quá 10MB!");
+                alert("Error: Sample PDF file size cannot exceed 10MB!");
                 return;
             }
         }
 
         const priceVal = parseFloat(document.getElementById('bookPrice').value);
         if (priceVal <= 0) {
-            alert("Lỗi: Giá tiền của sách phải lớn hơn 0!");
+            alert("Error: Book price must be greater than 0!");
             return;
         }
 
@@ -850,7 +859,7 @@ if (addBookForm) {
         let originalBtnText = "Save Book";
         if (submitBtn) {
             originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
             submitBtn.disabled = true;
         }
 
@@ -865,7 +874,7 @@ if (addBookForm) {
             });
         } catch (error) {
             console.error("Network Fetch Error:", error);
-            alert("Lỗi kết nối mạng hoặc Server không phản hồi: " + error.message);
+            alert("Network error or server did not respond: " + error.message);
             if (submitBtn) {
                 submitBtn.innerHTML = originalBtnText;
                 submitBtn.disabled = false;
@@ -880,22 +889,22 @@ if (addBookForm) {
                 const modal = getSafeModal(addBookModalElement);
                 if (modal) modal.hide();
                 loadInventoryBooks();
-                loadInventoryCategories(); // Cập nhật lại số sách của từng thể loại
+                loadInventoryCategories(); // Reload book counts in categories
                 
                 if (window.apiClient) {
-                    window.apiClient.showToast("Lưu thông tin sách thành công!", "success");
+                    window.apiClient.showToast("Saved book details successfully!", "success");
                 }
             } else {
-                if (result.message) alert("Lỗi: " + result.message);
+                if (result.message) alert("Error: " + result.message);
                 else if (result.errors) {
-                    let errorMsg = "Dữ liệu không hợp lệ:\n";
+                    let errorMsg = "Invalid data:\n";
                     for (const key in result.errors) errorMsg += `- ${result.errors[key].join(', ')}\n`;
                     alert(errorMsg);
                 }
             }
         } catch (error) {
             console.error("Response processing error:", error);
-            alert("Lỗi xử lý phản hồi từ Server: " + error.message);
+            alert("Error processing response from server: " + error.message);
         } finally {
             if (submitBtn) {
                 submitBtn.innerHTML = originalBtnText;
@@ -917,7 +926,7 @@ if (addCategoryFormElement) {
         const catStatus = catStatusText === 'Active' ? 1 : 0; // Active = 1, Inactive = 0
 
         if (!catName) {
-            alert("Vui lòng nhập tên danh mục.");
+            alert("Please enter a category name.");
             return;
         }
 
@@ -931,7 +940,7 @@ if (addCategoryFormElement) {
         let originalText = "Save Category";
         if (submitBtn) {
             originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
             submitBtn.disabled = true;
         }
 
@@ -955,17 +964,17 @@ if (addCategoryFormElement) {
                 const modal = getSafeModal(document.getElementById('addCategoryModal'));
                 if (modal) modal.hide();
                 loadInventoryCategories();
-                loadInventoryBooks(); // Load lại cả sách để cập nhật danh mục cho sách
+                loadInventoryBooks(); // Reload books to update categories
                 
                 if (window.apiClient) {
-                    window.apiClient.showToast("Lưu thông tin danh mục thành công!", "success");
+                    window.apiClient.showToast("Saved category successfully!", "success");
                 }
             } else {
-                alert("Lỗi: " + (result.message || "Không thể thực hiện tác vụ."));
+                alert("Error: " + (result.message || "Failed to execute action."));
             }
         } catch (error) {
             console.error(error);
-            alert("Lỗi kết nối đến Server.");
+            alert("Error connecting to server.");
         } finally {
             if (submitBtn) {
                 submitBtn.innerHTML = originalText;
@@ -975,53 +984,4 @@ if (addCategoryFormElement) {
     });
 }
 
-// XỬ LÝ SUBMIT FORM BLIND DATE
-const blindDateFormElement = document.getElementById('createBlindDateForm');
-if (blindDateFormElement) {
-    blindDateFormElement.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const bookId = this.dataset.bookId;
-        formData.append('BookID', bookId);
-
-        const submitBtn = document.querySelector('button[form="createBlindDateForm"]');
-        let originalText = "Approve & Create";
-        if (submitBtn) {
-            originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang tạo...';
-            submitBtn.disabled = true;
-        }
-
-        try {
-            const response = await fetch('/api/blindbook', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                }
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                if (window.apiClient) {
-                    window.apiClient.showToast("Tạo gói Blind Date thành công!", "success");
-                } else {
-                    alert("Tạo gói Blind Date thành công!");
-                }
-                const modal = getSafeModal(document.getElementById('createBlindDateModal'));
-                if (modal) modal.hide();
-            } else {
-                alert("Lỗi: " + (result.message || "Không thể tạo Blind Date. Vui lòng kiểm tra lại."));
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Lỗi kết nối đến Server.");
-        } finally {
-            if (submitBtn) {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
-        }
-    });
-}
+// Duplicate submit listener removed. Managed by blind-date-controller.js

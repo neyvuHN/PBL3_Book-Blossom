@@ -1,4 +1,3 @@
-// Dùng cho Staff duyệt BlindBook
 using BookBlossom.Core.Enums;
 
 namespace BookBlossom.DTOs.BlindBook
@@ -10,6 +9,8 @@ namespace BookBlossom.DTOs.BlindBook
         public string? Barcode { get; set; }
         public int StockQuantity { get; set; } 
         public string? RejectReason { get; set; }
+        public bool IsLocked { get; set; }
+        public bool HasOrders { get; set; }
 
         public BlindBookRequestStatus Status { get; set; } 
     }
