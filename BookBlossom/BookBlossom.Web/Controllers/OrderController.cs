@@ -129,6 +129,83 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
+        // API 1.2: Lấy chi tiết đơn hàng của Customer
+        [HttpGet("customer/my-orders/{orderId}")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> GetMyOrderDetail(long orderId)
+        {
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ. Vui lòng đăng nhập lại!" });
+            }
+
+            try
+            {
+                var result = await _service.GetOrderDetailForCustomerAsync(customerId, orderId);
+                if (result == null) return NotFound(new { message = "Không tìm thấy đơn hàng hoặc bạn không có quyền truy cập." });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi hệ thống khi lấy chi tiết đơn hàng.", detail = ex.Message });
+            }
+        }
+
+        // API 1.3: Hủy đơn hàng của Customer
+        [HttpPut("customer/my-orders/{orderId}/cancel")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> CancelMyOrder(long orderId, [FromBody] CancelOrderRequestDTO dto)
+        {
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ. Vui lòng đăng nhập lại!" });
+            }
+
+            try
+            {
+                var result = await _service.CancelOrderCustomerAsync(customerId, orderId, dto?.Reason ?? "Không có lý do");
+                if (!result) return BadRequest(new { message = "Không thể hủy đơn hàng này." });
+                return Ok(new { message = "Hủy đơn hàng thành công." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi khi hủy đơn hàng.", detail = ex.Message });
+            }
+        }
+
+        // API 1.4: Xác nhận đã nhận hàng
+        [HttpPut("customer/my-orders/{orderId}/confirm-received")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> ConfirmMyOrderReceived(long orderId)
+        {
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ. Vui lòng đăng nhập lại!" });
+            }
+
+            try
+            {
+                var result = await _service.ConfirmOrderReceivedCustomerAsync(customerId, orderId);
+                if (!result) return BadRequest(new { message = "Không thể xác nhận đơn hàng này." });
+                return Ok(new { message = "Xác nhận đã nhận hàng thành công." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi khi xác nhận nhận hàng.", detail = ex.Message });
+            }
+        }
+
         // API 2: Xóa địa chỉ giao hàng không cần thiết khỏi sổ địa chỉ
         [HttpDelete("address/{addressId}")]
         [Authorize(Policy = "CustomerOnly")]

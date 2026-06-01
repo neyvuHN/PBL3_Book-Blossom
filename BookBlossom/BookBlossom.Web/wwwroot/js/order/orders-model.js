@@ -1,375 +1,137 @@
 class OrdersModel {
     constructor() {
-        this.orders = this.getDummyData();
+        this.orders = [];
         this.currentTab = 'to-confirm';
         this.searchQuery = '';
     }
 
-    getDummyData() {
-        return [
-            {
-                id: 'ORD-12345',
-                shopName: 'Book Blossom',
-                status: 'to-confirm',
-                items: [
-                    {
-                        title: 'The Great Gatsby',
-                        author: 'F. Scott Fitzgerald',
-                        price: 150000,
-                        quantity: 1,
-                        image: '/images/Book/book1.jpg',
-                        isBlind: false // [UPDATED]
-                    }
-                ],
-                totalPrice: 150000,
-                shipReceiverName: 'Jane Doe',
-                shipPhoneNumber: '0901234567',
-                shipDetailAddress: '123 Nguyen Van Linh, Da Nang',
-                paymentMethod: 'Cash on Delivery (COD)',
-                note: 'Call me before delivery',
-                subTotal: 150000,
-                shippingFee: 0,
-                discountAmount: 0,
-                orderDate: '2026-05-29 10:00'
-            },
-            {
-                id: 'ORD-12346',
-                shopName: 'Book Blossom',
-                status: 'to-ship',
-                items: [
-                    {
-                        title: '1984',
-                        author: 'George Orwell',
-                        price: 120000,
-                        quantity: 2,
-                        image: '/images/Book/book2.webp',
-                        isBlind: false // [UPDATED]
-                    }
-                ],
-                totalPrice: 240000,
-                tracking: 'Preparing for shipment',
-                shipReceiverName: 'John Smith',
-                shipPhoneNumber: '0912345678',
-                shipDetailAddress: '456 Le Loi, District 1, HCM',
-                paymentMethod: 'Bank Transfer',
-                note: 'Deliver during office hours',
-                subTotal: 240000,
-                shippingFee: 20000,
-                discountAmount: 20000,
-                orderDate: '2026-05-28 14:30',
-                shippedDate: '2026-05-29 08:00',
-                trackingMilestones: [
-                    {
-                        title: "Order Placed",
-                        time: "Today, 14:30",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Seller Shipped",
-                        time: "Today, 14:30",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Arrived at Central Hub - Da Nang",
-                        time: "Today, 14:30",
-                        description: "Package is being sorted for dispatch.",
-                        status: "current"
-                    },
-                    {
-                        title: "Out for Delivery",
-                        time: "",
-                        description: "",
-                        status: "pending"
-                    },
-                    {
-                        title: "Delivered",
-                        time: "",
-                        description: "",
-                        status: "pending"
-                    }
-                ]
-            },
-            {
-                id: 'ORD-12347',
-                shopName: 'Book Blossom',
-                status: 'to-receive',
-                items: [
-                    {
-                        title: 'The Hobbit',
-                        author: 'J.R.R. Tolkien',
-                        price: 200000,
-                        quantity: 1,
-                        image: '/images/Book/book3.avif',
-                        isBlind: false // [UPDATED]
-                    }
-                ],
-                totalPrice: 200000,
-                tracking: 'Out for delivery',
-                shipReceiverName: 'Alice Green',
-                shipPhoneNumber: '0923456789',
-                shipDetailAddress: '789 Tran Hung Dao, Hoan Kiem, Hanoi',
-                paymentMethod: 'Momo E-Wallet',
-                note: 'Leave at the reception desk',
-                subTotal: 200000,
-                shippingFee: 15000,
-                discountAmount: 15000,
-                orderDate: '2026-05-27 09:15',
-                shippedDate: '2026-05-28 10:00',
-                deliveredDate: '2026-05-29 11:30',
-                trackingMilestones: [
-                    {
-                        title: "Order Placed",
-                        time: "2026-05-27 09:15",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Seller Shipped",
-                        time: "2026-05-28 10:00",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Arrived at Central Hub - Da Nang",
-                        time: "2026-05-29 08:00",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Out for Delivery",
-                        time: "2026-05-29 11:30",
-                        description: "Package is out for delivery with shipper David.",
-                        status: "current"
-                    },
-                    {
-                        title: "Delivered",
-                        time: "",
-                        description: "",
-                        status: "pending"
-                    }
-                ]
-            },
-            {
-                id: 'ORD-12348',
-                shopName: 'Blind Date Books', // [UPDATED] Shop changed for Blind Book
-                status: 'to-receive',
-                items: [
-                    {
-                        title: '#SpaceOpera #AI #FirstContact', // [UPDATED] Hashtags as blind key title
-                        author: 'Hidden Author',
-                        price: 250000,
-                        quantity: 1,
-                        image: '/images/BlindDateBook/BlindBook3.jpg', // [UPDATED]
-                        isBlind: true, // [UPDATED]
-                        realBook: {
-                            title: 'Project Hail Mary',
-                            author: 'Andy Weir',
-                            image: '/images/Book/book3.avif',
-                            description: 'A lone astronaut must save the earth from disaster in this incredible science-based thriller from the #1 New York Times bestselling author of The Martian.'
-                        }
-                    }
-                ],
-                totalPrice: 250000,
-                tracking: 'Arrived at local facility',
-                shipReceiverName: 'Bob Brown',
-                shipPhoneNumber: '0934567890',
-                shipDetailAddress: '101 Nguyen Hue, District 1, HCM',
-                paymentMethod: 'Cash on Delivery (COD)',
-                note: '',
-                subTotal: 250000,
-                shippingFee: 30000,
-                discountAmount: 30000,
-                orderDate: '2026-05-27 16:40',
-                shippedDate: '2026-05-28 15:20',
-                trackingMilestones: [
-                    {
-                        title: "Order Placed",
-                        time: "2026-05-27 16:40",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Seller Shipped",
-                        time: "2026-05-28 15:20",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Arrived at Central Hub - Da Nang",
-                        time: "2026-05-29 09:00",
-                        description: "",
-                        status: "completed"
-                    },
-                    {
-                        title: "Arrived at Local Facility",
-                        time: "2026-05-29 14:00",
-                        description: "Package has arrived at the delivery hub near you.",
-                        status: "current"
-                    },
-                    {
-                        title: "Out for Delivery",
-                        time: "",
-                        description: "",
-                        status: "pending"
-                    },
-                    {
-                        title: "Delivered",
-                        time: "",
-                        description: "",
-                        status: "pending"
-                    }
-                ]
-            },
-            {
-                id: 'ORD-12349',
-                shopName: 'Book Blossom',
-                status: 'completed',
-                items: [
-                    {
-                        title: 'Pride and Prejudice',
-                        author: 'Jane Austen',
-                        price: 110000,
-                        quantity: 1,
-                        image: '/images/Book/book5.jpg',
-                        isBlind: false // [UPDATED]
-                    }
-                ],
-                totalPrice: 110000,
-                isRated: false,
-                shipReceiverName: 'Emma Wilson',
-                shipPhoneNumber: '0945678901',
-                shipDetailAddress: '202 Dien Bien Phu, Binh Thanh, HCM',
-                paymentMethod: 'Momo E-Wallet',
-                note: '',
-                subTotal: 110000,
-                shippingFee: 15000,
-                discountAmount: 15000,
-                orderDate: '2026-05-25 11:20',
-                shippedDate: '2026-05-26 09:00',
-                deliveredDate: '2026-05-27 14:00',
-                completedDate: '2026-05-27 15:30'
-            },
-            {
-                id: 'ORD-12350',
-                shopName: 'Book Blossom',
-                status: 'completed',
-                items: [
-                    {
-                        title: 'To Kill a Mockingbird',
-                        author: 'Harper Lee',
-                        price: 150000,
-                        quantity: 1,
-                        image: '/images/Book/book6.webp',
-                        isBlind: false // [UPDATED]
-                    }
-                ],
-                totalPrice: 150000,
-                isRated: true,
-                shipReceiverName: 'James Watson',
-                shipPhoneNumber: '0956789012',
-                shipDetailAddress: '303 Bach Dang, Da Nang',
-                paymentMethod: 'Bank Transfer',
-                note: 'Please pack carefully',
-                subTotal: 150000,
-                shippingFee: 0,
-                discountAmount: 0,
-                orderDate: '2026-05-24 10:00',
-                shippedDate: '2026-05-25 14:00',
-                deliveredDate: '2026-05-26 10:00',
-                completedDate: '2026-05-26 12:00'
-            },
-            {
-                id: 'ORD-12351',
-                shopName: 'Book Blossom',
-                status: 'cancelled',
-                items: [
-                    {
-                        title: 'Moby Dick',
-                        author: 'Herman Melville',
-                        price: 180000,
-                        quantity: 1,
-                        image: '/images/Book/book1.jpg',
-                        isBlind: false // [UPDATED]
-                    }
-                ],
-                totalPrice: 180000,
-                shipReceiverName: 'David Miller',
-                shipPhoneNumber: '0967890123',
-                shipDetailAddress: '404 Le Duan, Da Nang',
-                paymentMethod: 'Cash on Delivery (COD)',
-                note: '',
-                subTotal: 180000,
-                shippingFee: 20000,
-                discountAmount: 20000,
-                orderDate: '2026-05-28 18:00',
-                cancelReason: 'Changed mind'
-            },
-            {
-                id: 'ORD-12352',
-                shopName: 'Book Blossom',
-                status: 'returned',
-                items: [
-                    {
-                        title: 'The Alchemist',
-                        author: 'Paulo Coelho',
-                        price: 90000,
-                        quantity: 2,
-                        image: '/images/Book/book2.webp',
-                        isBlind: false // [UPDATED]
-                    }
-                ],
-                totalPrice: 180000,
-                shipReceiverName: 'David Miller',
-                shipPhoneNumber: '0967890123',
-                shipDetailAddress: '404 Le Duan, Da Nang',
-                paymentMethod: 'Bank Transfer',
-                note: '',
-                subTotal: 180000,
-                shippingFee: 15000,
-                discountAmount: 15000,
-                orderDate: '2026-05-27 10:00',
-                shippedDate: '2026-05-28 09:00',
-                deliveredDate: '2026-05-29 14:00',
-                cancelReason: 'Damaged book cover (Returned)'
-            },
-            {
-                id: 'ORD-12353',
-                shopName: 'Blind Date Books',
-                status: 'completed',
-                items: [
-                    {
-                        title: '#Mystery #Thriller #PageTurner',
-                        author: 'Hidden Author',
-                        price: 250000,
-                        quantity: 1,
-                        image: '/images/BlindDateBook/BlindBook1.webp',
-                        isBlind: true,
-                        realBook: {
-                            title: 'The Silent Patient',
-                            author: 'Alex Michaelides',
-                            image: '/images/Book/book4.jpg',
-                            description: 'A shocking psychological thriller of a woman\'s act of violence against her husband—and of the therapist obsessed with uncovering her motive.'
-                        }
-                    }
-                ],
-                totalPrice: 250000,
-                isRated: false,
-                shipReceiverName: 'Jane Doe',
-                shipPhoneNumber: '0901234567',
-                shipDetailAddress: '123 Nguyen Van Linh, Da Nang',
-                paymentMethod: 'Cash on Delivery (COD)',
-                note: '',
-                subTotal: 250000,
-                shippingFee: 0,
-                discountAmount: 0,
-                orderDate: '2026-05-20 10:00',
-                shippedDate: '2026-05-21 14:00',
-                deliveredDate: '2026-05-22 10:00',
-                completedDate: '2026-05-29 10:00'
+    async fetchOrders() {
+        try {
+            const response = await fetch('/api/Order/customer/my-orders', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                this.orders = this.mapBackendToFrontend(data);
+            } else {
+                console.error("Failed to fetch orders:", response.status);
+                this.orders = [];
             }
-        ];
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+            this.orders = [];
+        }
+    }
+
+    async fetchOrderDetails(orderId) {
+        try {
+            const response = await fetch(`/api/Order/customer/my-orders/${orderId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                }
+            });
+            if (response.ok) {
+                return await response.json();
+            }
+        } catch (error) {
+            console.error("Error fetching order details:", error);
+        }
+        return null;
+    }
+
+    async cancelOrderApi(orderId, reason) {
+        try {
+            const response = await fetch(`/api/Order/customer/my-orders/${orderId}/cancel`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify({ reason })
+            });
+            return response.ok;
+        } catch (error) {
+            console.error("Error cancelling order:", error);
+            return false;
+        }
+    }
+
+    async confirmReceivedApi(orderId) {
+        try {
+            const response = await fetch(`/api/Order/customer/my-orders/${orderId}/confirm-received`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                }
+            });
+            return response.ok;
+        } catch (error) {
+            console.error("Error confirming order:", error);
+            return false;
+        }
+    }
+
+    getToken() {
+        return localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+    }
+
+    mapBackendToFrontend(data) {
+        return data.map(o => {
+            const statusMap = {
+                0: 'to-confirm', // Pending
+                1: 'to-ship', // AwaitingPickup
+                2: 'to-ship', // Shipping
+                3: 'to-receive', // Delivering
+                4: 'completed', // Completed
+                5: 'cancelled', // Cancelled
+                6: 'returned' // Returning
+            };
+
+            const items = o.orderItems ? o.orderItems.map(i => ({
+                id: i.bookID || i.blindBookID,
+                title: i.title,
+                author: i.publisher || 'N/A', // Simple fallback
+                price: i.unitPrice,
+                quantity: i.quantity,
+                image: i.sampleFilePath || (i.blindBookID ? '/images/BlindDateBook/BlindBook1.webp' : '/images/placeholder.jpg'),
+                isBlind: i.blindBookID != null
+            })) : [];
+
+            return {
+                id: o.orderID,
+                shopName: 'Book Blossom', // Constant for now
+                status: statusMap[o.orderStatus] || 'to-confirm',
+                items: items,
+                totalPrice: o.totalAmount,
+                shipReceiverName: o.shipReceiverName,
+                shipPhoneNumber: o.shipPhoneNumber,
+                shipDetailAddress: o.note || '',
+                paymentMethod: this.mapPaymentMethod(o.paymentMethod),
+                paymentStatus: o.paymentStatus,
+                note: o.note,
+                subTotal: o.totalAmount, // This is an approximation since OrderListItemDTO doesn't have subtotal, we can rely on detail API later
+                shippingFee: 0,
+                discountAmount: 0,
+                orderDate: new Date(o.orderDate).toLocaleString('vi-VN'),
+                cancelReason: o.cancelReason || ''
+            };
+        });
+    }
+
+    mapPaymentMethod(method) {
+        switch (method) {
+            case 0: return 'Cash on Delivery (COD)';
+            case 1: return 'Momo E-Wallet';
+            case 2: return 'VNPay';
+            default: return 'Khác';
+        }
     }
 
     setTab(tab) {
@@ -381,22 +143,29 @@ class OrdersModel {
     }
 
     getFilteredOrders() {
-        return this.orders.filter(order => {
-            const matchesTab = order.status === this.currentTab;
-            const matchesSearch = order.shopName.toLowerCase().includes(this.searchQuery) ||
-                order.id.toLowerCase().includes(this.searchQuery) ||
-                order.items.some(item => item.title.toLowerCase().includes(this.searchQuery));
-            return matchesTab && matchesSearch;
-        });
+        try {
+            return this.orders.filter(order => {
+                const matchesTab = order.status === this.currentTab;
+                const shopNameSearch = order.shopName ? order.shopName.toLowerCase() : '';
+                const titleMatch = order.items && order.items.some(item => item.title && item.title.toLowerCase().includes(this.searchQuery));
+                
+                const matchesSearch = shopNameSearch.includes(this.searchQuery) ||
+                    (order.id != null ? order.id.toString().toLowerCase().includes(this.searchQuery) : false) ||
+                    titleMatch;
+                return matchesTab && matchesSearch;
+            });
+        } catch (e) {
+            console.error("Error filtering orders:", e);
+            return [];
+        }
     }
 
     getToReceiveCount() {
         return this.orders.filter(order => order.status === 'to-receive').length;
     }
 
-    // [NEW] Submit Return/Refund request and update order status in local dummy model
     submitReturnRefund(orderId, requestData) {
-        const order = this.orders.find(o => o.id === orderId);
+        const order = this.orders.find(o => o.id.toString() === orderId.toString());
         if (!order) return;
 
         order.status = 'returned';

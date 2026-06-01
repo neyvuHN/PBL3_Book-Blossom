@@ -17,6 +17,8 @@ namespace BookBlossom.Core.DTOs
         public string? ShipReceiverName { get; set; } = string.Empty;
         public string? ShipPhoneNumber { get; set; } = string.Empty;
         public string? Note { get; set; }
+        public string? CancelReason { get; set; }
+        public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
     }
 
     public class OrderDetailDTO
@@ -40,6 +42,7 @@ namespace BookBlossom.Core.DTOs
         public string? ShipPhoneNumber { get; set; } = string.Empty;
         public string? ShipDetailAddress { get; set; } = string.Empty;
         public string? Note { get; set; }
+        public string? CancelReason { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
     }
 
@@ -61,6 +64,11 @@ namespace BookBlossom.Core.DTOs
     public class BulkConfirmRequestDTO
     {
         public List<long> OrderIds { get; set; } = new List<long>();
+    }
+
+    public class CancelOrderRequestDTO
+    {
+        public string? Reason { get; set; }
     }
 
     public class BulkStatusUpdateRequestDTO

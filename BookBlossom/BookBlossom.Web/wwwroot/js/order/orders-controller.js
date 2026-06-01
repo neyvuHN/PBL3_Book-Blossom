@@ -4,7 +4,10 @@ class OrdersController {
         this.view = view;
     }
 
-    init() {
+    async init() {
+        // Fetch real data
+        await this.model.fetchOrders();
+
         // Initial setup
         this.updateView();
         this.updateBadge();
@@ -31,21 +34,21 @@ class OrdersController {
     }
 
     handleViewDetails(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (order) {
             this.view.showOrderDetailsModal(order);
         }
     }
 
     handleTrackOrder(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (order) {
             this.view.showOrderTrackingModal(order);
         }
     }
 
     handleCancelOrder(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (!order) return;
 
         const itemNames = order.items.map(i => i.title).join(', ');
@@ -58,17 +61,19 @@ class OrdersController {
             showReasonInput: true,
             confirmText: 'Yes, Cancel Order',
             confirmBtnClass: 'btn-danger',
-            onConfirm: (reason) => {
-                order.status = 'cancelled';
-                order.cancelReason = reason;
-                this.updateView();
-                this.updateBadge();
+            onConfirm: async (reason) => {
+                const success = await this.model.cancelOrderApi(order.id, reason);
+                if (success) {
+                    await this.init(); // Refresh data
+                } else {
+                    alert("Failed to cancel order.");
+                }
             }
         });
     }
 
     handleOrderReceived(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (!order) return;
 
         this.view.showConfirmModal({
@@ -79,66 +84,49 @@ class OrdersController {
             message: `Have you received your order #${order.id}? Please confirm only after the package is in your hands.`,
             confirmText: 'Yes, I\'ve Received It',
             confirmBtnClass: 'btn-success',
-            onConfirm: () => {
-                order.status = 'completed';
-                order.completedDate = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', year: 'numeric', month: '2-digit', day: '2-digit' });
-                this.updateView();
-                this.updateBadge();
+            onConfirm: async () => {
+                const success = await this.model.confirmReceivedApi(order.id);
+                if (success) {
+                    await this.init(); // Refresh data
+                } else {
+                    alert("Failed to confirm received.");
+                }
             }
         });
     }
 
-    // [UPDATED] handleBuyAgain – builds a checkout payload from the existing order
-    // and opens the shared Secure Checkout modal (same flow as Buy Now on product pages)
-    handleBuyAgain(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+    async handleBuyAgain(orderId) {
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (!order) return;
 
-        if (typeof window.openCheckout !== 'function') {
-            console.warn('[OrdersController] Secure Checkout modal is not loaded on this page.');
-            return;
+        try {
+            const token = this.model.getToken();
+            for (const item of order.items) {
+                // Ignore blind books for rebuy if we cannot easily fetch them, or map properly
+                await fetch('/api/Cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        bookID: item.isBlind ? null : item.id,
+                        blindBookID: item.isBlind ? item.id : null,
+                        quantity: item.quantity
+                    })
+                });
+            }
+            // Navigate to Cart or show a toast
+            window.location.href = '/Cart';
+        } catch (error) {
+            console.error("Failed to add items back to cart", error);
+            alert("Failed to add items to cart.");
         }
-
-        // Map order items to the shape expected by populateCheckoutBookInfo()
-        const checkoutItems = order.items.map(item => ({
-            id:       'buy-again-' + orderId + '-' + Date.now(),
-            title:    item.title,
-            author:   item.author || 'BookBlossom',
-            img:      item.image  || '/images/Book/book1.jpg',
-            qty:      item.quantity,
-            priceVnd: item.price,
-            price:    item.price / 20000,
-            isBlind:  item.isBlind || false
-        }));
-
-        // Build a fresh checkoutState from the original order totals
-        window.checkoutState = {
-            isCart:      false,
-            isBuyNow:    true,
-            isBlind:     false,
-            subtotal:    order.subTotal  || order.totalPrice,
-            shippingFee: order.shippingFee || 0,
-            discount:    order.discountAmount || 0,
-            orderNote:   ''
-        };
-
-        // Populate book info block inside the modal
-        if (typeof window.populateCheckoutBookInfo === 'function') {
-            window.populateCheckoutBookInfo(checkoutItems);
-        }
-
-        // Recalculate and render the order summary totals
-        if (typeof window.updateCheckoutTotals === 'function') {
-            window.updateCheckoutTotals();
-        }
-
-        // Open the Secure Checkout popup
-        window.openCheckout();
     }
 
     // [NEW] Handle clicking Rate
     handleRateOrder(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (order && !order.isRated) {
             this.view.showRateOrderModal(order, (id, rating, reviewText) => {
                 order.isRated = true;
@@ -195,7 +183,7 @@ class OrdersController {
 
     // [NEW] Handle clicking View Review
     handleViewReview(orderId, title, isBlind) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         
         // Set a flag in sessionStorage so the book detail page knows to show user's review first
         sessionStorage.setItem('show-my-review-first', 'true');
@@ -211,7 +199,7 @@ class OrdersController {
 
     // [NEW] Handle clicking Reveal Real Book
     handleRevealRealBook(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (order) {
             this.view.showRevealRealBookModal(order);
         }
@@ -248,7 +236,7 @@ class OrdersController {
 
     // [NEW] Handle clicking on Return/Refund button on an order
     handleReturnRefundClick(orderId) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (order) {
             this.view.showReturnRefundModal(order);
         }
@@ -256,7 +244,7 @@ class OrdersController {
 
     // [NEW] Handle submitting Return/Refund request data
     handleReturnRefundSubmit(orderId, requestData) {
-        const order = this.model.orders.find(o => o.id === orderId);
+        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (!order) return;
 
         // Perform model update
