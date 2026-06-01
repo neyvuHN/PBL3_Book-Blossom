@@ -431,11 +431,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
 
                 const orderResp = await window.apiClient.apiPost('/api/Order/checkout', checkoutPayload);
-                if (orderResp && orderResp.paymentUrl) {
-                    window.location.href = orderResp.paymentUrl;
+                if (orderResp && (orderResp.orderID || orderResp.orderId)) {
+                    const orderId = orderResp.orderID || orderResp.orderId;
+                    const paymentResp = await window.apiClient.apiPost('/api/payment/vnpay/create', { orderId: orderId });
+                    
+                    if (paymentResp && paymentResp.paymentUrl) {
+                        window.location.href = paymentResp.paymentUrl;
+                    } else {
+                        loadingOverlay.style.display = 'none';
+                        showToast('Không thể tạo liên kết thanh toán VNPay.', 'error');
+                    }
                 } else {
                     loadingOverlay.style.display = 'none';
-                    showToast('Payment URL not returned from server.', 'error');
+                    showToast('Tạo đơn hàng thất bại.', 'error');
                 }
             } catch (error) {
                 loadingOverlay.style.display = 'none';
@@ -483,59 +491,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Handle VNPay Return
-    async function handleVNPayReturn() {
-        const urlParams = new URLSearchParams(window.location.search);
-        // Ensure this logic only runs when VNPAY params are present
-        if (urlParams.has('vnp_ResponseCode') && urlParams.has('vnp_TxnRef')) {
-            const verifyOverlay = document.getElementById('vnpay-return-overlay');
-            verifyOverlay.style.display = 'flex';
-
-            // Assume Backend has an endpoint that handles return logic or we extract order ID from txnRef if needed.
-            // Wait, we can extract order ID from vnp_TxnRef which might have format "BB_orderId_xxx"
-            // Let's call GET /api/Order/customer/my-orders or use an endpoint to mark payment success
-            
-            const responseCode = urlParams.get('vnp_ResponseCode');
-            const txnRef = urlParams.get('vnp_TxnRef');
-            
-            try {
-                if (responseCode === '00') {
-                    // It's a success
-                    // Find the orderID. The backend OrderService generates vnp_TxnRef. Let's assume it ends with orderId or we just display success.
-                    // Actually, OrderController API 9: POST /api/Order/{orderId}/payment-success
-                    // We need orderId. Usually VNPay txnRef is "OrderId_Time". Let's extract orderId.
-                    const parts = txnRef.split('_');
-                    const orderIdStr = parts.length > 0 ? parts[0] : null;
-                    if (orderIdStr && !isNaN(parseInt(orderIdStr))) {
-                         await window.apiClient.apiPost(`/api/Order/${orderIdStr}/payment-success`);
-                    }
-
-                    verifyOverlay.style.display = 'none';
-                    // Final total is not known here if refreshed, just show a message.
-                    document.getElementById('payment-success-amount').innerText = "Paid via VNPay";
-                    if (window.onCartCheckoutSuccess && typeof window.onCartCheckoutSuccess === 'function') {
-                        window.onCartCheckoutSuccess();
-                    }
-                    document.getElementById('payment-success-overlay').style.display = 'flex';
-                } else {
-                    verifyOverlay.style.display = 'none';
-                    document.getElementById('payment-failed-overlay').style.display = 'flex';
-                }
-            } catch (error) {
-                console.error("Error verifying VNPay payment:", error);
-                verifyOverlay.style.display = 'none';
-                document.getElementById('payment-failed-overlay').style.display = 'flex';
-            }
-            
-            // Clean up URL to prevent refreshing causing duplicate triggers
-            const url = new URL(window.location);
-            url.search = '';
-            window.history.replaceState({}, document.title, url.toString());
-        }
-    }
-
-    // Check URL on load in case we landed on the return page
-    handleVNPayReturn();
+    // VNPay Return is now handled directly by the server side and redirects to /Order/PaymentResult
+    // No need to handle it via JS on the client side.
 
     // [UPDATED] Cart SPA logic (showCart, renderCart, calculateTotals, appliedVoucher,
     // all cart event handlers, syncCartBadge) has been moved to the first

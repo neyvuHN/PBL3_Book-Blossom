@@ -56,6 +56,16 @@ namespace BookBlossom.Web.Controllers
             return View();
         }
 
+        [HttpGet("/Order/PaymentResult")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult PaymentResult(long orderId, string status, string message = "")
+        {
+            ViewBag.OrderId = orderId;
+            ViewBag.Status = status;
+            ViewBag.Message = message;
+            return View();
+        }
+
         // =========================
         // API ACTIONS - BACKEND
         // =========================
