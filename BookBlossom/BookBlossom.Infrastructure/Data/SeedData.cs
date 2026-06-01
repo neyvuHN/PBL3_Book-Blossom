@@ -185,6 +185,385 @@ namespace BookBlossom.Infrastructure.Data
                     await context.SaveChangesAsync();
                 }
             }
+
+            await SeedDashboardRequirementsAsync(context);
+        }
+
+        private static async Task SeedDashboardRequirementsAsync(ApplicationDbContext context)
+        {
+            // 1. Seed System Configurations nếu thiếu
+            if (!await context.SystemConfigurations.AnyAsync(c => c.ConfigName == "CommunityReportThreshold"))
+            {
+                context.SystemConfigurations.Add(new SystemConfiguration
+                {
+                    SystemAdminID = 1,
+                    ConfigName = "CommunityReportThreshold",
+                    ConfigValue = "5",
+                    Description = "Ngưỡng báo cáo vi phạm cộng đồng",
+                    GroupType = GroupType.Community,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+            if (!await context.SystemConfigurations.AnyAsync(c => c.ConfigName == "OrderConfirmTimeoutHours"))
+            {
+                context.SystemConfigurations.Add(new SystemConfiguration
+                {
+                    SystemAdminID = 1,
+                    ConfigName = "OrderConfirmTimeoutHours",
+                    ConfigValue = "48",
+                    Description = "Số giờ quá hạn để xác nhận đơn hàng",
+                    GroupType = GroupType.System,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+            await context.SaveChangesAsync();
+
+            // 2. Seed Membership Ranks nếu chưa có
+            if (!await context.MembershipRanks.AnyAsync())
+            {
+                var ranks = new[]
+                {
+                    new MembershipRank { RankID = 1, RankType = 0, MinSpending = 0, DiscountRate = 0 }, // Đồng
+                    new MembershipRank { RankID = 2, RankType = 1, MinSpending = 1000000, DiscountRate = 2 }, // Bạc
+                    new MembershipRank { RankID = 3, RankType = 2, MinSpending = 5000000, DiscountRate = 5 }, // Vàng
+                    new MembershipRank { RankID = 4, RankType = 3, MinSpending = 10000000, DiscountRate = 10 } // Kim Cương
+                };
+                await context.MembershipRanks.AddRangeAsync(ranks);
+                await context.SaveChangesAsync();
+            }
+
+            // 3. Seed Categories nếu trống
+            if (!await context.Categories.AnyAsync())
+            {
+                var categories = new[]
+                {
+                    new Category { CategoryName = "Fiction", Description = "Stories that are imaginary", Status = CategoryStatus.Active },
+                    new Category { CategoryName = "Non-Fiction", Description = "Real-world based content", Status = CategoryStatus.Active },
+                    new Category { CategoryName = "Science", Description = "Books related to scientific topics", Status = CategoryStatus.Active },
+                    new Category { CategoryName = "Technology", Description = "Books about IT and modern tech", Status = CategoryStatus.Active },
+                    new Category { CategoryName = "Self-Help", Description = "Personal development and growth", Status = CategoryStatus.Active }
+                };
+                await context.Categories.AddRangeAsync(categories);
+                await context.SaveChangesAsync();
+            }
+
+            // 4. Seed RealBooks nếu trống
+            if (!await context.RealBooks.AnyAsync())
+            {
+                var catFiction = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Fiction");
+                var catScience = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Science");
+                var catSelfHelp = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Self-Help");
+
+                var fictionId = catFiction?.CategoryID ?? 1;
+                var scienceId = catScience?.CategoryID ?? 2;
+                var selfHelpId = catSelfHelp?.CategoryID ?? 3;
+
+                var realBooks = new[]
+                {
+                    new RealBook { CategoryID = fictionId, Title = "The Lost World", Publisher = "NXB Trẻ", ISBN = "9786041123451", PublishYear = 2024, Description = "Cuộc phiêu lưu thế giới bị mất", Price = 150000, Weight = 0.4m, UnitsInStock = 20, IsContinued = true },
+                    new RealBook { CategoryID = scienceId, Title = "Science Basics", Publisher = "NXB Khoa Học", ISBN = "9786042123452", PublishYear = 2023, Description = "Kiến thức khoa học cơ bản", Price = 200000, Weight = 0.5m, UnitsInStock = 0, IsContinued = true },
+                    new RealBook { CategoryID = selfHelpId, Title = "Life of Elon", Publisher = "NXB Thế Giới", ISBN = "9786043123453", PublishYear = 2024, Description = "Tiểu sử Elon Musk", Price = 190000, Weight = 0.6m, UnitsInStock = 5, IsContinued = true },
+                    new RealBook { CategoryID = selfHelpId, Title = "Future AI", Publisher = "NXB Công Nghệ", ISBN = "9786044123454", PublishYear = 2025, Description = "Tương lai của Trí Tuệ Nhân Tạo", Price = 300000, Weight = 0.5m, UnitsInStock = 8, IsContinued = true }
+                };
+                await context.RealBooks.AddRangeAsync(realBooks);
+                await context.SaveChangesAsync();
+            }
+
+            // 5. Seed BlindBooks nếu trống
+            if (!await context.BlindBooks.AnyAsync())
+            {
+                var books = await context.RealBooks.ToListAsync();
+                foreach (var b in books.Take(3))
+                {
+                    var blind = new BlindBook
+                    {
+                        RealBookID = b.BookID,
+                        Keywords = "Bí ẩn, Trí tuệ, Thú vị",
+                        Quotes = "Một cuốn sách sẽ làm thay đổi tư duy của bạn.",
+                        Category = "Bí Ẩn",
+                        Hashtags = "#blindbook #bookblossom",
+                        Price = b.Price + 20000,
+                        StockQuantity = 15,
+                        Barcode = "BL" + b.BookID.ToString("D6"),
+                        IsLocked = false,
+                        RequestQuantity = 0,
+                        BlindBookRequestStatus = BlindBookRequestStatus.Approved
+                    };
+                    context.BlindBooks.Add(blind);
+                }
+                await context.SaveChangesAsync();
+            }
+
+            // 6. Đảm bảo có ít nhất 15 Customers trong database để Lifetime Buyers đẹp mắt
+            var customersCount = await context.Users.CountAsync(u => u.RoleID == UserRole.Customer);
+            if (customersCount < 15)
+            {
+                int needToCreate = 15 - customersCount;
+                var defaultRank = await context.MembershipRanks.OrderBy(r => r.MinSpending).FirstOrDefaultAsync();
+                for (int i = 1; i <= needToCreate; i++)
+                {
+                    var username = $"customer_seed_{i}";
+                    var user = new User
+                    {
+                        UserName = username,
+                        Password = BCrypt.Net.BCrypt.HashPassword("customer123"),
+                        Email = $"{username}@example.com",
+                        PhoneNumber = $"09811122{i:D2}",
+                        FirstName = $"Seed",
+                        LastName = $"Customer {i}",
+                        RoleID = UserRole.Customer,
+                        AccountStatus = AccountStatus.Active,
+                        IsActive = true
+                    };
+                    context.Users.Add(user);
+                    await context.SaveChangesAsync();
+
+                    // Tạo kèm CustomerDetail
+                    var customerDetail = new CustomerDetail
+                    {
+                        CustomerID = user.UserID,
+                        IsOnboardingCompleted = true,
+                        TotalSpending = 0,
+                        DailyUndoCount = 0,
+                        CurrentMonthThreadCount = 0,
+                        CurrentOrderStreak = 0
+                    };
+                    context.CustomerDetails.Add(customerDetail);
+
+                    // Tạo kèm CustomerReputation
+                    var reputation = new CustomerReputation
+                    {
+                        CustomerID = user.UserID,
+                        ReputationPoint = 100,
+                        RankID = defaultRank?.RankID
+                    };
+                    context.CustomerReputations.Add(reputation);
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            // 7. Seed Orders và OrderDetails trải rộng trong 30 ngày qua
+            var dateLimit = DateTime.UtcNow.AddDays(-30);
+            var recentOrdersCount = await context.Orders.CountAsync(o => o.OrderDate >= dateLimit);
+            if (recentOrdersCount < 80)
+            {
+                var customerDetails = await context.CustomerDetails.ToListAsync();
+                var realBooks = await context.RealBooks.ToListAsync();
+                var blindBooks = await context.BlindBooks.ToListAsync();
+
+                if (customerDetails.Any() && realBooks.Any())
+                {
+                    var rand = new Random();
+                    // Tạo 35 đơn hàng ngẫu nhiên trải đều trong 30 ngày qua
+                    for (int i = 0; i < 35; i++)
+                    {
+                        var detail = customerDetails[rand.Next(customerDetails.Count)];
+                        var cust = await context.Users.FindAsync(detail.CustomerID);
+                        if (cust == null) continue;
+
+                        var daysAgo = rand.Next(1, 30);
+                        var orderDate = DateTime.UtcNow.AddDays(-daysAgo).AddHours(rand.Next(24)).AddMinutes(rand.Next(60));
+
+                        OrderStatus status = OrderStatus.Completed;
+                        int prob = rand.Next(100);
+                        if (prob < 60) status = OrderStatus.Completed;
+                        else if (prob < 75) status = OrderStatus.Pending;
+                        else if (prob < 85) status = OrderStatus.Returning;
+                        else if (prob < 95) status = OrderStatus.Cancelled;
+                        else status = OrderStatus.Shipping;
+
+                        var order = new Order
+                        {
+                            CustomerID = cust.UserID,
+                            OrderDate = orderDate,
+                            OrderStatus = status,
+                            PaymentMethod = rand.Next(2) == 0 ? PaymentMethod.COD : PaymentMethod.VNPay,
+                            PaymentStatus = (byte)(status == OrderStatus.Completed ? 1 : 0),
+                            ShippingFee = 30000,
+                            DiscountAmount = 0,
+                            ShipReceiverName = cust.FirstName + " " + cust.LastName,
+                            ShipPhoneNumber = cust.PhoneNumber,
+                            ShipDetailAddress = "Số " + rand.Next(1, 200) + " Đường Lê Lợi, TP. Đà Nẵng",
+                            Note = "Đơn hàng thử nghiệm seed tự động"
+                        };
+
+                        context.Orders.Add(order);
+                        await context.SaveChangesAsync();
+
+                        int numDetails = rand.Next(1, 3);
+                        decimal totalAmount = 30000;
+                        var usedBooks = new HashSet<long>();
+
+                        for (int j = 0; j < numDetails; j++)
+                        {
+                            OrderDetail orderDetailItem = null;
+                            if (rand.Next(2) == 0 && blindBooks.Any())
+                            {
+                                var bb = blindBooks[rand.Next(blindBooks.Count)];
+                                if (!usedBooks.Contains(bb.BlindBookID))
+                                {
+                                    usedBooks.Add(bb.BlindBookID);
+                                    orderDetailItem = new OrderDetail
+                                    {
+                                        OrderID = order.OrderID,
+                                        BookID = bb.RealBookID,
+                                        BlindBookID = bb.BlindBookID,
+                                        UnitPrice = bb.Price,
+                                        Quantity = rand.Next(1, 3),
+                                        Discount = 0
+                                    };
+                                    totalAmount += bb.Price * orderDetailItem.Quantity;
+                                }
+                            }
+                            else
+                            {
+                                var rb = realBooks[rand.Next(realBooks.Count)];
+                                if (!usedBooks.Contains(rb.BookID))
+                                {
+                                    usedBooks.Add(rb.BookID);
+                                    orderDetailItem = new OrderDetail
+                                    {
+                                        OrderID = order.OrderID,
+                                        BookID = rb.BookID,
+                                        BlindBookID = null,
+                                        UnitPrice = rb.Price,
+                                        Quantity = rand.Next(1, 3),
+                                        Discount = 0
+                                    };
+                                    totalAmount += rb.Price * orderDetailItem.Quantity;
+                                }
+                            }
+
+                            if (orderDetailItem != null)
+                            {
+                                context.OrderDetails.Add(orderDetailItem);
+                            }
+                        }
+
+                        order.TotalAmount = totalAmount;
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
+
+            // 8. Đảm bảo có ít nhất 2 đơn hàng Pending bị quá hạn (Delayed Pending Orders) để kiểm tra dashboard cảnh báo
+            var delayedPendingCount = await context.Orders.CountAsync(o => o.OrderStatus == OrderStatus.Pending && o.OrderDate <= DateTime.UtcNow.AddHours(-48));
+            if (delayedPendingCount < 2)
+            {
+                var customerDetails = await context.CustomerDetails.ToListAsync();
+                var realBooks = await context.RealBooks.ToListAsync();
+                if (customerDetails.Any() && realBooks.Any())
+                {
+                    var rand = new Random();
+                    for (int i = 0; i < 2; i++)
+                    {
+                        var detail = customerDetails[rand.Next(customerDetails.Count)];
+                        var cust = await context.Users.FindAsync(detail.CustomerID);
+                        if (cust == null) continue;
+
+                        var orderDate = DateTime.UtcNow.AddHours(-rand.Next(50, 75));
+
+                        var order = new Order
+                        {
+                            CustomerID = cust.UserID,
+                            OrderDate = orderDate,
+                            OrderStatus = OrderStatus.Pending,
+                            PaymentMethod = PaymentMethod.COD,
+                            PaymentStatus = 0,
+                            ShippingFee = 30000,
+                            DiscountAmount = 0,
+                            ShipReceiverName = cust.FirstName + " " + cust.LastName,
+                            ShipPhoneNumber = cust.PhoneNumber,
+                            ShipDetailAddress = "Khu ký túc xá Đại học Seed, TP. Đà Nẵng",
+                            Note = "Đơn hàng Pending trễ hạn để test cảnh báo"
+                        };
+
+                        context.Orders.Add(order);
+                        await context.SaveChangesAsync();
+
+                        var rb = realBooks[rand.Next(realBooks.Count)];
+                        var detailItem = new OrderDetail
+                        {
+                            OrderID = order.OrderID,
+                            BookID = rb.BookID,
+                            BlindBookID = null,
+                            UnitPrice = rb.Price,
+                            Quantity = 1,
+                            Discount = 0
+                        };
+                        context.OrderDetails.Add(detailItem);
+
+                        order.TotalAmount = rb.Price + 30000;
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
+
+            // 9. Đảm bảo có ít nhất 2 bài ThreadPost bị Report nhiều (vượt ngưỡng threshold = 5)
+            var threshold = 5;
+            var highReportPostsCount = await context.ThreadPosts.CountAsync(p => p.ReportCount >= threshold);
+            if (highReportPostsCount < 2)
+            {
+                var customerDetails = await context.CustomerDetails.ToListAsync();
+                if (customerDetails.Count >= 2)
+                {
+                    var authorDetail = customerDetails[0];
+                    var reporterDetail = customerDetails[1];
+                    var author = await context.Users.FindAsync(authorDetail.CustomerID);
+                    var reporter = await context.Users.FindAsync(reporterDetail.CustomerID);
+
+                    if (author != null && reporter != null)
+                    {
+                        var post1 = new ThreadPost
+                        {
+                            CustomerID = author.UserID,
+                            Title = "Spam: Nhận thẻ cào điện thoại 500k miễn phí tại đây!!!",
+                            Content = "Click ngay vào link rút gọn này để nhận quà tặng cực khủng từ nhà tài trợ bí ẩn. Chỉ áp dụng hôm nay thôi nhé anh em ơi! Nhanh tay nào!",
+                            Hashtags = "#spam #quatang #free",
+                            CreatedAt = DateTime.UtcNow.AddDays(-3),
+                            IsHidden = false,
+                            ReportCount = 6
+                        };
+
+                        var post2 = new ThreadPost
+                        {
+                            CustomerID = author.UserID,
+                            Title = "Cá độ bóng đá tỉ lệ ăn cực cao uy tín 100%",
+                            Content = "Tham gia sòng bạc trực tuyến, cá cược thể thao quốc tế. Đảm bảo rút tiền nhanh gọn trong vòng 3 phút, bảo mật danh tính tuyệt đối.",
+                            Hashtags = "#cado #bongda #kiemtien",
+                            CreatedAt = DateTime.UtcNow.AddDays(-2),
+                            IsHidden = false,
+                            ReportCount = 8
+                        };
+
+                        await context.ThreadPosts.AddRangeAsync(post1, post2);
+                        await context.SaveChangesAsync();
+
+                        var report1 = new Report
+                        {
+                            PostID = post1.PostID,
+                            CustomerID = reporter.UserID,
+                            Reason = ReportType.Spam,
+                            Description = "Bài viết quảng cáo spam liên tục làm loãng diễn đàn, chứa link độc hại.",
+                            CreatedAt = DateTime.UtcNow.AddHours(-12),
+                            IsAccurate = null
+                        };
+
+                        var report2 = new Report
+                        {
+                            PostID = post2.PostID,
+                            CustomerID = reporter.UserID,
+                            Reason = ReportType.Fraud,
+                            Description = "Nội dung quảng cáo cá độ bất hợp pháp, vi phạm thuần phong mỹ tục.",
+                            CreatedAt = DateTime.UtcNow.AddHours(-6),
+                            IsAccurate = null
+                        };
+
+                        await context.Reports.AddRangeAsync(report1, report2);
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
         }
     }
 }

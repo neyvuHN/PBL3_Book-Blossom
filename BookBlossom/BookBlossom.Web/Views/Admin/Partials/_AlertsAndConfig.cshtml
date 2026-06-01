@@ -1,41 +1,149 @@
-<div class="alerts-config-grid">
-    <div class="alert-card">
-        <div class="left">
-            <h3>Open Disputes</h3>
-            <p class="number">25</p>
-        </div>
-        <div class="right">
-            <p class="desc">
-                #99 - Missing Item - Video Attached<br/>
-                #101 - Damaged - Evidence Request4ed<br/>
-                #105 - Fraud Alert - Seller
-            </p>
-            <button class="btn-review">Review</button>
-        </div>
+<style>
+.alerts-config-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+.alert-card-custom, .config-card-custom {
+    background: white;
+    border: 1px solid var(--admin-border, #e0e0e0);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    height: 380px;
+}
+.alert-card-custom h3, .config-card-custom h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    color: #333;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.alert-list-custom, .config-list-custom {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.alert-item-custom {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    border-bottom: 1px dashed #f1f5f9;
+    font-size: 0.85rem;
+}
+.alert-item-custom:last-child {
+    border-bottom: none;
+}
+.alert-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.alert-item-title {
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+.alert-item-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.alert-item-badge.danger {
+    background: #fce8e6;
+    color: #d93025;
+}
+.alert-item-badge.warning {
+    background: #fff7e0;
+    color: #b06000;
+}
+.alert-item-desc {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.config-item-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 0.85rem;
+}
+.config-item-custom:last-child {
+    border-bottom: none;
+}
+.config-item-name {
+    color: #475569;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+.config-item-value {
+    background: #f1f5f9;
+    color: #334155;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-family: monospace;
+}
+.empty-state-alert {
+    color: #94a3b8;
+    text-align: center;
+    padding-top: 100px;
+    font-size: 0.85rem;
+}
+</style>
+
+<div class="alerts-config-grid-container">
+    <!-- Cảnh báo sách sắp hết hàng -->
+    <div class="alert-card-custom">
+        <h3>Sách Sắp Hết Hàng ⚠️</h3>
+        <ul class="alert-list-custom" id="lowStockAlertsList">
+            <li class="empty-state-alert">Đang tải dữ liệu...</li>
+        </ul>
     </div>
 
-    <div class="alert-card">
-        <div class="left">
-            <h3>Pending Reports</h3>
-            <p class="number black">48</p>
-        </div>
-        <div class="right" style="justify-content: center; text-align: left; align-items: flex-start;">
-            <p class="desc" style="text-align: left;">
-                5 users flagged for spam.<br/>
-                2 offensive comments reported.
-            </p>
-            <button class="btn-review" style="margin-top: auto;">Review Reports</button>
-        </div>
+    <!-- Cảnh báo bài viết bị báo cáo -->
+    <div class="alert-card-custom">
+        <h3>Bài Viết Bị Báo Cáo 🚨</h3>
+        <ul class="alert-list-custom" id="highReportAlertsList">
+            <li class="empty-state-alert">Đang tải dữ liệu...</li>
+        </ul>
     </div>
 
-    <div class="config-card">
-        <h3>System Configuration</h3>
-        <div class="config-item">
-            <span>Maintenance Mode</span>
-            <label class="switch">
-              <input type="checkbox">
-              <span class="slider round"></span>
-            </label>
-        </div>
+    <!-- Cảnh báo đơn hàng pending trễ hạn -->
+    <div class="alert-card-custom">
+        <h3>Đơn Hàng Trễ Hạn ⏳</h3>
+        <ul class="alert-list-custom" id="delayedOrdersAlertsList">
+            <li class="empty-state-alert">Đang tải dữ liệu...</li>
+        </ul>
+    </div>
+
+    <!-- Danh sách cấu hình hệ thống (Chỉ đọc) -->
+    <div class="config-card-custom">
+        <h3>Cấu Hình Hệ Thống ⚙️</h3>
+        <ul class="config-list-custom" id="systemConfigList">
+            <li class="empty-state-alert">Đang tải dữ liệu...</li>
+        </ul>
     </div>
 </div>

@@ -24,7 +24,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             var endDate = to.Date.AddDays(1).AddTicks(-1);
 
-            // --- 1. LẤY DỮ LIỆU KPI TỔNG QUAN (ĐÃ BỎ ĐẾM USER) ---
+            // --- 1. LẤY DỮ LIỆU KPI TỔNG QUAN ---
             var totalRevenue = await _context.Orders
                 .Where(o => o.OrderDate >= from && o.OrderDate <= endDate && o.OrderStatus == OrderStatus.Completed)
                 .SumAsync(o => o.TotalAmount);
@@ -36,13 +36,6 @@ namespace BookBlossom.Infrastructure.Services
                 .CountAsync(o => o.OrderDate >= from && o.OrderDate <= endDate && o.OrderStatus == OrderStatus.Returning);
             
             double returnRate = totalOrders > 0 ? (double)returnedOrders / totalOrders * 100 : 0;
-
-            var kpis = new KpiSummaryDto
-            {
-                TotalRevenue = totalRevenue,
-                TotalOrders = totalOrders,
-                ReturnRate = Math.Round(returnRate, 2)
-            };
 
             // --- 2. LẤY DỮ LIỆU BIỂU ĐỒ TRÒN ---
             var orderStatusCounts = await _context.Orders
@@ -62,7 +55,26 @@ namespace BookBlossom.Infrastructure.Services
                 ReturningCount = orderStatusCounts.GetValueOrDefault(OrderStatus.Returning, 0)
             };
 
-            // --- 3. LẤY DỮ LIỆU BIỂU ĐỒ ĐƯỜNG ---
+            // --- 3. ĐẾM CÁC THÔNG SỐ KHÁC ---
+            var lowStockCount = await _context.RealBooks.CountAsync(b => b.UnitsInStock > 0 && b.UnitsInStock < 10);
+            var outOfStockCount = await _context.RealBooks.CountAsync(b => b.UnitsInStock == 0);
+            var lifetimeBuyersCount = await _context.Users.CountAsync(u => u.RoleID == UserRole.Customer);
+            var pendingReportsCount = await _context.Reports.CountAsync(r => r.IsAccurate == null);
+
+            var kpis = new KpiSummaryDto
+            {
+                TotalRevenue = totalRevenue,
+                TotalOrders = totalOrders,
+                ReturnRate = Math.Round(returnRate, 2),
+                PendingOrdersCount = orderChart.PendingCount,
+                CompletedOrdersCount = orderChart.CompletedCount,
+                LowStockCount = lowStockCount,
+                OutOfStockCount = outOfStockCount,
+                LifetimeBuyersCount = lifetimeBuyersCount,
+                PendingReportsCount = pendingReportsCount
+            };
+
+            // --- 4. LẤY DỮ LIỆU BIỂU ĐỒ ĐƯỜNG ---
             var revenueData = await _context.OrderDetails
                 .Where(od => od.Order.OrderDate >= from && od.Order.OrderDate <= endDate && od.Order.OrderStatus == OrderStatus.Completed)
                 .GroupBy(od => new
@@ -89,7 +101,7 @@ namespace BookBlossom.Infrastructure.Services
                 .OrderBy(c => c.DateLabel)
                 .ToList();
 
-            // --- 4. LẤY DỮ LIỆU TOP 5 SÁCH BÁN CHẠY ---
+            // --- 5. LẤY DỮ LIỆU TOP 5 SÁCH BÁN CHẠY ---
             var topBooksRaw = await _context.OrderDetails
                 .Where(od => od.Order.OrderDate >= from && od.Order.OrderDate <= endDate && od.Order.OrderStatus == OrderStatus.Completed)
                 .GroupBy(od => new 
@@ -117,12 +129,82 @@ namespace BookBlossom.Infrastructure.Services
                 book.Rank = rank++;
             }
 
+            // --- 6. CÁC CẢNH BÁO VÀ THÔNG TIN CHI TIẾT ---
+            var lowStockBooks = await _context.RealBooks
+                .Where(b => b.UnitsInStock >= 0 && b.UnitsInStock < 10)
+                .OrderBy(b => b.UnitsInStock)
+                .Take(5)
+                .Select(b => new LowStockBookDto {
+                    BookId = b.BookID,
+                    Title = b.Title,
+                    UnitsInStock = b.UnitsInStock
+                })
+                .ToListAsync();
+
+            var pendingReportsList = await _context.Reports
+                .Where(r => r.IsAccurate == null)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(5)
+                .Select(r => new PendingReportDto {
+                    ReportId = r.ReportID,
+                    Reason = r.Reason.ToString(),
+                    Description = r.Description,
+                    CreatedAt = r.CreatedAt
+                })
+                .ToListAsync();
+
+            var thresholdConfig = await _context.SystemConfigurations
+                .FirstOrDefaultAsync(c => c.ConfigName == "CommunityReportThreshold");
+            int threshold = thresholdConfig != null && int.TryParse(thresholdConfig.ConfigValue, out var val) ? val : 5;
+
+            var highReportPosts = await _context.ThreadPosts
+                .Where(p => p.ReportCount >= threshold)
+                .OrderByDescending(p => p.ReportCount)
+                .Take(5)
+                .Select(p => new HighReportPostDto {
+                    PostId = p.PostID,
+                    Title = p.Title,
+                    ReportCount = p.ReportCount,
+                    Threshold = threshold
+                })
+                .ToListAsync();
+
+            var timeoutConfig = await _context.SystemConfigurations
+                .FirstOrDefaultAsync(c => c.ConfigName == "OrderConfirmTimeoutHours");
+            int timeoutHours = timeoutConfig != null && int.TryParse(timeoutConfig.ConfigValue, out var val2) ? val2 : 48;
+
+            var pendingTimeoutDate = DateTime.UtcNow.AddHours(-timeoutHours);
+            var delayedOrders = await _context.Orders
+                .Where(o => o.OrderStatus == OrderStatus.Pending && o.OrderDate != null && o.OrderDate.Value <= pendingTimeoutDate)
+                .OrderBy(o => o.OrderDate)
+                .Take(5)
+                .Select(o => new DelayedPendingOrderDto {
+                    OrderId = o.OrderID,
+                    OrderDate = o.OrderDate.Value,
+                    TotalAmount = o.TotalAmount,
+                    ShipReceiverName = o.ShipReceiverName
+                })
+                .ToListAsync();
+
+            var configs = await _context.SystemConfigurations
+                .Select(c => new SystemConfigDto {
+                    ConfigName = c.ConfigName,
+                    ConfigValue = c.ConfigValue,
+                    Description = c.Description ?? string.Empty
+                })
+                .ToListAsync();
+
             return new DashboardDataDto
             {
                 Kpis = kpis,
                 OrderChart = orderChart,
                 RevenueChart = revenueChart,
-                TopBooks = topBooksRaw
+                TopBooks = topBooksRaw,
+                LowStockBooks = lowStockBooks,
+                PendingReportsList = pendingReportsList,
+                HighReportPosts = highReportPosts,
+                DelayedPendingOrders = delayedOrders,
+                SystemConfigs = configs
             };
         }
 

@@ -12,18 +12,18 @@
         <span class="filter-label">FILTER:</span>
         <div class="filter-group">
             <label>From</label>
-            <input type="date" class="custom-date-input" value="2026-05-01">
+            <input type="date" class="custom-date-input" value="@DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")">
         </div>
         <div class="filter-group">
             <label>To</label>
-            <input type="date" class="custom-date-input" value="2026-05-31">
+            <input type="date" class="custom-date-input" value="@DateTime.Today.ToString("yyyy-MM-dd")">
         </div>
         <div class="filter-dropdown">
-            <i class="fas fa-layer-group"></i>
-            <select class="custom-select">
-                <option>All Models</option>
-                <option>Real Book</option>
-                <option>Blind Date</option>
+            <i class="fas fa-calendar-alt"></i>
+            <select class="custom-select" id="quickRangeFilter">
+                <option value="30" selected>Last 30 Days</option>
+                <option value="7">Last 7 Days</option>
+                <option value="custom">Custom Range</option>
             </select>
         </div>
         <button class="btn-export-pdf"><i class="fas fa-file-pdf"></i> EXPORT PDF</button>
@@ -34,6 +34,9 @@
 
     <!-- Charts -->
     @await Html.PartialAsync("Partials/_Charts")
+
+    <!-- Alerts and Configurations -->
+    @await Html.PartialAsync("Partials/_AlertsAndConfig")
 
     <!-- Trending Books -->
     @await Html.PartialAsync("Partials/_TrendingBooks")
@@ -56,6 +59,7 @@
                 updateKpis(data.kpis);
                 updateCharts(data.revenueChart, data.orderChart);
                 updateTrendingBooks(data.topBooks);
+                updateAlertsAndConfig(data);
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu dashboard:", error);
             }
@@ -73,9 +77,12 @@
         function updateKpis(kpis) {
             document.querySelector('.stat-card.total-revenue .value').innerHTML = `${formatCurrency(kpis.totalRevenue)} <span>VND</span>`;
             document.querySelector('.stat-card.total-orders .value').innerHTML = `${kpis.totalOrders} <span>Orders</span>`;
+            document.querySelector('.stat-card.pending-orders .value').innerHTML = `${kpis.pendingOrdersCount} <span>Orders</span>`;
+            document.querySelector('.stat-card.completed-orders .value').innerHTML = `${kpis.completedOrdersCount} <span>Orders</span>`;
             document.querySelector('.stat-card.return-rate .value').innerHTML = `${kpis.returnRate} <span>%</span>`;
-            // Active users not returned by BE currently, keeping it as is or N/A
-            document.querySelector('.stat-card.users .value').innerHTML = `N/A <span>Users</span>`;
+            document.querySelector('.stat-card.low-stock .value').innerHTML = `${kpis.lowStockCount} <span>Items</span>`;
+            document.querySelector('.stat-card.out-of-stock .value').innerHTML = `${kpis.outOfStockCount} <span>Items</span>`;
+            document.querySelector('.stat-card.users .value').innerHTML = `${kpis.lifetimeBuyersCount} <span>Buyers</span>`;
         }
 
         function updateCharts(revenueChart, orderChart) {
@@ -188,15 +195,127 @@
             });
         }
 
+        function updateAlertsAndConfig(data) {
+            // 1. Cảnh báo sách sắp hết hàng
+            const lowStockList = document.getElementById('lowStockAlertsList');
+            if (lowStockList) {
+                lowStockList.innerHTML = '';
+                if (data.lowStockBooks && data.lowStockBooks.length > 0) {
+                    data.lowStockBooks.forEach(b => {
+                        const li = document.createElement('li');
+                        li.className = 'alert-item-custom';
+                        li.innerHTML = `
+                            <div class="alert-item-header">
+                                <span class="alert-item-title" title="${b.title}">${b.title}</span>
+                                <span class="alert-item-badge danger">${b.unitsInStock} left</span>
+                            </div>
+                            <div class="alert-item-desc">ID Sách: #${b.bookId} - Tồn kho dưới mức tối thiểu</div>
+                        `;
+                        lowStockList.appendChild(li);
+                    });
+                } else {
+                    lowStockList.innerHTML = '<li class="empty-state-alert">Không có cảnh báo tồn kho.</li>';
+                }
+            }
+
+            // 2. Cảnh báo bài viết bị báo cáo nhiều
+            const highReportList = document.getElementById('highReportAlertsList');
+            if (highReportList) {
+                highReportList.innerHTML = '';
+                if (data.highReportPosts && data.highReportPosts.length > 0) {
+                    data.highReportPosts.forEach(p => {
+                        const li = document.createElement('li');
+                        li.className = 'alert-item-custom';
+                        li.innerHTML = `
+                            <div class="alert-item-header">
+                                <span class="alert-item-title" title="${p.title}">${p.title}</span>
+                                <span class="alert-item-badge danger">${p.reportCount}/${p.threshold} báo cáo</span>
+                            </div>
+                            <div class="alert-item-desc">ID Bài viết: #${p.postId} - Vượt ngưỡng báo cáo cho phép</div>
+                        `;
+                        highReportList.appendChild(li);
+                    });
+                } else {
+                    highReportList.innerHTML = '<li class="empty-state-alert">Không có bài viết vi phạm vượt ngưỡng.</li>';
+                }
+            }
+
+            // 3. Cảnh báo đơn hàng pending trễ hạn
+            const delayedOrdersList = document.getElementById('delayedOrdersAlertsList');
+            if (delayedOrdersList) {
+                delayedOrdersList.innerHTML = '';
+                if (data.delayedPendingOrders && data.delayedPendingOrders.length > 0) {
+                    data.delayedPendingOrders.forEach(o => {
+                        const dateStr = new Date(o.orderDate).toLocaleString();
+                        const li = document.createElement('li');
+                        li.className = 'alert-item-custom';
+                        li.innerHTML = `
+                            <div class="alert-item-header">
+                                <span class="alert-item-title">Đơn hàng #${o.orderId}</span>
+                                <span class="alert-item-badge warning">${formatCurrency(o.totalAmount)}đ</span>
+                            </div>
+                            <div class="alert-item-desc">Người nhận: ${o.shipReceiverName} - Nhận lúc: ${dateStr}</div>
+                        `;
+                        delayedOrdersList.appendChild(li);
+                    });
+                } else {
+                    delayedOrdersList.innerHTML = '<li class="empty-state-alert">Không có đơn hàng chờ xử lý trễ hạn.</li>';
+                }
+            }
+
+            // 4. Cấu hình hệ thống (Chỉ đọc)
+            const configList = document.getElementById('systemConfigList');
+            if (configList) {
+                configList.innerHTML = '';
+                if (data.systemConfigs && data.systemConfigs.length > 0) {
+                    data.systemConfigs.forEach(c => {
+                        const li = document.createElement('li');
+                        li.className = 'config-item-custom';
+                        li.innerHTML = `
+                            <span class="config-item-name" title="${c.description || c.configName}">${c.configName}</span>
+                            <span class="config-item-value">${c.configValue}</span>
+                        `;
+                        configList.appendChild(li);
+                    });
+                } else {
+                    configList.innerHTML = '<li class="empty-state-alert">Không có cấu hình nào trong DB.</li>';
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            const dateInputs = document.querySelectorAll('.custom-date-input');
+
             // Tải dữ liệu lần đầu
             loadDashboardData();
 
             // Lắng nghe sự kiện đổi ngày
-            const dateInputs = document.querySelectorAll('.custom-date-input');
             dateInputs.forEach(input => {
-                input.addEventListener('change', loadDashboardData);
+                input.addEventListener('change', () => {
+                    const quickRange = document.getElementById('quickRangeFilter');
+                    if (quickRange) quickRange.value = 'custom';
+                    loadDashboardData();
+                });
             });
+
+            // Lắng nghe bộ lọc nhanh
+            const quickRange = document.getElementById('quickRangeFilter');
+            if (quickRange) {
+                quickRange.addEventListener('change', function() {
+                    const val = this.value;
+                    if (val === 'custom') {
+                        return;
+                    }
+                    const days = parseInt(val);
+                    const toDate = new Date();
+                    const fromDate = new Date();
+                    fromDate.setDate(toDate.getDate() - days);
+
+                    dateInputs[0].value = fromDate.toISOString().split('T')[0];
+                    dateInputs[1].value = toDate.toISOString().split('T')[0];
+                    loadDashboardData();
+                });
+            }
 
             // Nút Export PDF
             const exportBtn = document.querySelector('.btn-export-pdf');
@@ -210,3 +329,4 @@
         });
     </script>
 }
+

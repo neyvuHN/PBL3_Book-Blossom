@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using BookBlossom.Core.Entities;
 using BookBlossom.Core.Enums;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookBlossom.Web.Controllers
 {
-    // [Authorize(Roles = "SystemAdmin, Moderator, MarketingManager, StoreManager")]
+    [Authorize(Policy = "AdminOnly")]
     public class AdminController : Controller
     {
         

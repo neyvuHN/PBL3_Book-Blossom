@@ -58,7 +58,11 @@ namespace BookBlossom.Infrastructure.BackgroundJobs
 
         private async Task AutoCancelOrdersAsync(ApplicationDbContext context)
         {
-            var thresholdDate = DateTime.UtcNow.AddHours(-48);
+            var timeoutConfig = await context.Set<SystemConfiguration>()
+                .FirstOrDefaultAsync(c => c.ConfigName == "OrderConfirmTimeoutHours");
+            int timeoutHours = timeoutConfig != null && int.TryParse(timeoutConfig.ConfigValue, out var val) ? val : 48;
+
+            var thresholdDate = DateTime.UtcNow.AddHours(-timeoutHours);
 
             // Tìm các đơn hàng Pending được tạo cách đây hơn 48 giờ
             var expiredOrders = await context.Set<Order>()
