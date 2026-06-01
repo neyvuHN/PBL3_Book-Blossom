@@ -848,35 +848,40 @@
                     return;
                 }
 
-                window.BookBlossomCart.addToCart({
-                    id: 'cart-' + Date.now(),
-                    title: title,
-                    shop: 'Normal Books',
-                    price: unitPriceVnd / 20000,
-                    priceVnd: unitPriceVnd,
-                    qty: qty,
-                    condition: 'Like New',
-                    img: img,
-                    selected: true,
-                    isBlind: false
-                });
+                // For mock books without a real ID, try to add to backend using a fallback ID
+                const mockId = (getStableHash(title) % 10) + 1; // 1-10
 
-                animateAddToCart($(this), qty);
-                showToast(`Added ${qty}x "${title}" to your cart!`);
+                try {
+                    await window.BookBlossomCart.addToCart({ bookID: mockId, qty: qty });
+                    animateAddToCart($(this), qty);
+                    showToast(`Added ${qty}x "${title}" to your cart!`);
+                } catch(error) {
+                    showToast('Failed to add item to cart.', 'error');
+                }
                 return;
             }
 
             try {
-                await apiClient.apiPost('/api/Cart', { bookID: parseInt(bookId), quantity: qty });
+                // Optimistic UI updates to make it feel instant
                 animateAddToCart($btn, qty);
                 showToast(`Added ${qty}x item(s) to your cart!`);
-                
-                if (window.BookBlossomLayout) {
-                    // Slight delay to allow backend logic
-                    setTimeout(() => window.BookBlossomLayout.refreshCartBadge(), 500);
+
+                if (window.BookBlossomCart) {
+                    window.BookBlossomCart.addToCart({ bookID: parseInt(bookId), qty: qty }).catch(err => {
+                        console.error('Failed background add to cart', err);
+                    });
+                } else {
+                    apiClient.apiPost('/api/Cart', { bookID: parseInt(bookId), quantity: qty }).catch(err => {
+                        console.error('Failed background add to cart', err);
+                    });
                 }
             } catch (error) {
                 console.error('Failed to add to cart', error);
+                if (error.status === 401) {
+                    showToast('Please log in to add items to cart.', 'error');
+                } else {
+                    showToast('Failed to add item to cart.', 'error');
+                }
             }
         });
     }

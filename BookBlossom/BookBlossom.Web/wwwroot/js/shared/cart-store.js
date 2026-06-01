@@ -1,177 +1,177 @@
 (function (window) {
-    const CART_KEY = 'bookblossom_cart_items';
-    const INIT_KEY = 'bookblossom_cart_initialized';
+    const CART_CACHE_KEY = 'bookblossom_cart_cache';
+    let cachedItems = [];
 
-    const DEFAULT_CART_ITEMS = [
-        {
-            id: 'cart-1',
-            title: 'The Secret Life of Sunflowers',
-            shop: 'Normal Books',
-            price: 8.50,
-            priceVnd: 170000,
-            qty: 1,
-            condition: 'Good 80%',
-            img: '/images/Book/book1.jpg',
-            selected: true,
-            isBlind: false
-        },
-        {
-            id: 'cart-2',
-            title: 'Blind Date Mystery - Vibe: Cozy',
-            shop: 'Blind Date Books',
-            price: 12.00,
-            priceVnd: 240000,
-            qty: 1,
-            condition: 'New Curated',
-            img: '/images/BlindDateBook/BlindBook.jpg',
-            selected: true,
-            isBlind: true,
-            hashtags: ['Romance', 'Dark']
-        },
-        {
-            id: 'cart-3',
-            title: 'The Silent Patient',
-            shop: 'Normal Books',
-            price: 14.00,
-            priceVnd: 280000,
-            qty: 1,
-            condition: 'Like New',
-            img: '/images/Book/book1.jpg',
-            selected: true,
-            isBlind: false
-        },
-        {
-            id: 'cart-4',
-            title: "Harry Potter and the Sorcerer's Stone",
-            shop: 'Normal Books',
-            price: 6.00,
-            priceVnd: 120000,
-            qty: 1,
-            condition: 'Good 85%',
-            img: '/images/Book/book1.jpg',
-            selected: true,
-            isBlind: false,
-            limit: 1
-        }
-    ];
+    // Initialize guest session implicitly if needed when cart loads
+    if (window.apiClient) {
+        window.apiClient.init();
+    }
 
     function safeParse(json, fallback) {
+        if (!json) return fallback;
         try {
-            return JSON.parse(json);
+            const parsed = JSON.parse(json);
+            return parsed !== null ? parsed : fallback;
         } catch {
             return fallback;
         }
     }
 
-    function normalizeItem(item) {
-        item = item || {};
-
-        const isBlind = item.isBlind === true || item.shop === 'Blind Date Books';
-        const priceVnd = Number(item.priceVnd) || Math.round((Number(item.price) || 0) * 20000);
-
+    // Map Backend DTO to Frontend UI Model
+    function mapApiItemToCartItem(apiItem) {
+        // C# System.Text.Json uses camelCase by default (CartID -> cartId)
+        const cartId = apiItem.cartId || apiItem.cartID || apiItem.CartID;
+        const bookId = apiItem.bookId || apiItem.bookID || apiItem.BookID;
+        const blindBookId = apiItem.blindBookId || apiItem.blindBookID || apiItem.BlindBookID;
+        
+        const isBlind = blindBookId != null;
+        const priceVnd = apiItem.price; // Backend price is already in VND, no need to multiply by 20000
+        
         return {
-            id: item.id || ('cart-' + Date.now() + '-' + Math.floor(Math.random() * 10000)),
-            title: item.title || 'Unknown Book',
-            shop: item.isBlind ? 'Blind Date Books' : (item.shop || 'Normal Books'),
-            price: Number(item.price) || priceVnd / 20000,
+            id: cartId ? cartId.toString() : '0',
+            title: apiItem.title || 'Unknown Book',
+            shop: isBlind ? 'Blind Date Books' : 'Normal Books',
+            price: apiItem.price,
             priceVnd: priceVnd,
-            qty: Number(item.qty) || 1,
-            condition: item.condition || (item.isBlind ? 'New Curated' : 'Like New'),
-            img: item.img || (item.isBlind ? '/images/BlindDateBook/BlindBook.jpg' : '/images/Book/book1.jpg'),
-            selected: item.selected !== false,
-            isBlind: item.isBlind === true,
-            hashtags: Array.isArray(item.hashtags) ? item.hashtags : [],
-            limit: item.limit || null,
-            author: item.author || ''
+            qty: apiItem.quantity,
+            condition: isBlind ? 'New Curated' : 'Like New',
+            // Default images since API doesn't provide them yet
+            img: isBlind ? '/images/BlindDateBook/BlindBook.jpg' : '/images/Book/book1.jpg',
+            selected: true, // Default to selected when loaded
+            isBlind: isBlind,
+            hashtags: isBlind ? ['Mystery'] : [],
+            limit: null,
+            author: 'BookBlossom Edition',
+            bookID: bookId,
+            blindBookID: blindBookId
         };
     }
 
+    // Preserve selection state when reloading from server
+    function mergeSelectionState(newItems) {
+        newItems.forEach(newItem => {
+            const existing = cachedItems.find(i => i.id === newItem.id);
+            if (existing && existing.selected !== undefined) {
+                newItem.selected = existing.selected;
+            }
+        });
+        return newItems;
+    }
+
+    // Core async API methods
+    async function loadCartFromServer() {
+        if (!window.apiClient) {
+            console.warn("apiClient not found. Cannot load cart.");
+            return cachedItems;
+        }
+        try {
+            const data = await window.apiClient.apiGet('/api/Cart');
+            if (Array.isArray(data)) {
+                let mapped = data.map(mapApiItemToCartItem);
+                cachedItems = mergeSelectionState(mapped);
+                saveCache(cachedItems);
+                updateBadge();
+            }
+            return cachedItems;
+        } catch (error) {
+            console.error("Failed to load cart from server:", error);
+            // Fallback to local cache if API fails
+            return getCartItems();
+        }
+    }
+
+    async function addToCart(payload) {
+        if (!window.apiClient) return null;
+        
+        // Payload expects { bookID, blindBookID, quantity }
+        const requestBody = {
+            bookID: payload.bookID || null,
+            blindBookID: payload.blindBookID || null,
+            quantity: payload.qty || 1
+        };
+
+        try {
+            await window.apiClient.apiPost('/api/Cart', requestBody);
+            // Reload cart to sync state
+            await loadCartFromServer();
+            return cachedItems;
+        } catch (error) {
+            console.error("Failed to add to cart:", error);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast(error.message || "Failed to add to cart.", 'error');
+            }
+            throw error;
+        }
+    }
+
+    async function updateQuantity(id, qty) {
+        if (!window.apiClient) return null;
+        
+        try {
+            await window.apiClient.apiPut(`/api/Cart/${id}/quantity`, { quantity: qty });
+            await loadCartFromServer();
+            return cachedItems;
+        } catch (error) {
+            console.error("Failed to update cart quantity:", error);
+            if (window.apiClient.showToast) {
+                window.apiClient.showToast(error.message || "Failed to update quantity.", 'error');
+            }
+            throw error;
+        }
+    }
+
+    async function removeItem(id) {
+        if (!window.apiClient) return null;
+        
+        try {
+            await window.apiClient.apiDelete(`/api/Cart/${id}`);
+            await loadCartFromServer();
+            return cachedItems;
+        } catch (error) {
+            console.error("Failed to remove item from cart:", error);
+            throw error;
+        }
+    }
+
+    // Local state management for immediate UI reflection and selection
     function getCartItems() {
-        const initialized = localStorage.getItem(INIT_KEY);
-
-        if (!initialized) {
-            localStorage.setItem(INIT_KEY, 'true');
-            saveCartItems(DEFAULT_CART_ITEMS);
-            return DEFAULT_CART_ITEMS.map(normalizeItem);
+        if (!cachedItems || cachedItems.length === 0) {
+            const raw = localStorage.getItem(CART_CACHE_KEY);
+            cachedItems = safeParse(raw, []);
         }
-
-        const raw = localStorage.getItem(CART_KEY);
-        const items = safeParse(raw, []);
-
-        if (!Array.isArray(items)) {
-            return [];
-        }
-
-        return items.map(normalizeItem);
+        return cachedItems;
     }
 
-    function saveCartItems(items) {
-        const normalizedItems = Array.isArray(items) ? items.map(normalizeItem) : [];
-        localStorage.setItem(CART_KEY, JSON.stringify(normalizedItems));
+    function saveCache(items) {
+        cachedItems = items;
+        localStorage.setItem(CART_CACHE_KEY, JSON.stringify(cachedItems));
         updateBadge();
-        return normalizedItems;
-    }
-
-    function addToCart(item) {
-        const items = getCartItems();
-        const newItem = normalizeItem(item);
-
-        const existingItem = items.find(x =>
-            x.title === newItem.title &&
-            x.isBlind === newItem.isBlind
-        );
-
-        if (existingItem) {
-            existingItem.qty += newItem.qty;
-        } else {
-            items.push(newItem);
-        }
-
-        return saveCartItems(items);
-    }
-
-    function removeItem(id) {
-        const items = getCartItems().filter(x => x.id !== id);
-        return saveCartItems(items);
-    }
-
-    function updateQuantity(id, qty) {
-        const items = getCartItems();
-        const item = items.find(x => x.id === id);
-
-        if (item) {
-            item.qty = Math.max(1, Number(qty) || 1);
-        }
-
-        return saveCartItems(items);
     }
 
     function toggleSelected(id, selected) {
-        const items = getCartItems();
-        const item = items.find(x => x.id === id);
-
+        const item = cachedItems.find(x => x.id === id);
         if (item) {
             item.selected = selected;
+            saveCache(cachedItems);
         }
-
-        return saveCartItems(items);
+        return cachedItems;
     }
 
     function toggleShopSelected(shop, selected) {
-        const items = getCartItems();
-
-        items.forEach(item => {
+        cachedItems.forEach(item => {
             if (item.shop === shop) {
                 item.selected = selected;
             }
         });
-
-        return saveCartItems(items);
+        saveCache(cachedItems);
+        return cachedItems;
     }
 
     function clearSelectedItems() {
-        const items = getCartItems().filter(x => !x.selected);
-        return saveCartItems(items);
+        // Only updates local state. Backend checkout process should handle actual clearing.
+        cachedItems = cachedItems.filter(x => !x.selected);
+        saveCache(cachedItems);
+        return cachedItems;
     }
 
     function getCartCount() {
@@ -180,15 +180,12 @@
 
     function updateBadge() {
         const badge = document.getElementById('cart-badge');
-
         if (!badge) return;
 
         const count = getCartCount();
-
         if (count > 0) {
             badge.textContent = count;
             badge.style.display = '';
-
             badge.classList.remove('cart-badge-bounce');
             void badge.offsetWidth;
             badge.classList.add('cart-badge-bounce');
@@ -197,18 +194,28 @@
         }
     }
 
+    // Expose API globally
     window.BookBlossomCart = {
+        loadCartFromServer,
         getCartItems,
-        saveCartItems,
         addToCart,
-        removeItem,
         updateQuantity,
+        removeItem,
         toggleSelected,
         toggleShopSelected,
         clearSelectedItems,
         getCartCount,
-        updateBadge
+        updateBadge,
+        // Fallback for codes expecting saveCartItems for selection state
+        saveCartItems: saveCache
     };
 
-    document.addEventListener('DOMContentLoaded', updateBadge);
+    document.addEventListener('DOMContentLoaded', () => {
+        // Immediately fetch from server on load to sync
+        if (window.apiClient) {
+            loadCartFromServer();
+        } else {
+            updateBadge();
+        }
+    });
 })(window);

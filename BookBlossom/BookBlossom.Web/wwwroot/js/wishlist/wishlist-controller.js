@@ -77,16 +77,14 @@ class WishlistController {
                         window.BookBlossomLayout.refreshCartBadge();
                     }
                 } else if (window.BookBlossomCart) {
-                    window.BookBlossomCart.addToCart({
-                        title: item.title,
-                        priceVnd: item.price,
-                        price: item.price / 20000,
-                        img: item.imageUrl,
-                        isBlind: item.isBlindDate,
-                        hashtags: item.hashtags,
-                        qty: 1
-                    });
                     showToast(`Added "${item.title}" to cart!`, 'success');
+                    window.BookBlossomCart.addToCart({
+                        bookID: item.isBlindDate ? null : (item.bookID || parseInt(item.id.replace(/\D/g, '')) || 1),
+                        blindBookID: item.isBlindDate ? (item.blindBookID || parseInt(item.id.replace(/\D/g, '')) || 1) : null,
+                        qty: 1
+                    }).catch(err => {
+                        console.error('Failed background add to cart', err);
+                    });
                 } else {
                     showToast(`Added "${item.title}" to cart (simulated)!`, 'success');
                 }

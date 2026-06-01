@@ -212,3 +212,6 @@ const apiClient = (function () {
 document.addEventListener('DOMContentLoaded', () => {
     apiClient.init();
 });
+
+// Expose to window so other modules can access it via window.apiClient
+window.apiClient = apiClient;

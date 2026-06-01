@@ -59,7 +59,7 @@
             // that are scoped to this $(document).ready() block.
             // =========================================================
             // [UPDATED] Support multiple applied vouchers
-            let cartItems = BookBlossomCart.getCartItems();
+            let cartItems = [];
             let appliedVouchers = [];
 
             function formatVnd(value) {
@@ -88,8 +88,12 @@
                 }
             };
 
-            function renderCart() {
-                cartItems = BookBlossomCart.getCartItems();
+            async function renderCart(skipFetch = false) {
+                if (skipFetch && window.BookBlossomCart) {
+                    cartItems = window.BookBlossomCart.getCartItems();
+                } else {
+                    cartItems = await BookBlossomCart.loadCartFromServer();
+                }
                 const $itemsWrapper = $('#cart-items-wrapper');
                 const $emptyState = $('#empty-cart-state');
                 const $layoutContainer = $('#cart-layout-container');
@@ -546,16 +550,20 @@
 
                 if (item) {
                     if (item.qty > 1) {
-                        item.qty--;
-                        BookBlossomCart.saveCartItems(cartItems);
-                        renderCart();
+                        try {
+                            item.qty -= 1;
+                            // Fire and forget API call
+                            BookBlossomCart.updateQuantity(itemId, item.qty);
+                            renderCart(true); // skip fetch
+                        } catch(e) { }
                     } else {
                         // [UPDATED] Replaced native confirm dialog with premium styled custom confirmation modal
-                        showCartConfirm(`Remove "${item.title}" from your cart?`, function () {
-                            cartItems = cartItems.filter(i => i.id !== itemId);
-                            BookBlossomCart.saveCartItems(cartItems);
-                            renderCart();
-                            showToast("Item removed from cart");
+                        showCartConfirm(`Remove "${item.title}" from your cart?`, async function () {
+                            try {
+                                await BookBlossomCart.removeItem(itemId);
+                                renderCart();
+                                showToast("Item removed from cart");
+                            } catch(e) { }
                         });
                     }
                 }
@@ -571,24 +579,28 @@
                         showToast(`Limit ${item.limit} copy for this item.`);
                         return;
                     }
-                    item.qty++;
-                    BookBlossomCart.saveCartItems(cartItems);
-                    renderCart();
+                    try {
+                        item.qty += 1;
+                        // Fire and forget API call
+                        BookBlossomCart.updateQuantity(itemId, item.qty);
+                        renderCart(true); // skip fetch
+                    } catch(e) { }
                 }
             });
 
             // Delete Cart Item Click
-            $(document).on('click', '.btn-delete-item', function() {
+            $(document).on('click', '.btn-delete-item', async function() {
                 const itemId = $(this).attr('data-id');
                 const item = cartItems.find(i => i.id === itemId);
 
                 if (item) {
                     // [UPDATED] Replaced native confirm dialog with premium styled custom confirmation modal
-                    showCartConfirm(`Remove "${item.title}" from your cart?`, function () {
-                        cartItems = cartItems.filter(i => i.id !== itemId);
-                        BookBlossomCart.saveCartItems(cartItems);
-                        renderCart();
-                        showToast("Item removed from cart");
+                    showCartConfirm(`Remove "${item.title}" from your cart?`, async function () {
+                        try {
+                            await BookBlossomCart.removeItem(itemId);
+                            renderCart();
+                            showToast("Item removed from cart");
+                        } catch(e) { }
                     });
                 }
             });

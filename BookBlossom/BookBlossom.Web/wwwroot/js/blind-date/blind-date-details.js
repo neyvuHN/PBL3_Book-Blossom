@@ -671,7 +671,7 @@
     function initAddToCart() {
         $(document)
             .off('click.addBlindCart')
-            .on('click.addBlindCart', '.btn-cart-blind', function (e) {
+            .on('click.addBlindCart', '.btn-cart-blind', async function (e) {
                 e.preventDefault();
 
                 if (!window.BookBlossomCart) {
@@ -679,13 +679,29 @@
                     return;
                 }
 
-                const item = buildCartItem();
+                const qty = parseInt($('#input-blind-qty').val(), 10) || 1;
+                // Since this is mock data and blind book ID isn't directly in hash, we'll try to extract an ID or fallback to 1
+                const tagKey = decodeURIComponent((window.location.hash || '').substring('#blind-details-'.length));
+                const mockId = (tagKey.toLowerCase().includes('space') ? 3 : (tagKey.toLowerCase().includes('literary') ? 2 : 1));
 
-                window.BookBlossomCart.addToCart(item);
+                try {
+                    // Optimistic UI updates
+                    animateAddToCart($(this), qty);
+                    showToast(`Added ${qty}x Mystery Book to your cart!`);
 
-                animateAddToCart($(this), item.qty);
-
-                showToast(`Added ${item.qty}x "${item.title}" to your cart!`);
+                    if (window.BookBlossomCart) {
+                        window.BookBlossomCart.addToCart({ blindBookID: mockId, qty: qty }).catch(err => {
+                            console.error('Failed background add to cart', err);
+                        });
+                    } else {
+                        apiClient.apiPost('/api/Cart', { blindBookID: mockId, quantity: qty }).catch(err => {
+                            console.error('Failed background add to cart', err);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to add to cart', error);
+                    showToast('Failed to add item to cart.', 'error');
+                }
             });
     }
 
