@@ -84,16 +84,16 @@
 
     function initIdleTindbookPopup() {
         const path = normalizePath(window.location.pathname).toLowerCase();
-        
+
         // Exclude pages: Product details, Checkout, Tindbook itself, etc.
         const isProductDetail = path.includes('/book') || path.includes('/product') || path.includes('/realbook');
         const isCheckout = path.includes('/checkout');
         const isTindbook = path.includes('/tindbook');
-        
+
         if (isProductDetail || isCheckout || isTindbook) {
             return;
         }
-        
+
         let idleTimeoutMs = 0;
         if (path === '/' || path.includes('/search') || path.includes('/explore')) {
             idleTimeoutMs = 2 * 60 * 1000; // 2 minutes
@@ -103,18 +103,18 @@
             // Other pages: default 5 minutes
             idleTimeoutMs = 5 * 60 * 1000;
         }
-        
+
         let idleTimer;
-        
+
         function resetIdleTimer() {
             clearTimeout(idleTimer);
             idleTimer = setTimeout(showTindbookPopup, idleTimeoutMs);
         }
-        
+
         function showTindbookPopup() {
             // Check if popup already exists
             if (document.getElementById('tindbook-idle-popup')) return;
-            
+
             // Create popup element with stunning HSL glassmorphic design
             const $popup = $(`
                 <div id="tindbook-idle-popup" class="tindbook-idle-modal-overlay">
@@ -126,16 +126,20 @@
                             </div>
                         </div>
                         <div class="tindbook-idle-modal-body">
-                            <h3>Tìm kiếm "Mối lương duyên" tiếp theo?</h3>
-                            <p>Bạn đang phân vân chưa biết đọc gì? Hãy trải nghiệm tính năng quẹt sách <strong>Tindbook</strong> để tìm thấy cuốn sách tri kỷ của đời mình!</p>
-                            <button id="btn-tindbook-go" class="tindbook-idle-btn-primary">Quẹt Ngay!</button>
+                            <h3>Looking for Your Next Book Soulmate?</h3>
+                            <p>
+                                Not sure what to read next? Try our <strong>Tindbook</strong> swipe feature and discover the perfect book match waiting for you!
+                            </p>
+                            <button id="btn-tindbook-go" class="tindbook-idle-btn-primary">
+                                Start Swiping!
+                            </button>
                         </div>
                     </div>
                 </div>
             `);
-            
+
             $('body').append($popup);
-            
+
             // Add CSS styles if not already injected
             if (!document.getElementById('tindbook-idle-popup-styles')) {
                 const styles = `
@@ -257,32 +261,32 @@
                 `;
                 $('head').append(styles);
             }
-            
+
             // Fade in
             setTimeout(() => {
                 $popup.addClass('active');
             }, 50);
-            
+
             // Event Handlers
             $popup.find('.tindbook-idle-modal-close').on('click', () => {
                 dismissPopup();
             });
-            
+
             $popup.on('click', (e) => {
                 if ($(e.target).hasClass('tindbook-idle-modal-overlay')) {
                     dismissPopup();
                 }
             });
-            
+
             $popup.find('#btn-tindbook-go').on('click', () => {
                 dismissPopup();
                 window.location.href = '/Tindbook';
             });
-            
+
             // Disable event listeners when shown
             $(document).off('.tindbookIdle');
         }
-        
+
         function dismissPopup() {
             const $popup = $('#tindbook-idle-popup');
             if ($popup.length) {
@@ -292,10 +296,10 @@
                 }, 400);
             }
         }
-        
+
         // Activity listeners to reset the timer
         $(document).on('mousemove.tindbookIdle click.tindbookIdle keydown.tindbookIdle scroll.tindbookIdle touchstart.tindbookIdle', resetIdleTimer);
-        
+
         // Initial start
         resetIdleTimer();
     }

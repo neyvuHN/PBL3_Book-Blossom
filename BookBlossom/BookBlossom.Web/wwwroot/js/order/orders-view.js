@@ -6,14 +6,14 @@ class OrdersView {
         this.searchInput = document.getElementById('orders-search-input');
         this.toReceiveBadge = document.getElementById('to-receive-badge');
         this.toReceiveBannerContainer = document.getElementById('to-receive-banner-container');
-        
+
         // [NEW] Return/Refund state management
         this.uploadedImages = [];
         this.uploadedVideo = null;
         this.activeProposal = 'return'; // Default proposal
         this.currentOrderTotal = 0;
         this.isVideoUploading = false;
-        
+
         this.initReturnRefundEvents();
     }
 
@@ -321,7 +321,7 @@ class OrdersView {
         if (!blindItem) return;
 
         const realBook = blindItem.realBook;
-        
+
         document.getElementById('reveal-real-book-title').textContent = realBook.title;
         document.getElementById('reveal-real-book-author').textContent = realBook.author;
         document.getElementById('reveal-real-book-image').src = realBook.image;
@@ -606,7 +606,7 @@ class OrdersView {
 
             const orderId = submitBtn.getAttribute('data-order-id');
             const reasonSelect = document.getElementById('refund-reason-select');
-            
+
             let reasonText = "";
             if (reasonSelect.value === 'other') {
                 const customInput = document.getElementById('custom-reason-input');
@@ -614,7 +614,7 @@ class OrdersView {
             } else {
                 reasonText = reasonSelect.options[reasonSelect.selectedIndex].text;
             }
-            
+
             let refundAmount = this.currentOrderTotal;
             if (this.activeProposal === 'keep') {
                 const cleanAmount = document.getElementById('refund-amount-input').value.replace(/,/g, '');
@@ -635,17 +635,17 @@ class OrdersView {
     // [NEW] Open Return/Refund full-screen modal and initialize order-related fields
     showReturnRefundModal(order) {
         this.currentOrderTotal = order.totalPrice;
-        
+
         // Set dynamic display fields
         document.getElementById('refund-modal-order-id').textContent = `#${order.id}`;
         document.getElementById('refund-modal-order-total').textContent = `${order.totalPrice.toLocaleString('vi-VN')}đ`;
         document.getElementById('return-full-amount-text').textContent = `${order.totalPrice.toLocaleString('vi-VN')} VND`;
         document.getElementById('refund-max-text').textContent = `${order.totalPrice.toLocaleString('vi-VN')} VND`;
-        
+
         // Prefill maximum refund amount
         const amountInput = document.getElementById('refund-amount-input');
         amountInput.value = order.totalPrice.toLocaleString('vi-VN');
-        
+
         // Configure requirement text dynamically (video mandatory for orders > 500k as a tooltip tip)
         const requirementText = document.getElementById('video-upload-requirement-text');
         if (order.totalPrice > 500000) {
@@ -662,23 +662,23 @@ class OrdersView {
         this.uploadedVideo = null;
         this.isVideoUploading = false;
         document.getElementById('refund-reason-select').value = "";
-        
+
         const customBlock = document.getElementById('custom-reason-block');
         const customInput = document.getElementById('custom-reason-input');
         if (customBlock) customBlock.style.display = 'none';
         if (customInput) customInput.value = "";
-        
+
         // Reset view states
         this.renderPhotoSlots();
-        
+
         // Reset video panel view states
         document.getElementById('video-upload-initial-state').style.display = 'block';
         document.getElementById('video-upload-progress-state').style.display = 'none';
         document.getElementById('video-upload-success-state').style.display = 'none';
-        
+
         // Reset proposal state to default (Return Item)
         this.selectProposal('return');
-        
+
         // Check initial state
         this.updateSubmitButtonState();
 
@@ -697,7 +697,7 @@ class OrdersView {
         const reasonSelect = document.getElementById('refund-reason-select');
         const refundAmountInput = document.getElementById('refund-amount-input');
         const customReasonInput = document.getElementById('custom-reason-input');
-        
+
         // Photo trigger click
         if (photoTrigger && photoInput) {
             photoTrigger.addEventListener('click', () => photoInput.click());
@@ -768,7 +768,7 @@ class OrdersView {
                 // Extract numeric values only
                 let valueStr = e.target.value.replace(/[^0-9]/g, '');
                 let numericVal = parseFloat(valueStr) || 0;
-                
+
                 // Enforce max validation
                 const validationError = document.getElementById('refund-validation-error');
                 if (numericVal > this.currentOrderTotal) {
@@ -778,7 +778,7 @@ class OrdersView {
                     validationError.style.display = 'none';
                     refundAmountInput.style.borderColor = '#cbd5e1';
                 }
-                
+
                 // Prefill back formatted text
                 e.target.value = numericVal.toLocaleString('vi-VN');
                 this.updateSubmitButtonState();
@@ -789,7 +789,7 @@ class OrdersView {
         const openPolicyBtn = document.getElementById('open-dispute-policy-btn');
         const dismissPolicyBtn = document.getElementById('dismiss-policy-btn');
         const closePolicyBtn = document.getElementById('close-policy-btn');
-        
+
         if (openPolicyBtn) {
             openPolicyBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -812,11 +812,11 @@ class OrdersView {
     // [NEW] Handle simulated photo file uploads
     handlePhotoUpload(files) {
         if (this.uploadedImages.length >= 5) return;
-        
+
         // Mock upload images simulation
         for (let i = 0; i < files.length; i++) {
             if (this.uploadedImages.length >= 5) break;
-            
+
             const file = files[i];
             const objectUrl = URL.createObjectURL(file);
             this.uploadedImages.push({
@@ -827,7 +827,7 @@ class OrdersView {
 
         this.renderPhotoSlots();
         this.updateSubmitButtonState();
-        
+
         // Reset file input value to allow uploading same photo again
         const photoInput = document.getElementById('refund-images-input');
         if (photoInput) photoInput.value = "";
@@ -867,11 +867,11 @@ class OrdersView {
         deleteBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const index = parseInt(btn.getAttribute('data-index'));
-                
+
                 // Revoke URL to prevent memory leaks
                 URL.revokeObjectURL(this.uploadedImages[index].url);
                 this.uploadedImages.splice(index, 1);
-                
+
                 this.renderPhotoSlots();
                 this.updateSubmitButtonState();
             });
@@ -881,19 +881,19 @@ class OrdersView {
     // [NEW] Handle simulated unboxing video upload progress animation
     handleVideoUpload(file) {
         this.isVideoUploading = true;
-        
+
         // Switch view states
         document.getElementById('video-upload-initial-state').style.display = 'none';
         document.getElementById('video-upload-progress-state').style.display = 'block';
         document.getElementById('video-upload-success-state').style.display = 'none';
-        
+
         const progressbar = document.getElementById('video-upload-progressbar');
         const statusText = document.getElementById('video-upload-status');
         progressbar.style.width = '0%';
-        
+
         let progress = 0;
         const uploadSpeed = 100; // ms intervals
-        
+
         const interval = setInterval(() => {
             progress += Math.floor(Math.random() * 12) + 6;
             if (progress >= 100) {
@@ -901,16 +901,16 @@ class OrdersView {
                 progressbar.style.width = '100%';
                 statusText.textContent = "Uploading video ... 100%";
                 clearInterval(interval);
-                
+
                 // Wait briefly, then display success state
                 setTimeout(() => {
                     this.isVideoUploading = false;
                     this.uploadedVideo = file;
-                    
+
                     document.getElementById('video-upload-progress-state').style.display = 'none';
                     document.getElementById('video-upload-success-state').style.display = 'block';
                     document.getElementById('uploaded-video-filename').textContent = file.name;
-                    
+
                     this.updateSubmitButtonState();
                 }, 400);
             } else {
@@ -923,12 +923,12 @@ class OrdersView {
     // [NEW] Toggle active proposal option: Return Item vs Keep Item
     selectProposal(type) {
         this.activeProposal = type;
-        
+
         const returnTab = document.getElementById('proposal-return-tab');
         const keepTab = document.getElementById('proposal-keep-tab');
         const refundAmountBlock = document.getElementById('refund-amount-block');
         const returnNoteBlock = document.getElementById('return-note-block');
-        
+
         if (type === 'return') {
             returnTab.classList.add('active');
             keepTab.classList.remove('active');
@@ -940,7 +940,7 @@ class OrdersView {
             if (refundAmountBlock) refundAmountBlock.style.display = 'block';
             if (returnNoteBlock) returnNoteBlock.style.display = 'none';
         }
-        
+
         this.updateSubmitButtonState();
     }
 
@@ -951,22 +951,22 @@ class OrdersView {
 
         const reasonSelect = document.getElementById('refund-reason-select');
         let reasonSelected = reasonSelect && reasonSelect.value !== "";
-        
+
         // If 'other' is selected, require custom reason text
         if (reasonSelect && reasonSelect.value === 'other') {
             const customInput = document.getElementById('custom-reason-input');
             reasonSelected = customInput && customInput.value.trim() !== "";
         }
-        
+
         const hasVideo = this.uploadedVideo !== null;
         const hasMinPhotos = this.uploadedImages.length >= 2;
-        
+
         let amountIsValid = true;
         if (this.activeProposal === 'keep') {
             const amountInput = document.getElementById('refund-amount-input');
             const cleanAmount = amountInput ? amountInput.value.replace(/[^0-9]/g, '') : "0";
             const numericVal = parseFloat(cleanAmount) || 0;
-            
+
             amountIsValid = numericVal > 0 && numericVal <= this.currentOrderTotal;
         }
 
@@ -989,14 +989,14 @@ class OrdersView {
         document.getElementById('rate-modal-book-title').textContent = order.items[0].title;
         const reviewInput = document.getElementById('rate-modal-review-text');
         if (reviewInput) reviewInput.value = '';
-        
+
         let selectedRating = 0;
         const stars = document.querySelectorAll('#rate-modal-stars i');
         const ratingText = document.getElementById('rate-modal-rating-text');
         const wordCounter = document.getElementById('rate-modal-word-count');
         const validationWarning = document.getElementById('rate-modal-validation-warning');
         let submitBtn = document.getElementById('btn-submit-rate-order');
-        
+
         // Reset UI
         if (stars.length > 0) {
             stars.forEach(s => {
@@ -1012,7 +1012,7 @@ class OrdersView {
             validationWarning.style.display = 'block';
             validationWarning.textContent = '* Minimum 60 words and a star rating are required to submit.';
         }
-        
+
         // Helper to count words
         const getWordCount = (text) => {
             const cleanText = text.trim();
@@ -1044,7 +1044,7 @@ class OrdersView {
             // 2. Check for unique word ratio (diversity of words)
             const uniqueWords = new Set(words);
             const uniqueRatio = uniqueWords.size / words.length;
-            
+
             // If they write a long text but keep repeating a tiny set of words (e.g., under 35% unique words)
             if (words.length >= 10 && uniqueRatio < 0.35) {
                 return { isSpam: true, reason: "Highly repetitive text. Please provide an organic, descriptive review." };
@@ -1070,7 +1070,7 @@ class OrdersView {
             const text = reviewInput ? reviewInput.value : '';
             const wordCount = getWordCount(text);
             const spamCheck = checkSpamText(text);
-            
+
             // Update word counter element
             if (wordCounter) {
                 wordCounter.textContent = `${wordCount} / 60 words`;
@@ -1101,7 +1101,7 @@ class OrdersView {
                     submitBtn.style.color = '#94a3b8';
                     submitBtn.style.cursor = 'not-allowed';
                     submitBtn.style.opacity = '1';
-                    
+
                     if (validationWarning) {
                         validationWarning.style.display = 'block';
                         if (spamCheck.isSpam) {
@@ -1117,12 +1117,12 @@ class OrdersView {
                 }
             }
         };
-        
+
         // Bind star hover & click
         const ratingLabels = { 1: "Poor", 2: "Fair", 3: "Good", 4: "Very Good", 5: "Excellent" };
-        
+
         stars.forEach(star => {
-            star.onmouseover = function() {
+            star.onmouseover = function () {
                 const val = parseInt(this.getAttribute('data-value'));
                 stars.forEach(s => {
                     if (parseInt(s.getAttribute('data-value')) <= val) {
@@ -1133,8 +1133,8 @@ class OrdersView {
                 });
                 if (ratingText) ratingText.textContent = ratingLabels[val];
             };
-            
-            star.onmouseout = function() {
+
+            star.onmouseout = function () {
                 stars.forEach(s => {
                     if (parseInt(s.getAttribute('data-value')) <= selectedRating) {
                         s.style.color = '#fbbf24';
@@ -1144,8 +1144,8 @@ class OrdersView {
                 });
                 if (ratingText) ratingText.textContent = selectedRating > 0 ? ratingLabels[selectedRating] : '';
             };
-            
-            star.onclick = function() {
+
+            star.onclick = function () {
                 selectedRating = parseInt(this.getAttribute('data-value'));
                 updateValidationState();
             };
@@ -1155,13 +1155,13 @@ class OrdersView {
         if (reviewInput) {
             reviewInput.addEventListener('input', updateValidationState);
         }
-        
+
         // Clone button to remove old listeners and refer to active DOM element
         if (submitBtn) {
             const freshBtn = submitBtn.cloneNode(true);
             submitBtn.parentNode.replaceChild(freshBtn, submitBtn);
             submitBtn = freshBtn;
-            
+
             submitBtn.addEventListener('click', () => {
                 const reviewText = reviewInput ? reviewInput.value.trim() : '';
                 const modalEl = document.getElementById('rateOrderModal');
