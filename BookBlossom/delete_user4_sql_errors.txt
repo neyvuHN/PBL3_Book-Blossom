@@ -1,0 +1,132 @@
+SQL: DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [dbo].[Cart] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = 8
+Error: The DELETE statement conflicted with the REFERENCE constraint "FK_ThreadSaved_CustomerDetail". The conflict occurred in database "db_ac99f8_pbl3", table "Thread.ThreadSaved", column 'UserID'.
+The statement has been terminated.
+
+SQL: DELETE FROM [UserSystem].[Users] WHERE [UserID] = 8
+Error: Invalid object name 'UserSystem.Users'.
+
+SQL: DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [dbo].[Cart] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = 8
+Error: The DELETE statement conflicted with the REFERENCE constraint "FK_ThreadSaved_CustomerDetail". The conflict occurred in database "db_ac99f8_pbl3", table "Thread.ThreadSaved", column 'UserID'.
+The statement has been terminated.
+
+SQL: DELETE FROM [UserSystem].[Users] WHERE [UserID] = 8
+Error: Invalid object name 'UserSystem.Users'.
+
+SQL: DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [dbo].[Cart] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = 8
+Error: The DELETE statement conflicted with the REFERENCE constraint "FK_ThreadSaved_CustomerDetail". The conflict occurred in database "db_ac99f8_pbl3", table "Thread.ThreadSaved", column 'UserID'.
+The statement has been terminated.
+
+SQL: DELETE FROM [UserSystem].[Users] WHERE [UserID] = 8
+Error: Invalid object name 'UserSystem.Users'.
+
+SQL: DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [dbo].[Cart] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = 8
+Error: The DELETE statement conflicted with the REFERENCE constraint "FK_ThreadSaved_CustomerDetail". The conflict occurred in database "db_ac99f8_pbl3", table "Thread.ThreadSaved", column 'UserID'.
+The statement has been terminated.
+
+SQL: DELETE FROM [UserSystem].[Users] WHERE [UserID] = 8
+Error: Invalid object name 'UserSystem.Users'.
+
+SQL: DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [dbo].[Cart] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = 8
+Error: The DELETE statement conflicted with the REFERENCE constraint "FK_ThreadSaved_CustomerDetail". The conflict occurred in database "db_ac99f8_pbl3", table "Thread.ThreadSaved", column 'UserID'.
+The statement has been terminated.
+
+SQL: DELETE FROM [UserSystem].[Users] WHERE [UserID] = 8
+Error: Invalid object name 'UserSystem.Users'.
+
+SQL: DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = 8
+Error: Invalid column name 'UserID'.
+
+SQL: DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [dbo].[Cart] WHERE [CustomerID] = 8
+Error: Invalid column name 'CustomerID'.
+
+SQL: DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = 8
+Error: The DELETE statement conflicted with the REFERENCE constraint "FK_ThreadSaved_CustomerDetail". The conflict occurred in database "db_ac99f8_pbl3", table "Thread.ThreadSaved", column 'UserID'.
+The statement has been terminated.
+
+SQL: DELETE FROM [UserSystem].[Users] WHERE [UserID] = 8
+Error: Invalid object name 'UserSystem.Users'.
+
