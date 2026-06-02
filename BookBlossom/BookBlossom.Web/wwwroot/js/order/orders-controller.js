@@ -166,7 +166,7 @@ class OrdersController {
 
                     if (!response.ok) {
                         const errData = await response.json().catch(() => ({}));
-                        throw new Error(errData.message || 'Failed to submit review');
+                        throw new Error(errData.detail || errData.message || 'Failed to submit review');
                     }
 
                     const result = await response.json();

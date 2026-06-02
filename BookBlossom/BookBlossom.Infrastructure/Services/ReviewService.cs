@@ -52,13 +52,14 @@ namespace BookBlossom.Infrastructure.Services
             }
 
             // 2. KIỂM TRA THỜI HẠN 30 NGÀY
-            // Ép kiểu hoặc xử lý Nullable nếu trường DeliveredDate trong DB cho phép null
-            if (order.DeliveredDate == null)
+            // Fallback sang CompletedDate nếu DeliveredDate chưa được ghi nhận (lỗi dữ liệu cũ)
+            var referenceDate = order.DeliveredDate ?? order.CompletedDate;
+            if (referenceDate == null)
             {
-                throw new InvalidOperationException("Không tìm thấy thông tin ngày nhận hàng của đơn hàng này.");
+                throw new InvalidOperationException("Không tìm thấy thông tin ngày hoàn thành đơn hàng này.");
             }
 
-            var daysSinceDelivery = (DateTime.UtcNow - order.DeliveredDate.Value).TotalDays;
+            var daysSinceDelivery = (DateTime.UtcNow - referenceDate.Value).TotalDays;
             if (daysSinceDelivery > 30)
             {
                 throw new InvalidOperationException("Đã quá thời hạn 30 ngày cho phép đánh giá sản phẩm.");

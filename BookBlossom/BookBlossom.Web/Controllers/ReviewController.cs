@@ -85,7 +85,7 @@ namespace BookBlossom.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Đã xảy ra lỗi hệ thống khi lưu review.", detail = ex.Message });
+                return BadRequest(new { message = "Đã xảy ra lỗi hệ thống khi lưu review.", detail = ex.InnerException?.Message ?? ex.Message });
             }
         }
 
