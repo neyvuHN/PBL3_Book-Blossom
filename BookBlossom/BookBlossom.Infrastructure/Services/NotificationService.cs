@@ -85,6 +85,18 @@ namespace BookBlossom.Infrastructure.Services
             return true;
         }
 
+        public async Task<bool> DeleteNotificationAsync(long userId, long notificationId)
+        {
+            var notification = await _context.UserNotifications
+                .FirstOrDefaultAsync(n => n.NotificationID == notificationId && n.UserID == userId);
+
+            if (notification == null) return false;
+
+            _context.UserNotifications.Remove(notification);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task CreateAndSendNotificationAsync(long userId, string title, string content, NotificationType type, int? referenceId)
         {
             // Verify user exists

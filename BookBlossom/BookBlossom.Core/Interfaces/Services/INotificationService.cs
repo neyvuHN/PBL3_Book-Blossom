@@ -14,5 +14,6 @@ namespace BookBlossom.Core.Interfaces.Services
         Task<bool> SubscribeAsync(long customerId, long targetId, string targetType);
         Task<bool> UnsubscribeAsync(long customerId, long targetId, string targetType);
         Task<IEnumerable<SubscriptionDTO>> GetSubscriptionsAsync(long customerId);
+        Task<bool> DeleteNotificationAsync(long userId, long notificationId);
     }
 }

@@ -10,6 +10,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+
 namespace BookBlossom.Infrastructure.Services
 {
     public class GamificationService : IGamificationService
