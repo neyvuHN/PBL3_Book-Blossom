@@ -179,9 +179,13 @@
         const ratingString = baseRating.toFixed(1);
         renderRatingStars(baseRating, ratingString);
 
-        const reviewsCount = (hash % 120) + 18;
-        $('#detail-reviews-count').text(`${reviewsCount} Reviews`);
-        $('#detail-tab-rev-count').text(reviewsCount);
+        $('#detail-reviews-count').text(`... Reviews`);
+        $('#detail-tab-rev-count').text(`...`);
+        // Load real reviews in the background
+        const bookId = bookData.bookID || bookData.id;
+        if (bookId) {
+            fetchProductReviews(bookId);
+        }
 
         const soldCount = (hash % 1800) + 140;
         $('#detail-sold-count').html(`<i class="fas fa-shopping-bag"></i> ${soldCount.toLocaleString()} Sold`);
@@ -1281,23 +1285,60 @@
             if (!response.ok) return;
 
             const reviews = await response.json();
-            renderReviewsList(reviews);
+            window._currentBookReviews = reviews;
+            window._currentReviewStarFilter = 'all';
+            window._currentReviewSort = 'default';
+            $('.btn-star-filter').removeClass('active');
+            $('.btn-star-filter[data-star="all"]').addClass('active');
+            $('#detail-review-sort').val('default');
+            applyReviewFilters();
         } catch (err) {
             console.error('Failed to load reviews', err);
         }
     }
 
-    function renderReviewsList(reviews) {
+    function applyReviewFilters() {
+        let reviews = window._currentBookReviews || [];
+        
+        // Filter by star
+        const star = window._currentReviewStarFilter;
+        if (star && star !== 'all') {
+            const starInt = parseInt(star);
+            reviews = reviews.filter(r => r.rating === starInt);
+        }
+        
+        // Sort
+        const sort = window._currentReviewSort;
+        if (sort === 'most-hearts') {
+            reviews = [...reviews].sort((a, b) => b.likeCount - a.likeCount);
+        } else if (sort === 'least-hearts') {
+            reviews = [...reviews].sort((a, b) => a.likeCount - b.likeCount);
+        } else {
+            reviews = [...reviews];
+        }
+        
+        renderReviewsList(reviews, window._currentBookReviews.length);
+    }
+
+    function renderReviewsList(reviews, totalOriginalCount) {
         const $list = $('.product-reviews-list');
         $list.empty();
         
+        const total = totalOriginalCount !== undefined ? totalOriginalCount : (reviews ? reviews.length : 0);
+
         if (!reviews || reviews.length === 0) {
-            $list.html('<p style="text-align:center;color:#888;padding:20px;">No reviews yet. Be the first to review this book after purchasing!</p>');
+            if (totalOriginalCount && totalOriginalCount > 0) {
+                $list.html('<p style="text-align:center;color:#888;padding:20px;">No reviews match the selected filter.</p>');
+            } else {
+                $list.html('<p style="text-align:center;color:#888;padding:20px;">No reviews yet. Be the first to review this book after purchasing!</p>');
+            }
+            $('#detail-reviews-count').text(`${total} Reviews`);
+            $('#detail-tab-rev-count').text(total);
             return;
         }
 
-        $('#detail-reviews-count').text(`${reviews.length} Reviews`);
-        $('#detail-tab-rev-count').text(reviews.length);
+        $('#detail-reviews-count').text(`${total} Reviews`);
+        $('#detail-tab-rev-count').text(total);
 
         window._reviewLightboxItems = [];
 
@@ -1390,13 +1431,42 @@
             $list.append(html);
         });
 
-        const avg = totalRating / reviews.length;
-        renderRatingStars(avg, avg.toFixed(1));
+        const avg = reviews.length > 0 ? totalRating / reviews.length : 0;
+        if (window._currentReviewStarFilter === 'all' || !window._currentReviewStarFilter) {
+            // Only update the main product rating stars if we are looking at ALL reviews,
+            // otherwise filtering by 1 star would drop the book's overall rating to 1 star!
+            renderRatingStars(avg, avg.toFixed(1));
+        }
 
         initReviewLightbox();
     }
 
+    function initReviewFilters() {
+        if (!window._reviewFiltersInitialized) {
+            window._reviewFiltersInitialized = true;
+            
+            $(document).on('click', '.btn-star-filter', function() {
+                $('.btn-star-filter').removeClass('active');
+                $(this).addClass('active');
+                window._currentReviewStarFilter = $(this).data('star');
+                // The function applyReviewFilters is inside the outer IIFE but we need to call it.
+                // Oh wait, applyReviewFilters is scoped inside this IIFE, so it can be called directly.
+                if (typeof applyReviewFilters === 'function') {
+                    applyReviewFilters();
+                }
+            });
+
+            $(document).on('change', '#detail-review-sort', function() {
+                window._currentReviewSort = $(this).val();
+                if (typeof applyReviewFilters === 'function') {
+                    applyReviewFilters();
+                }
+            });
+        }
+    }
+
     function initReviewLightbox() {
+        initReviewFilters();
         if ($('#review-lightbox-overlay').length === 0) {
             const overlay = `
                 <div id="review-lightbox-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;">
