@@ -72,59 +72,122 @@
 
         bindStarRatingEvents();
 
+        // Fetch Global Reviews
+        async function fetchGlobalReviews() {
+            try {
+                const response = await fetch('/api/Review');
+                if (!response.ok) throw new Error('Failed to fetch reviews');
+                const reviews = await response.json();
+                window.globalReviews = reviews;
+                renderGlobalReviews(reviews);
+            } catch (err) {
+                console.error(err);
+                $('#global-reviews-list').html('<p class="text-center text-muted" style="padding: 20px;">Failed to load reviews.</p>');
+            }
+        }
+
+        function renderGlobalReviews(reviews) {
+            const $list = $('#global-reviews-list');
+            $list.empty();
+
+            if (!reviews || reviews.length === 0) {
+                $list.html('<p class="text-center text-muted" style="padding: 20px;">No reviews found.</p>');
+                return;
+            }
+
+            reviews.forEach(r => {
+                let starsHtml = '';
+                for(let s=0; s<5; s++) {
+                    starsHtml += s < r.rating ? '<i class="fas fa-star" style="color: #ffc107;"></i>' : '<i class="far fa-star" style="color: #e2e8f0;"></i>';
+                }
+
+                let mediaHtml = '';
+                if (r.mediaUrls && r.mediaUrls.length > 0) {
+                    mediaHtml += '<div style="display:flex;gap:10px;margin-top:10px;">';
+                    r.mediaUrls.forEach(url => {
+                        mediaHtml += `<img src="${url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />`;
+                    });
+                    mediaHtml += '</div>';
+                }
+
+                const isLiked = r.isLikedByCurrentUser;
+                const likeIconClass = isLiked ? 'fas' : 'far';
+                const likeColorStyle = isLiked ? 'color: #C2185B;' : '';
+
+                const dateStr = new Date(r.createdAt).toLocaleDateString();
+
+                const html = `
+                    <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-id="${r.reviewID}" data-rating="${r.rating}">
+                        <div class="thread-header">
+                            <img src="${r.userAvatar || '/images/Avatar/default.png'}" alt="Avatar" class="avatar">
+                            <div class="user-info">
+                                <h4>${r.customerName || 'Anonymous'}</h4>
+                                <span>${dateStr}</span>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="text-warning">${starsHtml}</span>
+                            </div>
+                        </div>
+                        <p class="review-text" style="font-size: 0.9rem; color: #555; line-height: 1.5; margin: 10px 0;">"${r.content}"</p>
+                        ${mediaHtml}
+                        <div class="thread-footer">
+                            <div class="thread-actions">
+                                <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <i class="${likeIconClass} fa-heart" style="${likeColorStyle}"></i> <span class="like-count">${r.likeCount || 0}</span>
+                                </button>
+                                <button class="post-action btn-report-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <i class="far fa-flag"></i> Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $list.append(html);
+            });
+        }
+
         // Filter reviews
         $('.filter-rating, #filter-time').on('change', function () {
+            if (!window.globalReviews) return;
             const selectedRatings = $('.filter-rating:checked').map(function () {
-                return $(this).val();
+                return parseInt($(this).val());
             }).get();
 
             const sortOrder = $('#filter-time').val();
-            const $reviewsList = $('.reviews-list');
-            const $reviews = $('.review-item').get();
+            let filtered = window.globalReviews;
 
-            $('.review-item').each(function () {
-                const rating = $(this).data('rating').toString();
-
-                if (selectedRatings.length === 0 || selectedRatings.includes(rating)) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
+            if (selectedRatings.length > 0) {
+                filtered = filtered.filter(r => selectedRatings.includes(r.rating));
+            }
 
             if (sortOrder === 'oldest') {
-                $reviewsList.append($reviews.reverse());
+                filtered = [...filtered].sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
             } else {
-                $reviewsList.append($reviews);
+                filtered = [...filtered].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
             }
+
+            renderGlobalReviews(filtered);
         });
+
+        // Initialize fetching
+        fetchGlobalReviews();
 
         let hasSubmittedReview = false;
         let reviewToDelete = null;
 
         // Submit review
-        $(document).on('click', '.btn-submit-review', function () {
-            const isAuthenticated = true;
-            const isBuyer = true;
-
-            if (!isAuthenticated) {
+        $(document).on('click', '.btn-submit-review', async function () {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
                 showErrorToast('Please log in to submit a review.');
-                return;
-            }
-
-            if (!isBuyer) {
-                showErrorToast('Only buyers can submit a review.');
-                return;
-            }
-
-            if (hasSubmittedReview) {
-                showErrorToast('You have already submitted a review.');
                 return;
             }
 
             const $card = $(this).closest('.create-post-card');
             const rating = $card.find('.star-rating i.active').length;
-            const text = $card.find('textarea').val().trim();
+            const text = $('#global-review-content').val().trim();
+            const orderIdStr = $('#global-review-order-id').val().trim();
+            const orderId = parseInt(orderIdStr);
 
             if (rating === 0) {
                 showErrorToast('Please select a star rating.');
@@ -136,89 +199,85 @@
                 return;
             }
 
-            const newReview = `
-                <div class="thread-card review-item mb-3 user-own-review" style="flex: 1 1 100%;" data-rating="${rating}">
-                    <div class="thread-header">
-                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                        <div class="user-info">
-                            <h4>You</h4>
-                            <span>Just now</span>
-                        </div>
-                        <div class="ms-auto">
-                            <span class="text-warning">${'⭐'.repeat(rating)}</span>
-                        </div>
-                    </div>
+            if (!orderId) {
+                showErrorToast('Please enter a valid Order ID.');
+                return;
+            }
 
-                    <p class="review-text">"${text}"</p>
+            const formData = new FormData();
+            formData.append('OrderID', orderId);
+            formData.append('Rating', rating);
+            formData.append('Content', text);
 
-                    <div class="thread-footer">
-                        <div class="thread-actions">
-                            <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                <i class="far fa-heart"></i> <span class="like-count">0</span>
-                            </button>
+            const mediaInput = document.getElementById('global-review-media-input');
+            if (mediaInput && mediaInput.files.length > 0) {
+                Array.from(mediaInput.files).forEach(f => {
+                    formData.append('mediaFiles', f);
+                });
+            }
 
-                            <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                <i class="far fa-comment"></i> <span class="comment-count">0</span>
-                            </button>
+            try {
+                const response = await fetch('/api/Review', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
 
-                            <button class="post-action btn-report-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                <i class="far fa-flag"></i> Report
-                            </button>
-                        </div>
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.message || 'Failed to submit review');
+                }
 
-                        <div class="ms-auto">
-                            <button class="btn-edit-review" style="background: none; border: none; color: #666; margin-right: 10px;">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
+                showToast('Review submitted successfully!');
+                $('#global-review-content').val('');
+                $('#global-review-order-id').val('');
+                if (mediaInput) mediaInput.value = '';
+                $('#create-review-card .star-rating i').removeClass('active');
+                $('#create-review-card .rating-value').text('0/5');
 
-                            <button class="btn-delete-review" style="background: none; border: none; color: #ff4444;">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
-                        <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
-
-                        <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
-                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
-                            <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
-                            <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;">
-                                <i class="far fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            showToast('Review submitted successfully!');
-
-            $('.reviews-list').prepend(newReview);
-
-            $('#create-review-card textarea').val('');
-            $('#create-review-card .star-rating i').removeClass('active');
-            $('#create-review-card .rating-value').text('0/5');
-
-            hasSubmittedReview = true;
-
-            $('#create-review-card').html(`
-                <h3>Your Review</h3>
-                <p>You have already submitted a review. You can edit or delete it below.</p>
-            `);
+                fetchGlobalReviews(); // Refresh list
+            } catch (err) {
+                showErrorToast(err.message || 'Error submitting review');
+            }
         });
 
         // Like review
-        $(document).on('click', '.btn-like-review', function () {
+        $(document).on('click', '.btn-like-review', async function () {
+            const $reviewItem = $(this).closest('.review-item');
+            const reviewId = $reviewItem.data('id');
             const $icon = $(this).find('i');
             const $count = $(this).find('.like-count');
             let count = parseInt($count.text()) || 0;
 
-            if ($icon.hasClass('far')) {
-                $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
-                $count.text(count + 1);
-            } else {
-                $icon.removeClass('fas').addClass('far').css('color', '');
-                $count.text(count - 1);
+            if (!reviewId) return;
+
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                else {
+                    let guestId = localStorage.getItem('guestId');
+                    if (!guestId) {
+                        guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
+                        localStorage.setItem('guestId', guestId);
+                    }
+                    headers['X-Guest-Id'] = guestId;
+                }
+
+                const response = await fetch(`/api/Review/${reviewId}/like`, { method: 'POST', headers: headers });
+                if (response.ok) {
+                    if ($icon.hasClass('far')) {
+                        $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
+                        $count.text(count + 1);
+                    } else {
+                        $icon.removeClass('fas').addClass('far').css('color', '');
+                        $count.text(count - 1);
+                    }
+                }
+            } catch (err) {
+                console.error("Like error", err);
             }
         });
 

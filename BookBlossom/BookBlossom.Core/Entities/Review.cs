@@ -27,10 +27,19 @@ namespace BookBlossom.Core.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsHidden { get; set; } = false;
         public bool IsReputationAwarded { get; set; } = false;
+        public long? OrderID { get; set; }
+        public int ReportsCount { get; set; } = 0;
+        public bool IsTransferredToStore { get; set; } = false;
 
         // Navigation properties
         [ForeignKey("CustomerID")]
         public virtual User User { get; set; } = null!;
 
+        [ForeignKey("OrderID")]
+        public virtual Order Orders { get; set; } = null!; // Assuming Order entity is named Order or Orders. In the DB it says OrderRequest.Orders
+
+        public virtual ICollection<ReviewMedia> ReviewMedias { get; set; } = new List<ReviewMedia>();
+        public virtual ICollection<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
+        public virtual ICollection<ReviewReport> ReviewReports { get; set; } = new List<ReviewReport>();
     }
 }

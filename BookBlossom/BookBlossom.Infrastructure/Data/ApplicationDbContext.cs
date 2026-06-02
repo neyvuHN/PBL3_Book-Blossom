@@ -1,6 +1,7 @@
 using BookBlossom.Core.Entities;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using BookBlossom.Core.Enums;
 
 namespace BookBlossom.Infrastructure.Data
 {
@@ -39,6 +40,9 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<ReviewMedia> ReviewMedias { get; set; }
+        public DbSet<ReviewLike> ReviewLikes { get; set; }
+        public DbSet<ReviewReport> ReviewReports { get; set; }
         public DbSet<ReputationHistory> ReputationHistories { get; set; }
         public DbSet<Badge> Badges { get; set; }
         public DbSet<BadgeCustomer> BadgeCustomers { get; set; }
@@ -55,6 +59,57 @@ namespace BookBlossom.Infrastructure.Data
 
             // 1. VẪN MỞ DÒNG QUÉT TỰ ĐỘNG NÀY ĐỂ GIỮ CHO USER, CUSTOMERDETAIL... KHÔNG BỊ LỖI
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            // Review Entity configuration
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasOne(r => r.Orders)
+                    .WithMany() // Assuming Order doesn't have a Reviews collection yet
+                    .HasForeignKey(r => r.OrderID)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                // Default values matching SQL constraints
+                entity.Property(r => r.LikeCount).HasDefaultValue(0);
+                entity.Property(r => r.CreatedAt).HasDefaultValueSql("getutcdate()");
+                entity.Property(r => r.IsHidden).HasDefaultValue(false);
+                entity.Property(r => r.IsReputationAwarded).HasDefaultValue(false);
+                entity.Property(r => r.ReportsCount).HasDefaultValue(0);
+                entity.Property(r => r.IsTransferredToStore).HasDefaultValue(false);
+            });
+
+            // ReviewMedia Configuration
+            modelBuilder.Entity<ReviewMedia>(entity =>
+            {
+                entity.Property(e => e.MediaType)
+                      .HasConversion<byte>();
+                
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
+            });
+
+            // ReviewLike Configuration
+            modelBuilder.Entity<ReviewLike>(entity =>
+            {
+                entity.HasKey(e => new { e.ReviewID, e.CustomerID });
+                
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
+                
+                entity.HasOne(rl => rl.CustomerDetail)
+                      .WithMany()
+                      .HasForeignKey(rl => rl.CustomerID)
+                      .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            // ReviewReport Configuration
+            modelBuilder.Entity<ReviewReport>(entity =>
+            {
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
+                entity.Property(e => e.Status).HasDefaultValue(ReportStatus.Pending);
+
+                entity.HasOne(rr => rr.Reporter)
+                      .WithMany()
+                      .HasForeignKey(rr => rr.ReporterID)
+                      .OnDelete(DeleteBehavior.NoAction);
+            });
 
             // (Removed Ignore lines for Importing and ImportingDetail to solve EF Core schema sync issue)
         }

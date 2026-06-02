@@ -46,107 +46,18 @@
                             </span>
                             <span class="rating-value ms-2">0/5</span>
                         </div>
-                        <textarea placeholder="Share your thoughts about BookBlossom..." class="form-control mb-3" rows="3"></textarea>
+                        <textarea placeholder="Share your thoughts about BookBlossom... (Order ID required)" class="form-control mb-3" rows="3" id="global-review-content"></textarea>
+                        <input type="text" placeholder="Order ID" class="form-control mb-3" id="global-review-order-id">
+                        <div class="mb-3">
+                            <label class="font-weight-bold text-dark small mb-2 d-block">Upload Photo / Video (Optional)</label>
+                            <input type="file" id="global-review-media-input" multiple accept="image/*,video/*" class="form-control">
+                        </div>
                         <button class="btn-cta btn-submit-review">Submit Review</button>
                     </div>
 
                     <!-- Reviews List -->
-                    <div class="reviews-list">
-                        <!-- Review 1 -->
-                        <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-rating="5">
-                            <div class="thread-header">
-                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                                <div class="user-info">
-                                    <h4>Minh Thu</h4>
-                                    <span>2 days ago</span>
-                                </div>
-                                <div class="ms-auto">
-                                    <span class="text-warning">⭐⭐⭐⭐⭐</span>
-                                </div>
-                            </div>
-                            <p>"BookBlossom helped me find friends with the same reading interests and share great books. Highly recommended!"</p>
-                            <div class="thread-footer">
-                                <div class="thread-actions">
-                                    <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-heart"></i> <span class="like-count">24</span></button>
-                                    <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-comment"></i> <span class="comment-count">5</span></button>
-                                </div>
-                            </div>
-                            <!-- Comment Section -->
-                            <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
-                                <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                                    <!-- Comments will appear here -->
-                                </div>
-                                <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
-                                    <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
-                                    <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;"><i class="far fa-paper-plane"></i></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Review 2 -->
-                        <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-rating="4">
-                            <div class="thread-header">
-                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                                <div class="user-info">
-                                    <h4>Hoang Nam</h4>
-                                    <span>1 week ago</span>
-                                </div>
-                                <div class="ms-auto">
-                                    <span class="text-warning">⭐⭐⭐⭐</span>
-                                </div>
-                            </div>
-                            <p>"The Tindbook feature is super fun! I found 3 great books in just a few minutes of swiping."</p>
-                            <div class="thread-footer">
-                                <div class="thread-actions">
-                                    <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-heart"></i> <span class="like-count">15</span></button>
-                                    <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-comment"></i> <span class="comment-count">2</span></button>
-                                </div>
-                            </div>
-                            <!-- Comment Section -->
-                            <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
-                                <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                                    <!-- Comments will appear here -->
-                                </div>
-                                <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
-                                    <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
-                                    <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;"><i class="far fa-paper-plane"></i></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Review 3 -->
-                        <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-rating="5">
-                            <div class="thread-header">
-                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                                <div class="user-info">
-                                    <h4>Elena Smith</h4>
-                                    <span>3 days ago</span>
-                                </div>
-                                <div class="ms-auto">
-                                    <span class="text-warning">⭐⭐⭐⭐⭐</span>
-                                </div>
-                            </div>
-                            <p>"I love the clean interface and the community discussions. It's my go-to site for book recommendations."</p>
-                            <div class="thread-footer">
-                                <div class="thread-actions">
-                                    <button class="post-action btn-like-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-heart"></i> <span class="like-count">32</span></button>
-                                    <button class="post-action btn-comment-review" style="background: none; border: none; color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;"><i class="far fa-comment"></i> <span class="comment-count">8</span></button>
-                                </div>
-                            </div>
-                            <!-- Comment Section -->
-                            <div class="comment-section" style="display: none; padding-top: 15px; border-top: 1px solid #f0f0f0; margin-top: 15px;">
-                                <div class="comment-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                                    <!-- Comments will appear here -->
-                                </div>
-                                <div class="comment-input-area" style="display: flex; gap: 10px; align-items: center;">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar" style="width: 30px; height: 30px; border-radius: 50%;">
-                                    <input type="text" placeholder="Write a comment..." class="form-control" style="flex: 1; font-size: 0.9rem;">
-                                    <button class="btn-send-comment-review" style="background: none; border: none; color: #C2185B; cursor: pointer;"><i class="far fa-paper-plane"></i></button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="reviews-list" id="global-reviews-list">
+                        <p class="text-center text-muted" style="padding: 20px;">Loading reviews...</p>
                     </div>
                 </div>
             </div>

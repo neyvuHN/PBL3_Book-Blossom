@@ -613,6 +613,13 @@
 
             $('.detail-tab-pane').hide();
             $('#' + targetTab).fadeIn(200);
+
+            if (targetTab === 'tab-rev') {
+                const bookId = $('#btn-detail-add-cart').data('book-id');
+                if (bookId) {
+                    fetchProductReviews(bookId);
+                }
+            }
         });
 
         $(document).off('click.detailReviewCount').on('click.detailReviewCount', '#detail-reviews-count', function (e) {
@@ -632,26 +639,52 @@
     }
 
     function initReviewInteractions() {
-        $(document).off('click.likeDetailReview').on('click.likeDetailReview', '.btn-like-detail-review', function () {
+        $(document).off('click.likeDetailReview').on('click.likeDetailReview', '.btn-like-detail-review', async function () {
             const $btn = $(this);
             const $icon = $btn.find('i');
             const $count = $btn.find('.like-count');
             const $reviewItem = $btn.closest('.prod-review-item');
+            const reviewId = $reviewItem.data('id');
+
+            if (!reviewId) return;
 
             let count = parseInt($count.text()) || 0;
 
-            if ($icon.hasClass('far')) {
-                $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
-                count++;
-                $btn.css('color', '#C2185B');
-            } else {
-                $icon.removeClass('fas').addClass('far').css('color', '');
-                count--;
-                $btn.css('color', '');
-            }
+            try {
+                const token = localStorage.getItem('jwtToken'); // Assuming standard token storage
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                else {
+                    let guestId = localStorage.getItem('guestId');
+                    if (!guestId) {
+                        guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
+                        localStorage.setItem('guestId', guestId);
+                    }
+                    headers['X-Guest-Id'] = guestId;
+                }
 
-            $count.text(count);
-            $reviewItem.attr('data-likes', count);
+                const response = await fetch(`/api/Review/${reviewId}/like`, {
+                    method: 'POST',
+                    headers: headers
+                });
+
+                if (response.ok) {
+                    if ($icon.hasClass('far')) {
+                        $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
+                        count++;
+                        $btn.css('color', '#C2185B');
+                    } else {
+                        $icon.removeClass('fas').addClass('far').css('color', '');
+                        count--;
+                        $btn.css('color', '');
+                    }
+
+                    $count.text(count);
+                    $reviewItem.attr('data-likes', count);
+                }
+            } catch (err) {
+                console.error("Like error", err);
+            }
         });
 
         $(document).off('click.toggleDetailReply').on('click.toggleDetailReply', '.btn-toggle-detail-reply', function () {
@@ -1261,4 +1294,96 @@
         show: showProductDetails,
         showProductById: showProductById
     };
+
+    async function fetchProductReviews(bookId) {
+        try {
+            const token = localStorage.getItem('jwtToken');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            else {
+                let guestId = localStorage.getItem('guestId');
+                if (!guestId) {
+                    guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('guestId', guestId);
+                }
+                headers['X-Guest-Id'] = guestId;
+            }
+
+            const response = await fetch(`/api/Review?bookId=${bookId}`, { headers: headers });
+            if (!response.ok) return;
+
+            const reviews = await response.json();
+            renderReviewsList(reviews);
+        } catch (err) {
+            console.error('Failed to load reviews', err);
+        }
+    }
+
+    function renderReviewsList(reviews) {
+        const $list = $('.product-reviews-list');
+        $list.empty();
+        
+        if (!reviews || reviews.length === 0) {
+            $list.html('<p style="text-align:center;color:#888;padding:20px;">No reviews yet. Be the first to review this book after purchasing!</p>');
+            return;
+        }
+
+        $('#detail-reviews-count').text(`${reviews.length} Reviews`);
+        $('#detail-tab-rev-count').text(reviews.length);
+
+        let totalRating = 0;
+        reviews.forEach((r, i) => {
+            totalRating += r.rating;
+            let starsHtml = '';
+            for(let s=0; s<5; s++) {
+                starsHtml += s < r.rating ? '<i class="fas fa-star" style="color: #ffc107;"></i>' : '<i class="far fa-star" style="color: #e2e8f0;"></i>';
+            }
+
+            let mediaHtml = '';
+            if (r.mediaUrls && r.mediaUrls.length > 0) {
+                mediaHtml += '<div style="display:flex;gap:10px;margin-top:10px;">';
+                r.mediaUrls.forEach(url => {
+                    mediaHtml += `<img src="${url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />`;
+                });
+                mediaHtml += '</div>';
+            }
+
+            const isLiked = r.isLikedByCurrentUser; // assuming API returns this if possible, or default false
+            const likeIconClass = isLiked ? 'fas' : 'far';
+            const likeColorStyle = isLiked ? 'color: #C2185B;' : '';
+
+            const dateStr = new Date(r.createdAt).toLocaleDateString();
+
+            const html = `
+                <div class="prod-review-item" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 20px; background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 15px;" data-id="${r.reviewID}" data-rating="${r.rating}" data-likes="${r.likeCount}">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <img src="${r.userAvatar || '/images/Avatar/default.png'}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                        <div>
+                            <h5 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #333;">${r.customerName || 'Anonymous User'}</h5>
+                            <span style="font-size: 0.8rem; color: #999;">${dateStr}</span>
+                        </div>
+                        <div style="margin-left: auto;">
+                            ${starsHtml}
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #555; line-height: 1.5; margin: 0 0 10px 0; padding-left: 52px;">"${r.content}"</p>
+                    <div style="padding-left: 52px;">
+                        ${mediaHtml}
+                        <div style="display:flex; gap:15px; margin-top:12px; align-items:center;">
+                            <button class="btn btn-link btn-like-detail-review p-0" style="text-decoration:none; font-size:0.85rem; color:#888;">
+                                <i class="${likeIconClass} fa-heart" style="${likeColorStyle}"></i> <span class="like-count">${r.likeCount || 0}</span>
+                            </button>
+                            <button class="btn btn-link p-0 btn-report-detail-review" style="text-decoration:none; font-size:0.85rem; color:#888;">
+                                <i class="fas fa-flag"></i> Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $list.append(html);
+        });
+
+        const avg = totalRating / reviews.length;
+        renderRatingStars(avg, avg.toFixed(1));
+    }
 })(window, document, window.jQuery);

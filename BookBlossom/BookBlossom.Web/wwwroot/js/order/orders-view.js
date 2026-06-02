@@ -991,10 +991,14 @@ class OrdersView {
         if (reviewInput) reviewInput.value = '';
 
         let selectedRating = 0;
+        let selectedMediaFiles = []; // Store selected files
         const stars = document.querySelectorAll('#rate-modal-stars i');
         const ratingText = document.getElementById('rate-modal-rating-text');
         const wordCounter = document.getElementById('rate-modal-word-count');
         const validationWarning = document.getElementById('rate-modal-validation-warning');
+        const phoneWarning = document.getElementById('rate-modal-phone-warning');
+        const mediaInput = document.getElementById('rate-modal-media-input');
+        const mediaPreviewContainer = document.getElementById('rate-modal-media-preview');
         let submitBtn = document.getElementById('btn-submit-rate-order');
 
         // Reset UI
@@ -1012,6 +1016,54 @@ class OrdersView {
             validationWarning.style.display = 'block';
             validationWarning.textContent = '* Minimum 60 words and a star rating are required to submit.';
         }
+        if (phoneWarning) {
+            phoneWarning.style.display = 'none';
+        }
+
+        const renderMediaPreview = () => {
+            if (!mediaPreviewContainer) return;
+            // Clear existing previews
+            const existingPreviews = mediaPreviewContainer.querySelectorAll('.media-preview-item');
+            existingPreviews.forEach(el => el.remove());
+
+            selectedMediaFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                const isVideo = file.type.startsWith('video/');
+                const html = `
+                    <div class="media-preview-item" style="position: relative; width: 70px; height: 70px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">
+                        ${isVideo ? `<video src="${url}" style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;text-shadow:0 0 4px black;"><i class="fas fa-play"></i></div>` : `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`}
+                        <button type="button" class="btn-remove-media" data-index="${index}" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; cursor: pointer;">&times;</button>
+                    </div>
+                `;
+                mediaPreviewContainer.insertAdjacentHTML('afterbegin', html);
+            });
+
+            // Bind remove events
+            mediaPreviewContainer.querySelectorAll('.btn-remove-media').forEach(btn => {
+                btn.onclick = function(e) {
+                    e.stopPropagation();
+                    const index = parseInt(this.getAttribute('data-index'));
+                    selectedMediaFiles.splice(index, 1);
+                    renderMediaPreview();
+                };
+            });
+        };
+
+        if (mediaInput) {
+            mediaInput.value = '';
+            // Clone and replace to remove old listeners
+            const freshMediaInput = mediaInput.cloneNode(true);
+            mediaInput.parentNode.replaceChild(freshMediaInput, mediaInput);
+            
+            freshMediaInput.addEventListener('change', function() {
+                Array.from(this.files).forEach(file => {
+                    selectedMediaFiles.push(file);
+                });
+                renderMediaPreview();
+                this.value = ''; // Reset
+            });
+            renderMediaPreview(); // Clear UI initially
+        }
 
         // Helper to count words
         const getWordCount = (text) => {
@@ -1020,10 +1072,16 @@ class OrdersView {
             return cleanText.split(/\s+/).filter(word => word.length > 0).length;
         };
 
-        // Helper to check for spam/unhelpful duplicate text
+        // Helper to check for spam/unhelpful duplicate text and phone numbers
         const checkSpamText = (text) => {
             const cleanText = text.toLowerCase().trim();
             if (!cleanText) return { isSpam: false };
+
+            // Phone number regex check (Vietnamese formats)
+            const phoneRegex = /(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b/;
+            if (phoneRegex.test(cleanText.replace(/\s|\./g, ''))) {
+                return { isSpam: true, isPhone: true, reason: "Contains a phone number." };
+            }
 
             const words = cleanText.split(/\s+/).filter(word => word.length > 0);
             if (words.length === 0) return { isSpam: false };
@@ -1085,6 +1143,10 @@ class OrdersView {
             const isTextValid = wordCount >= 60 && !spamCheck.isSpam;
             const isValid = isRatingValid && isTextValid;
 
+            if (phoneWarning) {
+                phoneWarning.style.display = spamCheck.isPhone ? 'block' : 'none';
+            }
+
             if (submitBtn) {
                 if (isValid) {
                     submitBtn.removeAttribute('disabled');
@@ -1105,7 +1167,7 @@ class OrdersView {
                     if (validationWarning) {
                         validationWarning.style.display = 'block';
                         if (spamCheck.isSpam) {
-                            validationWarning.textContent = `* Spam detected: ${spamCheck.reason}`;
+                            validationWarning.textContent = spamCheck.isPhone ? '* Phone numbers are not allowed.' : `* Spam detected: ${spamCheck.reason}`;
                         } else if (!isRatingValid && wordCount < 60) {
                             validationWarning.textContent = '* Minimum 60 words and a star rating are required to submit.';
                         } else if (!isRatingValid) {
@@ -1167,7 +1229,7 @@ class OrdersView {
                 const modalEl = document.getElementById('rateOrderModal');
                 const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                 if (modalInstance) modalInstance.hide();
-                onSubmit(order.id, selectedRating, reviewText);
+                onSubmit(order.id, selectedRating, reviewText, selectedMediaFiles);
             });
         }
 

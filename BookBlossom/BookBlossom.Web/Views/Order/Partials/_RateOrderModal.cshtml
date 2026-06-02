@@ -27,15 +27,30 @@
                     <div id="rate-modal-rating-text" class="mt-2 font-weight-bold" style="color: #d8456b; min-height: 24px;"></div>
                 </div>
 
-                <div class="form-group mb-0">
+                <div class="form-group mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label for="rate-modal-review-text" class="font-weight-bold text-dark small mb-0">Write a Review</label>
                         <span id="rate-modal-word-count" class="font-weight-bold small text-danger" style="transition: color 0.3s; font-size: 0.8rem;">0 / 60 words</span>
                     </div>
                     <textarea class="form-control" id="rate-modal-review-text" rows="4" placeholder="Share your thoughts about the book... (Minimum 60 words required for 2 reputation points)" style="border-radius: 12px; border: 1px solid #cbd5e1; resize: none; box-shadow: none; font-size: 0.9rem; padding: 10px 12px;"></textarea>
+                    <div id="rate-modal-phone-warning" class="text-danger small mt-1 font-weight-bold" style="display: none; font-size: 0.75rem; opacity: 0.85;">
+                        <i class="fas fa-exclamation-triangle"></i> Please do not include phone numbers in your review to protect your privacy.
+                    </div>
                     <div id="rate-modal-validation-warning" class="text-danger small mt-1 font-weight-bold" style="display: block; font-size: 0.75rem; opacity: 0.85;">
                         * Minimum 60 words and a star rating are required to submit.
                     </div>
+                </div>
+
+                <div class="form-group mb-0">
+                    <label class="font-weight-bold text-dark small mb-2 d-block">Upload Photo / Video (Optional)</label>
+                    <div class="d-flex flex-wrap gap-2" id="rate-modal-media-preview">
+                        <!-- Preview boxes will be appended here -->
+                        <div class="media-upload-btn-container" style="width: 70px; height: 70px; border: 2px dashed #cbd5e1; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #94a3b8; font-size: 1.2rem; transition: all 0.2s;" onclick="document.getElementById('rate-modal-media-input').click()">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="rate-modal-media-input" multiple accept="image/*,video/*" style="display: none;">
+                    <div class="text-muted small mt-1" style="font-size: 0.75rem;">Max file size: 5MB for photos, 20MB for videos.</div>
                 </div>
             </div>
             <div class="modal-footer bg-white border-top-0 px-4 py-3" style="justify-content: center; gap: 10px;">

@@ -78,20 +78,35 @@ namespace BookBlossom.Infrastructure.Services
             // 4. XỬ LÝ UPLOAD FILE MEDIA (Đã giải quyết lỗi CS0103 bằng cách gọi hàm private phía dưới)
             List<string> savedPaths = await ProcessMediaUploadsAsync(mediaFiles);
 
-            // 5. LƯU REVIEW VÀO DATABASE
             var review = new Review
             {
                 CustomerID = customerId,
                 BookID = dto.BookID,
                 BlindBookID = dto.BlindBookID,
+                OrderID = dto.OrderID,
                 Rating = dto.Rating,
                 Content = dto.Content,
                 ImageVideoPath = savedPaths.Any() ? string.Join(",", savedPaths) : null,
                 LikeCount = 0,
                 CreatedAt = DateTime.UtcNow,
                 IsHidden = false,
-                IsReputationAwarded = false 
+                IsReputationAwarded = false,
+                ReportsCount = 0,
+                IsTransferredToStore = false
             };
+
+            if (savedPaths.Any())
+            {
+                foreach (var path in savedPaths)
+                {
+                    var isVideo = path.EndsWith(".mp4") || path.EndsWith(".mov");
+                    review.ReviewMedias.Add(new ReviewMedia
+                    {
+                        MediaURL = path,
+                        MediaType = isVideo ? MediaType.VIDEO : MediaType.IMAGE
+                    });
+                }
+            }
 
             _context.Reviews.Add(review);
             
@@ -124,7 +139,19 @@ namespace BookBlossom.Infrastructure.Services
                 throw new KeyNotFoundException("Không tìm thấy bài đánh giá hoặc bài đánh giá đã bị ẩn.");
             }
 
-            review.LikeCount += 1;
+            var existingLike = await _context.ReviewLikes.FindAsync(reviewId, customerId);
+            if (existingLike != null)
+            {
+                _context.ReviewLikes.Remove(existingLike);
+                review.LikeCount = Math.Max(0, review.LikeCount - 1);
+            }
+            else
+            {
+                var like = new ReviewLike { ReviewID = reviewId, CustomerID = customerId };
+                _context.ReviewLikes.Add(like);
+                review.LikeCount += 1;
+            }
+
             await _context.SaveChangesAsync();
 
             try

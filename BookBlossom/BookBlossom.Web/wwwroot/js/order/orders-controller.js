@@ -128,55 +128,76 @@ class OrdersController {
     handleRateOrder(orderId) {
         const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (order && !order.isRated) {
-            this.view.showRateOrderModal(order, (id, rating, reviewText) => {
-                order.isRated = true;
-                order.userRating = rating;
-                order.userReviewText = reviewText;
-                
-                this.updateView();
-
-                // [NEW] Award +2 Reputation Score points in LocalStorage
-                let reputationAwarded = false;
-                try {
-                    const userKey = 'BookBlossomUser';
-                    let userData = localStorage.getItem(userKey);
-                    if (userData) {
-                        const user = JSON.parse(userData);
-                        const oldScore = Number(user.reputationScore) || 110;
-                        const maxScore = Number(user.maxReputationScore) || 150;
-                        user.reputationScore = Math.min(maxScore, oldScore + 2);
-                        localStorage.setItem(userKey, JSON.stringify(user));
-                        reputationAwarded = true;
-                        console.log(`[Reputation Update] Score increased from ${oldScore} to ${user.reputationScore} (+2 points)`);
-                    } else {
-                        // Fallback default state if user has not loaded profile yet
-                        const defaultUser = {
-                            fullName: "Jane Doe",
-                            username: "janedoe_bookworm",
-                            reputationScore: 112,
-                            maxReputationScore: 150
-                        };
-                        localStorage.setItem(userKey, JSON.stringify(defaultUser));
-                        reputationAwarded = true;
-                    }
-                } catch (e) {
-                    console.error("Error updating reputation score in localStorage:", e);
+            this.view.showRateOrderModal(order, async (id, rating, reviewText, mediaFiles) => {
+                const token = this.model.getToken();
+                if (!token) {
+                    alert('Please log in to submit a review.');
+                    return;
                 }
-                
-                const pointsMessage = reputationAwarded 
-                    ? `Thank you! Your review has been submitted successfully. <strong>You have earned +2 Reputation Score points!</strong>` 
-                    : `Thank you! Your review has been submitted successfully.`;
 
-                this.view.showConfirmModal({
-                    icon: 'fas fa-check-circle',
-                    iconColor: '#38a169',
-                    accentColor: 'linear-gradient(90deg, #38a169, #68d391)',
-                    title: 'Review Submitted',
-                    message: pointsMessage,
-                    confirmText: 'Great',
-                    confirmBtnClass: 'btn-success',
-                    onConfirm: () => {}
-                });
+                const item = order.items[0]; // Assuming rating the first item, or we rate the order and item
+                const formData = new FormData();
+                formData.append('OrderID', order.id);
+                if (item) {
+                    if (item.isBlind) {
+                        formData.append('BlindBookID', item.id);
+                    } else {
+                        formData.append('BookID', item.id);
+                    }
+                }
+                formData.append('Rating', rating);
+                formData.append('Content', reviewText);
+                
+                if (mediaFiles && mediaFiles.length > 0) {
+                    mediaFiles.forEach(f => {
+                        formData.append('mediaFiles', f);
+                    });
+                }
+
+                // Show loading state on button (done implicitly if fast, or can be improved)
+                try {
+                    const response = await fetch('/api/Review', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        throw new Error(errData.message || 'Failed to submit review');
+                    }
+
+                    const result = await response.json();
+
+                    order.isRated = true;
+                    order.userRating = rating;
+                    order.userReviewText = reviewText;
+                    
+                    this.updateView();
+
+                    // Show success modal with reputation info if any
+                    let reputationPoints = result.awardedReputation || 2; // Default to 2 if not provided by backend yet
+                    const pointsMessage = reputationPoints > 0 
+                        ? `Thank you! Your review has been submitted successfully. <strong>You have earned +${reputationPoints} Reputation Score points!</strong>` 
+                        : `Thank you! Your review has been submitted successfully.`;
+
+                    this.view.showConfirmModal({
+                        icon: 'fas fa-check-circle',
+                        iconColor: '#38a169',
+                        accentColor: 'linear-gradient(90deg, #38a169, #68d391)',
+                        title: 'Review Submitted',
+                        message: pointsMessage,
+                        confirmText: 'Great',
+                        confirmBtnClass: 'btn-success',
+                        onConfirm: () => {}
+                    });
+
+                } catch (error) {
+                    console.error("Error submitting review:", error);
+                    alert(error.message || 'An error occurred while submitting your review. Please try again.');
+                }
             });
         }
     }
