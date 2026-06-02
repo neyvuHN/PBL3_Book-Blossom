@@ -36,6 +36,8 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<ThreadPost> ThreadPosts { get; set; }
         public DbSet<ThreadComment> ThreadComments { get; set; }
         public DbSet<ThreadImage> ThreadImages { get; set; }
+        public DbSet<ThreadLike> ThreadLikes { get; set; }
+        public DbSet<ThreadShare> ThreadShares { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
