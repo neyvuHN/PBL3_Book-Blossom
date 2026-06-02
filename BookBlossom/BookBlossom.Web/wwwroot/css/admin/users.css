@@ -239,30 +239,80 @@
 /* Plan Badges (Free, Basic, Pro) */
 .plan-badge {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: capitalize;
+    text-align: center;
 }
 
 .plan-free {
-    background-color: #F0F0F0;
-    color: #666666;
-    border: 1px solid #E0E0E0;
+    background-color: #F1F5F9;
+    color: #475569;
+    border: 1px solid #E2E8F0;
 }
 
 .plan-basic {
-    background-color: #E3F2FD;
-    color: #0D47A1;
-    border: 1px solid #BBDEFB;
+    background-color: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
 }
 
 .plan-pro {
-    background-color: #F3E5F5;
-    color: #6A1B9A;
-    border: 1px solid #E1BEE7;
-    box-shadow: 0 2px 4px rgba(106, 27, 154, 0.05);
+    background-color: #FAF5FF;
+    color: #7E22CE;
+    border: 1px solid #E9D5FF;
+    box-shadow: 0 2px 4px rgba(126, 34, 206, 0.08);
+}
+
+/* Dynamic Premium Packages styling */
+.plan-premium {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color: #92400E;
+    border: 1px solid #FCD34D;
+    box-shadow: 0 2px 6px rgba(146, 64, 14, 0.1);
+}
+
+/* Catch-all class starting with plan-premium-* */
+[class*="plan-premium-"] {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    color: #B45309;
+    border: 1px solid #FDE68A;
+    box-shadow: 0 2px 4px rgba(217, 119, 6, 0.08);
+}
+
+/* Durations */
+.plan-premium-1-month,
+.plan-premium-1-months {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    color: #B45309;
+    border: 1px solid #FDE68A;
+}
+
+.plan-premium-3-months,
+.plan-premium-3-month {
+    background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+    color: #EA580C;
+    border: 1px solid #FED7AA;
+    box-shadow: 0 2px 4px rgba(234, 88, 12, 0.08);
+}
+
+.plan-premium-6-months,
+.plan-premium-6-month {
+    background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%);
+    color: #E11D48;
+    border: 1px solid #FECDD3;
+    box-shadow: 0 2px 4px rgba(225, 29, 72, 0.08);
+}
+
+.plan-premium-1-year,
+.plan-premium-1-years,
+.plan-premium-12-months,
+.plan-premium-12-month {
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    color: #4F46E5;
+    border: 1px solid #C7D2FE;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.08);
 }
 
 /* Role Badges */

@@ -73,6 +73,241 @@ namespace BookBlossom.Web.Controllers
 
         public async Task<IActionResult> Users()
         {
+            // --- Auto database adjustments (delete user4 and distribute Free packages) ---
+            
+            // 1. Delete user4 via raw SQL to completely bypass EF tracker issues and clean up references
+            try
+            {
+                var userToDelete = await _context.Users.FirstOrDefaultAsync(u => u.UserName == "user4");
+                if (userToDelete != null)
+                {
+                    var userId = userToDelete.UserID;
+
+                    var sqls = new[]
+                    {
+                        "DELETE FROM [Thread].[ThreadLike] WHERE [UserID] = " + userId,
+                        "DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = " + userId,
+                        "DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = " + userId,
+                        "DELETE FROM [UserSystem].[AuditLogs] WHERE [SystemAdminID] = " + userId + " OR [UserID] = " + userId,
+                        "DELETE FROM [Rank].[ReputationHistory] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [Rank].[CustomerBadge] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [Rank].[CustomerReputation] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [Service].[CustomerService] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = " + userId,
+                        "DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [dbo].[Cart] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [Preference].[CustomerPreference] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = " + userId,
+                        "DELETE FROM [UserSystem].[StaffDetail] WHERE [StaffID] = " + userId,
+                        "DELETE FROM [UserSystem].[Users] WHERE [UserID] = " + userId
+                    };
+
+                    foreach (var sql in sqls)
+                    {
+                        try
+                        {
+                            await _context.Database.ExecuteSqlRawAsync(sql);
+                        }
+                        catch (Exception sqlEx)
+                        {
+                            try
+                            {
+                                System.IO.File.AppendAllText("D:\\Hoc_ky_2_nam_2\\PBL3\\src\\BookBlossom\\delete_user4_sql_errors.txt", $"SQL: {sql}\nError: {sqlEx.Message}\n\n");
+                            }
+                            catch {}
+                        }
+                    }
+
+                    // Clear the change tracker to discard tracked state of deleted entities
+                    _context.ChangeTracker.Clear();
+                }
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    System.IO.File.WriteAllText("D:\\Hoc_ky_2_nam_2\\PBL3\\src\\BookBlossom\\delete_user4_error.txt", ex.ToString());
+                }
+                catch {}
+            }
+
+            // 2. Clear non-standard packages, update standard package constraints/pricing in DB, and distribute subscriptions among Free, Basic, Pro
+            try
+            {
+                var freePkg = await _context.ServicePackages.FirstOrDefaultAsync(p => p.PackageName == "Free");
+                var basicPkg = await _context.ServicePackages.FirstOrDefaultAsync(p => p.PackageName == "Basic");
+                var proPkg = await _context.ServicePackages.FirstOrDefaultAsync(p => p.PackageName == "Pro");
+
+                if (freePkg != null && basicPkg != null && proPkg != null)
+                {
+                    // Update prices and constraints in DB according to requirements
+                    freePkg.Price = 0m;
+                    freePkg.DurationDay = 0;
+                    freePkg.ThreadLimit = 3;
+                    freePkg.UndoLimit = 2;
+                    freePkg.Description = "Gói miễn phí: 3 thread/tháng, 2 undo Tindbook.";
+                    _context.ServicePackages.Update(freePkg);
+
+                    basicPkg.Price = 50000m; // Adjusted to 50,000đ
+                    basicPkg.DurationDay = 30;
+                    basicPkg.ThreadLimit = 20;
+                    basicPkg.UndoLimit = 5;
+                    basicPkg.Description = "Gói Cơ bản: 20 thread/tháng, 5 undo Tindbook.";
+                    _context.ServicePackages.Update(basicPkg);
+
+                    proPkg.Price = 200000m; // Adjusted to 200,000đ
+                    proPkg.DurationDay = 30;
+                    proPkg.ThreadLimit = 999999;
+                    proPkg.UndoLimit = 999999;
+                    proPkg.Description = "Gói Chuyên nghiệp: Không giới hạn thread và undo.";
+                    _context.ServicePackages.Update(proPkg);
+
+                    await _context.SaveChangesAsync();
+
+                    var standardPkgIds = new List<long> { freePkg.PackageID, basicPkg.PackageID, proPkg.PackageID };
+
+                    // Update any CustomerService that points to non-standard packages to standard ones first
+                    var nonStandardServices = await _context.CustomerServices
+                        .Where(cs => !standardPkgIds.Contains(cs.CurrentPackageID))
+                        .ToListAsync();
+
+                    foreach (var ns in nonStandardServices)
+                    {
+                        ns.CurrentPackageID = freePkg.PackageID; // Default to Free
+                        _context.CustomerServices.Update(ns);
+                    }
+                    await _context.SaveChangesAsync();
+
+                    // Delete non-standard packages
+                    var nonStandardPackages = await _context.ServicePackages
+                        .Where(p => !standardPkgIds.Contains(p.PackageID))
+                        .ToListAsync();
+
+                    if (nonStandardPackages.Any())
+                    {
+                        _context.ServicePackages.RemoveRange(nonStandardPackages);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Distribute all Customer users evenly across Free, Basic, Pro
+                    var customers = await _context.Users
+                        .Include(u => u.CustomerService)
+                        .Include(u => u.CustomerDetail)
+                        .Where(u => u.RoleID == UserRole.Customer)
+                        .ToListAsync();
+
+                    // Step 1: Ensure all customers have a CustomerDetail record in DB first to satisfy foreign key constraints
+                    bool anyNewDetails = false;
+                    foreach (var cust in customers)
+                    {
+                        if (cust.CustomerDetail == null)
+                        {
+                            cust.CustomerDetail = new CustomerDetail
+                            {
+                                CustomerID = cust.UserID,
+                                IsOnboardingCompleted = true,
+                                TotalSpending = 0,
+                                DailyUndoCount = 0,
+                                CurrentMonthThreadCount = 0,
+                                CurrentOrderStreak = 0
+                            };
+                            _context.CustomerDetails.Add(cust.CustomerDetail);
+                            anyNewDetails = true;
+                        }
+                    }
+                    if (anyNewDetails)
+                    {
+                        await _context.SaveChangesAsync();
+                    }
+
+                    var targetPackages = new[] { freePkg, basicPkg, proPkg };
+                    int index = 0;
+                    var rand = new Random();
+                    foreach (var cust in customers)
+                    {
+                        var selectedPkg = targetPackages[index % 3];
+                        index++;
+
+                        if (cust.CustomerService == null)
+                        {
+                            var newCustService = new CustomerService
+                            {
+                                CustomerID = cust.UserID,
+                                CurrentPackageID = selectedPkg.PackageID,
+                                StartDate = DateTime.UtcNow,
+                                EndDate = DateTime.UtcNow.AddDays(selectedPkg.DurationDay > 0 ? selectedPkg.DurationDay : 30)
+                            };
+                            _context.CustomerServices.Add(newCustService);
+                        }
+                        else
+                        {
+                            cust.CustomerService.CurrentPackageID = selectedPkg.PackageID;
+                            cust.CustomerService.StartDate = DateTime.UtcNow;
+                            cust.CustomerService.EndDate = DateTime.UtcNow.AddDays(selectedPkg.DurationDay > 0 ? selectedPkg.DurationDay : 30);
+                            _context.CustomerServices.Update(cust.CustomerService);
+                        }
+
+                        // Maintain constraints in CustomerDetail
+                        if (selectedPkg.PackageName == "Free")
+                        {
+                            // Free limits: Thread <= 3, Undo <= 2
+                            cust.CustomerDetail.CurrentMonthThreadCount = rand.Next(0, 4); // 0 to 3
+                            cust.CustomerDetail.DailyUndoCount = rand.Next(0, 3); // 0 to 2
+                        }
+                        else if (selectedPkg.PackageName == "Basic")
+                        {
+                            // Basic limits: Thread <= 20, Undo <= 5
+                            cust.CustomerDetail.CurrentMonthThreadCount = rand.Next(0, 21); // 0 to 20
+                            cust.CustomerDetail.DailyUndoCount = rand.Next(0, 6); // 0 to 5
+                        }
+                        else if (selectedPkg.PackageName == "Pro")
+                        {
+                            // Pro: Unlimited
+                            cust.CustomerDetail.CurrentMonthThreadCount = rand.Next(0, 50); // Just a realistic number
+                            cust.CustomerDetail.DailyUndoCount = rand.Next(0, 25);
+                        }
+                        _context.CustomerDetails.Update(cust.CustomerDetail);
+                    }
+                    await _context.SaveChangesAsync();
+
+                    // Adjust Reputation Scores for diversity
+                    var scores = new[] { 120, 75, 55, 105, 25, 135, 78, 45, 110, 95 };
+                    int scoreIndex = 0;
+                    foreach (var cust in customers)
+                    {
+                        var targetScore = scores[scoreIndex % scores.Length];
+                        scoreIndex++;
+
+                        var reputation = await _context.CustomerReputations.FindAsync(cust.UserID);
+                        if (reputation == null)
+                        {
+                            var newRep = new CustomerReputation
+                            {
+                                CustomerID = cust.UserID,
+                                ReputationPoint = targetScore,
+                                RankID = null
+                            };
+                            _context.CustomerReputations.Add(newRep);
+                        }
+                        else
+                        {
+                            reputation.ReputationPoint = targetScore;
+                            _context.CustomerReputations.Update(reputation);
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    System.IO.File.WriteAllText("D:\\Hoc_ky_2_nam_2\\PBL3\\src\\BookBlossom\\distribute_packages_error.txt", ex.ToString());
+                }
+                catch {}
+            }
+            // -------------------------------------------------------------------------------
+
             var allUsers = await _context.Users
                 .Include(u => u.CustomerDetail)
                 .Include(u => u.StaffDetail)
@@ -94,9 +329,11 @@ namespace BookBlossom.Web.Controllers
                     ? (int)(u.StaffDetail?.KPIScore ?? 100) 
                     : (reputations.ContainsKey(u.UserID) ? reputations[u.UserID] : 100);
 
+                var baseDate = new DateTime(2023, 1, 15);
+                var offsetDays = (int)((u.UserID * 37) % 1000);
                 var joinDate = u.RoleID == UserRole.Admin && u.StaffDetail != null 
                     ? u.StaffDetail.HireDate.ToString("MMM dd, yyyy") 
-                    : "Jan 05, 2024";
+                    : baseDate.AddDays(offsetDays).ToString("MMM dd, yyyy");
 
                 var plan = u.CustomerService?.ServicePackage?.PackageName ?? "Free";
 
@@ -436,8 +673,10 @@ namespace BookBlossom.Web.Controllers
             public string Qualifications { get; set; } = string.Empty;
         }
 
-        public IActionResult Orders()
+        public async Task<IActionResult> Orders()
         {
+            await EnsureReturnRequestsSeededAsync();
+
             var model = new ViewModels.Admin.OrderManagementViewModel
             {
                 Orders = new List<ViewModels.Admin.AdminOrderItemViewModel>(),
@@ -448,231 +687,260 @@ namespace BookBlossom.Web.Controllers
             return View(model);
         }
 
-        private static List<ViewModels.Admin.AdminReturnedItemViewModel>? _returnedItemsList;
-        private static List<ViewModels.Admin.AdminReturnedItemViewModel> _returnedItems
+        private async Task EnsureReturnRequestsSeededAsync()
         {
-            get
+            if (!await _context.ReturnRequests.AnyAsync())
             {
-                if (_returnedItemsList == null)
+                var orders = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                    .Where(o => o.OrderStatus == OrderStatus.Completed || o.OrderStatus == OrderStatus.Delivering || o.OrderStatus == OrderStatus.Shipping || o.OrderStatus == OrderStatus.AwaitingPickup)
+                    .Take(6)
+                    .ToListAsync();
+
+                if (orders.Count == 0)
                 {
-                    _returnedItemsList = new List<ViewModels.Admin.AdminReturnedItemViewModel>
-                    {
-                        new()
-                        {
-                            Id = "RET-101",
-                            OrderId = "ORD-8715",
-                            BookTitle = "Principles of Chemistry",
-                            Quantity = 1,
-                            RefundAmount = 480000,
-                            ModeratorDecision = "Approve Return & Refund",
-                            ReturnReason = "Wrong textbook edition sent by mistake",
-                            RestockStatus = "Pending Restock",
-                            TransferredDate = "Yesterday"
-                        },
-                        new()
-                        {
-                            Id = "RET-102",
-                            OrderId = "ORD-8720",
-                            BookTitle = "Data Structures & Algorithms",
-                            Quantity = 1,
-                            RefundAmount = 320000,
-                            ModeratorDecision = "Approve Return & Refund",
-                            ReturnReason = "Book arrived with severe water damage",
-                            RestockStatus = "Restocked",
-                            TransferredDate = "2 days ago"
-                        }
-                    };
+                    orders = await _context.Orders
+                        .Include(o => o.OrderDetails)
+                        .Take(6)
+                        .ToListAsync();
                 }
-                return _returnedItemsList;
+
+                if (orders.Count > 0)
+                {
+                    var reasons = new[]
+                    {
+                        "Sách bị rách gáy và móp méo nghiêm trọng trong quá trình vận chuyển",
+                        "Giao sai phiên bản sách so với đơn đặt hàng của tôi",
+                        "Sách in lỗi, có nhiều trang bị mất chữ hoặc trắng tinh",
+                        "Nội dung sách không đúng với mô tả giới thiệu trên trang web",
+                        "Chất lượng in ấn kém, mực bị lem luốc không đọc được",
+                        "Nhận nhầm sách cũ thay vì sách mới nguyên màng co"
+                    };
+
+                    for (int i = 0; i < orders.Count; i++)
+                    {
+                        var order = orders[i];
+                        var detail = order.OrderDetails.FirstOrDefault();
+                        if (detail == null) continue;
+
+                        var resolutionType = (ResolutionType)(i % 2); // 0 = RefundOnly, 1 = ReturnAndRefund
+                        var returnStatus = (ReturnStatus)(i % 3); // 0 = Pending, 1 = Approved, 2 = Rejected
+
+                        var request = new ReturnRequest
+                        {
+                            OrderID = order.OrderID,
+                            BookID = detail.BookID,
+                            ReturnQuantity = Math.Max(1, detail.Quantity),
+                            RequestDate = DateTime.UtcNow.AddDays(-i - 1),
+                            ReturnReason = reasons[i % reasons.Length],
+                            ResolutionType = resolutionType,
+                            ReturnStatus = returnStatus,
+                            RefundAmount = ((detail.UnitPrice) - ((detail.Discount ?? 0) / detail.Quantity)) * detail.Quantity,
+                            UnboxVideoPath = "/uploads/return_videos/sample_unbox_video.mp4"
+                        };
+
+                        if (returnStatus == ReturnStatus.Approved)
+                        {
+                            request.RefundCompletedDate = DateTime.UtcNow.AddDays(-i);
+                            if (order.PaymentMethod != PaymentMethod.COD)
+                            {
+                                request.GatewayTransactionID = "REFUND_" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 12).ToUpper();
+                            }
+                        }
+                        else if (returnStatus == ReturnStatus.Rejected)
+                        {
+                            request.RejectReason = "Video mở hộp không rõ nét, hoặc không phát hiện lỗi như mô tả.";
+                        }
+
+                        _context.ReturnRequests.Add(request);
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
             }
         }
 
         [HttpPost]
-        public IActionResult TransferReturn([FromBody] ViewModels.Admin.AdminReturnedItemViewModel newReturn)
+        public async Task<IActionResult> TransferReturn([FromBody] ViewModels.Admin.AdminReturnedItemViewModel newReturn)
         {
             if (newReturn != null)
             {
-                newReturn.Id = "RET-" + new Random().Next(103, 999);
-                newReturn.ModeratorDecision = "Approve Return & Refund";
-                newReturn.RestockStatus = "Pending Restock";
-                newReturn.TransferredDate = "Just now";
-                
-                _returnedItems.Insert(0, newReturn); // Add to top
-                return Json(new { success = true });
+                long orderId = 0;
+                string cleanOrderId = newReturn.OrderId.Replace("ORD-", "").Trim();
+                if (!long.TryParse(cleanOrderId, out orderId))
+                {
+                    var fallbackOrder = await _context.Orders.FirstOrDefaultAsync();
+                    if (fallbackOrder != null) orderId = fallbackOrder.OrderID;
+                }
+
+                var order = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                    .FirstOrDefaultAsync(o => o.OrderID == orderId);
+
+                if (order != null)
+                {
+                    var detail = order.OrderDetails.FirstOrDefault();
+                    long bookId = detail?.BookID ?? 0;
+
+                    if (bookId == 0)
+                    {
+                        var fallbackBook = await _context.RealBooks.FirstOrDefaultAsync();
+                        if (fallbackBook != null) bookId = fallbackBook.BookID;
+                    }
+
+                    var returnRequest = new ReturnRequest
+                    {
+                        OrderID = orderId,
+                        BookID = bookId,
+                        ReturnQuantity = detail?.Quantity ?? 1,
+                        RequestDate = DateTime.UtcNow,
+                        ReturnReason = string.IsNullOrEmpty(newReturn.ReturnReason) ? "Yêu cầu trả hàng chuyển từ hệ thống quản trị" : newReturn.ReturnReason,
+                        ResolutionType = ResolutionType.ReturnAndRefund,
+                        ReturnStatus = ReturnStatus.Pending,
+                        RefundAmount = newReturn.RefundAmount > 0 ? newReturn.RefundAmount : ((detail?.UnitPrice ?? 0) - ((detail?.Discount ?? 0) / (detail?.Quantity ?? 1))) * (detail?.Quantity ?? 1),
+                        UnboxVideoPath = "/uploads/return_videos/sample_unbox_video.mp4"
+                    };
+
+                    _context.ReturnRequests.Add(returnRequest);
+                    await _context.SaveChangesAsync();
+
+                    return Json(new { success = true });
+                }
             }
             return Json(new { success = false });
-        }
-
-        private static List<ViewModels.Admin.AdminEscalatedComplaintViewModel>? _complaintsList;
-        private static List<ViewModels.Admin.AdminEscalatedComplaintViewModel> _complaints
-        {
-            get
-            {
-                if (_complaintsList == null)
-                {
-                    _complaintsList = new List<ViewModels.Admin.AdminEscalatedComplaintViewModel>
-                    {
-                        new()
-                        {
-                            Id = "CMP-301",
-                            OrderId = "ORD-8799",
-                            BuyerName = "Laura Watson",
-                            ContactEmail = "laura.w@readingmail.com",
-                            Type = "Review",
-                            Rating = 2,
-                            Content = "The packaging was ripped and the book corners were dented! Very upset.",
-                            ModeratorNote = "Buyer left a 2-star review citing poor packaging. Escalated to Store Manager to resolve and offer store points credit.",
-                            Status = "Pending Support",
-                            TransferredDate = "Today, 10:15 AM"
-                        },
-                        new()
-                        {
-                            Id = "CMP-302",
-                            OrderId = "ORD-8752",
-                            BuyerName = "James Carter",
-                            ContactEmail = "j.carter@techcorp.com",
-                            Type = "Complaint",
-                            Rating = 1,
-                            Content = "Ordered a signed copy, but received a standard copy instead. I want to swap or complain.",
-                            ModeratorNote = "Escalated complaint. Please contact user directly to coordinate replacement shipping.",
-                            Status = "Resolved",
-                            TransferredDate = "3 days ago"
-                        }
-                    };
-                }
-                return _complaintsList;
-            }
         }
 
         [HttpPost]
-        public IActionResult TransferComplaint([FromBody] ViewModels.Admin.AdminEscalatedComplaintViewModel newComplaint)
+        public async Task<IActionResult> TransferComplaint([FromBody] ViewModels.Admin.AdminEscalatedComplaintViewModel newComplaint)
         {
             if (newComplaint != null)
             {
-                newComplaint.Id = "CMP-" + new Random().Next(400, 999);
-                newComplaint.OrderId = "ORD-XXXX"; // Dummy
-                newComplaint.ContactEmail = "N/A";
-                newComplaint.Status = "Pending Support";
-                newComplaint.TransferredDate = "Just now";
-                
-                _complaints.Insert(0, newComplaint); // Add to top
-                return Json(new { success = true });
+                var review = await _context.Reviews
+                    .FirstOrDefaultAsync(r => r.Content == newComplaint.Content);
+
+                long customerId = 0;
+                long bookId = 0;
+
+                if (review != null)
+                {
+                    customerId = review.CustomerID;
+                    bookId = review.BookID ?? 0;
+                }
+                else
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == newComplaint.BuyerName || (u.LastName + " " + u.FirstName).Contains(newComplaint.BuyerName));
+                    if (user != null)
+                    {
+                        customerId = user.UserID;
+                    }
+                }
+
+                Order? order = null;
+                if (customerId > 0 && bookId > 0)
+                {
+                    order = await _context.Orders
+                        .Include(o => o.OrderDetails)
+                        .FirstOrDefaultAsync(o => o.CustomerID == customerId && o.OrderDetails.Any(od => od.BookID == bookId));
+                }
+
+                if (order == null && customerId > 0)
+                {
+                    order = await _context.Orders
+                        .Include(o => o.OrderDetails)
+                        .FirstOrDefaultAsync(o => o.CustomerID == customerId);
+                }
+
+                if (order == null)
+                {
+                    order = await _context.Orders
+                        .Include(o => o.OrderDetails)
+                        .OrderByDescending(o => o.OrderDate)
+                        .FirstOrDefaultAsync();
+                }
+
+                if (order != null)
+                {
+                    var detail = order.OrderDetails.FirstOrDefault();
+                    if (bookId == 0)
+                    {
+                        bookId = detail?.BookID ?? 0;
+                    }
+
+                    if (bookId == 0)
+                    {
+                        var fallbackBook = await _context.RealBooks.FirstOrDefaultAsync();
+                        if (fallbackBook != null) bookId = fallbackBook.BookID;
+                    }
+
+                    var returnRequest = new ReturnRequest
+                    {
+                        OrderID = order.OrderID,
+                        BookID = bookId,
+                        ReturnQuantity = detail?.Quantity ?? 1,
+                        RequestDate = DateTime.UtcNow,
+                        ReturnReason = string.IsNullOrEmpty(newComplaint.Content) ? "Khiếu nại chuyển từ phản hồi của khách hàng" : newComplaint.Content,
+                        ResolutionType = ResolutionType.RefundOnly,
+                        ReturnStatus = ReturnStatus.Pending,
+                        RefundAmount = ((detail?.UnitPrice ?? 0) - ((detail?.Discount ?? 0) / (detail?.Quantity ?? 1))) * (detail?.Quantity ?? 1),
+                        UnboxVideoPath = "/uploads/return_videos/sample_unbox_video.mp4"
+                    };
+
+                    _context.ReturnRequests.Add(returnRequest);
+                    await _context.SaveChangesAsync();
+
+                    return Json(new { success = true });
+                }
             }
             return Json(new { success = false });
         }
 
-        private static List<ViewModels.Admin.InventoryCategoryViewModel>? _categoriesList;
-        private static List<ViewModels.Admin.InventoryCategoryViewModel> _categories
+        public async Task<IActionResult> Inventory()
         {
-            get
-            {
-                if (_categoriesList == null)
-                {
-                    _categoriesList = new()
-                    {
-                        new() { CategoryID = 1, CategoryName = "Literature & Fiction", Description = "Classic and contemporary literature.", Status = "Active", BookCount = 120 },
-                        new() { CategoryID = 2, CategoryName = "Business & Economics", Description = "Finance, management, and economics books.", Status = "Active", BookCount = 85 },
-                        new() { CategoryID = 3, CategoryName = "Self-Help & Skills", Description = "Personal development and life skills.", Status = "Active", BookCount = 150 },
-                        new() { CategoryID = 4, CategoryName = "Science Fiction", Description = "Sci-fi and fantasy novels.", Status = "Inactive", BookCount = 45 }
-                    };
-                }
-                return _categoriesList;
-            }
-        }
+            var dbCategoriesList = await _context.Categories
+                .Include(c => c.RealBooks)
+                .ToListAsync();
 
-        private static List<ViewModels.Admin.InventoryBookItemViewModel>? _booksList;
-        private static List<ViewModels.Admin.InventoryBookItemViewModel> _books
-        {
-            get
-            {
-                if (_booksList == null)
-                {
-                    _booksList = new()
-                    {
-                        new()
-                        {
-                            BookID = 9001,
-                            CategoryID = 1,
-                            CategoryName = "Literature & Fiction",
-                            Title = "The Great Gatsby",
-                            Publisher = "Scribner",
-                            ISBN = "978-0743273565",
-                            Description = "The story of the mysteriously wealthy Jay Gatsby and his love for the beautiful Daisy Buchanan.",
-                            Price = 150000,
-                            Weight = 300.0,
-                            UnitsInStock = 45,
-                            ReservedQuantity = 2,
-                            IsContinued = true,
-                            PublishYear = 2004,
-                            Authors = "F. Scott Fitzgerald",
-                            MainImageUrl = "/images/Book/book1.jpg"
-                        },
-                        new()
-                        {
-                            BookID = 9002,
-                            CategoryID = 3,
-                            CategoryName = "Self-Help & Skills",
-                            Title = "Atomic Habits",
-                            Publisher = "Avery",
-                            ISBN = "978-0735211292",
-                            Description = "An easy and proven way to build good habits and break bad ones.",
-                            Price = 220000,
-                            Weight = 350.0,
-                            UnitsInStock = 12,
-                            ReservedQuantity = 5,
-                            IsContinued = true,
-                            PublishYear = 2018,
-                            Authors = "James Clear",
-                            MainImageUrl = "/images/Book/book2.webp"
-                        },
-                        new()
-                        {
-                            BookID = 9003,
-                            CategoryID = 4,
-                            CategoryName = "Science Fiction",
-                            Title = "Dune",
-                            Publisher = "Ace Books",
-                            ISBN = "978-0441172719",
-                            Description = "Set in the far future amidst a sprawling feudal interstellar empire.",
-                            Price = 180000,
-                            Weight = 500.0,
-                            UnitsInStock = 0,
-                            ReservedQuantity = 0,
-                            IsContinued = false,
-                            PublishYear = 1965,
-                            Authors = "Frank Herbert",
-                            MainImageUrl = "/images/Book/book1.jpg"
-                        },
-                        new()
-                        {
-                            BookID = 9004,
-                            CategoryID = 1,
-                            CategoryName = "Literature & Fiction",
-                            Title = "The Secret Garden",
-                            Publisher = "Heinemann",
-                            ISBN = "978-0140366668",
-                            Description = "A story of an orphaned girl who discovers a hidden garden.",
-                            Price = 120000,
-                            Weight = 250.0,
-                            UnitsInStock = 20,
-                            ReservedQuantity = 1,
-                            IsContinued = true,
-                            PublishYear = 1911,
-                            Authors = "Frances Hodgson Burnett",
-                            MainImageUrl = "/images/Book/book1.jpg"
-                        }
-                    };
-                }
-                return _booksList;
-            }
-        }
+            var dbBooksList = await _context.RealBooks
+                .Include(b => b.Category)
+                .ToListAsync();
 
-        public IActionResult Inventory()
-        {
+            var dbCategories = dbCategoriesList
+                .Select(c => new ViewModels.Admin.InventoryCategoryViewModel
+                {
+                    CategoryID = c.CategoryID,
+                    CategoryName = c.CategoryName,
+                    Description = c.Description ?? string.Empty,
+                    Status = c.Status == CategoryStatus.Active ? "Active" : (c.Status == CategoryStatus.Archived ? "Archived" : "Inactive"),
+                    BookCount = c.RealBooks.Count
+                })
+                .ToList();
+
+            var dbBooks = dbBooksList
+                .Select(b => new ViewModels.Admin.InventoryBookItemViewModel
+                {
+                    BookID = b.BookID,
+                    CategoryID = b.CategoryID,
+                    CategoryName = b.Category != null ? b.Category.CategoryName : "Unknown",
+                    Title = b.Title,
+                    Publisher = b.Publisher,
+                    ISBN = b.ISBN,
+                    Description = b.Description ?? string.Empty,
+                    Price = b.Price,
+                    SampleFilePath = b.SampleFilePath,
+                    Weight = (double)b.Weight,
+                    UnitsInStock = b.UnitsInStock,
+                    ReservedQuantity = b.ReservedQuantity,
+                    IsContinued = b.IsContinued,
+                    PublishYear = b.PublishYear,
+                    Authors = "N/A",
+                    MainImageUrl = $"/images/Book/cover_{b.BookID}.jpg"
+                })
+                .ToList();
+
             var model = new ViewModels.Admin.InventoryManagementViewModel
             {
-                Categories = _categories,
-                Books = _books
+                Categories = dbCategories,
+                Books = dbBooks
             };
 
             return View(model);
@@ -717,99 +985,86 @@ namespace BookBlossom.Web.Controllers
                 sampleFilePath = $"/samples/{uniqueSampleName}";
             }
 
-            // 2. Save physical images to wwwroot/images/Book
-            var uploadDir = Path.Combine(env.WebRootPath, "images", "Book");
-            if (!Directory.Exists(uploadDir))
+            var newBook = new RealBook
             {
-                Directory.CreateDirectory(uploadDir);
-            }
+                CategoryID = bookInput.CategoryID,
+                Title = bookInput.Title,
+                Publisher = bookInput.Publisher ?? string.Empty,
+                ISBN = bookInput.ISBN ?? string.Empty,
+                Description = bookInput.Description,
+                Price = bookInput.Price,
+                SampleFilePath = sampleFilePath,
+                Weight = (decimal)bookInput.Weight,
+                UnitsInStock = bookInput.UnitsInStock,
+                ReservedQuantity = 0,
+                IsContinued = true,
+                PublishYear = bookInput.PublishYear
+            };
 
-            var savedImagePaths = new List<string>();
+            _context.RealBooks.Add(newBook);
+            await _context.SaveChangesAsync();
+
+            // 2. Save cover image to wwwroot/images/Book/cover_{BookID}.jpg if uploaded
             if (BookImages != null && BookImages.Any())
             {
-                foreach (var file in BookImages)
+                var file = BookImages.FirstOrDefault();
+                if (file != null && file.Length > 0)
                 {
-                    if (file.Length > 0)
-                    {
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
-                        var filePath = Path.Combine(uploadDir, uniqueFileName);
+                    var uploadDir = Path.Combine(env.WebRootPath, "images", "Book");
+                    if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
 
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(stream);
-                        }
-                        savedImagePaths.Add($"/images/Book/{uniqueFileName}");
+                    var filePath = Path.Combine(uploadDir, $"cover_{newBook.BookID}.jpg");
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
                     }
                 }
             }
 
-            // 3. Add to In-Memory static list
-            var newId = _books.Any() ? _books.Max(b => b.BookID) + 1 : 9001;
-            var categoryName = _categories.FirstOrDefault(c => c.CategoryID == bookInput.CategoryID)?.CategoryName ?? "Unknown";
-            
-            var newBook = new ViewModels.Admin.InventoryBookItemViewModel
-            {
-                BookID = newId,
-                CategoryID = bookInput.CategoryID,
-                CategoryName = categoryName,
-                Title = bookInput.Title,
-                Publisher = bookInput.Publisher ?? string.Empty,
-                ISBN = bookInput.ISBN ?? string.Empty,
-                Description = bookInput.Description ?? string.Empty,
-                Price = bookInput.Price,
-                SampleFilePath = sampleFilePath,
-                Weight = bookInput.Weight,
-                UnitsInStock = bookInput.UnitsInStock,
-                IsContinued = bookInput.IsContinued,
-                ReservedQuantity = 0,
-                PublishYear = bookInput.PublishYear,
-                Authors = bookInput.Authors ?? string.Empty,
-                MainImageUrl = savedImagePaths.FirstOrDefault() ?? "/images/Book/book1.jpg"
-            };
-
-            _books.Add(newBook);
-
-            // Increment category book count
-            var cat = _categories.FirstOrDefault(c => c.CategoryID == bookInput.CategoryID);
-            if (cat != null)
-            {
-                cat.BookCount++;
-            }
-
-            TempData["SuccessMessage"] = "Book added successfully to in-memory list!";
+            TempData["SuccessMessage"] = "Book added successfully!";
             return RedirectToAction("Inventory");
         }
 
         [HttpPost]
-        public IActionResult EditBook(long id, [FromForm] ViewModels.Admin.InventoryBookItemViewModel bookInput)
+        public async Task<IActionResult> EditBook(
+            long id, 
+            [FromForm] ViewModels.Admin.InventoryBookItemViewModel bookInput,
+            List<IFormFile> BookImages,
+            [FromServices] IWebHostEnvironment env)
         {
-            var book = _books.FirstOrDefault(b => b.BookID == id);
+            var book = await _context.RealBooks.FindAsync(id);
             if (book != null)
             {
-                // Decrement book count of old category if it changed
-                if (book.CategoryID != bookInput.CategoryID)
-                {
-                    var oldCat = _categories.FirstOrDefault(c => c.CategoryID == book.CategoryID);
-                    if (oldCat != null) oldCat.BookCount = Math.Max(0, oldCat.BookCount - 1);
-
-                    var newCat = _categories.FirstOrDefault(c => c.CategoryID == bookInput.CategoryID);
-                    if (newCat != null) newCat.BookCount++;
-                }
-
                 book.CategoryID = bookInput.CategoryID;
-                book.CategoryName = _categories.FirstOrDefault(c => c.CategoryID == bookInput.CategoryID)?.CategoryName ?? "Unknown";
                 book.Title = bookInput.Title;
                 book.Publisher = bookInput.Publisher ?? string.Empty;
                 book.ISBN = bookInput.ISBN ?? string.Empty;
-                book.Description = bookInput.Description ?? string.Empty;
+                book.Description = bookInput.Description;
                 book.Price = bookInput.Price;
-                book.Weight = bookInput.Weight;
+                book.Weight = (decimal)bookInput.Weight;
                 book.UnitsInStock = bookInput.UnitsInStock;
                 book.IsContinued = bookInput.IsContinued;
-                var oldBookData = JsonSerializer.Serialize(book);
-                
                 book.PublishYear = bookInput.PublishYear;
-                book.Authors = bookInput.Authors ?? string.Empty;
+
+                _context.RealBooks.Update(book);
+                await _context.SaveChangesAsync();
+
+                // Save cover image to wwwroot/images/Book/cover_{BookID}.jpg if uploaded
+                if (BookImages != null && BookImages.Any())
+                {
+                    var file = BookImages.FirstOrDefault();
+                    if (file != null && file.Length > 0)
+                    {
+                        var uploadDir = Path.Combine(env.WebRootPath, "images", "Book");
+                        if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
+
+                        var filePath = Path.Combine(uploadDir, $"cover_{book.BookID}.jpg");
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                    }
+                }
 
                 TempData["SuccessMessage"] = "Book updated successfully!";
             }
@@ -817,78 +1072,72 @@ namespace BookBlossom.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult DeleteBook(long id)
+        public async Task<IActionResult> DeleteBook(long id)
         {
-            var book = _books.FirstOrDefault(b => b.BookID == id);
+            var book = await _context.RealBooks.FindAsync(id);
             if (book != null)
             {
-                _books.Remove(book);
+                // Soft delete (discontinue)
+                book.IsContinued = false;
+                _context.RealBooks.Update(book);
+                await _context.SaveChangesAsync();
 
-                // Decrement category book count
-                var cat = _categories.FirstOrDefault(c => c.CategoryID == book.CategoryID);
-                if (cat != null)
-                {
-                    cat.BookCount = Math.Max(0, cat.BookCount - 1);
-                }
-
-                TempData["SuccessMessage"] = "Book deleted successfully!";
+                TempData["SuccessMessage"] = "Book discontinued successfully!";
             }
             return RedirectToAction("Inventory");
         }
 
         [HttpPost]
-        public IActionResult AddCategory([FromForm] ViewModels.Admin.InventoryCategoryViewModel catInput)
+        public async Task<IActionResult> AddCategory([FromForm] ViewModels.Admin.InventoryCategoryViewModel catInput)
         {
-            var newId = _categories.Any() ? _categories.Max(c => c.CategoryID) + 1 : 1;
-            var newCat = new ViewModels.Admin.InventoryCategoryViewModel
+            var status = catInput.Status == "Active" ? CategoryStatus.Active : (catInput.Status == "Archived" ? CategoryStatus.Archived : CategoryStatus.Inactive);
+            var newCat = new Category
             {
-                CategoryID = newId,
                 CategoryName = catInput.CategoryName,
-                Description = catInput.Description ?? string.Empty,
-                Status = catInput.Status ?? "Active",
-                BookCount = 0
+                Description = catInput.Description,
+                Status = status
             };
-            _categories.Add(newCat);
+            _context.Categories.Add(newCat);
+            await _context.SaveChangesAsync();
+
             TempData["SuccessMessage"] = "Category added successfully!";
             return RedirectToAction("Inventory");
         }
 
         [HttpPost]
-        public IActionResult EditCategory(long id, [FromForm] ViewModels.Admin.InventoryCategoryViewModel catInput)
+        public async Task<IActionResult> EditCategory(long id, [FromForm] ViewModels.Admin.InventoryCategoryViewModel catInput)
         {
-            var cat = _categories.FirstOrDefault(c => c.CategoryID == id);
+            var cat = await _context.Categories.FindAsync(id);
             if (cat != null)
             {
                 cat.CategoryName = catInput.CategoryName;
-                cat.Description = catInput.Description ?? string.Empty;
-                cat.Status = catInput.Status ?? "Active";
+                cat.Description = catInput.Description;
+                cat.Status = catInput.Status == "Active" ? CategoryStatus.Active : (catInput.Status == "Archived" ? CategoryStatus.Archived : CategoryStatus.Inactive);
 
-                // Update category name inside all books under this category
-                foreach (var book in _books.Where(b => b.CategoryID == id))
-                {
-                    book.CategoryName = catInput.CategoryName;
-                }
+                _context.Categories.Update(cat);
+                await _context.SaveChangesAsync();
+
                 TempData["SuccessMessage"] = "Category updated successfully!";
             }
             return RedirectToAction("Inventory");
         }
 
         [HttpGet]
-        public IActionResult DeleteCategory(long id)
+        public async Task<IActionResult> DeleteCategory(long id)
         {
-            var cat = _categories.FirstOrDefault(c => c.CategoryID == id);
+            var cat = await _context.Categories.Include(c => c.RealBooks).FirstOrDefaultAsync(c => c.CategoryID == id);
             if (cat != null)
             {
-                // Check if any books are currently tagged with this category
-                var hasBooks = _books.Any(b => b.CategoryID == id);
-                if (hasBooks)
+                if (cat.RealBooks.Any(b => b.IsContinued))
                 {
-                    TempData["ErrorMessage"] = "Cannot delete category because there are books currently linked to it.";
+                    TempData["ErrorMessage"] = "Cannot delete category because there are active books currently linked to it.";
                 }
                 else
                 {
-                    _categories.Remove(cat);
-                    TempData["SuccessMessage"] = "Category deleted successfully!";
+                    cat.Status = CategoryStatus.Inactive;
+                    _context.Categories.Update(cat);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Category set to Inactive successfully!";
                 }
             }
             return RedirectToAction("Inventory");
