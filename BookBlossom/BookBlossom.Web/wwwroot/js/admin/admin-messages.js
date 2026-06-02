@@ -1,4 +1,4 @@
-$(document).ready(function() {
+function initAdminMessages() {
     // Mock Buyers Database for Profile Syncing
     const mockBuyers = {
         "1": {
@@ -944,5 +944,25 @@ $(document).ready(function() {
                 `);
             }
         }
+    }
+}
+
+// Run on initial page load
+$(document).ready(function() {
+    if ($('.admin-messages-wrapper').length > 0) {
+        initAdminMessages();
+    }
+});
+
+// Re-run when SPA router navigates to the Messages page
+window.addEventListener('spa:page-ready', function(e) {
+    const url = (e.detail && e.detail.url) ? e.detail.url.toLowerCase() : window.location.pathname.toLowerCase();
+    if (url.includes('/admin/messages')) {
+        // Small delay to ensure DOM is fully swapped
+        setTimeout(function() {
+            if ($('.admin-messages-wrapper').length > 0) {
+                initAdminMessages();
+            }
+        }, 50);
     }
 });

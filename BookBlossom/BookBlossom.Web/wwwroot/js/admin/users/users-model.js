@@ -163,10 +163,17 @@ class UsersModel {
     /**
      * Updates a buyer's administrative notes.
      */
-    updateBuyerNote(userId, noteText) {
+    async updateBuyerNote(userId, noteText) {
         const user = this.findUserById(userId);
         if (!user) return false;
         
+        if (window.apiClient) {
+            const resp = await window.apiClient.apiPost(`/Admin/UpdateBuyerNote?userId=${userId}&noteText=${encodeURIComponent(noteText)}`);
+            if (!resp || !resp.success) {
+                throw new Error(resp?.message || "Failed to save note to server");
+            }
+        }
+
         user.note = noteText;
         return true;
     }

@@ -73,7 +73,7 @@
 }
 
 /* Navigation Tabs */
-.admin-tabs {
+.orders-management-container .admin-tabs {
     display: flex;
     background-color: #ffffff;
     border-radius: 12px;
@@ -84,7 +84,7 @@
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.admin-tab-item {
+.orders-management-container .admin-tab-item {
     flex-grow: 1;
     text-align: center;
     padding: 12px 16px;
@@ -100,17 +100,17 @@
     gap: 8px;
 }
 
-.admin-tab-item:hover {
+.orders-management-container .admin-tab-item:hover {
     color: #2C2630;
     background-color: #F8F6F9;
 }
 
-.admin-tab-item.active {
+.orders-management-container .admin-tab-item.active {
     color: #E3597D;
     background-color: rgba(227, 89, 125, 0.08);
 }
 
-.tab-badge {
+.orders-management-container .tab-badge {
     background-color: #82758D;
     color: white;
     font-size: 0.72rem;
@@ -119,7 +119,7 @@
     font-weight: 700;
 }
 
-.admin-tab-item.active .tab-badge {
+.orders-management-container .admin-tab-item.active .tab-badge {
     background-color: #E3597D;
 }
 

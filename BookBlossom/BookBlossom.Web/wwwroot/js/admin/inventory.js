@@ -984,4 +984,22 @@ if (addCategoryFormElement) {
     });
 }
 
-// Duplicate submit listener removed. Managed by blind-date-controller.js
+// Duplicate submit listener removed. Managed by blind-date-controller.js
+
+// ==========================================
+// SPA ROUTER: Tải lại dữ liệu khi điều hướng đến trang Inventory
+// ==========================================
+window.addEventListener('spa:page-ready', function (e) {
+    const url = (e.detail && e.detail.url) ? e.detail.url.toLowerCase() : window.location.pathname.toLowerCase();
+    if (url.includes('/admin/inventory')) {
+        // Chờ DOM ổn định rồi tải dữ liệu
+        setTimeout(function () {
+            if (document.getElementById('booksTableBody')) {
+                loadInventoryBooks();
+            }
+            if (document.getElementById('categoriesTableBody')) {
+                loadInventoryCategories();
+            }
+        }, 50);
+    }
+});

@@ -73,63 +73,7 @@ namespace BookBlossom.Web.Controllers
 
         public async Task<IActionResult> Users()
         {
-            // --- Auto database adjustments (delete user4 and distribute Free packages) ---
-            
-            // 1. Delete user4 via raw SQL to completely bypass EF tracker issues and clean up references
-            try
-            {
-                var userToDelete = await _context.Users.FirstOrDefaultAsync(u => u.UserName == "user4");
-                if (userToDelete != null)
-                {
-                    var userId = userToDelete.UserID;
-
-                    var sqls = new[]
-                    {
-                        "DELETE FROM [Thread].[ThreadLike] WHERE [UserID] = " + userId,
-                        "DELETE FROM [Thread].[ThreadComment] WHERE [UserID] = " + userId,
-                        "DELETE FROM [Thread].[ThreadPost] WHERE [UserID] = " + userId,
-                        "DELETE FROM [UserSystem].[AuditLogs] WHERE [SystemAdminID] = " + userId + " OR [UserID] = " + userId,
-                        "DELETE FROM [Rank].[ReputationHistory] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [Rank].[CustomerBadge] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [Rank].[CustomerReputation] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [Service].[CustomerService] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [UserSystem].[DeliveryAddress] WHERE [UserID] = " + userId,
-                        "DELETE FROM [dbo].[Wishlist] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [dbo].[Cart] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [Preference].[CustomerPreference] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [UserSystem].[CustomerDetail] WHERE [CustomerID] = " + userId,
-                        "DELETE FROM [UserSystem].[StaffDetail] WHERE [StaffID] = " + userId,
-                        "DELETE FROM [UserSystem].[Users] WHERE [UserID] = " + userId
-                    };
-
-                    foreach (var sql in sqls)
-                    {
-                        try
-                        {
-                            await _context.Database.ExecuteSqlRawAsync(sql);
-                        }
-                        catch (Exception sqlEx)
-                        {
-                            try
-                            {
-                                System.IO.File.AppendAllText("D:\\Hoc_ky_2_nam_2\\PBL3\\src\\BookBlossom\\delete_user4_sql_errors.txt", $"SQL: {sql}\nError: {sqlEx.Message}\n\n");
-                            }
-                            catch {}
-                        }
-                    }
-
-                    // Clear the change tracker to discard tracked state of deleted entities
-                    _context.ChangeTracker.Clear();
-                }
-            }
-            catch (Exception ex)
-            {
-                try
-                {
-                    System.IO.File.WriteAllText("D:\\Hoc_ky_2_nam_2\\PBL3\\src\\BookBlossom\\delete_user4_error.txt", ex.ToString());
-                }
-                catch {}
-            }
+            // --- Auto database adjustments (distribute Free packages and balance resources) ---
 
             // 2. Clear non-standard packages, update standard package constraints/pricing in DB, and distribute subscriptions among Free, Basic, Pro
             try
@@ -347,7 +291,8 @@ namespace BookBlossom.Web.Controllers
                     InternalScore = score,
                     JoinDate = joinDate,
                     Status = u.AccountStatus.ToString(),
-                    AvatarUrl = u.Avatar ?? "https://i.pravatar.cc/150?img=9"
+                    AvatarUrl = u.Avatar ?? "https://i.pravatar.cc/150?img=9",
+                    Note = u.Note
                 };
 
                 if (u.AccountStatus == AccountStatus.Banned || u.IsActive == false)
@@ -408,6 +353,25 @@ namespace BookBlossom.Web.Controllers
             );
 
             return Json(new { success = true, status = user.AccountStatus.ToString() });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateBuyerNote([FromQuery] long userId, [FromQuery] string noteText)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound(new { success = false, message = "User not found" });
+
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(adminIdStr) || !long.TryParse(adminIdStr, out long adminId))
+            {
+                return Unauthorized(new { success = false, message = "Unauthorized admin" });
+            }
+
+            user.Note = noteText;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
 
         [HttpPost]

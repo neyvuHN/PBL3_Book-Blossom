@@ -33,6 +33,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.Property(u => u.Gender).HasMaxLength(10);
             builder.Property(u => u.Birthday).HasColumnType("date");
             builder.Property(u => u.IsActive).IsRequired(false);
+            builder.Property(u => u.Note).HasMaxLength(1000).IsRequired(false);
         }
     }
 }

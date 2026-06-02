@@ -17,11 +17,51 @@
     <link rel="stylesheet" href="~/css/admin/admin-layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/dashboard.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
+    <!-- SPA Router Loading Bar -->
+    <style>
+        #spa-loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            z-index: 99999;
+            background: transparent;
+            pointer-events: none;
+        }
+        #spa-loading-bar::after {
+            content: '';
+            display: block;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #E3597D, #F59E0B, #E3597D);
+            background-size: 200% 100%;
+            border-radius: 0 2px 2px 0;
+            transition: width 0.3s ease;
+            opacity: 0;
+        }
+        #spa-loading-bar.loading::after {
+            width: 85%;
+            opacity: 1;
+            animation: spa-shimmer 1.2s ease-in-out infinite;
+        }
+        @@keyframes spa-shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        /* SPA page transition */
+        main[role="main"] {
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+    </style>
 </head>
 <body class="admin-mode">
     <div class="admin-wrapper">
         <!-- Sidebar -->
         @await Html.PartialAsync("AdminPartials/_Sidebar")
+
+        <!-- SPA Loading Bar -->
+        <div id="spa-loading-bar"></div>
 
         <div class="admin-main-content">
             <!-- Topbar -->
@@ -37,6 +77,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/apiClient.js" asp-append-version="true"></script>
+    <!-- Admin SPA Router (phải load trước layout-controller để có window.spaRouter) -->
+    <script src="~/js/admin/admin-spa-router.js" asp-append-version="true"></script>
     
     <!-- Admin Layout MVC (Collapsible Sidebar) -->
     <script src="~/js/admin/layout/layout-model.js" asp-append-version="true"></script>

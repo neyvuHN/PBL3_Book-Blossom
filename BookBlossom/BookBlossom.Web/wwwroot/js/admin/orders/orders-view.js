@@ -446,15 +446,9 @@ class OrdersView {
         const tableRowsHtml = returnedItems.map(item => {
             const isPending = item.restockStatus === 'Pending Restock';
             const actionHtml = isPending 
-                ? `<div style="display:flex; gap:6px; justify-content:flex-end;">
-                     ${item.unboxVideoPath ? `<button class="btn-outline-action btn-play-video" data-video="${item.unboxVideoPath}" style="padding: 6px 12px; font-size:0.75rem; border-color:#82758D; color:#82758D;">
-                         <i class="ph ph-video-camera"></i> Proof Video
-                     </button>` : ''}
-                     <button class="btn-primary-action btn-approve-return" data-id="${item.id}" style="padding: 6px 12px; font-size:0.75rem; background-color:#27AE60; box-shadow:none;">
-                         <i class="ph ph-check"></i> Approve
-                     </button>
-                     <button class="btn-outline-action btn-reject-return" data-id="${item.id}" style="padding: 6px 12px; font-size:0.75rem; border-color:#EB5757; color:#EB5757;">
-                         <i class="ph ph-x"></i> Reject
+                ? `<div style="display:flex; justify-content:flex-end;">
+                     <button class="btn-primary-action btn-approve-return" data-id="${item.id}" style="padding: 10px 24px; font-size:0.85rem; background-color:#E3597D; border-radius:25px !important; box-shadow:none; font-weight:600; display:inline-flex; align-items:center; gap:8px;">
+                         <i class="ph ph-storefront" style="font-size:1.15rem;"></i> Restock Stock
                      </button>
                    </div>`
                 : `<span style="color:#27AE60; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:4px; justify-content:flex-end;">

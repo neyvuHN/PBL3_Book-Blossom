@@ -180,39 +180,48 @@ class UsersController {
         });
 
         // Save note event
-        this.view.btnSaveBuyerNote.addEventListener('click', () => {
+        this.view.btnSaveBuyerNote.addEventListener('click', async () => {
             const noteText = this.view.buyerNoteText.value.trim();
             const buyerId = this.selectedBuyerId;
 
             if (buyerId) {
-                const success = this.model.updateBuyerNote(buyerId, noteText);
-                if (success) {
-                    const buyerObj = this.model.findUserById(buyerId);
-                    this.redrawActiveTable();
-                    closeNoteModal();
+                try {
+                    const success = await this.model.updateBuyerNote(buyerId, noteText);
+                    if (success) {
+                        const buyerObj = this.model.findUserById(buyerId);
+                        this.redrawActiveTable();
+                        closeNoteModal();
 
-                    // Beautiful premium notification toast
-                    const toastHtml = `
-                        <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(39,174,96,0.25); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                            <i class="ph ph-check-circle" style="font-size:1.3rem;"></i>
-                            <div>
-                                <div style="font-weight:700; margin-bottom:2px;">Notes Saved Successfully!</div>
-                                <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
-                                    Observations for @${buyerObj.username} have been committed.
+                        // Beautiful premium notification toast
+                        const toastHtml = `
+                            <div class="buyer-actions-toast" style="position:fixed; bottom:20px; right:20px; background:#27AE60; color:#FFF; padding:16px 28px; border-radius:12px; z-index:9999; box-shadow:0 10px 30px rgba(39,174,96,0.25); font-size:0.92rem; font-weight:600; display:flex; align-items:center; gap:10px; animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                                <i class="ph ph-check-circle" style="font-size:1.3rem;"></i>
+                                <div>
+                                    <div style="font-weight:700; margin-bottom:2px;">Notes Saved Successfully!</div>
+                                    <div style="font-size:0.78rem; opacity:0.9; font-weight:400;">
+                                        Observations for @${buyerObj.username} have been committed.
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                    document.body.insertAdjacentHTML('beforeend', toastHtml);
-                    setTimeout(() => {
-                        const toast = document.querySelector('.buyer-actions-toast');
-                        if (toast) {
-                            toast.style.transition = 'all 0.4s ease';
-                            toast.style.opacity = '0';
-                            toast.style.transform = 'translateY(20px)';
-                            setTimeout(() => toast.remove(), 400);
-                        }
-                    }, 4000);
+                        `;
+                        document.body.insertAdjacentHTML('beforeend', toastHtml);
+                        setTimeout(() => {
+                            const toast = document.querySelector('.buyer-actions-toast');
+                            if (toast) {
+                                toast.style.transition = 'all 0.4s ease';
+                                toast.style.opacity = '0';
+                                toast.style.transform = 'translateY(20px)';
+                                setTimeout(() => toast.remove(), 400);
+                            }
+                        }, 4000);
+                    }
+                } catch (err) {
+                    console.error("Error saving buyer note:", err);
+                    if (window.apiClient && window.apiClient.showToast) {
+                        window.apiClient.showToast("Failed to save note: " + (err.message || err), "error");
+                    } else {
+                        alert("Failed to save note: " + err.message);
+                    }
                 }
             }
         });

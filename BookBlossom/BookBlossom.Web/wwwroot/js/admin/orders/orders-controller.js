@@ -318,21 +318,21 @@ class OrdersController {
                     const item = this.model.findReturnedItemById(id);
                     if (item) {
                         this.view.showConfirmDialog(
-                            'Approve Return & Restock?',
+                            'Restock Returned Item?',
                             `Confirm warehouse restocking and refund payout for "${item.bookTitle}" (Qty: ${item.quantity})?`,
                             'success',
                             async () => {
-                                this.view.showToast('Approving', 'Processing return approval & warehouse stocking...', 'info');
+                                this.view.showToast('Restocking', 'Processing return restocking & warehouse update...', 'info');
                                 try {
                                     await this.model.reviewReturnRequest(id, true);
                                     this.view.showToast(
-                                        'Return Approved', 
-                                        `Approval success! ${item.quantity} unit(s) of "${item.bookTitle}" returned to stock.`, 
+                                        'Item Restocked', 
+                                        `Restock success! ${item.quantity} unit(s) of "${item.bookTitle}" returned to stock.`, 
                                         'success'
                                     );
                                     await this.loadAllData();
                                 } catch (err) {
-                                    this.view.showToast('Approval Failed', err.message, 'error');
+                                    this.view.showToast('Restock Failed', err.message, 'error');
                                 }
                             }
                         );

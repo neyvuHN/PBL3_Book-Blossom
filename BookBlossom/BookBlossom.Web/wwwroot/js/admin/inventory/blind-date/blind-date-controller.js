@@ -350,3 +350,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ==========================================
+// SPA ROUTER: Khởi tạo lại khi điều hướng đến trang Inventory
+// ==========================================
+window.addEventListener('spa:page-ready', function (e) {
+    const url = (e.detail && e.detail.url) ? e.detail.url.toLowerCase() : window.location.pathname.toLowerCase();
+    if (url.includes('/admin/inventory')) {
+        setTimeout(function () {
+            const tbody = document.getElementById('blindDateTableBody');
+            if (!tbody) return;
+
+            const blindDateModel = new BlindDateModel();
+            const blindDateView = new BlindDateView();
+            const blindDateController = new BlindDateController(blindDateModel, blindDateView);
+
+            // Gắn lại sự kiện tab Blind Date
+            const blindDateTabBtn = document.getElementById('blinddate-tab');
+            if (blindDateTabBtn) {
+                blindDateTabBtn.addEventListener('click', () => {
+                    blindDateController.loadDataFromServer();
+                });
+            }
+        }, 100);
+    }
+});
