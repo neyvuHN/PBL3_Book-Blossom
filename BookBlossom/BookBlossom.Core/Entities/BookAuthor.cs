@@ -10,7 +10,7 @@ namespace BookBlossom.Core.Entities
 
         // Navigation properties
         [ForeignKey("BookID")]
-        public virtual Book Book { get; set; } = null!;
+        public virtual RealBook Book { get; set; } = null!;
 
         [ForeignKey("AuthorID")]
         public virtual Author Author { get; set; } = null!;

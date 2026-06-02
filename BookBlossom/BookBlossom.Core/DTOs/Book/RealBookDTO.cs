@@ -27,5 +27,7 @@ namespace BookBlossom.Core.DTOs.Book
         public int UnitsInStock { get; set; }
         public int ReservedQuantity { get; set; }    // Số lượng đang bị giữ chân bởi đơn hàng chờ xử lý
         public bool IsContinued { get; set; }       // Trạng thái kinh doanh (Xóa mềm)
+
+        public string? Authors { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+function initInventorySetup() {
     const addBookBtn = document.getElementById('btn-add-book');
     const addBookModalElement = document.getElementById('addBookModal');
     const addBookForm = document.getElementById('addBookForm');
@@ -371,7 +371,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 150);
     }
-});
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initInventorySetup);
+} else {
+    initInventorySetup();
+}
 
 // Helper function to get or create bootstrap Modal instance safely
 function getSafeModal(element) {
@@ -383,7 +388,7 @@ function getSafeModal(element) {
 // INTEGRATE CATEGORIES AND RESTOCK WORKFLOWS
 // ==========================================
 
-document.addEventListener('DOMContentLoaded', function () {
+function initInventoryData() {
     // Tải dữ liệu ban đầu
     loadInventoryBooks();
     loadInventoryCategories();
@@ -396,7 +401,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (searchInput) searchInput.addEventListener('input', debounce(loadInventoryBooks, 500));
     if (categoryFilter) categoryFilter.addEventListener('change', loadInventoryBooks);
     if (statusFilter) statusFilter.addEventListener('change', loadInventoryBooks);
-});
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initInventoryData);
+} else {
+    initInventoryData();
+}
 
 // Hàm hỗ trợ delay việc gọi API khi đang gõ chữ
 function debounce(func, delay) {
@@ -473,7 +483,7 @@ async function loadInventoryBooks() {
                             <img src="${imgUrl}" class="rounded shadow-sm me-3" style="width: 45px; height: 60px; object-fit: cover;" onerror="this.onerror=null; this.src='/images/Book/book${(book.bookID % 6) + 1}.jpg';"/>
                             <div>
                                 <div class="fw-bold text-dark text-truncate" style="max-width: 250px;" title="${book.title}">${book.title}</div>
-                                <div class="text-muted small">${book.isbn}</div>
+                                <div class="text-muted small">ISBN: ${book.isbn} | Tác giả: ${book.authors || 'N/A'}</div>
                                 <div class="book-authors-list text-muted small" title="${book.publisher || ''}">Publisher: ${book.publisher || 'N/A'}</div>
                             </div>
                         </div>
@@ -512,6 +522,7 @@ async function loadInventoryBooks() {
                                 data-stock="${book.unitsInStock}"
                                 data-description="${book.description || ''}"
                                 data-iscontinued="${book.isContinued}"
+                                data-authors="${(book.authors || '').replace(/"/g, '&quot;')}"
                                 data-mainimage="${imgUrl}">
                             <i class="ph ph-pencil-simple"></i>
                         </button>
@@ -646,7 +657,7 @@ document.addEventListener('click', function (e) {
         document.getElementById('bookWeight').value = editBtn.dataset.weight || '';
         document.getElementById('bookStock').value = editBtn.dataset.stock;
         document.getElementById('bookDescription').value = editBtn.dataset.description || '';
-        document.getElementById('bookAuthors').value = editBtn.dataset.authors || 'N/A';
+        document.getElementById('bookAuthors').value = editBtn.dataset.authors || '';
         document.getElementById('isContinued').checked = editBtn.dataset.iscontinued === 'true';
 
         const form = document.getElementById('addBookForm');
