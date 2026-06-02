@@ -151,7 +151,16 @@ class OrdersView {
                 `;
                 break;
             case 'returned':
-                statusText = 'Returned';
+                statusText = order.resolutionType === 0 ? 'Refund Only' : 'Returned';
+                let returnStatusBadge = '';
+                if (order.returnStatus === 0) {
+                    returnStatusBadge = '<span class="badge bg-warning text-dark ms-2">Pending</span>';
+                } else if (order.returnStatus === 1) {
+                    returnStatusBadge = '<span class="badge bg-success ms-2">Approved</span>';
+                } else if (order.returnStatus === 2) {
+                    returnStatusBadge = '<span class="badge bg-danger ms-2">Rejected</span>';
+                }
+                statusText += returnStatusBadge;
                 extraInfoHtml = `<div class="text-muted small mb-2"><i class="fas fa-undo-alt text-warning"></i> Reason: ${order.cancelReason}</div>`;
                 // [UPDATED] Buy Again opens the Secure Checkout popup
                 actionsHtml = `

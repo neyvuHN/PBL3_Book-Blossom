@@ -18,6 +18,9 @@ namespace BookBlossom.Core.DTOs
         public string? ShipPhoneNumber { get; set; } = string.Empty;
         public string? Note { get; set; }
         public string? CancelReason { get; set; }
+        public string? ReturnReason { get; set; }
+        public ResolutionType? ResolutionType { get; set; }
+        public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
     }
 
@@ -43,6 +46,9 @@ namespace BookBlossom.Core.DTOs
         public string? ShipDetailAddress { get; set; } = string.Empty;
         public string? Note { get; set; }
         public string? CancelReason { get; set; }
+        public string? ReturnReason { get; set; }
+        public ResolutionType? ResolutionType { get; set; }
+        public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
     }
 

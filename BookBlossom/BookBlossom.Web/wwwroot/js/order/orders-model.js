@@ -120,7 +120,9 @@ class OrdersModel {
                 shippingFee: 0,
                 discountAmount: 0,
                 orderDate: new Date(o.orderDate).toLocaleString('vi-VN'),
-                cancelReason: o.cancelReason || ''
+                cancelReason: o.cancelReason || '',
+                resolutionType: o.resolutionType,
+                returnStatus: o.returnStatus
             };
         });
     }
