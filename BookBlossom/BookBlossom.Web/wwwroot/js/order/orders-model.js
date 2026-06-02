@@ -136,7 +136,9 @@ class OrdersModel {
                 shippingFee: 0,
                 discountAmount: 0,
                 orderDate: new Date(o.orderDate).toLocaleString('vi-VN'),
-                cancelReason: o.cancelReason || ''
+                cancelReason: o.cancelReason || '',
+                resolutionType: o.resolutionType,
+                returnStatus: o.returnStatus
             };
         });
     }
@@ -180,26 +182,49 @@ class OrdersModel {
         return this.orders.filter(order => order.status === 'to-receive').length;
     }
 
-    submitReturnRefund(orderId, requestData) {
-        const order = this.orders.find(o => o.id.toString() === orderId.toString());
-        if (!order) return;
+    async submitReturnRefund(orderId, requestData) {
+        try {
+            const formData = new FormData();
+            
+            const order = this.orders.find(o => o.id.toString() === orderId.toString());
+            if (!order || !order.items || order.items.length === 0) return false;
+            
+            const bookId = order.items[0].id;
+            const quantity = order.items[0].quantity;
+            
+            formData.append('BookID', bookId);
+            formData.append('ReturnQuantity', quantity);
+            
+            const proposalLabel = requestData.proposal === 'keep' 
+                ? `Keep Item (Refund Request: ${requestData.refundAmount.toLocaleString('vi-VN')}đ)` 
+                : 'Return & Refund Item';
+            const fullReason = `${requestData.reason} - ${proposalLabel}`;
+            formData.append('ReturnReason', fullReason);
+            
+            formData.append('ResolutionType', requestData.proposal === 'keep' ? 0 : 1);
+            
+            if (requestData.videoFile) {
+                formData.append('VideoFile', requestData.videoFile);
+            }
 
-        order.status = 'returned';
-        
-        const proposalLabel = requestData.proposal === 'keep' 
-            ? `Keep Item (Refund Request: ${requestData.refundAmount.toLocaleString('vi-VN')}đ)` 
-            : 'Return & Refund Item';
-
-        order.cancelReason = `${requestData.reason} - ${proposalLabel}`;
-        
-        // Add timeline record if trackingMilestones is defined
-        if (order.trackingMilestones) {
-            order.trackingMilestones.push({
-                title: "Return/Refund Requested",
-                time: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', year: 'numeric', month: '2-digit', day: '2-digit' }),
-                description: `Reason: ${requestData.reason}. Proposal: ${proposalLabel}.`,
-                status: "completed"
+            const response = await fetch(`/api/Return/order/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: formData
             });
+
+            if (response.ok) {
+                return { success: true };
+            } else {
+                const err = await response.json().catch(() => ({}));
+                console.error("Return request failed:", err);
+                return { success: false, message: err.message || "Failed to submit return request." };
+            }
+        } catch (error) {
+            console.error("Error submitting return request:", error);
+            return { success: false, message: error.message };
         }
     }
 }

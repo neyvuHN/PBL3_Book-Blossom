@@ -114,6 +114,10 @@ namespace BookBlossom.Infrastructure.Services
             };
 
             await _context.Set<ReturnRequest>().AddAsync(returnRequest);
+            
+            // Update order status to Returning
+            order.OrderStatus = OrderStatus.Returning;
+            
             await _context.SaveChangesAsync();
 
             // Lấy thông tin phụ trợ cho DTO
@@ -260,6 +264,12 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     request.ReturnStatus = ReturnStatus.Rejected;
                     request.RejectReason = dto.RejectReason ?? "Không có lý do từ chối cụ thể.";
+
+                    if (request.Order != null)
+                    {
+                        request.Order.OrderStatus = OrderStatus.Completed;
+                        request.Order.CompletedDate = DateTime.UtcNow;
+                    }
                 }
                 else
                 {

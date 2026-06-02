@@ -48,9 +48,8 @@
                     </td>
                     <td>
                         @{
-                            var planClass = "plan-free";
-                            if (user.Plan == "Basic") planClass = "plan-basic";
-                            else if (user.Plan == "Pro") planClass = "plan-pro";
+                            var cleanPlanName = user.Plan?.ToLower() ?? "free";
+                            var planClass = "plan-" + System.Text.RegularExpressions.Regex.Replace(cleanPlanName, @"[^a-z0-9]+", "-").Trim('-');
                         }
                         <span class="plan-badge @planClass">@user.Plan</span>
                     </td>

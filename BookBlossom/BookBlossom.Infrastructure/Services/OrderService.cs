@@ -290,43 +290,55 @@ namespace BookBlossom.Infrastructure.Services
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
+            var orderIds = orders.Select(o => o.OrderID).ToList();
+            var returnRequests = await _context.Set<ReturnRequest>()
+                .Where(r => orderIds.Contains(r.OrderID))
+                .ToListAsync();
+            
+            var latestReturnRequests = returnRequests
+                .GroupBy(r => r.OrderID)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.RequestDate).First());
+
             // Lấy thông tin tên hiển thị của Customer từ DbContext
             var user = await _context.Users.FindAsync(customerId);
             string customerName = user != null ? $"{user.LastName} {user.FirstName}".Trim() : "Khách hàng";
 
             // Ánh xạ sang DTO trả về cho Client hiển thị lên danh sách lịch sử mua hàng
-            return orders.Select(o => new OrderListItemDTO
-            {
-                OrderID = o.OrderID,
-                CustomerID = o.CustomerID,
-                CustomerName = customerName,
-                OrderDate = o.OrderDate ?? DateTime.UtcNow,
-                OrderStatus = o.OrderStatus,
-                PaymentMethod = o.PaymentMethod,
-                PaymentStatus = o.PaymentStatus,
-                TotalAmount = o.TotalAmount,
-                ShipReceiverName = o.ShipReceiverName,
-                ShipPhoneNumber = o.ShipPhoneNumber,
-                Note = o.Note,
-                CancelReason = null, // Logic cancel reason có thể lấy từ bảng khác nếu có
-                OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
+            return orders.Select(o => {
+                latestReturnRequests.TryGetValue(o.OrderID, out var retReq);
+                return new OrderListItemDTO
                 {
-                    BookID = od.BookID,
-                    BlindBookID = od.BlindBookID,
-                    Title = od.BlindBookID.HasValue && od.BlindBook != null
-                        ? $"[Sách Mù] {od.BlindBook.Category}"
-                        : od.RealBook?.Title ?? "Sách không xác định",
-                    RealBookTitle = o.OrderStatus == OrderStatus.Completed
-                        ? (od.RealBook?.Title ?? "Sách không xác định")
-                        : string.Empty,
-                    UnitPrice = od.UnitPrice,
-                    Quantity = od.Quantity,
-                    Discount = od.Discount ?? 0,
-                    TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
-                    SampleFilePath = od.RealBook?.SampleFilePath,
-                    ISBN = od.RealBook?.ISBN ?? string.Empty,
-                    Publisher = od.RealBook?.Publisher ?? string.Empty
-                }).ToList()
+                    OrderID = o.OrderID,
+                    CustomerID = o.CustomerID,
+                    CustomerName = customerName,
+                    OrderDate = o.OrderDate ?? DateTime.UtcNow,
+                    OrderStatus = o.OrderStatus,
+                    PaymentMethod = o.PaymentMethod,
+                    PaymentStatus = o.PaymentStatus,
+                    TotalAmount = o.TotalAmount,
+                    ShipReceiverName = o.ShipReceiverName,
+                    ShipPhoneNumber = o.ShipPhoneNumber,
+                    Note = o.Note,
+                    CancelReason = o.OrderStatus == OrderStatus.Returning ? (retReq != null ? retReq.ReturnReason : "Awaiting censorship") : (o.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
+                    ReturnReason = retReq?.ReturnReason,
+                    ResolutionType = retReq?.ResolutionType,
+                    ReturnStatus = retReq?.ReturnStatus,
+                    OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
+                    {
+                        BookID = od.BookID,
+                        BlindBookID = od.BlindBookID,
+                        Title = od.BlindBookID.HasValue && od.BlindBook != null
+                            ? $"[Sách Mù] {od.BlindBook.Category}"
+                            : od.RealBook?.Title ?? "Sách không xác định",
+                        UnitPrice = od.UnitPrice,
+                        Quantity = od.Quantity,
+                        Discount = od.Discount ?? 0,
+                        TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
+                        SampleFilePath = od.RealBook?.SampleFilePath,
+                        ISBN = od.RealBook?.ISBN ?? string.Empty,
+                        Publisher = od.RealBook?.Publisher ?? string.Empty
+                    }).ToList()
+                };
             });
         }
 
@@ -343,6 +355,11 @@ namespace BookBlossom.Infrastructure.Services
 
             var user = await _context.Users.FindAsync(order.CustomerID);
             string customerName = user != null ? $"{user.LastName} {user.FirstName}".Trim() : "Khách hàng";
+
+            var returnRequest = await _context.Set<ReturnRequest>()
+                .Where(r => r.OrderID == orderId)
+                .OrderByDescending(r => r.RequestDate)
+                .FirstOrDefaultAsync();
 
             return new OrderDetailDTO
             {
@@ -365,7 +382,10 @@ namespace BookBlossom.Infrastructure.Services
                 ShipPhoneNumber = order.ShipPhoneNumber,
                 ShipDetailAddress = order.ShipDetailAddress,
                 Note = order.Note,
-                CancelReason = null, // Mocked for now, normally from DB if saved
+                CancelReason = order.OrderStatus == OrderStatus.Returning ? (returnRequest != null ? returnRequest.ReturnReason : "Awaiting censorship") : (order.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
+                ReturnReason = returnRequest?.ReturnReason,
+                ResolutionType = returnRequest?.ResolutionType,
+                ReturnStatus = returnRequest?.ReturnStatus,
                 OrderItems = order.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,
@@ -581,7 +601,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShipReceiverName = o.ShipReceiverName,
                 ShipPhoneNumber = o.ShipPhoneNumber,
                 Note = o.Note,
-                CancelReason = null,
+                CancelReason = o.OrderStatus == OrderStatus.Returning ? "Awaiting censorship" : (o.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
                 OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,

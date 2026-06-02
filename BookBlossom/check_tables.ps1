@@ -2,11 +2,11 @@ $connString = "Server=sql1004.site4now.net;Database=db_ac99f8_pbl3;User Id=db_ac
 $connection = New-Object System.Data.SqlClient.SqlConnection($connString)
 $connection.Open()
 
-$query = "SELECT * FROM UserSystem.SystemConfiguration"
+$query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'OrderDetail'"
 $cmd = New-Object System.Data.SqlClient.SqlCommand($query, $connection)
 $adapter = New-Object System.Data.SqlClient.SqlDataAdapter($cmd)
 $dt = New-Object System.Data.DataTable
 $adapter.Fill($dt) | Out-Null
-$dt | Format-List
+$dt | Format-Table
 
 $connection.Close()

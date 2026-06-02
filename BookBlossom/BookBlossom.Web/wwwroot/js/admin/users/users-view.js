@@ -65,8 +65,7 @@ class UsersView {
             user.role === 'Marketing Manager' ? 'role-marketing' :
             user.role === 'Store Manager' ? 'role-store' : 'role-user';
 
-        const planClass = user.plan === 'Basic' ? 'plan-basic' :
-            user.plan === 'Pro' ? 'plan-pro' : 'plan-free';
+        const planClass = 'plan-' + (user.plan || 'free').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
         let scoreHtml = '';
         if (user.internalScore < 30) {
