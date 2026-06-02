@@ -46,5 +46,17 @@ namespace BookBlossom.Web.ViewModels.Profile
         public int DailyUndoCount { get; set; } = 3;
         public int MaxDailyUndoLimit { get; set; } = 5; // 2 for Free, 5 for Basic, 15 for Pro
         public DateTime LastUndoDate { get; set; } = DateTime.Now;
+
+        // Delivery Addresses
+        public List<DeliveryAddressItem> DeliveryAddresses { get; set; } = new List<DeliveryAddressItem>();
+    }
+
+    public class DeliveryAddressItem
+    {
+        public long AddressID { get; set; }
+        public string ReceiverName { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string DetailAddress { get; set; } = string.Empty;
+        public bool IsDefault { get; set; }
     }
 }

@@ -21,8 +21,7 @@ class ProfileController {
      * Initializes and binds all event listeners and triggers initial render
      */
     init() {
-        // Initial presentation load
-        this.view.render(this.model.user);
+        // Initial presentation load is handled by server-side rendering (SSR)
         this.bindEvents();
     }
 
@@ -46,27 +45,39 @@ class ProfileController {
         });
 
         // Submit form details
-        $('#edit-profile-form').on('submit', function (e) {
+        $('#edit-profile-form').on('submit', async function (e) {
             e.preventDefault();
             
-            const updatedData = {
-                fullName: $('#input-fullname').val().trim() || self.model.user.fullName,
-                username: $('#input-username').val().trim().toLowerCase() || self.model.user.username,
-                bio: $('#input-bio').val().trim() || self.model.user.bio,
-                phoneNumber: $('#input-phone').val().trim() || self.model.user.phoneNumber,
-                email: $('#input-email').val().trim() || self.model.user.email,
-                gender: $('#input-gender').val(),
-                birthdate: $('#input-birthdate').val()
-            };
+            const fullName = $('#input-fullname').val().trim();
+            const lastSpaceIndex = fullName.lastIndexOf(' ');
+            const firstName = lastSpaceIndex === -1 ? fullName : fullName.substring(lastSpaceIndex + 1);
+            const lastName = lastSpaceIndex === -1 ? "" : fullName.substring(0, lastSpaceIndex);
 
-            // Save details through model
-            self.model.updateMultipleFields(updatedData);
+            const formData = new FormData();
+            formData.append('firstName', firstName);
+            formData.append('lastName', lastName);
+            formData.append('userName', $('#input-username').val().trim().toLowerCase());
+            formData.append('gender', $('#input-gender').val());
+            formData.append('birthdate', $('#input-birthdate').val());
+            formData.append('bio', $('#input-bio').val().trim());
 
-            // Re-render display view
-            self.view.render(self.model.user);
-            
-            $('#edit-profile-form').slideUp(300);
-            self.view.showToast("Profile details updated successfully!");
+            try {
+                // Show loading state
+                const $btn = $('#btn-edit-profile-save');
+                const originalText = $btn.text();
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+
+                await self.model.updateProfileData(formData);
+                self.view.showToast("Profile details updated successfully!");
+                
+                $('#edit-profile-form').slideUp(300);
+
+                // Reload the page to reflect changes properly via SSR
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                // Toast is handled by apiClient
+                $('#btn-edit-profile-save').prop('disabled', false).text('Save Changes');
+            }
         });
 
         // Initialize cropper state values for drag-and-drop and zoom scale tracking
@@ -170,18 +181,27 @@ class ProfileController {
 
         // Render cropped canvas and apply final avatar changes to Model and View
         $(document).on('click', '#btn-save-cropper', function () {
-            self.view.getCroppedImage(self.cropper.scale, self.cropper.x, self.cropper.y, function (croppedDataUrl) {
-                // Persist new base64 image data in localstorage via model
-                self.model.updateField('avatar', croppedDataUrl);
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Uploading...');
+
+            self.view.getCroppedImage(self.cropper.scale, self.cropper.x, self.cropper.y, async function (croppedDataUrl) {
+                // Convert base64 DataURL to Blob
+                const fetchRes = await fetch(croppedDataUrl);
+                const blob = await fetchRes.blob();
                 
-                // Re-render user view
-                self.view.render(self.model.user);
-                
-                // Close cropping overlay
-                self.view.closeCropperModal();
-                
-                // Trigger toast notification
-                self.view.showToast("Avatar image updated successfully!");
+                const formData = new FormData();
+                formData.append('avatarImage', blob, 'avatar.png');
+
+                try {
+                    await self.model.updateProfileData(formData);
+                    self.view.showToast("Avatar image updated successfully!");
+                    self.view.closeCropperModal();
+                    
+                    // Reload to reflect new avatar generated from server
+                    setTimeout(() => window.location.reload(), 1500);
+                } catch (error) {
+                    $btn.prop('disabled', false).text('Apply Changes');
+                }
             });
         });
 

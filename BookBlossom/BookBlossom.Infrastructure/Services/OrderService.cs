@@ -509,6 +509,7 @@ namespace BookBlossom.Infrastructure.Services
                     .FirstOrDefaultAsync(cd => cd.CustomerID == order.CustomerID);
                 if (customerDetail != null)
                 {
+                    customerDetail.TotalSpending += order.TotalAmount;
                     customerDetail.CurrentOrderStreak++;
 
                     if (customerDetail.CurrentOrderStreak >= 3)
@@ -781,6 +782,7 @@ namespace BookBlossom.Infrastructure.Services
                             .FirstOrDefaultAsync(cd => cd.CustomerID == order.CustomerID);
                         if (customerDetail != null)
                         {
+                            customerDetail.TotalSpending += order.TotalAmount;
                             customerDetail.CurrentOrderStreak++;
 
                             if (customerDetail.CurrentOrderStreak >= 3)

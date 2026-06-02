@@ -55,7 +55,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
         public DbSet<Author> Authors { get; set; }
         public DbSet<BookAuthor> BookAuthors { get; set; }
-
+        public DbSet<DeliveryAddress> DeliveryAddresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

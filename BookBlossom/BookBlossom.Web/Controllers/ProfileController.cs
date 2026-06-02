@@ -1,4 +1,5 @@
 using BookBlossom.Infrastructure.Data;
+using BookBlossom.Core.Entities;
 using BookBlossom.Web.ViewModels.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ using System.Linq;
 
 namespace BookBlossom.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Customer,Admin")]
     public class ProfileController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -53,7 +54,7 @@ namespace BookBlossom.Web.Controllers
                 Email = user.Email ?? "",
                 Gender = user.Gender ?? "Unknown",
                 Birthdate = user.Birthday ?? new System.DateTime(2000, 1, 1),
-                Bio = "Cập nhật tiểu sử của bạn tại đây.",
+                Bio = user.Note ?? "Cập nhật tiểu sử của bạn tại đây.",
                 MemberSince = System.DateTime.Now, // User doesn't have CreatedAt currently
                 
                 MembershipTier = user.CustomerDetail?.MembershipRank?.RankType?.ToString() ?? "Đồng",
@@ -72,7 +73,20 @@ namespace BookBlossom.Web.Controllers
                 
                 DailyUndoCount = user.CustomerDetail?.DailyUndoCount ?? 0,
                 MaxDailyUndoLimit = user.CustomerDetail?.ServicePackage?.UndoLimit ?? 2,
-                LastUndoDate = user.CustomerDetail?.LastUndoDate ?? System.DateTime.Now
+                LastUndoDate = user.CustomerDetail?.LastUndoDate ?? System.DateTime.Now,
+
+                DeliveryAddresses = await _context.DeliveryAddresses
+                    .Where(da => da.CustomerID == userId)
+                    .OrderByDescending(da => da.IsDefault)
+                    .ThenByDescending(da => da.AddressID)
+                    .Select(da => new DeliveryAddressItem
+                    {
+                        AddressID = da.AddressID,
+                        ReceiverName = da.ReceiverName,
+                        PhoneNumber = da.PhoneNumber,
+                        DetailAddress = da.DetailAddress,
+                        IsDefault = da.IsDefault ?? false
+                    }).ToListAsync()
             };
 
             return View(model);
