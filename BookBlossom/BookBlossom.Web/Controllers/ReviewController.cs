@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using BookBlossom.Core.DTOs.Review;
 using BookBlossom.Core.Interfaces.Services;
 
@@ -16,10 +17,12 @@ namespace BookBlossom.Web.Controllers
     public class ReviewController : Controller
     {
         private readonly IReviewService _service;
+        private readonly ILogger<ReviewController> _logger;
 
-        public ReviewController(IReviewService service)
+        public ReviewController(IReviewService service, ILogger<ReviewController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
         // =========================
@@ -56,6 +59,8 @@ namespace BookBlossom.Web.Controllers
         // 2. ĐĂNG BÀI REVIEW MỚI - Chỉ Customer đăng nhập mới có quyền
         // POST /api/Review
         [HttpPost]
+        [RequestFormLimits(MultipartBodyLengthLimit = 104857600)] // 100MB
+        [RequestSizeLimit(104857600)] // 100MB
         [Authorize(Policy = "CustomerOnly")]
         public async Task<IActionResult> CreateReview([FromForm] CreateReviewDTO dto, [FromForm] List<IFormFile>? mediaFiles)
         {
@@ -75,6 +80,14 @@ namespace BookBlossom.Web.Controllers
                 var result = await _service.CreateReviewAsync(customerId, dto, mediaFiles);
                 return StatusCode(201, result);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
@@ -85,6 +98,7 @@ namespace BookBlossom.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Lỗi không xác định khi tạo review cho CustomerID={CustomerID}", customerId);
                 return BadRequest(new { message = "Đã xảy ra lỗi hệ thống khi lưu review.", detail = ex.InnerException?.Message ?? ex.Message });
             }
         }

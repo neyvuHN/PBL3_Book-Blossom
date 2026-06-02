@@ -277,6 +277,7 @@ namespace BookBlossom.Infrastructure.Services
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook)
+                .Include(o => o.Reviews)
                 .Where(o => o.CustomerID == customerId);
 
             // Nếu truyền vào status thì lọc theo trạng thái (Tab UI: Chờ xác nhận, Đang giao, Đã giao...)
@@ -316,6 +317,7 @@ namespace BookBlossom.Infrastructure.Services
                     PaymentMethod = o.PaymentMethod,
                     PaymentStatus = o.PaymentStatus,
                     TotalAmount = o.TotalAmount,
+                    IsRated = o.Reviews != null && o.Reviews.Any(),
                     ShipReceiverName = o.ShipReceiverName,
                     ShipPhoneNumber = o.ShipPhoneNumber,
                     Note = o.Note,
@@ -327,6 +329,9 @@ namespace BookBlossom.Infrastructure.Services
                     {
                         BookID = od.BookID,
                         BlindBookID = od.BlindBookID,
+                        IsRated = o.Reviews != null && o.Reviews.Any(r => 
+                            (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
+                            (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                         Title = od.BlindBookID.HasValue && od.BlindBook != null
                             ? $"[Sách Mù] {od.BlindBook.Category}"
                             : od.RealBook?.Title ?? "Sách không xác định",
@@ -349,6 +354,7 @@ namespace BookBlossom.Infrastructure.Services
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook)
+                .Include(o => o.Reviews)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
 
             if (order == null) return null;
@@ -378,6 +384,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShippingFee = order.ShippingFee ?? 0,
                 DiscountAmount = order.DiscountAmount ?? 0,
                 TotalAmount = order.TotalAmount,
+                IsRated = order.Reviews != null && order.Reviews.Any(),
                 ShipReceiverName = order.ShipReceiverName,
                 ShipPhoneNumber = order.ShipPhoneNumber,
                 ShipDetailAddress = order.ShipDetailAddress,
@@ -390,11 +397,14 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     BookID = od.BookID,
                     BlindBookID = od.BlindBookID,
+                    IsRated = order.Reviews != null && order.Reviews.Any(r => 
+                        (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
+                        (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
                         ? $"[Sách Mù] {od.BlindBook.Category}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     RealBookTitle = order.OrderStatus == OrderStatus.Completed
-                        ? (od.RealBook?.Title ?? "Sách không xác định")
+                        ? (od.RealBook?.Title ?? string.Empty)
                         : string.Empty,
                     UnitPrice = od.UnitPrice,
                     Quantity = od.Quantity,

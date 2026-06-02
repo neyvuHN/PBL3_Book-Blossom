@@ -22,6 +22,7 @@ namespace BookBlossom.Core.DTOs
         public ResolutionType? ResolutionType { get; set; }
         public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
+        public bool IsRated { get; set; }
     }
 
     public class OrderDetailDTO
@@ -50,12 +51,14 @@ namespace BookBlossom.Core.DTOs
         public ResolutionType? ResolutionType { get; set; }
         public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
+        public bool IsRated { get; set; }
     }
 
     public class OrderItemDTO
     {
         public long BookID { get; set; }
         public long? BlindBookID { get; set; }
+        public bool IsRated { get; set; }
         public string Title { get; set; } = string.Empty;
         public string RealBookTitle { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }

@@ -124,21 +124,27 @@ class OrdersController {
         }
     }
 
-    // [NEW] Handle clicking Rate
-    handleRateOrder(orderId) {
+    handleRateOrder(orderId, bookId, isBlind) {
         const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
-        if (order && !order.isRated) {
-            this.view.showRateOrderModal(order, async (id, rating, reviewText, mediaFiles) => {
+        if (order) {
+            // Find the specific item
+            const item = order.items.find(i => i.id.toString() === bookId.toString());
+            if (!item || item.isRated) return;
+
+            // We need to pass a mock order object to the modal that only has this specific item
+            // so the modal UI shows the correct book info
+            const orderForModal = { ...order, items: [item] };
+
+            this.view.showRateOrderModal(orderForModal, async (id, rating, reviewText, mediaFiles) => {
                 const token = this.model.getToken();
                 if (!token) {
                     alert('Please log in to submit a review.');
                     return;
                 }
 
-                const item = order.items[0]; // Assuming rating the first item, or we rate the order and item
                 const formData = new FormData();
                 formData.append('OrderID', order.id);
-                if (item) {
+                if (item && item.id != null) {
                     if (item.isBlind) {
                         formData.append('BlindBookID', item.id);
                     } else {
@@ -165,13 +171,29 @@ class OrdersController {
                     });
 
                     if (!response.ok) {
-                        const errData = await response.json().catch(() => ({}));
-                        throw new Error(errData.detail || errData.message || 'Failed to submit review');
+                        let errMsg = 'Failed to submit review';
+                        try {
+                            const errData = await response.json();
+                            errMsg = errData.message || errData.detail || errData.error;
+                            if (!errMsg && errData.errors) {
+                                errMsg = Object.values(errData.errors).flat().join(', ');
+                            }
+                            if (!errMsg) errMsg = 'Failed to submit review';
+                        } catch (e) {
+                            try {
+                                const text = await response.text();
+                                console.error("Review API failed with text:", text);
+                                if (text && text.length < 200) errMsg = text;
+                                else errMsg = `Server error ${response.status}: check console for details.`;
+                            } catch (_) {}
+                        }
+                        throw new Error(errMsg);
                     }
 
                     const result = await response.json();
 
-                    order.isRated = true;
+                    item.isRated = true;
+                    // The modal is already hidden inside orders-view.js before onSubmit is called
                     order.userRating = rating;
                     order.userReviewText = reviewText;
                     
@@ -203,18 +225,11 @@ class OrdersController {
     }
 
     // [NEW] Handle clicking View Review
-    handleViewReview(orderId, title, isBlind) {
-        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
-        
-        // Set a flag in sessionStorage so the book detail page knows to show user's review first
-        sessionStorage.setItem('show-my-review-first', 'true');
-        sessionStorage.setItem('my-review-text', order?.userReviewText || 'Great book, very satisfied with my purchase!');
-        sessionStorage.setItem('my-review-rating', order?.userRating || '5');
-        
+    handleViewReview(orderId, bookId, title, isBlind) {
         if (isBlind) {
             window.location.href = `/BlindDate#blind-details-${encodeURIComponent(title)}?tab=reviews`;
         } else {
-            window.location.href = `/Explore#book-details-${encodeURIComponent(title)}?tab=reviews`;
+            window.location.href = `/Explore#book-details-${bookId}?tab=reviews`;
         }
     }
 

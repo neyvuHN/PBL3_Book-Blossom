@@ -1,274 +1,510 @@
 <script>
     $(document).ready(function () {
-        function showToast(message, onUndo, undoText = 'Undo') {
+        const THREAD_API = '/api/Thread';
+        const PAGE_SIZE = 10;
+        const PHONE_PATTERN = /(?:\+84|84|0)[35789](?:[\s.-]*\d){8}/;
+
+        let currentPage = 1;
+        let isLoading = false;
+        let activePostIdToReport = null;
+        let activePostIdToShare = null;
+        const loadedPosts = new Map();
+        let selectedFiles = [];
+
+        function isAuthenticated() {
+            return !!localStorage.getItem('accessToken');
+        }
+
+        function currentUserId() {
+            const raw = localStorage.getItem('userId');
+            const parsed = parseInt(raw, 10);
+            return Number.isNaN(parsed) ? null : parsed;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showToast(message, type = 'success') {
+            if (window.apiClient && typeof window.apiClient.showToast === 'function') {
+                window.apiClient.showToast(message, type);
+                return;
+            }
+
+            const color = type === 'error' ? '#ff4444' : '#28a745';
+            const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
             const $toast = $(`
-                <div class="toast-notification">
-                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                    <span>${message}</span>
-                    <button class="btn-undo-share" style="${onUndo ? '' : 'display: none;'} background: none; border: none; color: #C2185B; font-weight: bold; cursor: pointer; text-decoration: underline; margin-left: 10px; font-size: 0.85rem; padding: 0;">${undoText}</button>
-                    <div class="toast-progress"></div>
+                <div class="toast-notification" style="border-left-color:${color};">
+                    <i class="fas ${icon}" style="color:${color};"></i>
+                    <span>${escapeHtml(message)}</span>
+                    <div class="toast-progress" style="background-color:${color};"></div>
                 </div>
             `);
 
             $('body').append($toast);
             $toast.fadeIn(300);
+            setTimeout(function () {
+                $toast.fadeOut(300, function () { $(this).remove(); });
+            }, 4000);
+        }
 
-            const timeoutId = setTimeout(function () {
-                $toast.fadeOut(300, function () {
-                    $(this).remove();
-                });
-            }, 5000);
+        function showLoginModal() {
+            $('#community-login-modal').css('display', 'flex').hide().fadeIn(180);
+        }
 
-            $toast.find('.btn-undo-share').on('click', function () {
-                clearTimeout(timeoutId);
-                $toast.fadeOut(200, function () {
-                    $(this).remove();
+        function closeLoginModal() {
+            $('#community-login-modal').fadeOut(180);
+        }
 
-                    if (typeof onUndo === 'function') {
-                        onUndo();
-                    }
-                });
+        function normalizeErrorMessage(error, fallback) {
+            const message = error?.message || fallback || 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+
+            if (message === 'Unauthorized') {
+                return 'Bạn cần đăng nhập để sử dụng tính năng này.';
+            }
+
+            if (message === 'Forbidden' || message.toLowerCase().includes('reputation') || message.toLowerCase().includes('uy tín') || message.toLowerCase().includes('uy tin')) {
+                return 'Điểm uy tín của bạn không đủ để đăng/comment.';
+            }
+
+            return message;
+        }
+
+        function handleApiError(error, fallback) {
+            const message = normalizeErrorMessage(error, fallback);
+            if (error?.message === 'Unauthorized') {
+                showLoginModal();
+            }
+            showToast(message, 'error');
+        }
+
+        function requireLogin() {
+            if (isAuthenticated()) {
+                return true;
+            }
+            showLoginModal();
+            return false;
+        }
+
+        function hasPhoneNumber(...values) {
+            return values.some(value => PHONE_PATTERN.test(value || ''));
+        }
+
+        function wordCount(value) {
+            return (value || '').trim().split(/\s+/).filter(Boolean).length;
+        }
+
+        function formatDate(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             });
         }
 
-        function showErrorToast(message) {
-            const $toast = $(`
-                <div class="toast-notification" style="border-left-color: #ff4444;">
-                    <i class="fas fa-exclamation-circle" style="color: #ff4444;"></i>
-                    <span>${message}</span>
-                    <div class="toast-progress" style="background-color: #ff4444;"></div>
-                </div>
-            `);
-
-            $('body').append($toast);
-            $toast.fadeIn(300);
-
-            setTimeout(function () {
-                $toast.fadeOut(300, function () {
-                    $(this).remove();
-                });
-            }, 3000);
+        function imageUrl(path) {
+            if (!path) return '/images/Avatar/avatar1.jpg';
+            if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
+                return path;
+            }
+            return `/${path}`;
         }
 
-        // Load Thread Feed dynamically from C# API
-        async function loadThreadFeed() {
+        function updateGuestState() {
+            const guest = !isAuthenticated();
+            $('#community-guest-banner').toggle(guest);
+            $('#create-thread-post-card').toggle(!guest);
+        }
+
+        function renderImages(images) {
+            if (!Array.isArray(images) || images.length === 0) return '';
+            return `
+                <div class="thread-image-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin-top:12px;">
+                    ${images.map(img => `
+                        <img src="${escapeHtml(imageUrl(img.imagePath))}" alt="Post image" style="width:100%; max-height:320px; object-fit:cover; border-radius:8px;" loading="lazy">
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderReportBadge(post) {
+            const count = post.reportCount || 0;
+            if (count < 5) return '';
+            return `<span class="report-warning-badge" style="display:inline-flex; align-items:center; gap:5px; color:#b42318; background:#fff1f0; border:1px solid #ffccc7; border-radius:999px; padding:4px 9px; font-size:0.78rem; margin-top:8px;"><i class="fas fa-triangle-exclamation"></i> ${count} báo cáo</span>`;
+        }
+
+        function renderPost(post) {
+            loadedPosts.set(String(post.postID), post);
+            const userId = currentUserId();
+            const isOwner = userId !== null && userId === post.customerID;
+            const isLiked = post.isLikedByCurrentUser === true;
+            const likeCount = post.likeCount || 0;
+            const shareCount = post.shareCount || 0;
+
+            return `
+                <div class="thread-post" data-post-id="${post.postID}">
+                    <div class="hidden-post-overlay" style="display:none;">
+                        <span>Post hidden.</span>
+                        <button class="btn-undo-hide">Undo</button>
+                        <div class="hide-progress"></div>
+                    </div>
+
+                    <div class="post-header">
+                        <img src="${escapeHtml(imageUrl(post.customerAvatar))}" alt="Avatar" class="post-avatar">
+                        <div class="post-user-info">
+                            <div class="user-name-badge">
+                                <span class="user-name">${escapeHtml(post.customerName || 'Community Member')}</span>
+                            </div>
+                            <span class="post-time">${escapeHtml(formatDate(post.createdAt))}</span>
+                        </div>
+
+                        <div class="post-menu-btn" style="position:relative; cursor:pointer;">
+                            <i class="fas fa-ellipsis-h"></i>
+                            <div class="post-dropdown-menu" style="display:none;">
+                                ${isOwner ? `<a href="#" class="dropdown-item btn-edit-thread-post" data-id="${post.postID}"><i class="far fa-edit"></i> Edit Post</a>` : ''}
+                                ${isOwner ? `<a href="#" class="dropdown-item btn-delete-thread-post" data-id="${post.postID}"><i class="far fa-trash-alt"></i> Delete Post</a>` : ''}
+                                <a href="#" class="dropdown-item btn-report-post" data-id="${post.postID}"><i class="far fa-flag"></i> Report Post</a>
+                                <a href="#" class="dropdown-item btn-hide-post"><i class="far fa-eye-slash"></i> Hide Post</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="post-content">
+                        <h3 style="font-weight:700; font-size:1.15rem; color:#222; margin-bottom:8px;">${escapeHtml(post.title)}</h3>
+                        <p class="post-text" style="line-height:1.5; color:#444;">${escapeHtml(post.content)}</p>
+                        ${post.hashtags ? `<p style="color:#C2185B; font-weight:600; margin-top:8px; font-size:0.9rem;">${escapeHtml(post.hashtags)}</p>` : ''}
+                        ${renderImages(post.images)}
+                        ${renderReportBadge(post)}
+                    </div>
+
+                    <div class="post-footer">
+                        <button class="post-action btn-like ${isLiked ? 'liked' : ''}" data-post-id="${post.postID}">
+                            <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="${isLiked ? 'color:#C2185B;' : ''}"></i>
+                            <span class="like-count">${likeCount}</span>
+                        </button>
+                        <button class="post-action btn-comment" data-post-id="${post.postID}">
+                            <i class="far fa-comment"></i> <span class="comment-count">${post.commentsCount || 0}</span>
+                        </button>
+                        <button class="post-action btn-share" data-post-id="${post.postID}"><i class="far fa-share-square"></i> Share</button>
+                        ${shareCount > 0 ? `<span class="post-action" style="cursor:default;"><i class="fas fa-share-nodes"></i> <span class="share-count">${shareCount}</span></span>` : ''}
+                    </div>
+
+                    <div class="comment-section" style="display:none;">
+                        <div class="comment-list" id="comments-${post.postID}"></div>
+                        <div class="comment-input-area" style="display:flex; gap:10px; align-items:center; margin-top:12px; border-top:1px solid #eee; padding-top:10px;">
+                            <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
+                            <input type="text" placeholder="Write a comment..." class="comment-input" data-post-id="${post.postID}" style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px; outline:none; font-size:0.9rem;">
+                            <button class="btn-send-comment-api" data-post-id="${post.postID}" style="background:#C2185B; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="far fa-paper-plane" style="font-size:0.85rem;"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderComment(comment) {
+            const isOwner = currentUserId() !== null && currentUserId() === comment.customerID;
+            return `
+                <div class="comment-item" data-comment-id="${comment.commentID}" style="display:flex; gap:10px; margin-bottom:12px; align-items:flex-start;">
+                    <img src="${escapeHtml(imageUrl(comment.customerAvatar))}" alt="Avatar" class="comment-avatar">
+                    <div class="comment-content" style="background:#f3f4f6; padding:8px 12px; border-radius:12px; flex:1;">
+                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+                            <span class="comment-user" style="font-weight:600; font-size:0.85rem; color:#111; display:block; margin-bottom:2px;">${escapeHtml(comment.customerName || 'Community Member')}</span>
+                            ${isOwner ? `<button class="btn-delete-thread-comment" data-comment-id="${comment.commentID}" style="background:none; border:none; color:#ff4444; cursor:pointer; font-size:0.78rem; padding:0;">Delete</button>` : ''}
+                        </div>
+                        <p style="margin:0; font-size:0.9rem; color:#333;">${escapeHtml(comment.content)}</p>
+                        <span class="comment-time" style="font-size:0.75rem; color:#888; margin-top:2px; display:block;">${escapeHtml(formatDate(comment.createdAt))}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadThreadFeed(reset = false) {
+            if (isLoading) return;
+            isLoading = true;
+
+            if (reset) {
+                currentPage = 1;
+                loadedPosts.clear();
+                $('#thread-feed-container').empty();
+            }
+
+            $('#btn-load-more').prop('disabled', true).text('Loading...');
+
             try {
-                const posts = await window.apiClient.apiGet('/api/Thread/feed?page=1&pageSize=20');
-                if (Array.isArray(posts)) {
-                    // Remove static posts except the create-post-card
-                    $('.thread-post').remove();
-                    
-                    if (posts.length === 0) {
-                        $('.thread-main').append(`
-                            <div class="thread-post" style="text-align: center; padding: 40px; color: #888;">
-                                <i class="fas fa-comments" style="font-size: 3rem; color: #ccc; margin-bottom: 12px;"></i>
-                                <p style="margin: 0; font-size: 1.1rem;">No community posts available yet.</p>
-                                <p style="margin: 4px 0 0 0; font-size: 0.9rem;">Be the first to create a post above!</p>
+                const posts = await window.apiClient.apiGet(`${THREAD_API}/feed?page=${currentPage}&pageSize=${PAGE_SIZE}`);
+                $('#thread-static-demo').hide();
+
+                if (!Array.isArray(posts) || posts.length === 0) {
+                    if (currentPage === 1) {
+                        $('#thread-feed-container').html(`
+                            <div class="thread-post" style="text-align:center; padding:40px; color:#888;">
+                                <i class="fas fa-comments" style="font-size:3rem; color:#ccc; margin-bottom:12px;"></i>
+                                <p style="margin:0; font-size:1.1rem;">Chưa có bài viết cộng đồng.</p>
+                                <p style="margin:4px 0 0 0; font-size:0.9rem;">Hãy là người đầu tiên tạo bài viết.</p>
                             </div>
                         `);
-                        return;
                     }
-
-                    posts.forEach(post => {
-                        let imagesHtml = '';
-                        if (post.images && post.images.length > 0) {
-                            imagesHtml = post.images.map(img => `
-                                <img src="${img.imagePath}" alt="Post Image" style="max-width:100%; border-radius:8px; margin-top:10px; max-height:300px; object-fit:cover;" />
-                            `).join('');
-                        }
-
-                        const currentUserId = localStorage.getItem('userId');
-                        const isOwner = currentUserId && parseInt(currentUserId) === post.customerID;
-                        
-                        const postHtml = `
-                            <div class="thread-post" data-post-id="${post.postID}">
-                                <div class="hidden-post-overlay" style="display: none;">
-                                    <span>Post hidden.</span>
-                                    <button class="btn-undo-hide">Undo</button>
-                                    <div class="hide-progress"></div>
-                                </div>
-
-                                <div class="post-header">
-                                    <img src="${post.customerAvatar || '/images/Avatar/avatar1.jpg'}" alt="Avatar" class="post-avatar">
-                                    <div class="post-user-info">
-                                        <div class="user-name-badge">
-                                            <span class="user-name">${post.customerName || 'Community Member'}</span>
-                                        </div>
-                                        <span class="post-time">${new Date(post.createdAt).toLocaleDateString()}</span>
-                                    </div>
-
-                                    <div class="post-menu-btn" style="position:relative; cursor:pointer;">
-                                        <i class="fas fa-ellipsis-h"></i>
-                                        <div class="post-dropdown-menu" style="display: none;">
-                                            <a href="#" class="dropdown-item btn-report-post" data-id="${post.postID}"><i class="far fa-flag"></i> Report Post</a>
-                                            <a href="#" class="dropdown-item btn-hide-post"><i class="far fa-eye-slash"></i> Hide Post</a>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="post-content">
-                                    <h3 style="font-weight:700; font-size:1.15rem; color:#222; margin-bottom:8px;">${post.title}</h3>
-                                    <p class="post-text" style="line-height:1.5; color:#444;">${post.content}</p>
-                                    ${post.hashtags ? `<p style="color:#C2185B; font-weight:600; margin-top:8px; font-size:0.9rem;">${post.hashtags}</p>` : ''}
-                                    ${imagesHtml}
-                                </div>
-
-                                <div class="post-footer">
-                                    <button class="post-action btn-like"><i class="far fa-heart"></i> <span class="like-count">0</span></button>
-                                    <button class="post-action btn-comment"><i class="far fa-comment"></i> <span class="comment-count">${post.commentsCount || 0}</span></button>
-                                    <button class="post-action btn-share"><i class="far fa-share-square"></i> Share</button>
-
-                                    ${isOwner ? `
-                                    <div class="ms-auto" style="display: flex; gap: 10px; margin-left: auto;">
-                                        <button class="btn-delete-thread-post" data-id="${post.postID}" style="background: none; border: none; color: #ff4444; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size:0.9rem;">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </div>
-                                    ` : ''}
-                                </div>
-
-                                <div class="comment-section" style="display: none;">
-                                    <div class="comment-list" id="comments-${post.postID}"></div>
-                                    <div class="comment-input-area" style="display:flex; gap:10px; align-items:center; margin-top:12px; border-t: 1px solid #eee; padding-top:10px;">
-                                        <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
-                                        <input type="text" placeholder="Write a comment..." class="comment-input" data-post-id="${post.postID}" style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px; outline:none; font-size:0.9rem;">
-                                        <button class="btn-send-comment-api" data-post-id="${post.postID}" style="background:#C2185B; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="far fa-paper-plane" style="font-size:0.85rem;"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        $('.thread-main').append(postHtml);
-                    });
+                    $('#load-more-container').hide();
+                    return;
                 }
+
+                $('#thread-feed-container').append(posts.map(renderPost).join(''));
+                currentPage += 1;
+                $('#load-more-container').toggle(posts.length === PAGE_SIZE && isAuthenticated());
             } catch (error) {
-                console.error('Error loading threads:', error);
+                $('#thread-static-demo').show();
+                handleApiError(error, 'Khong tai duoc feed cong dong.');
+            } finally {
+                isLoading = false;
+                $('#btn-load-more').prop('disabled', false).html('<i class="fas fa-chevron-down" style="margin-right:6px;"></i>Load More');
             }
         }
 
-        // Toggle left sidebar
+        async function loadComments(postId, $post) {
+            const $list = $post.find('.comment-list');
+            $list.html('<p style="color:#888; font-size:0.9rem; padding:10px 0; text-align:center;">Đang tải bình luận...</p>');
+
+            try {
+                const postDetails = await window.apiClient.apiGet(`${THREAD_API}/${postId}`);
+                loadedPosts.set(String(postId), postDetails);
+                $list.empty();
+
+                const comments = Array.isArray(postDetails.comments) ? postDetails.comments : [];
+                if (comments.length === 0) {
+                    $list.append('<p style="color:#888; font-size:0.9rem; padding:10px 0; text-align:center;">Chưa có bình luận nào.</p>');
+                } else {
+                    $list.append(comments.map(renderComment).join(''));
+                }
+
+                $post.find('.comment-count').text(comments.length);
+            } catch (error) {
+                handleApiError(error, 'Khong tai duoc binh luan.');
+            }
+        }
+
+        function resetCreateForm() {
+            $('#thread-title-input').val('');
+            $('#thread-content-input').val('');
+            $('#thread-hashtag-input').val('');
+            $('#thread-image-input').val('');
+            selectedFiles = [];
+            renderImagePreviews();
+        }
+
+        function openEditModal(postId) {
+            const post = loadedPosts.get(String(postId));
+            if (!post) return;
+
+            $('#edit-post-id').val(post.postID);
+            $('#edit-post-title').val(post.title || '');
+            $('#edit-post-content').val(post.content || '');
+            $('#edit-post-hashtags').val(post.hashtags || '');
+            $('#edit-post-modal').css('display', 'flex').hide().fadeIn(180);
+        }
+
+        function resetReportModal() {
+            $('input[name="report-reason"]').prop('checked', false);
+            $('#other-reason-text').val('');
+            $('#report-desc-input').val('');
+            $('#report-word-count').text('0/500 từ').css('color', '#999');
+            $('.other-reason-container').hide();
+            $('#report-desc-container').show();
+            activePostIdToReport = null;
+        }
+
         $('#btn-toggle-sidebar').on('click', function () {
             $('#thread-left-sidebar').toggleClass('collapsed');
             $('.community-thread-container').toggleClass('sidebar-collapsed');
         });
 
-        // Spoiler reveal
+        $('#btn-load-more').on('click', function () {
+            loadThreadFeed(false);
+        });
+
+        $('#btn-cancel-community-login').on('click', closeLoginModal);
+
         $(document).on('click', '.btn-reveal', function () {
             const $post = $(this).closest('.thread-post');
             $post.find('.blurred-content').removeClass('blurred-content');
             $post.find('.spoiler-overlay').fadeOut(300);
         });
 
-        // Like button
-        $(document).on('click', '.btn-like', function () {
-            const $icon = $(this).find('i');
-            const $count = $(this).find('.like-count');
-            let count = parseInt($count.text()) || 0;
+        function renderImagePreviews() {
+            const $preview = $('#image-preview-container').empty();
+            selectedFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                $preview.append(`
+                    <div class="preview-image-wrapper" style="position:relative; width:52px; height:52px;">
+                        <img src="${url}" alt="Preview" style="width:52px; height:52px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+                        <button class="btn-delete-preview-image" data-index="${index}" type="button" style="position:absolute; top:-5px; right:-5px; width:18px; height:18px; border-radius:50%; background:#e91e63; color:white; border:1px solid white; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; transition:all 0.2s; padding:0; line-height:1; outline:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `);
+            });
+        }
 
-            if ($icon.hasClass('far')) {
-                $icon.removeClass('far').addClass('fas').css('color', '#C2185B');
-                $count.text(count + 1);
-            } else {
-                $icon.removeClass('fas').addClass('far').css('color', '');
-                $count.text(count - 1);
+        $('#thread-image-input').on('change', function () {
+            const files = Array.from(this.files || []);
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) continue;
+                if (selectedFiles.length >= 4) {
+                    showToast('Bạn chỉ có thể chọn tối đa 4 hình ảnh cho mỗi bài viết.', 'error');
+                    break;
+                }
+                selectedFiles.push(file);
+            }
+            $(this).val('');
+            renderImagePreviews();
+        });
+
+        $(document).on('click', '.btn-delete-preview-image', function () {
+            const index = $(this).data('index');
+            if (index !== undefined && index !== null) {
+                selectedFiles.splice(index, 1);
+                renderImagePreviews();
             }
         });
 
-        // Toggle comments and load dynamically from backend
+        $(document).on('click', '.btn-like', async function () {
+            if (!requireLogin()) return;
+
+            const postId = $(this).data('post-id');
+            const $button = $(this);
+
+            try {
+                const result = await window.apiClient.apiPost(`${THREAD_API}/${postId}/like`, {});
+                const isLiked = result?.isLiked === true;
+                const likeCount = result?.likeCount ?? 0;
+
+                $button.toggleClass('liked', isLiked);
+                $button.find('i')
+                    .toggleClass('far', !isLiked)
+                    .toggleClass('fas', isLiked)
+                    .css('color', isLiked ? '#C2185B' : '');
+                $button.find('.like-count').text(likeCount);
+            } catch (error) {
+                handleApiError(error, 'Không cập nhật được lượt thích.');
+            }
+        });
+
         $(document).on('click', '.btn-comment', async function () {
             const $post = $(this).closest('.thread-post');
             const postId = $post.attr('data-post-id');
             const $section = $post.find('.comment-section');
-            
+
             if ($section.is(':hidden')) {
-                try {
-                    const postDetails = await window.apiClient.apiGet(`/api/Thread/${postId}`);
-                    const $list = $post.find('.comment-list');
-                    $list.empty();
-                    
-                    if (postDetails && postDetails.comments && postDetails.comments.length > 0) {
-                        postDetails.comments.forEach(c => {
-                            const cHtml = `
-                                <div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px; align-items:flex-start;">
-                                    <img src="${c.customerAvatar || '/images/Avatar/avatar1.jpg'}" alt="Avatar" class="comment-avatar">
-                                    <div class="comment-content" style="background:#f3f4f6; padding:8px 12px; border-radius:12px; flex:1;">
-                                        <span class="comment-user" style="font-weight:600; font-size:0.85rem; color:#111; display:block; margin-bottom:2px;">${c.customerName}</span>
-                                        <p style="margin:0; font-size:0.9rem; color:#333;">${c.content}</p>
-                                        <span class="comment-time" style="font-size:0.75rem; color:#888; margin-top:2px; display:block;">${new Date(c.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                </div>
-                            `;
-                            $list.append(cHtml);
-                        });
-                    } else {
-                        $list.append('<p style="color:#888; font-size:0.9rem; padding:10px 0; text-align:center;">No comments yet. Be the first to share your thoughts!</p>');
-                    }
-                } catch (error) {
-                    console.error('Error loading comments:', error);
-                }
+                await loadComments(postId, $post);
             }
-            $section.slideToggle(300);
+            $section.slideToggle(250);
         });
 
-        // Submit comment to backend API
         $(document).on('click', '.btn-send-comment-api', async function () {
+            if (!requireLogin()) return;
+
             const postId = $(this).attr('data-post-id');
+            const $post = $(this).closest('.thread-post');
             const $input = $(`.comment-input[data-post-id="${postId}"]`);
             const text = $input.val().trim();
 
-            if (text === '') return;
+            if (!text) {
+                showToast('Vui lòng nhập nội dung bình luận.', 'error');
+                return;
+            }
+
+            if (hasPhoneNumber(text)) {
+                showToast('Nội dung không được chứa số điện thoại cá nhân.', 'error');
+                return;
+            }
 
             try {
-                await window.apiClient.apiPost(`/api/Thread/${postId}/comment`, {
-                    content: text
-                });
-                
+                await window.apiClient.apiPost(`${THREAD_API}/${postId}/comment`, { content: text });
                 $input.val('');
-                showToast('Comment added successfully!');
-                
-                // Reload comments
-                const postDetails = await window.apiClient.apiGet(`/api/Thread/${postId}`);
-                const $list = $(this).closest('.comment-section').find('.comment-list');
-                $list.empty();
-                
-                postDetails.comments.forEach(c => {
-                    const cHtml = `
-                        <div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px; align-items:flex-start;">
-                            <img src="${c.customerAvatar || '/images/Avatar/avatar1.jpg'}" alt="Avatar" class="comment-avatar">
-                            <div class="comment-content" style="background:#f3f4f6; padding:8px 12px; border-radius:12px; flex:1;">
-                                <span class="comment-user" style="font-weight:600; font-size:0.85rem; color:#111; display:block; margin-bottom:2px;">${c.customerName}</span>
-                                <p style="margin:0; font-size:0.9rem; color:#333;">${c.content}</p>
-                                <span class="comment-time" style="font-size:0.75rem; color:#888; margin-top:2px; display:block;">${new Date(c.createdAt).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-                    `;
-                    $list.append(cHtml);
-                });
-                
-                // Update comment count
-                const $post = $(this).closest('.thread-post');
-                $post.find('.comment-count').text(postDetails.comments.length);
-            } catch (err) {
-                console.error(err);
-                showErrorToast(err.message || 'Failed to submit comment. Points may be below 80.');
+                showToast('Đã thêm bình luận.');
+                await loadComments(postId, $post);
+            } catch (error) {
+                handleApiError(error, 'Không gửi được bình luận.');
             }
         });
 
-        // Share modal
+        $(document).on('keydown', '.comment-input', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                $(this).siblings('.btn-send-comment-api').trigger('click');
+            }
+        });
+
+        $(document).on('click', '.btn-delete-thread-comment', async function () {
+            if (!requireLogin()) return;
+
+            const commentId = $(this).data('comment-id');
+            const $post = $(this).closest('.thread-post');
+            const postId = $post.attr('data-post-id');
+
+            if (!confirm('Bạn có chắc muốn xóa bình luận này?')) return;
+
+            try {
+                await window.apiClient.apiDelete(`${THREAD_API}/comment/${commentId}`);
+                showToast('Đã xóa bình luận.');
+                await loadComments(postId, $post);
+            } catch (error) {
+                handleApiError(error, 'Không xóa được bình luận.');
+            }
+        });
+
         $(document).on('click', '.btn-share', function () {
-            $('#share-modal').fadeIn(200);
+            activePostIdToShare = $(this).data('post-id');
+            $('#share-modal').css('display', 'flex').hide().fadeIn(180);
         });
 
         $('#btn-cancel-share').on('click', function () {
-            $('#share-modal').fadeOut(200);
+            $('#share-modal').fadeOut(180);
+            activePostIdToShare = null;
         });
 
-        $('#btn-confirm-share').on('click', function () {
-            $('#share-modal').fadeOut(200);
-            showToast('Post shared successfully to your profile!');
+        $('#btn-copy-link, #btn-confirm-share').on('click', async function () {
+            if (!activePostIdToShare) return;
+            const link = `${window.location.origin}/Community?postId=${activePostIdToShare}`;
+
+            try {
+                await navigator.clipboard.writeText(link);
+                showToast('Đã copy link bài viết.');
+            } catch {
+                window.prompt('Copy link bai viet:', link);
+            }
+
+            if (requireLogin()) {
+                try {
+                    const result = await window.apiClient.apiPost(`${THREAD_API}/${activePostIdToShare}/share`, {
+                        shareUrl: link
+                    });
+                    const $post = $(`.thread-post[data-post-id="${activePostIdToShare}"]`);
+                    const shareCount = result?.shareCount ?? 0;
+                    const $shareCount = $post.find('.share-count');
+                    if ($shareCount.length) {
+                        $shareCount.text(shareCount);
+                    } else if (shareCount > 0) {
+                        $post.find('.post-footer').append(`<span class="post-action" style="cursor:default;"><i class="fas fa-share-nodes"></i> <span class="share-count">${shareCount}</span></span>`);
+                    }
+                } catch (error) {
+                    handleApiError(error, 'Đã copy link nhưng không ghi nhận được lượt chia sẻ.');
+                }
+            }
+
+            $('#share-modal').fadeOut(180);
+            activePostIdToShare = null;
         });
 
-        // Post dropdown menu
         $(document).on('click', '.post-menu-btn', function (e) {
             e.stopPropagation();
             $('.post-dropdown-menu').not($(this).find('.post-dropdown-menu')).hide();
@@ -279,17 +515,13 @@
             $('.post-dropdown-menu').hide();
         });
 
-        // Hide post locally
         $(document).on('click', '.btn-hide-post', function (e) {
             e.preventDefault();
-
             const $post = $(this).closest('.thread-post');
             $post.find('.hidden-post-overlay').fadeIn(200);
 
             const hideTimeout = setTimeout(function () {
-                $post.slideUp(300, function () {
-                    $(this).remove();
-                });
+                $post.slideUp(300, function () { $(this).remove(); });
             }, 5000);
 
             $post.data('hideTimeout', hideTimeout);
@@ -298,121 +530,172 @@
         $(document).on('click', '.btn-undo-hide', function () {
             const $post = $(this).closest('.thread-post');
             const hideTimeout = $post.data('hideTimeout');
-
-            if (hideTimeout) {
-                clearTimeout(hideTimeout);
-            }
-
+            if (hideTimeout) clearTimeout(hideTimeout);
             $post.find('.hidden-post-overlay').fadeOut(200);
         });
 
-        // Report post modal with real API
-        let activePostIdToReport = null;
         $(document).on('click', '.btn-report-post', function (e) {
             e.preventDefault();
+            if (!requireLogin()) return;
+
             activePostIdToReport = $(this).attr('data-id') || $(this).closest('.thread-post').attr('data-post-id');
-            $('#report-modal').fadeIn(200);
+            $('#report-modal').css('display', 'flex').hide().fadeIn(180);
         });
 
         $('#btn-cancel-report').on('click', function () {
-            $('#report-modal').fadeOut(200);
-            activePostIdToReport = null;
+            $('#report-modal').fadeOut(180);
+            resetReportModal();
         });
 
         $('input[name="report-reason"]').on('change', function () {
-            if ($(this).val() === 'other') {
-                $('.other-reason-container').slideDown(200);
-            } else {
-                $('.other-reason-container').slideUp(200);
-            }
+            const isOther = $(this).val() === 'other';
+            $('.other-reason-container').toggle(isOther);
+            $('#report-desc-container').toggle(!isOther);
+        });
+
+        $('#other-reason-text').on('input', function () {
+            const count = wordCount($(this).val());
+            $('#report-word-count').text(`${count}/500 tu`).css('color', count > 500 ? '#ff4444' : '#999');
         });
 
         $('#btn-submit-report').on('click', async function () {
-            const reason = $('input[name="report-reason"]:checked').val();
+            if (!requireLogin()) return;
 
+            const reason = $('input[name="report-reason"]:checked').val();
             if (!reason) {
-                alert('Please select a reason for reporting.');
+                showToast('Vui lòng chọn loại báo cáo.', 'error');
                 return;
             }
 
-            let reasonEnum = 0; // Spam
-            if (reason === 'inappropriate') {
-                reasonEnum = 1; // Content18Plus
-            } else if (reason === 'harassment' || reason === 'other') {
-                reasonEnum = 2; // Fraud
+            const reasonMap = {
+                spam: 0,
+                inappropriate: 1,
+                fraud: 2,
+                other: 2
+            };
+
+            const otherDescription = $('#other-reason-text').val().trim();
+            const shortDescription = $('#report-desc-input').val().trim();
+            const description = reason === 'other'
+                ? otherDescription
+                : (shortDescription || `Báo cáo loại: ${reason}`);
+
+            if (!description) {
+                showToast('Vui lòng nhập mô tả báo cáo.', 'error');
+                return;
             }
 
-            const description = reason === 'other' ? $('#other-reason-text').val().trim() : `Báo cáo vi phạm lý do: ${reason}`;
-
-            if (reason === 'other' && description === '') {
-                alert('Please enter your reason.');
+            if (wordCount(description) > 500) {
+                showToast('Mô tả báo cáo không được vượt quá 500 từ.', 'error');
                 return;
             }
 
             try {
-                await window.apiClient.apiPost(`/api/Thread/${activePostIdToReport}/report`, {
-                    reason: reasonEnum,
-                    description: description
+                const result = await window.apiClient.apiPost(`${THREAD_API}/${activePostIdToReport}/report`, {
+                    reason: reasonMap[reason],
+                    description
                 });
 
-                $('#report-modal').fadeOut(200);
-                showToast('Thank you for reporting. The moderator will review this post.');
-                
-                // Clear input
-                $('input[name="report-reason"]').prop('checked', false);
-                $('#other-reason-text').val('');
-                $('.other-reason-container').hide();
-                
-                // Reload feed to show updated count (or automatically hidden if reports >= 5)
-                await loadThreadFeed();
-            } catch (err) {
-                console.error(err);
-                showErrorToast(err.message || 'Failed to submit report. Please log in.');
+                $('#report-modal').fadeOut(180);
+                const reportCount = result?.reportCount || 0;
+                showToast(reportCount >= 5
+                    ? 'Báo cáo đã gửi. Bài viết đã đủ ngưỡng cảnh báo và có thể bị ẩn.'
+                    : 'Báo cáo đã gửi đến bộ phận moderation.');
+                resetReportModal();
+                await loadThreadFeed(true);
+            } catch (error) {
+                handleApiError(error, 'Không gửi được báo cáo.');
             }
         });
 
-        // Submit new thread post to C# Web API
         $(document).on('click', '.btn-submit-thread-post', async function () {
-            const $card = $('#create-thread-post-card');
-            const text = $card.find('textarea').val().trim();
+            if (!requireLogin()) return;
 
-            if (text === '') {
-                showErrorToast('Please enter your post content.');
+            const title = $('#thread-title-input').val().trim();
+            const content = $('#thread-content-input').val().trim();
+            const hashtags = $('#thread-hashtag-input').val().trim();
+
+            if (!title || !content) {
+                showToast('Vui lòng nhập tiêu đề và nội dung bài viết.', 'error');
+                return;
+            }
+
+            if (hasPhoneNumber(title, content)) {
+                showToast('Nội dung không được chứa số điện thoại cá nhân.', 'error');
                 return;
             }
 
             try {
                 const formData = new FormData();
-                formData.append('title', text.length > 50 ? text.substring(0, 50) + '...' : text);
-                formData.append('content', text);
-                formData.append('hashtags', '#BookBlossom');
+                formData.append('title', title);
+                formData.append('content', content);
+                formData.append('hashtags', hashtags);
+                selectedFiles.forEach(file => formData.append('images', file));
 
-                await window.apiClient.apiUpload('/api/Thread', formData);
-                showToast('Post created successfully!');
-                $card.find('textarea').val('');
-                await loadThreadFeed();
-            } catch (err) {
-                console.error(err);
-                showErrorToast(err.message || 'Failed to create post. Points may be below 80.');
+                await window.apiClient.apiUpload(THREAD_API, formData);
+                showToast('Đã tạo bài viết.');
+                resetCreateForm();
+                await loadThreadFeed(true);
+            } catch (error) {
+                handleApiError(error, 'Không tạo được bài viết.');
             }
         });
 
-        // Delete thread post permanently via API
-        $(document).on('click', '.btn-delete-thread-post', async function () {
+        $(document).on('click', '.btn-edit-thread-post', function (e) {
+            e.preventDefault();
+            if (!requireLogin()) return;
+            openEditModal($(this).data('id'));
+        });
+
+        $('#btn-cancel-edit').on('click', function () {
+            $('#edit-post-modal').fadeOut(180);
+        });
+
+        $('#btn-submit-edit').on('click', async function () {
+            if (!requireLogin()) return;
+
+            const postId = $('#edit-post-id').val();
+            const title = $('#edit-post-title').val().trim();
+            const content = $('#edit-post-content').val().trim();
+            const hashtags = $('#edit-post-hashtags').val().trim();
+
+            if (!title || !content) {
+                showToast('Vui lòng nhập tiêu đề và nội dung bài viết.', 'error');
+                return;
+            }
+
+            if (hasPhoneNumber(title, content)) {
+                showToast('Nội dung không được chứa số điện thoại cá nhân.', 'error');
+                return;
+            }
+
+            try {
+                await window.apiClient.apiPut(`${THREAD_API}/${postId}`, { title, content, hashtags });
+                $('#edit-post-modal').fadeOut(180);
+                showToast('Đã cập nhật bài viết.');
+                await loadThreadFeed(true);
+            } catch (error) {
+                handleApiError(error, 'Không cập nhật được bài viết.');
+            }
+        });
+
+        $(document).on('click', '.btn-delete-thread-post', async function (e) {
+            e.preventDefault();
+            if (!requireLogin()) return;
+
             const postId = $(this).attr('data-id');
-            if (confirm("Are you sure you want to delete this post permanently?")) {
-                try {
-                    await window.apiClient.apiDelete(`/api/Thread/${postId}`);
-                    showToast('Post deleted successfully!');
-                    await loadThreadFeed();
-                } catch (err) {
-                    console.error(err);
-                    showErrorToast(err.message || 'Failed to delete post.');
-                }
+            if (!confirm('Bạn có chắc muốn xóa bài viết này?')) return;
+
+            try {
+                await window.apiClient.apiDelete(`${THREAD_API}/${postId}`);
+                showToast('Đã xóa bài viết.');
+                await loadThreadFeed(true);
+            } catch (error) {
+                handleApiError(error, 'Không xóa được bài viết.');
             }
         });
 
-        // Initialize feed
-        loadThreadFeed();
+        updateGuestState();
+        loadThreadFeed(true);
     });
 </script>

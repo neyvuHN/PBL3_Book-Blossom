@@ -1,4 +1,10 @@
 <!-- Dedicated Community Section (Hidden by default) -->
+<style>
+    .btn-delete-preview-image:hover {
+        background: #ad1457 !important;
+        transform: scale(1.15);
+    }
+</style>
     <section id="dedicated-community" class="explore-section community-page-section">
         <div class="container community-thread-container">
             <!-- Main Content -->
@@ -11,13 +17,37 @@
                 <!-- Create Post -->
                 <div id="create-thread-post-card" class="create-post-card">
                     <h3>Create Post</h3>
-                    <textarea placeholder="What's on your shelf?"></textarea>
+                    <!-- Title input (new) -->
+                    <input type="text" id="thread-title-input" placeholder="Post title (required)..." style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px; margin-bottom:8px; font-size:0.95rem; outline:none; box-sizing:border-box;">
+                    <textarea id="thread-content-input" placeholder="What's on your shelf?"></textarea>
+                    <!-- Hashtag input (new) -->
+                    <input type="text" id="thread-hashtag-input" placeholder="#hashtag1 #hashtag2 ..." style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px; margin-top:8px; font-size:0.9rem; color:#C2185B; outline:none; box-sizing:border-box;">
+                    <!-- Image upload (new) -->
+                    <div style="margin-top:8px; display:flex; align-items:center; gap:10px;">
+                        <label for="thread-image-input" style="cursor:pointer; color:#888; font-size:0.85rem; display:flex; align-items:center; gap:5px; padding:6px 12px; border:1px dashed #ddd; border-radius:8px; transition:all 0.2s;">
+                            <i class="fas fa-image"></i> Add Photos
+                        </label>
+                        <input type="file" id="thread-image-input" accept="image/*" multiple style="display:none;">
+                        <div id="image-preview-container" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+                    </div>
                     <div class="create-post-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                         <button class="btn-tag-book"><i class="fas fa-book"></i> Tag Book</button>
                         <button class="btn-cta btn-submit-thread-post">Submit Post</button>
                     </div>
                 </div>
                 
+                <!-- Guest Banner (shown to guests) -->
+                <div id="community-guest-banner" style="display:none; background:linear-gradient(135deg,#fff5f7,#ffe0e6); border:1px solid #f8bbd0; border-radius:12px; padding:16px 20px; margin-bottom:18px; text-align:center;">
+                    <i class="fas fa-lock" style="color:#C2185B; font-size:1.3rem; margin-bottom:6px; display:block;"></i>
+                    <p style="margin:0; color:#555; font-size:0.95rem;">Bạn đang xem với tư cách khách. <strong>Đăng nhập</strong> để tham gia thảo luận và xem thêm bài viết!</p>
+                    <a href="/Auth/Login" class="btn-cta" style="display:inline-block; margin-top:10px; padding:8px 22px; font-size:0.9rem;">Đăng nhập ngay</a>
+                </div>
+
+                <!-- Dynamic Feed Container (posts will be appended here by JS) -->
+                <div id="thread-feed-container"></div>
+
+                <!-- Static Demo Posts (hiển thị khi chưa load xong hoặc không có API data, JS sẽ ẩn khi feed load) -->
+                <div id="thread-static-demo">
                 <!-- Post 1 -->
                 <div class="thread-post">
                     <div class="hidden-post-overlay" style="display: none;">
@@ -156,7 +186,100 @@
                         <button class="btn-reveal">Contains Spoilers. Click to Reveal</button>
                     </div>
                 </div>
+                </div><!-- end #thread-static-demo -->
+
+                <!-- Load More Button -->
+                <div id="load-more-container" style="text-align:center; margin-top:20px; display:none;">
+                    <button id="btn-load-more" style="background:#C2185B; color:#fff; border:none; padding:10px 30px; border-radius:25px; font-size:0.95rem; cursor:pointer; font-weight:600; transition:all 0.2s;">
+                        <i class="fas fa-chevron-down" style="margin-right:6px;"></i>Load More
+                    </button>
+                </div>
             </div>
 
         </div>
     </section>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Share Modal (existing) -->
+<div id="share-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:none; align-items:center; justify-content:center;">
+    <div class="modal-box" style="background:#fff; border-radius:16px; padding:30px; max-width:420px; width:90%; text-align:center; box-shadow:0 15px 40px rgba(0,0,0,0.2);">
+        <h3 style="font-family:'Lora',serif; margin-bottom:16px;">Share Post</h3>
+        <p style="color:#666; margin-bottom:20px;">Share this post with your friends and community.</p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
+            <button id="btn-copy-link" style="background:#C2185B; color:#fff; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:600;"><i class="fas fa-link" style="margin-right:6px;"></i>Copy Link</button>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button id="btn-cancel-share" style="background:#f0f0f0; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:600;">Cancel</button>
+            <button id="btn-confirm-share" style="background:#C2185B; color:#fff; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:600;">Share to Feed</button>
+        </div>
+    </div>
+</div>
+
+<!-- Report Modal (enhanced) -->
+<div id="report-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div class="modal-box" style="background:#fff; border-radius:16px; padding:30px; max-width:480px; width:90%; box-shadow:0 15px 40px rgba(0,0,0,0.2);">
+        <h3 style="font-family:'Lora',serif; margin-bottom:6px;">Report Post</h3>
+        <p style="color:#888; font-size:0.9rem; margin-bottom:16px;">Help us understand what's wrong with this post.</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:10px 14px; border:1px solid #eee; border-radius:10px; transition:background 0.2s;">
+                <input type="radio" name="report-reason" value="spam" style="accent-color:#C2185B;"> 
+                <span><strong>Spam</strong> — Nội dung spam hoặc quảng cáo</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:10px 14px; border:1px solid #eee; border-radius:10px; transition:background 0.2s;">
+                <input type="radio" name="report-reason" value="inappropriate" style="accent-color:#C2185B;"> 
+                <span><strong>Nội dung 18+</strong> — Không phù hợp / người lớn</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:10px 14px; border:1px solid #eee; border-radius:10px; transition:background 0.2s;">
+                <input type="radio" name="report-reason" value="fraud" style="accent-color:#C2185B;"> 
+                <span><strong>Lừa đảo</strong> — Gian lận, lừa đảo người dùng</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:10px 14px; border:1px solid #eee; border-radius:10px; transition:background 0.2s;">
+                <input type="radio" name="report-reason" value="other" style="accent-color:#C2185B;"> 
+                <span><strong>Khác</strong> — Lý do khác</span>
+            </label>
+        </div>
+        <div class="other-reason-container" style="display:none; margin-bottom:14px;">
+            <textarea id="other-reason-text" rows="3" placeholder="Mô tả lý do báo cáo (tối đa 500 từ)..." style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:10px; font-size:0.9rem; resize:vertical; outline:none; box-sizing:border-box;"></textarea>
+            <span id="report-word-count" style="font-size:0.78rem; color:#999; float:right; margin-top:2px;">0/500 từ</span>
+        </div>
+        <!-- Description for non-other reasons -->
+        <div id="report-desc-container" style="margin-bottom:14px;">
+            <input type="text" id="report-desc-input" placeholder="Mô tả ngắn (tuỳ chọn)..." style="width:100%; padding:9px 12px; border:1px solid #ddd; border-radius:10px; font-size:0.9rem; outline:none; box-sizing:border-box;">
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button id="btn-cancel-report" style="background:#f0f0f0; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:600;">Cancel</button>
+            <button id="btn-submit-report" style="background:#C2185B; color:#fff; border:none; padding:10px 24px; border-radius:25px; cursor:pointer; font-weight:600;">Submit Report</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Post Modal (new) -->
+<div id="edit-post-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:16px; padding:30px; max-width:520px; width:90%; box-shadow:0 15px 40px rgba(0,0,0,0.2);">
+        <h3 style="font-family:'Lora',serif; margin-bottom:16px;">Edit Post</h3>
+        <input type="hidden" id="edit-post-id">
+        <input type="text" id="edit-post-title" placeholder="Tiêu đề..." style="width:100%; padding:9px 12px; border:1px solid #ddd; border-radius:10px; margin-bottom:10px; font-size:0.95rem; outline:none; box-sizing:border-box;">
+        <textarea id="edit-post-content" rows="5" placeholder="Nội dung..." style="width:100%; padding:9px 12px; border:1px solid #ddd; border-radius:10px; font-size:0.9rem; resize:vertical; outline:none; box-sizing:border-box; margin-bottom:10px;"></textarea>
+        <input type="text" id="edit-post-hashtags" placeholder="#hashtag1 #hashtag2 ..." style="width:100%; padding:9px 12px; border:1px solid #ddd; border-radius:10px; font-size:0.9rem; color:#C2185B; outline:none; box-sizing:border-box; margin-bottom:16px;">
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button id="btn-cancel-edit" style="background:#f0f0f0; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:600;">Cancel</button>
+            <button id="btn-submit-edit" style="background:#C2185B; color:#fff; border:none; padding:10px 24px; border-radius:25px; cursor:pointer; font-weight:600;">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Login Required Modal (new) -->
+<div id="community-login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:20px; padding:36px 30px; max-width:420px; width:90%; text-align:center; box-shadow:0 15px 40px rgba(0,0,0,0.2); font-family:'Outfit',sans-serif;">
+        <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#f48fb1,#C2185B); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <i class="fas fa-user-lock" style="color:#fff; font-size:1.6rem;"></i>
+        </div>
+        <h3 style="font-family:'Lora',serif; font-weight:700; color:#2c3e50; margin-bottom:10px;">Yêu cầu đăng nhập</h3>
+        <p style="color:#666; font-size:0.95rem; line-height:1.6; margin-bottom:24px;">Tính năng này chỉ dành cho thành viên. Hãy đăng nhập để like, comment, report và tạo bài viết!</p>
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <button id="btn-cancel-community-login" style="background:#f0f0f0; border:none; padding:10px 22px; border-radius:25px; cursor:pointer; font-weight:600; color:#555;">Để sau</button>
+            <a href="/Auth/Login" style="background:linear-gradient(135deg,#f48fb1,#C2185B); color:#fff; border:none; padding:10px 24px; border-radius:25px; cursor:pointer; font-weight:600; text-decoration:none; display:inline-block;">Đăng nhập ngay</a>
+        </div>
+    </div>
+</div>

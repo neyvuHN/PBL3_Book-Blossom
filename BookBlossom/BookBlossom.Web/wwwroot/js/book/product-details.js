@@ -179,9 +179,13 @@
         const ratingString = baseRating.toFixed(1);
         renderRatingStars(baseRating, ratingString);
 
-        const reviewsCount = (hash % 120) + 18;
-        $('#detail-reviews-count').text(`${reviewsCount} Reviews`);
-        $('#detail-tab-rev-count').text(reviewsCount);
+        $('#detail-reviews-count').text(`... Reviews`);
+        $('#detail-tab-rev-count').text(`...`);
+        // Load real reviews in the background
+        const bookId = bookData.bookID || bookData.id;
+        if (bookId) {
+            fetchProductReviews(bookId);
+        }
 
         const soldCount = (hash % 1800) + 140;
         $('#detail-sold-count').html(`<i class="fas fa-shopping-bag"></i> ${soldCount.toLocaleString()} Sold`);
@@ -365,38 +369,6 @@
             if (targetTab === 'tab-rev') {
                 setTimeout(() => {
                     $('[data-tab="tab-rev"]').trigger('click');
-                    
-                    if (sessionStorage.getItem('show-my-review-first') === 'true') {
-                        sessionStorage.removeItem('show-my-review-first');
-                        
-                        const userReviewText = sessionStorage.getItem('my-review-text') || 'Great book, very satisfied with my purchase!';
-                        const userRating = parseInt(sessionStorage.getItem('my-review-rating') || '5');
-                        sessionStorage.removeItem('my-review-text');
-                        sessionStorage.removeItem('my-review-rating');
-                        
-                        let starsHtml = '';
-                        for(let i=0; i<5; i++) {
-                            starsHtml += i < userRating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
-                        }
-                        
-                        // [NEW] prepend a mock review of the current buyer to the reviews list
-                        const mockReviewHtml = `
-                            <div class="prod-review-item" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 20px; background: #fffaf0; border-radius: 8px; padding: 15px;" data-rating="${userRating}" data-likes="0" data-index="0">
-                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
-                                    <div>
-                                        <h5 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #333;">You (Buyer)</h5>
-                                        <span style="font-size: 0.8rem; color: #999;">Just now</span>
-                                    </div>
-                                    <div style="margin-left: auto; color: #ffc107;">
-                                        ${starsHtml}
-                                    </div>
-                                </div>
-                                <p style="font-size: 0.9rem; color: #555; line-height: 1.5; margin: 0; padding-left: 52px;">"${userReviewText}"</p>
-                            </div>
-                        `;
-                        $('.product-reviews-list').prepend(mockReviewHtml);
-                    }
                 }, 100);
             }
 
@@ -1313,23 +1285,62 @@
             if (!response.ok) return;
 
             const reviews = await response.json();
-            renderReviewsList(reviews);
+            window._currentBookReviews = reviews;
+            window._currentReviewStarFilter = 'all';
+            window._currentReviewSort = 'default';
+            $('.btn-star-filter').removeClass('active');
+            $('.btn-star-filter[data-star="all"]').addClass('active');
+            $('#detail-review-sort').val('default');
+            applyReviewFilters();
         } catch (err) {
             console.error('Failed to load reviews', err);
         }
     }
 
-    function renderReviewsList(reviews) {
+    function applyReviewFilters() {
+        let reviews = window._currentBookReviews || [];
+        
+        // Filter by star
+        const star = window._currentReviewStarFilter;
+        if (star && star !== 'all') {
+            const starInt = parseInt(star);
+            reviews = reviews.filter(r => r.rating === starInt);
+        }
+        
+        // Sort
+        const sort = window._currentReviewSort;
+        if (sort === 'most-hearts') {
+            reviews = [...reviews].sort((a, b) => b.likeCount - a.likeCount);
+        } else if (sort === 'least-hearts') {
+            reviews = [...reviews].sort((a, b) => a.likeCount - b.likeCount);
+        } else {
+            reviews = [...reviews];
+        }
+        
+        renderReviewsList(reviews, window._currentBookReviews.length);
+    }
+
+    function renderReviewsList(reviews, totalOriginalCount) {
         const $list = $('.product-reviews-list');
         $list.empty();
         
+        const total = totalOriginalCount !== undefined ? totalOriginalCount : (reviews ? reviews.length : 0);
+
         if (!reviews || reviews.length === 0) {
-            $list.html('<p style="text-align:center;color:#888;padding:20px;">No reviews yet. Be the first to review this book after purchasing!</p>');
+            if (totalOriginalCount && totalOriginalCount > 0) {
+                $list.html('<p style="text-align:center;color:#888;padding:20px;">No reviews match the selected filter.</p>');
+            } else {
+                $list.html('<p style="text-align:center;color:#888;padding:20px;">No reviews yet. Be the first to review this book after purchasing!</p>');
+            }
+            $('#detail-reviews-count').text(`${total} Reviews`);
+            $('#detail-tab-rev-count').text(total);
             return;
         }
 
-        $('#detail-reviews-count').text(`${reviews.length} Reviews`);
-        $('#detail-tab-rev-count').text(reviews.length);
+        $('#detail-reviews-count').text(`${total} Reviews`);
+        $('#detail-tab-rev-count').text(total);
+
+        window._reviewLightboxItems = [];
 
         let totalRating = 0;
         reviews.forEach((r, i) => {
@@ -1339,34 +1350,71 @@
                 starsHtml += s < r.rating ? '<i class="fas fa-star" style="color: #ffc107;"></i>' : '<i class="far fa-star" style="color: #e2e8f0;"></i>';
             }
 
-            let mediaHtml = '';
+            const allMedia = [];
             if (r.mediaUrls && r.mediaUrls.length > 0) {
-                mediaHtml += '<div style="display:flex;gap:10px;margin-top:10px;">';
-                r.mediaUrls.forEach(url => {
-                    mediaHtml += `<img src="${url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />`;
+                r.mediaUrls.forEach(url => allMedia.push({ url, type: 'image' }));
+            }
+            if (r.videoUrls && r.videoUrls.length > 0) {
+                r.videoUrls.forEach(url => allMedia.push({ url, type: 'video' }));
+            }
+            if (allMedia.length === 0 && r.imageVideoPath) {
+                r.imageVideoPath.split(',').forEach(p => {
+                    const trimmed = p.trim();
+                    if (!trimmed) return;
+                    const isVid = trimmed.match(/\.(mp4|mov|webm)$/i);
+                    allMedia.push({ url: trimmed, type: isVid ? 'video' : 'image' });
                 });
+            }
+
+            const reviewMediaStartIndex = window._reviewLightboxItems.length;
+            allMedia.forEach(m => window._reviewLightboxItems.push(m));
+
+            let mediaHtml = '';
+            if (allMedia.length > 0) {
+                mediaHtml = '<div class="review-media-gallery" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">';
+                allMedia.forEach((m, mi) => {
+                    const globalIdx = reviewMediaStartIndex + mi;
+                    if (mi >= 5) return;
+                    if (m.type === 'video') {
+                        mediaHtml += `
+                            <div class="review-media-thumb" data-lightbox-index="${globalIdx}"
+                                 style="position:relative;width:80px;height:80px;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #e0e0e0;background:#000;flex-shrink:0;">
+                                <video src="${m.url}" style="width:100%;height:100%;object-fit:cover;opacity:0.85;"></video>
+                                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                                    <i class="fas fa-play-circle" style="font-size:1.8rem;color:rgba(255,255,255,0.9);text-shadow:0 1px 4px rgba(0,0,0,0.5);"></i>
+                                </div>
+                            </div>`;
+                    } else {
+                        mediaHtml += `
+                            <div class="review-media-thumb" data-lightbox-index="${globalIdx}"
+                                 style="width:80px;height:80px;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #e0e0e0;flex-shrink:0;">
+                                <img src="${m.url}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.2s;" 
+                                     onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+                            </div>`;
+                    }
+                });
+                if (allMedia.length > 5) {
+                    mediaHtml += `<div style="width:80px;height:80px;border-radius:10px;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-weight:700;color:#fff;font-size:1.1rem;" data-lightbox-index="${reviewMediaStartIndex}">+${allMedia.length - 5}</div>`;
+                }
                 mediaHtml += '</div>';
             }
 
-            const isLiked = r.isLikedByCurrentUser; // assuming API returns this if possible, or default false
+            const isLiked = r.isLikedByCurrentUser;
             const likeIconClass = isLiked ? 'fas' : 'far';
             const likeColorStyle = isLiked ? 'color: #C2185B;' : '';
-
             const dateStr = new Date(r.createdAt).toLocaleDateString();
 
             const html = `
                 <div class="prod-review-item" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 20px; background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 15px;" data-id="${r.reviewID}" data-rating="${r.rating}" data-likes="${r.likeCount}">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                        <img src="${r.userAvatar || '/images/Avatar/default.png'}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                        <img src="${r.customerAvatar || '/images/Avatar/default.png'}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit:cover;">
                         <div>
                             <h5 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #333;">${r.customerName || 'Anonymous User'}</h5>
                             <span style="font-size: 0.8rem; color: #999;">${dateStr}</span>
                         </div>
-                        <div style="margin-left: auto;">
-                            ${starsHtml}
-                        </div>
+                        <div style="margin-left: auto;">${starsHtml}</div>
                     </div>
-                    <p style="font-size: 0.9rem; color: #555; line-height: 1.5; margin: 0 0 10px 0; padding-left: 52px;">"${r.content}"</p>
+                    <p style="font-size: 0.9rem; color: #555; line-height: 1.6; margin: 0 0 4px 0; padding-left: 52px;">"${r.content}"</p>
                     <div style="padding-left: 52px;">
                         ${mediaHtml}
                         <div style="display:flex; gap:15px; margin-top:12px; align-items:center;">
@@ -1383,7 +1431,109 @@
             $list.append(html);
         });
 
-        const avg = totalRating / reviews.length;
-        renderRatingStars(avg, avg.toFixed(1));
+        const avg = reviews.length > 0 ? totalRating / reviews.length : 0;
+        if (window._currentReviewStarFilter === 'all' || !window._currentReviewStarFilter) {
+            // Only update the main product rating stars if we are looking at ALL reviews,
+            // otherwise filtering by 1 star would drop the book's overall rating to 1 star!
+            renderRatingStars(avg, avg.toFixed(1));
+        }
+
+        initReviewLightbox();
+    }
+
+    function initReviewFilters() {
+        if (!window._reviewFiltersInitialized) {
+            window._reviewFiltersInitialized = true;
+            
+            $(document).on('click', '.btn-star-filter', function() {
+                $('.btn-star-filter').removeClass('active');
+                $(this).addClass('active');
+                window._currentReviewStarFilter = $(this).data('star');
+                // The function applyReviewFilters is inside the outer IIFE but we need to call it.
+                // Oh wait, applyReviewFilters is scoped inside this IIFE, so it can be called directly.
+                if (typeof applyReviewFilters === 'function') {
+                    applyReviewFilters();
+                }
+            });
+
+            $(document).on('change', '#detail-review-sort', function() {
+                window._currentReviewSort = $(this).val();
+                if (typeof applyReviewFilters === 'function') {
+                    applyReviewFilters();
+                }
+            });
+        }
+    }
+
+    function initReviewLightbox() {
+        initReviewFilters();
+        if ($('#review-lightbox-overlay').length === 0) {
+            const overlay = `
+                <div id="review-lightbox-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;">
+                    <button id="lightbox-close" style="position:absolute;top:18px;right:24px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;z-index:10;"><i class="fas fa-times"></i></button>
+                    <button id="lightbox-prev" style="position:absolute;left:18px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;z-index:10;"><i class="fas fa-chevron-left"></i></button>
+                    <button id="lightbox-next" style="position:absolute;right:18px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;z-index:10;"><i class="fas fa-chevron-right"></i></button>
+                    <div id="lightbox-media-wrapper" style="max-width:90vw;max-height:88vh;display:flex;align-items:center;justify-content:center;"></div>
+                    <div id="lightbox-counter" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.7);font-size:0.9rem;"></div>
+                </div>`;
+            $('body').append(overlay);
+
+            $('#lightbox-close').on('click', closeLightbox);
+            $('#review-lightbox-overlay').on('click', function(e) {
+                if (e.target === this) closeLightbox();
+            });
+            $('#lightbox-prev').on('click', () => navigateLightbox(-1));
+            $('#lightbox-next').on('click', () => navigateLightbox(1));
+
+            $(document).on('keydown.lightbox', function(e) {
+                if ($('#review-lightbox-overlay').is(':visible')) {
+                    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+                    if (e.key === 'ArrowRight') navigateLightbox(1);
+                    if (e.key === 'Escape') closeLightbox();
+                }
+            });
+        }
+
+        $(document).off('click.reviewThumb').on('click.reviewThumb', '.review-media-thumb', function() {
+            const idx = parseInt($(this).data('lightbox-index'));
+            openLightbox(idx);
+        });
+    }
+
+    function openLightbox(index) {
+        window._lightboxCurrentIndex = index;
+        renderLightboxMedia(index);
+        $('#review-lightbox-overlay').css('display', 'flex').hide().fadeIn(200);
+    }
+
+    function closeLightbox() {
+        $('#review-lightbox-overlay').fadeOut(200);
+        $('#lightbox-media-wrapper').empty();
+    }
+
+    function navigateLightbox(dir) {
+        const items = window._reviewLightboxItems || [];
+        if (!items.length) return;
+        let next = ((window._lightboxCurrentIndex || 0) + dir + items.length) % items.length;
+        window._lightboxCurrentIndex = next;
+        renderLightboxMedia(next);
+    }
+
+    function renderLightboxMedia(index) {
+        const items = window._reviewLightboxItems || [];
+        if (!items.length) return;
+        const item = items[index];
+        const $wrapper = $('#lightbox-media-wrapper');
+        $wrapper.empty();
+
+        if (item.type === 'video') {
+            $wrapper.html(`<video src="${item.url}" controls autoplay style="max-width:90vw;max-height:85vh;border-radius:8px;"></video>`);
+        } else {
+            $wrapper.html(`<img src="${item.url}" style="max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;user-select:none;">`);
+        }
+
+        $('#lightbox-counter').text(`${index + 1} / ${items.length}`);
+        $('#lightbox-prev').toggle(items.length > 1);
+        $('#lightbox-next').toggle(items.length > 1);
     }
 })(window, document, window.jQuery);

@@ -36,6 +36,8 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<ThreadPost> ThreadPosts { get; set; }
         public DbSet<ThreadComment> ThreadComments { get; set; }
         public DbSet<ThreadImage> ThreadImages { get; set; }
+        public DbSet<ThreadLike> ThreadLikes { get; set; }
+        public DbSet<ThreadShare> ThreadShares { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
@@ -81,7 +83,7 @@ namespace BookBlossom.Infrastructure.Data
             modelBuilder.Entity<Review>(entity =>
             {
                 entity.HasOne(r => r.Orders)
-                    .WithMany() // Assuming Order doesn't have a Reviews collection yet
+                    .WithMany(o => o.Reviews)
                     .HasForeignKey(r => r.OrderID)
                     .OnDelete(DeleteBehavior.NoAction);
 
@@ -98,7 +100,8 @@ namespace BookBlossom.Infrastructure.Data
             modelBuilder.Entity<ReviewMedia>(entity =>
             {
                 entity.Property(e => e.MediaType)
-                      .HasConversion<byte>();
+                      .HasConversion<byte>()
+                      .HasColumnType("tinyint");
                 
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
             });
@@ -120,7 +123,10 @@ namespace BookBlossom.Infrastructure.Data
             modelBuilder.Entity<ReviewReport>(entity =>
             {
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
-                entity.Property(e => e.Status).HasDefaultValue(ReportStatus.Pending);
+                entity.Property(e => e.Status)
+                      .HasConversion<byte>()
+                      .HasColumnType("tinyint")
+                      .HasDefaultValue(ReportStatus.Pending);
 
                 entity.HasOne(rr => rr.Reporter)
                       .WithMany()

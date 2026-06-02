@@ -116,7 +116,8 @@ class OrdersModel {
                     quantity: i.quantity,
                     image: i.sampleFilePath || (isBlind ? '/images/BlindDateBook/BlindBook1.jpg' : '/images/placeholder.jpg'),
                     isBlind: isBlind,
-                    realBook: realBook
+                    realBook: realBook,
+                    isRated: i.isRated
                 };
             }) : [];
 
@@ -138,7 +139,8 @@ class OrdersModel {
                 orderDate: new Date(o.orderDate).toLocaleString('vi-VN'),
                 cancelReason: o.cancelReason || '',
                 resolutionType: o.resolutionType,
-                returnStatus: o.returnStatus
+                returnStatus: o.returnStatus,
+                isRated: o.isRated
             };
         });
     }
