@@ -18,10 +18,55 @@
         initVouchers();
         initAddToCart();
         initBuyNow();
+        resumePendingBlindAction();
     });
+
+    // After login redirect, auto-resume the pending buy/cart action
+    function resumePendingBlindAction() {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+
+        const raw = sessionStorage.getItem('pendingBlindAction');
+        if (!raw) return;
+
+        let pending;
+        try { pending = JSON.parse(raw); } catch { return; }
+        sessionStorage.removeItem('pendingBlindAction');
+
+        if (!pending || !pending.blindBookID) return;
+
+        // Wait for the detail view to be fully rendered before triggering action
+        const tryResume = (attempts) => {
+            if (attempts <= 0) return;
+            const detailsSection = $('#blind-date-details-section');
+
+            if (detailsSection.is(':visible') && window.currentBlindBookData) {
+                if (pending.action === 'addToCart') {
+                    if (pending.qty) $('#input-blind-qty').val(pending.qty);
+                    if (window.BookBlossomCart) {
+                        window.BookBlossomCart.addToCart({ blindBookID: pending.blindBookID, qty: pending.qty || 1 })
+                            .then(() => showToast('Sách Ẩn Danh đã được thêm vào giỏ hàng!', 'success'))
+                            .catch(err => showToast(err.message || 'Thêm vào giỏ hàng thất bại.', 'error'));
+                    }
+                } else if (pending.action === 'buyNow') {
+                    if (pending.qty) $('#input-blind-qty').val(pending.qty);
+                    // Trigger buy now button click
+                    setTimeout(() => { $('.btn-buy-blind').first().trigger('click'); }, 300);
+                }
+            } else {
+                // Detail section not ready yet, wait and retry
+                setTimeout(() => tryResume(attempts - 1), 400);
+            }
+        };
+
+        // Start trying after a short delay for the page hash navigation to settle
+        setTimeout(() => tryResume(10), 600);
+    }
 
     function showBlindDateDetails(blindBookData, push = true) {
         if (!blindBookData) return;
+
+        window.currentBlindBookData = blindBookData;
 
         $('#blind-date-section').hide();
         $('#blind-date-details-section').show();
@@ -197,6 +242,9 @@
         let price = '120.000 VNĐ';
         let condition = 'Well Loved - Has character';
 
+        const parsedId = parseInt(tagKey, 10);
+        const blindBookID = isNaN(parsedId) ? null : parsedId;
+
         if (tagKey.toLowerCase().includes('space') || tagKey.toLowerCase().includes('ai')) {
             hashtags = '#SpaceOpera #AI #FirstContact';
             desc = 'A pilot discovers an ancient alien artifact on a distant moon...';
@@ -212,6 +260,7 @@
         }
 
         return {
+            blindBookID: blindBookID,
             imgSrc,
             hashtags,
             desc,
@@ -674,30 +723,46 @@
             .on('click.addBlindCart', '.btn-cart-blind', async function (e) {
                 e.preventDefault();
 
+                // Yêu cầu đăng nhập nếu là khách vãng lai
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    const blindId = window.currentBlindBookData
+                        ? (window.currentBlindBookData.blindBookID || window.currentBlindBookData.blindBookId || window.currentBlindBookData.id)
+                        : null;
+                    sessionStorage.setItem('pendingBlindAction', JSON.stringify({
+                        action: 'addToCart',
+                        blindBookID: blindId,
+                        qty: parseInt($('#input-blind-qty').val(), 10) || 1
+                    }));
+                    showToast('Vui lòng đăng nhập để thêm Sách Ẩn Danh vào giỏ hàng!', 'error', 'Yêu cầu đăng nhập');
+                    setTimeout(() => {
+                        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent('/BlindDate#blind-details-' + blindId);
+                    }, 1500);
+                    return;
+                }
+
                 if (!window.BookBlossomCart) {
                     showToast('Cart is not ready.');
                     return;
                 }
 
                 const qty = parseInt($('#input-blind-qty').val(), 10) || 1;
-                // Since this is mock data and blind book ID isn't directly in hash, we'll try to extract an ID or fallback to 1
-                const tagKey = decodeURIComponent((window.location.hash || '').substring('#blind-details-'.length));
-                const mockId = (tagKey.toLowerCase().includes('space') ? 3 : (tagKey.toLowerCase().includes('literary') ? 2 : 1));
+                const blindId = window.currentBlindBookData 
+                    ? (window.currentBlindBookData.blindBookID || window.currentBlindBookData.blindBookId || window.currentBlindBookData.id) 
+                     : null;
+
+                if (!blindId) {
+                    showToast('Invalid mystery book selection.', 'error');
+                    return;
+                }
 
                 try {
-                    // Optimistic UI updates
                     animateAddToCart($(this), qty);
                     showToast(`Added ${qty}x Mystery Book to your cart!`);
 
-                    if (window.BookBlossomCart) {
-                        window.BookBlossomCart.addToCart({ blindBookID: mockId, qty: qty }).catch(err => {
-                            console.error('Failed background add to cart', err);
-                        });
-                    } else {
-                        apiClient.apiPost('/api/Cart', { blindBookID: mockId, quantity: qty }).catch(err => {
-                            console.error('Failed background add to cart', err);
-                        });
-                    }
+                    window.BookBlossomCart.addToCart({ blindBookID: blindId, qty: qty }).catch(err => {
+                        console.error('Failed background add to cart', err);
+                    });
                 } catch (error) {
                     console.error('Failed to add to cart', error);
                     showToast('Failed to add item to cart.', 'error');
@@ -711,12 +776,33 @@
             .on('click.buyBlindNow', '.btn-buy-blind', function (e) {
                 e.preventDefault();
 
+                // Yêu cầu đăng nhập nếu là khách vãng lai
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    const blindId = window.currentBlindBookData
+                        ? (window.currentBlindBookData.blindBookID || window.currentBlindBookData.blindBookId || window.currentBlindBookData.id)
+                        : null;
+                    const qty = parseInt($('#input-blind-qty').val(), 10) || 1;
+                    sessionStorage.setItem('pendingBlindAction', JSON.stringify({
+                        action: 'buyNow',
+                        blindBookID: blindId,
+                        qty: qty
+                    }));
+                    showToast('Vui lòng đăng nhập để mua Sách Ẩn Danh!', 'error', 'Yêu cầu đăng nhập');
+                    setTimeout(() => {
+                        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent('/BlindDate#blind-details-' + blindId);
+                    }, 1500);
+                    return;
+                }
+
                 const item = buildCartItem();
                 const subtotal = item.priceVnd * item.qty;
                 const voucherResult = calculateBlindVoucherDiscount(subtotal);
 
-                // [UPDATED] checkoutState now includes orderNote (empty by default);
-                // the Order Note textarea is reset automatically by window.openCheckout()
+                const blindId = window.currentBlindBookData 
+                    ? (window.currentBlindBookData.blindBookID || window.currentBlindBookData.blindBookId || window.currentBlindBookData.id) 
+                    : null;
+
                 window.checkoutState = {
                     isCart: false,
                     isBuyNow: true,
@@ -724,6 +810,11 @@
                     subtotal: subtotal,
                     shippingFee: voucherResult.shippingFeeVnd,
                     discount: voucherResult.discountVnd,
+                    buyNowItem: {
+                        isBlind: true,
+                        blindBookID: blindId,
+                        qty: item.qty
+                    },
                     orderNote: ''
                 };
 
@@ -752,6 +843,9 @@
         const img = $('#blind-detail-main-img').attr('src') || '/images/BlindDateBook/BlindBook.jpg';
         const title = getBlindTitle();
         const hashtags = getCurrentHashtags();
+        const blindId = window.currentBlindBookData 
+            ? (window.currentBlindBookData.blindBookID || window.currentBlindBookData.blindBookId || window.currentBlindBookData.id) 
+            : null;
 
         return {
             id: 'cart-' + Date.now(),
@@ -764,6 +858,7 @@
             img: img,
             selected: true,
             isBlind: true,
+            blindBookID: blindId,
             hashtags: hashtags
         };
     }
@@ -938,7 +1033,7 @@
     }
 
     function getBlindHashKey(blindBookData) {
-        return (blindBookData.hashtags || 'Mystery')
+        return blindBookData.blindBookID ? blindBookData.blindBookID.toString() : (blindBookData.hashtags || 'Mystery')
             .replace(/\s+/g, '')
             .replace(/#/g, '');
     }

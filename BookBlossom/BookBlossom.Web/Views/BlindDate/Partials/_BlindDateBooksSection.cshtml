@@ -28,13 +28,8 @@
 
                 <div class="filter-section">
                     <h4>Vibe Tag Cloud</h4>
-                    <div class="tag-cloud">
-                        <span class="vibe-tag">Tear-jerker</span>
-                        <span class="vibe-tag active">#SlowBurn</span>
-                        <span class="vibe-tag">Mind-Bending</span>
-                        <span class="vibe-tag">Cozy Mystery</span>
-                        <span class="vibe-tag">Laugh Out Loud</span>
-                        <span class="vibe-tag">World-Building</span>
+                    <div class="tag-cloud" id="blind-vibe-tag-cloud">
+                        <!-- Dynamically populated from database -->
                     </div>
                 </div>
 
@@ -43,19 +38,19 @@
                     <div class="price-range-wrapper">
                         <div class="dual-range-slider">
                             <div class="price-slider-track" id="blind-price-track"></div>
-                            <input type="range" min="0" max="1000" value="150" class="min-range" id="blind-price-min">
-                            <input type="range" min="0" max="1000" value="850" class="max-range" id="blind-price-max">
-                            <div class="slider-tooltip" id="blind-tooltip-min">150</div>
-                            <div class="slider-tooltip" id="blind-tooltip-max">850</div>
+                            <input type="range" min="0" max="1000" value="0" class="min-range" id="blind-price-min">
+                            <input type="range" min="0" max="1000" value="1000" class="max-range" id="blind-price-max">
+                            <div class="slider-tooltip" id="blind-tooltip-min">0</div>
+                            <div class="slider-tooltip" id="blind-tooltip-max">1000</div>
                         </div>
                         <div class="price-input-group" style="display: flex; gap: 10px; margin-top: 25px;">
                             <div class="price-field">
                                 <span style="font-size: 0.8rem; color: #888;">Min</span>
-                                <input type="number" id="blind-price-min-input" value="150" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                <input type="number" id="blind-price-min-input" value="0" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
                             </div>
                             <div class="price-field">
                                 <span style="font-size: 0.8rem; color: #888;">Max</span>
-                                <input type="number" id="blind-price-max-input" value="850" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                <input type="number" id="blind-price-max-input" value="1000" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
                             </div>
                         </div>
                     </div>
@@ -63,19 +58,8 @@
 
                 <div class="filter-section">
                     <h4>Genre</h4>
-                    <div class="filter-checkbox-list">
-                        <label class="filter-checkbox-item">
-                            <input type="checkbox" checked> 💖 Romance
-                        </label>
-                        <label class="filter-checkbox-item">
-                            <input type="checkbox"> 💀 Thriller
-                        </label>
-                        <label class="filter-checkbox-item">
-                            <input type="checkbox" checked> 🚀 Sci-Fi
-                        </label>
-                        <label class="filter-checkbox-item">
-                            <input type="checkbox"> 🍃 General Fiction
-                        </label>
+                    <div class="filter-checkbox-list" id="blind-genre-checkbox-list">
+                        <!-- Dynamically populated from database -->
                     </div>
                 </div>
 
@@ -83,10 +67,16 @@
                     <h4>Condition</h4>
                     <div class="filter-checkbox-list">
                         <label class="filter-checkbox-item">
-                            <input type="checkbox"> 🎁 Gift-ready
+                            <input type="checkbox" id="cond-pristine" value="Pristine - Like new" checked> ✨ Pristine - Like new
                         </label>
                         <label class="filter-checkbox-item">
-                            <input type="checkbox" checked> 💓 Well Loved
+                            <input type="checkbox" id="cond-gift" value="Gift-ready" checked> 🎁 Gift-ready
+                        </label>
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox" id="cond-loved" value="Well Loved" checked> 💓 Well Loved
+                        </label>
+                        <label class="filter-checkbox-item">
+                            <input type="checkbox" id="cond-gently" value="Gently read" checked> 📖 Gently read
                         </label>
                     </div>
                 </div>
@@ -96,119 +86,11 @@
             <main class="blind-main">
                 <a href="#" class="clear-filters">Clear All Filters</a>
 
-                <div class="blind-grid">
-                    <!-- Card 1 -->
-                    <div class="blind-card">
-                        <div class="blind-card-image">
-                            <img src="/images/BlindDateBook/BlindBook1.jpg">
-                            <div class="view-overlay">
-                                <i class="fas fa-eye"></i>
-                            </div>
-                        </div>
-                        <div class="blind-card-body">
-                            <div class="card-hashtags">#SlowBurn #EnemiesToLovers #Paris</div>
-                            <p class="card-desc">A baker and a grumpy food critic clash in the City of Light...</p>
-                            <div class="card-status">
-                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">120.000 VNĐ</span>
-                            </div>
-                            <div class="card-condition">Condition: Well Loved - Has character</div>
-                        </div>
-                    </div>
-
-                    <!-- Card 2 -->
-                    <div class="blind-card">
-                        <div class="blind-card-image">
-                            <img src="/images/BlindDateBook/BlindBook3.jpg">
-                            <div class="view-overlay">
-                                <i class="fas fa-eye"></i>
-                            </div>
-                        </div>
-                        <div class="blind-card-body">
-                            <div class="card-hashtags">#SpaceOpera #AI #FirstContact</div>
-                            <p class="card-desc">A pilot discovers an ancient alien artifact on a distant moon...</p>
-                            <div class="card-status">
-                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">150.000 VNĐ</span>
-                            </div>
-                            <div class="card-condition">Condition: Gift-ready</div>
-                        </div>
-                    </div>
-
-                    <!-- Card 3 -->
-                    <div class="blind-card">
-                        <div class="blind-card-image">
-                            <img src="/images/BlindDateBook/BlindBook2.jpg">
-                            <div class="view-overlay">
-                                <i class="fas fa-eye"></i>
-                            </div>
-                        </div>
-                        <div class="blind-card-body">
-                            <div class="card-hashtags">#Literary #FamilySaga #ComingOfAge</div>
-                            <p class="card-desc">Three generations of women navigate secrets in a small town...</p>
-                            <div class="card-status">
-                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">100.000 VNĐ</span>
-                            </div>
-                            <div class="card-condition">Condition: Well Loved</div>
-                        </div>
-                    </div>
-
-                    <!-- Card 4 -->
-                    <div class="blind-card">
-                        <div class="blind-card-image">
-                            <img src="/images/BlindDateBook/BlindBook4.jpg">
-                            <div class="view-overlay">
-                                <i class="fas fa-eye"></i>
-                            </div>
-                        </div>
-                        <div class="blind-card-body">
-                            <div class="card-hashtags">#SlowBurn #EnemiesToLovers #Paris</div>
-                            <p class="card-desc">A baker and a grumpy food critic clash in the City of Light...</p>
-                            <div class="card-status">
-                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">120.000 VNĐ</span>
-                            </div>
-                            <div class="card-condition">Condition: Well Loved - Has character</div>
-                        </div>
-                    </div>
-
-                    <!-- Card 5 -->
-                    <div class="blind-card">
-                        <div class="blind-card-image">
-                            <img src="/images/BlindDateBook/BlindBook5.jpg">
-                            <div class="view-overlay">
-                                <i class="fas fa-eye"></i>
-                            </div>
-                        </div>
-                        <div class="blind-card-body">
-                            <div class="card-hashtags">#SpaceOpera #AI #FirstContact</div>
-                            <p class="card-desc">A pilot discovers an ancient alien artifact on a distant moon...</p>
-                            <div class="card-status">
-                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">150.000 VNĐ</span>
-                            </div>
-                            <div class="card-condition">Condition: Gift-ready</div>
-                        </div>
-                    </div>
-
-                    <!-- Card 6 -->
-                    <div class="blind-card">
-                        <div class="blind-card-image">
-                            <img src="/images/BlindDateBook/BlindBook2.jpg">
-                            <div class="view-overlay">
-                                <i class="fas fa-eye"></i>
-                            </div>
-                        </div>
-                        <div class="blind-card-body">
-                            <div class="card-hashtags">#Literary #FamilySaga #ComingOfAge</div>
-                            <p class="card-desc">Three generations of women navigate secrets in a small town...</p>
-                            <div class="card-status">
-                                <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
-                                <span class="card-price">100.000 VNĐ</span>
-                            </div>
-                            <div class="card-condition">Condition: Well Loved</div>
-                        </div>
+                <div class="blind-grid" id="blind-date-grid">
+                    <!-- Cards will be populated dynamically from the API -->
+                    <div class="loading-placeholder text-center" style="grid-column: 1 / -1; padding: 50px; color: #a291b5;">
+                        <i class="fas fa-spinner fa-spin fa-3x" style="margin-bottom: 15px;"></i>
+                        <p style="font-size: 1.1rem; font-weight: 600;">Loading book matches...</p>
                     </div>
                 </div>
             </main>

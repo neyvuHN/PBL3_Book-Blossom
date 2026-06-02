@@ -55,17 +55,29 @@ const apiClient = (function () {
     // Global Error Handler
     function handleError(response, errorData) {
         if (response.status === 401) {
-            // Unauthorized - clear token and redirect to login
+            // Unauthorized - clear token and cookies
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('userId');
             localStorage.removeItem('userName');
             localStorage.removeItem('roleId');
+            document.cookie = "AuthToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
             
-            showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error', 'Unauthorized');
-            setTimeout(() => {
-                window.location.href = '/Auth/Login';
-            }, 1500);
+            const path = window.location.pathname.toLowerCase();
+            const requiresAuth = path.includes('/admin') || 
+                                 path.includes('/checkout') || 
+                                 path.includes('/profile') || 
+                                 path.includes('/order');
+
+            if (requiresAuth) {
+                showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error', 'Unauthorized');
+                setTimeout(() => {
+                    window.location.href = '/Auth/Login';
+                }, 1500);
+            } else {
+                // Silently log and do not reload to prevent infinite loops!
+                console.warn('Background request returned 401 Unauthorized on a public page. Cleared credentials.');
+            }
             
             throw new Error('Unauthorized');
         } else if (response.status === 403) {

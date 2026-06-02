@@ -222,7 +222,9 @@
                         } else if (data.isOnboardingCompleted === false) {
                             window.location.href = '/Auth/InterestSelection';
                         } else {
-                            window.location.href = '/';
+                            // Nếu có returnUrl (từ trang yêu cầu đăng nhập), quay lại trang đó
+                            const returnUrl = new URLSearchParams(window.location.search).get('returnUrl');
+                            window.location.href = returnUrl || '/';
                         }
                     }, 1500);
 

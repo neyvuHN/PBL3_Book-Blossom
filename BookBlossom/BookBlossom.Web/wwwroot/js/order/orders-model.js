@@ -94,15 +94,31 @@ class OrdersModel {
                 6: 'returned' // Returning
             };
 
-            const items = o.orderItems ? o.orderItems.map(i => ({
-                id: i.bookID || i.blindBookID,
-                title: i.title,
-                author: i.publisher || 'N/A', // Simple fallback
-                price: i.unitPrice,
-                quantity: i.quantity,
-                image: i.sampleFilePath || (i.blindBookID ? '/images/BlindDateBook/BlindBook1.webp' : '/images/placeholder.jpg'),
-                isBlind: i.blindBookID != null
-            })) : [];
+            const items = o.orderItems ? o.orderItems.map(i => {
+                const isBlind = i.blindBookID != null;
+                const completed = o.orderStatus === 4; // 4: Completed
+                
+                let realBook = null;
+                if (isBlind && completed && i.realBookTitle) {
+                    realBook = {
+                        title: i.realBookTitle,
+                        author: i.publisher || 'BookBlossom Edition',
+                        image: i.sampleFilePath || '/images/placeholder.jpg',
+                        description: `Cuốn sách tuyệt vời ẩn sau gói Sách Mù thuộc thể loại "${i.title.replace("[Sách Mù] ", "")}". Chúc bạn có những giờ phút đọc sách thật thú vị!`
+                    };
+                }
+                
+                return {
+                    id: i.bookID || i.blindBookID,
+                    title: i.title,
+                    author: i.publisher || 'N/A', // Simple fallback
+                    price: i.unitPrice,
+                    quantity: i.quantity,
+                    image: i.sampleFilePath || (isBlind ? '/images/BlindDateBook/BlindBook1.jpg' : '/images/placeholder.jpg'),
+                    isBlind: isBlind,
+                    realBook: realBook
+                };
+            }) : [];
 
             return {
                 id: o.orderID,
