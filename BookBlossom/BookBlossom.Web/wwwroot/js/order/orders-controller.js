@@ -124,18 +124,24 @@ class OrdersController {
         }
     }
 
-    // [NEW] Handle clicking Rate
-    handleRateOrder(orderId) {
+    handleRateOrder(orderId, bookId, isBlind) {
         const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
-        if (order && !order.isRated) {
-            this.view.showRateOrderModal(order, async (id, rating, reviewText, mediaFiles) => {
+        if (order) {
+            // Find the specific item
+            const item = order.items.find(i => i.id.toString() === bookId.toString());
+            if (!item || item.isRated) return;
+
+            // We need to pass a mock order object to the modal that only has this specific item
+            // so the modal UI shows the correct book info
+            const orderForModal = { ...order, items: [item] };
+
+            this.view.showRateOrderModal(orderForModal, async (id, rating, reviewText, mediaFiles) => {
                 const token = this.model.getToken();
                 if (!token) {
                     alert('Please log in to submit a review.');
                     return;
                 }
 
-                const item = order.items[0]; // Assuming rating the first item, or we rate the order and item
                 const formData = new FormData();
                 formData.append('OrderID', order.id);
                 if (item && item.id != null) {
@@ -186,7 +192,8 @@ class OrdersController {
 
                     const result = await response.json();
 
-                    order.isRated = true;
+                    item.isRated = true;
+                    // The modal is already hidden inside orders-view.js before onSubmit is called
                     order.userRating = rating;
                     order.userReviewText = reviewText;
                     

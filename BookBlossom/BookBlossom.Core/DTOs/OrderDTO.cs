@@ -58,6 +58,7 @@ namespace BookBlossom.Core.DTOs
     {
         public long BookID { get; set; }
         public long? BlindBookID { get; set; }
+        public bool IsRated { get; set; }
         public string Title { get; set; } = string.Empty;
         public string RealBookTitle { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }

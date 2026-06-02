@@ -59,6 +59,8 @@ namespace BookBlossom.Web.Controllers
         // 2. ĐĂNG BÀI REVIEW MỚI - Chỉ Customer đăng nhập mới có quyền
         // POST /api/Review
         [HttpPost]
+        [RequestFormLimits(MultipartBodyLengthLimit = 104857600)] // 100MB
+        [RequestSizeLimit(104857600)] // 100MB
         [Authorize(Policy = "CustomerOnly")]
         public async Task<IActionResult> CreateReview([FromForm] CreateReviewDTO dto, [FromForm] List<IFormFile>? mediaFiles)
         {

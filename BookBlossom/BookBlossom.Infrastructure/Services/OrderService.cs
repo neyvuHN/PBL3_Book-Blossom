@@ -329,6 +329,9 @@ namespace BookBlossom.Infrastructure.Services
                     {
                         BookID = od.BookID,
                         BlindBookID = od.BlindBookID,
+                        IsRated = o.Reviews != null && o.Reviews.Any(r => 
+                            (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
+                            (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                         Title = od.BlindBookID.HasValue && od.BlindBook != null
                             ? $"[Sách Mù] {od.BlindBook.Category}"
                             : od.RealBook?.Title ?? "Sách không xác định",
@@ -394,11 +397,14 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     BookID = od.BookID,
                     BlindBookID = od.BlindBookID,
+                    IsRated = order.Reviews != null && order.Reviews.Any(r => 
+                        (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
+                        (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
                         ? $"[Sách Mù] {od.BlindBook.Category}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     RealBookTitle = order.OrderStatus == OrderStatus.Completed
-                        ? (od.RealBook?.Title ?? "Sách không xác định")
+                        ? (od.RealBook?.Title ?? string.Empty)
                         : string.Empty,
                     UnitPrice = od.UnitPrice,
                     Quantity = od.Quantity,

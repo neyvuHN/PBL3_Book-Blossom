@@ -116,7 +116,8 @@ class OrdersModel {
                     quantity: i.quantity,
                     image: i.sampleFilePath || (isBlind ? '/images/BlindDateBook/BlindBook1.jpg' : '/images/placeholder.jpg'),
                     isBlind: isBlind,
-                    realBook: realBook
+                    realBook: realBook,
+                    isRated: i.isRated
                 };
             }) : [];
 

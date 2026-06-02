@@ -92,7 +92,17 @@ class OrdersView {
     }
 
     generateOrderHtml(order) {
-        const itemsHtml = order.items.map(item => `
+        const itemsHtml = order.items.map(item => {
+            let rateActionHtml = '';
+            if (order.status === 'completed') {
+                if (!item.isRated) {
+                    rateActionHtml = `<button class="btn btn-outline-secondary btn-sm ms-3" data-action="rate-order" data-id="${order.id}" data-book-id="${item.id}" data-book-title="${item.title}" data-blind="${item.isBlind || false}">Rate</button>`;
+                } else {
+                    rateActionHtml = `<button class="btn btn-outline-secondary btn-sm ms-3" data-action="view-review" data-id="${order.id}" data-book-id="${item.id}" data-book-title="${item.title}" data-blind="${item.isBlind || false}">View Review</button>`;
+                }
+            }
+
+            return `
             <div class="order-item">
                 <!-- [UPDATED] Added data attributes and CSS link class to the book image -->
                 <img src="${item.image}" alt="${item.title}" class="order-item-img order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.src='/images/placeholder.jpg'">
@@ -102,9 +112,13 @@ class OrdersView {
                     <div class="order-item-meta">Author: ${item.author}</div>
                     <div class="order-item-meta">Qty: ${item.quantity}</div>
                 </div>
-                <div class="order-item-price">${item.price.toLocaleString('vi-VN')}đ</div>
+                <div class="order-item-price d-flex align-items-center">
+                    ${item.price.toLocaleString('vi-VN')}đ
+                    ${rateActionHtml}
+                </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         let actionsHtml = '';
         let statusText = '';
@@ -139,7 +153,6 @@ class OrdersView {
                 actionsHtml = `
                     <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
                     ${hasBlindBook ? `<button class="btn btn-outline-info" data-action="reveal-real-book" data-id="${order.id}">Reveal Real Book <i class="fas fa-magic"></i></button>` : ''}
-                    ${!order.isRated ? `<button class="btn btn-outline-secondary" data-action="rate-order" data-id="${order.id}">Rate</button>` : `<button class="btn btn-outline-secondary" data-action="view-review" data-id="${order.id}" data-book-id="${order.items[0].id}" data-book-title="${order.items[0].title}" data-blind="${order.items[0].isBlind || false}">View Review</button>`}
                 `;
                 break;
             case 'cancelled':
@@ -247,7 +260,9 @@ class OrdersView {
             const btn = e.target.closest('[data-action="rate-order"]');
             if (btn) {
                 const orderId = btn.getAttribute('data-id');
-                handler(orderId);
+                const bookId = btn.getAttribute('data-book-id');
+                const isBlind = btn.getAttribute('data-blind') === 'true';
+                handler(orderId, bookId, isBlind);
             }
         });
     }
