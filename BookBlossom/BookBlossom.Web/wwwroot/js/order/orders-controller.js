@@ -138,7 +138,7 @@ class OrdersController {
                 const item = order.items[0]; // Assuming rating the first item, or we rate the order and item
                 const formData = new FormData();
                 formData.append('OrderID', order.id);
-                if (item) {
+                if (item && item.id != null) {
                     if (item.isBlind) {
                         formData.append('BlindBookID', item.id);
                     } else {
@@ -165,8 +165,23 @@ class OrdersController {
                     });
 
                     if (!response.ok) {
-                        const errData = await response.json().catch(() => ({}));
-                        throw new Error(errData.detail || errData.message || 'Failed to submit review');
+                        let errMsg = 'Failed to submit review';
+                        try {
+                            const errData = await response.json();
+                            errMsg = errData.message || errData.detail || errData.error;
+                            if (!errMsg && errData.errors) {
+                                errMsg = Object.values(errData.errors).flat().join(', ');
+                            }
+                            if (!errMsg) errMsg = 'Failed to submit review';
+                        } catch (e) {
+                            try {
+                                const text = await response.text();
+                                console.error("Review API failed with text:", text);
+                                if (text && text.length < 200) errMsg = text;
+                                else errMsg = `Server error ${response.status}: check console for details.`;
+                            } catch (_) {}
+                        }
+                        throw new Error(errMsg);
                     }
 
                     const result = await response.json();
@@ -203,18 +218,11 @@ class OrdersController {
     }
 
     // [NEW] Handle clicking View Review
-    handleViewReview(orderId, title, isBlind) {
-        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
-        
-        // Set a flag in sessionStorage so the book detail page knows to show user's review first
-        sessionStorage.setItem('show-my-review-first', 'true');
-        sessionStorage.setItem('my-review-text', order?.userReviewText || 'Great book, very satisfied with my purchase!');
-        sessionStorage.setItem('my-review-rating', order?.userRating || '5');
-        
+    handleViewReview(orderId, bookId, title, isBlind) {
         if (isBlind) {
             window.location.href = `/BlindDate#blind-details-${encodeURIComponent(title)}?tab=reviews`;
         } else {
-            window.location.href = `/Explore#book-details-${encodeURIComponent(title)}?tab=reviews`;
+            window.location.href = `/Explore#book-details-${bookId}?tab=reviews`;
         }
     }
 

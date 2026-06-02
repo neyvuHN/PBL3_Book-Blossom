@@ -52,14 +52,10 @@ namespace BookBlossom.Infrastructure.Services
             }
 
             // 2. KIỂM TRA THỜI HẠN 30 NGÀY
-            // Fallback sang CompletedDate nếu DeliveredDate chưa được ghi nhận (lỗi dữ liệu cũ)
-            var referenceDate = order.DeliveredDate ?? order.CompletedDate;
-            if (referenceDate == null)
-            {
-                throw new InvalidOperationException("Không tìm thấy thông tin ngày hoàn thành đơn hàng này.");
-            }
+            // Fallback sang CompletedDate, OrderDate hoặc UtcNow nếu DeliveredDate chưa được ghi nhận (lỗi dữ liệu cũ)
+            var referenceDate = order.DeliveredDate ?? order.CompletedDate ?? order.OrderDate ?? DateTime.UtcNow;
 
-            var daysSinceDelivery = (DateTime.UtcNow - referenceDate.Value).TotalDays;
+            var daysSinceDelivery = (DateTime.UtcNow - referenceDate).TotalDays;
             if (daysSinceDelivery > 30)
             {
                 throw new InvalidOperationException("Đã quá thời hạn 30 ngày cho phép đánh giá sản phẩm.");
@@ -68,6 +64,7 @@ namespace BookBlossom.Infrastructure.Services
             // 3. CHỐNG SPAM (Mỗi người dùng chỉ được review sách này 1 lần trong đơn hàng này)
             var isAlreadyReviewed = await _context.Reviews.AnyAsync(r => 
                 r.CustomerID == customerId && 
+                r.OrderID == dto.OrderID &&
                 ((dto.BookID.HasValue && r.BookID == dto.BookID) || (dto.BlindBookID.HasValue && r.BlindBookID == dto.BlindBookID))
             );
 
@@ -180,6 +177,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             var query = _context.Reviews
                 .Include(r => r.User)
+                .Include(r => r.ReviewMedias)
                 .Where(r => !r.IsHidden)
                 .AsQueryable();
 
@@ -228,6 +226,16 @@ namespace BookBlossom.Infrastructure.Services
 
         private static ReviewDTO MapToReviewDTO(Review r)
         {
+            var mediaUrls = r.ReviewMedias
+                ?.Where(m => m.MediaType == MediaType.IMAGE)
+                .Select(m => m.MediaURL)
+                .ToList() ?? new List<string>();
+
+            var videoUrls = r.ReviewMedias
+                ?.Where(m => m.MediaType == MediaType.VIDEO)
+                .Select(m => m.MediaURL)
+                .ToList() ?? new List<string>();
+
             return new ReviewDTO
             {
                 ReviewID = r.ReviewID,
@@ -239,6 +247,8 @@ namespace BookBlossom.Infrastructure.Services
                 Rating = r.Rating,
                 Content = r.Content,
                 ImageVideoPath = r.ImageVideoPath,
+                MediaUrls = mediaUrls,
+                VideoUrls = videoUrls,
                 LikeCount = r.LikeCount,
                 CreatedAt = r.CreatedAt,
                 IsHidden = r.IsHidden

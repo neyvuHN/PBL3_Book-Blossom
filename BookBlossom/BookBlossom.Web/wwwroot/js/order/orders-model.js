@@ -138,7 +138,8 @@ class OrdersModel {
                 orderDate: new Date(o.orderDate).toLocaleString('vi-VN'),
                 cancelReason: o.cancelReason || '',
                 resolutionType: o.resolutionType,
-                returnStatus: o.returnStatus
+                returnStatus: o.returnStatus,
+                isRated: o.isRated
             };
         });
     }

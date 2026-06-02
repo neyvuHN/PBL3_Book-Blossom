@@ -22,6 +22,7 @@ namespace BookBlossom.Core.DTOs
         public ResolutionType? ResolutionType { get; set; }
         public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
+        public bool IsRated { get; set; }
     }
 
     public class OrderDetailDTO
@@ -50,6 +51,7 @@ namespace BookBlossom.Core.DTOs
         public ResolutionType? ResolutionType { get; set; }
         public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
+        public bool IsRated { get; set; }
     }
 
     public class OrderItemDTO

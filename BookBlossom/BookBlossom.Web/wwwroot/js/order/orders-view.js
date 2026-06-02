@@ -139,7 +139,7 @@ class OrdersView {
                 actionsHtml = `
                     <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
                     ${hasBlindBook ? `<button class="btn btn-outline-info" data-action="reveal-real-book" data-id="${order.id}">Reveal Real Book <i class="fas fa-magic"></i></button>` : ''}
-                    ${!order.isRated ? `<button class="btn btn-outline-secondary" data-action="rate-order" data-id="${order.id}">Rate</button>` : `<button class="btn btn-outline-secondary" data-action="view-review" data-id="${order.id}" data-book-title="${order.items[0].title}" data-blind="${order.items[0].isBlind || false}">View Review</button>`}
+                    ${!order.isRated ? `<button class="btn btn-outline-secondary" data-action="rate-order" data-id="${order.id}">Rate</button>` : `<button class="btn btn-outline-secondary" data-action="view-review" data-id="${order.id}" data-book-id="${order.items[0].id}" data-book-title="${order.items[0].title}" data-blind="${order.items[0].isBlind || false}">View Review</button>`}
                 `;
                 break;
             case 'cancelled':
@@ -258,9 +258,10 @@ class OrdersView {
             const btn = e.target.closest('[data-action="view-review"]');
             if (btn) {
                 const orderId = btn.getAttribute('data-id');
+                const bookId = btn.getAttribute('data-book-id');
                 const title = btn.getAttribute('data-book-title');
                 const isBlind = btn.getAttribute('data-blind') === 'true';
-                handler(orderId, title, isBlind);
+                handler(orderId, bookId, title, isBlind);
             }
         });
     }

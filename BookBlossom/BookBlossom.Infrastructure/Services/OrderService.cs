@@ -277,6 +277,7 @@ namespace BookBlossom.Infrastructure.Services
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook)
+                .Include(o => o.Reviews)
                 .Where(o => o.CustomerID == customerId);
 
             // Nếu truyền vào status thì lọc theo trạng thái (Tab UI: Chờ xác nhận, Đang giao, Đã giao...)
@@ -316,6 +317,7 @@ namespace BookBlossom.Infrastructure.Services
                     PaymentMethod = o.PaymentMethod,
                     PaymentStatus = o.PaymentStatus,
                     TotalAmount = o.TotalAmount,
+                    IsRated = o.Reviews != null && o.Reviews.Any(),
                     ShipReceiverName = o.ShipReceiverName,
                     ShipPhoneNumber = o.ShipPhoneNumber,
                     Note = o.Note,
@@ -349,6 +351,7 @@ namespace BookBlossom.Infrastructure.Services
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook)
+                .Include(o => o.Reviews)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
 
             if (order == null) return null;
@@ -378,6 +381,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShippingFee = order.ShippingFee ?? 0,
                 DiscountAmount = order.DiscountAmount ?? 0,
                 TotalAmount = order.TotalAmount,
+                IsRated = order.Reviews != null && order.Reviews.Any(),
                 ShipReceiverName = order.ShipReceiverName,
                 ShipPhoneNumber = order.ShipPhoneNumber,
                 ShipDetailAddress = order.ShipDetailAddress,

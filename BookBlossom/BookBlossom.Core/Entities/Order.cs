@@ -30,5 +30,6 @@ namespace BookBlossom.Core.Entities
         // Navigation Properties
         public virtual Voucher? Voucher { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

@@ -36,7 +36,7 @@ namespace BookBlossom.Core.Entities
         public virtual User User { get; set; } = null!;
 
         [ForeignKey("OrderID")]
-        public virtual Order Orders { get; set; } = null!; // Assuming Order entity is named Order or Orders. In the DB it says OrderRequest.Orders
+        public virtual Order? Orders { get; set; }
 
         public virtual ICollection<ReviewMedia> ReviewMedias { get; set; } = new List<ReviewMedia>();
         public virtual ICollection<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace BookBlossom.Core.DTOs.Review
 {
@@ -13,6 +14,8 @@ namespace BookBlossom.Core.DTOs.Review
         public int Rating { get; set; }
         public string Content { get; set; } = string.Empty;
         public string? ImageVideoPath { get; set; }
+        public List<string> MediaUrls { get; set; } = new List<string>();
+        public List<string> VideoUrls { get; set; } = new List<string>();
         public int LikeCount { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsHidden { get; set; }
