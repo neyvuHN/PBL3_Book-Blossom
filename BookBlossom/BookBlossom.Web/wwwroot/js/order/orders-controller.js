@@ -243,34 +243,45 @@ class OrdersController {
     }
 
     // [NEW] Handle submitting Return/Refund request data
-    handleReturnRefundSubmit(orderId, requestData) {
+    async handleReturnRefundSubmit(orderId, requestData) {
         const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (!order) return;
 
+        const submitBtn = document.getElementById('submit-refund-request-btn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        submitBtn.setAttribute('disabled', 'true');
+
         // Perform model update
-        this.model.submitReturnRefund(orderId, requestData);
+        const result = await this.model.submitReturnRefund(orderId, requestData);
 
-        // Hide return/refund modal using Bootstrap 5
-        const modalEl = document.getElementById('returnRefundModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (modalInstance) {
-            modalInstance.hide();
-        }
+        submitBtn.innerHTML = originalText;
+        submitBtn.removeAttribute('disabled');
 
-        // Show successful completion feedback overlay popup modal using confirmation styling
-        this.view.showConfirmModal({
-            icon: 'fas fa-check-circle',
-            iconColor: '#38a169',
-            accentColor: 'linear-gradient(90deg, #38a169, #68d391)',
-            title: 'Request Submitted',
-            message: `Your return/refund request for Order #${orderId} was submitted successfully! The seller has 48 hours to respond.`,
-            confirmText: 'Great, Thank You',
-            confirmBtnClass: 'btn-success',
-            onConfirm: () => {
-                // Refresh views
-                this.updateView();
-                this.updateBadge();
+        if (result && result.success) {
+            // Hide return/refund modal using Bootstrap 5
+            const modalEl = document.getElementById('returnRefundModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
             }
-        });
+
+            // Show successful completion feedback overlay popup modal using confirmation styling
+            this.view.showConfirmModal({
+                icon: 'fas fa-check-circle',
+                iconColor: '#38a169',
+                accentColor: 'linear-gradient(90deg, #38a169, #68d391)',
+                title: 'Request Submitted',
+                message: `Your return/refund request for Order #${orderId} was submitted successfully! The seller has 48 hours to respond.`,
+                confirmText: 'Great, Thank You',
+                confirmBtnClass: 'btn-success',
+                onConfirm: async () => {
+                    // Refresh views
+                    await this.init();
+                }
+            });
+        } else {
+            alert(result && result.message ? result.message : "Failed to submit return/refund request. Please check your data and try again.");
+        }
     }
 }

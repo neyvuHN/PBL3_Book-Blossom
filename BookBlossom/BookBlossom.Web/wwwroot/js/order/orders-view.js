@@ -617,7 +617,8 @@ class OrdersView {
                 proposal: this.activeProposal,
                 refundAmount: refundAmount,
                 imagesCount: this.uploadedImages.length,
-                hasVideo: !!this.uploadedVideo
+                hasVideo: !!this.uploadedVideo,
+                videoFile: this.uploadedVideo
             });
         });
     }

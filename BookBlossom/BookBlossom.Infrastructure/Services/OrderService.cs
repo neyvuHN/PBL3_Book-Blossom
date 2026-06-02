@@ -308,7 +308,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShipReceiverName = o.ShipReceiverName,
                 ShipPhoneNumber = o.ShipPhoneNumber,
                 Note = o.Note,
-                CancelReason = null, // Logic cancel reason có thể lấy từ bảng khác nếu có
+                CancelReason = o.OrderStatus == OrderStatus.Returning ? "Awaiting censorship" : (o.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
                 OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,
@@ -362,7 +362,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShipPhoneNumber = order.ShipPhoneNumber,
                 ShipDetailAddress = order.ShipDetailAddress,
                 Note = order.Note,
-                CancelReason = null, // Mocked for now, normally from DB if saved
+                CancelReason = order.OrderStatus == OrderStatus.Returning ? "Awaiting censorship" : (order.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
                 OrderItems = order.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,
@@ -575,7 +575,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShipReceiverName = o.ShipReceiverName,
                 ShipPhoneNumber = o.ShipPhoneNumber,
                 Note = o.Note,
-                CancelReason = null,
+                CancelReason = o.OrderStatus == OrderStatus.Returning ? "Awaiting censorship" : (o.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
                 OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,
