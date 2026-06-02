@@ -62,7 +62,7 @@ class NotificationView {
         }
 
         // 2. Generate Dropdown Layout
-        const hasUnread = notifications.some(n => !n.IsRead);
+        const hasUnread = notifications.some(n => !n.isRead);
         
         let dropdownHtml = `
             <div class="notif-dropdown-header">
@@ -97,23 +97,23 @@ class NotificationView {
         } else {
             // Render Notification Items
             notifications.forEach(n => {
-                const isReadClass = n.IsRead ? 'read' : 'unread';
-                const iconHtml = this.getTypeIcon(n.NotificationType);
-                const timeAgo = this.formatRelativeTime(n.CreatedDate);
+                const isReadClass = n.isRead ? 'read' : 'unread';
+                const iconHtml = this.getTypeIcon(n.notificationType);
+                const timeAgo = this.formatRelativeTime(n.createdAt);
 
                 dropdownHtml += `
                     <div class="notif-item ${isReadClass}" 
-                         data-id="${n.NotificationID}" 
-                         data-type="${n.NotificationType}" 
-                         data-ref-id="${n.ReferenceID}">
+                         data-id="${n.notificationID}" 
+                         data-type="${n.notificationType}" 
+                         data-ref-id="${n.referenceID || ''}">
                         ${iconHtml}
                         <div class="notif-item-content">
-                            <h4 class="notif-item-title">${n.Title}</h4>
-                            <p class="notif-item-text">${n.Content}</p>
+                            <h4 class="notif-item-title">${n.title}</h4>
+                            <p class="notif-item-text">${n.content}</p>
                             <span class="notif-item-time">${timeAgo}</span>
                         </div>
-                        ${!n.IsRead ? '<span class="unread-dot-indicator"></span>' : ''}
-                        <button type="button" class="btn-notif-delete" data-id="${n.NotificationID}" title="Dismiss">
+                        ${!n.isRead ? '<span class="unread-dot-indicator"></span>' : ''}
+                        <button type="button" class="btn-notif-delete" data-id="${n.notificationID}" title="Dismiss">
                             &times;
                         </button>
                     </div>
@@ -132,65 +132,62 @@ class NotificationView {
      * Map notification type to visual premium icon wrapper
      */
     getTypeIcon(type) {
+        // Map backend enums to icons
         switch (type) {
-            case 'Order':
-            case 'ORDER_STATUS':
+            case 0: // OrderStatus
                 return `
                     <div class="notif-icon-wrapper order">
                         <i class="fas fa-shopping-bag"></i>
                     </div>`;
-            case 'Book':
-            case 'NEW_BOOK_ARRIVAL':
+            case 9: // NewBookArrival
                 return `
                     <div class="notif-icon-wrapper book">
                         <i class="fas fa-book-open"></i>
                     </div>`;
-            case 'Community':
-            case 'NEW_THREAD':
+            case 3: // NewThread
                 return `
                     <div class="notif-icon-wrapper community">
                         <i class="fas fa-comments"></i>
                     </div>`;
-            case 'RETURN_UPDATE':
-            case 'NEW_RETURN_REQUEST':
+            case 1: // ReturnUpdate
+            case 11: // NewReturnRequest
                 return `
                     <div class="notif-icon-wrapper return">
                         <i class="fas fa-undo"></i>
                     </div>`;
-            case 'RE_ENGAGEMENT':
+            case 2: // ReEngagement
                 return `
                     <div class="notif-icon-wrapper engagement">
                         <i class="fas fa-heart"></i>
                     </div>`;
-            case 'POINT_CHANGE':
+            case 4: // PointChange
                 return `
                     <div class="notif-icon-wrapper point">
                         <i class="fas fa-coins"></i>
                     </div>`;
-            case 'BADGE_EARNED':
+            case 5: // BadgeEarned
                 return `
                     <div class="notif-icon-wrapper badge">
                         <i class="fas fa-medal"></i>
                     </div>`;
-            case 'RANK_UP':
+            case 6: // RankUp
                 return `
                     <div class="notif-icon-wrapper rank">
                         <i class="fas fa-trophy"></i>
                     </div>`;
-            case 'NEW_INTERACTION':
+            case 7: // NewInteraction
                 return `
                     <div class="notif-icon-wrapper interaction">
                         <i class="fas fa-thumbs-up"></i>
                     </div>`;
-            case 'MOD_WARNING':
-            case 'REPORT_ALERT':
-            case 'KPI_WARNING':
+            case 8: // ModWarning
+            case 10: // ReportAlert
+            case 12: // KpiWarning
                 return `
                     <div class="notif-icon-wrapper warning">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>`;
-            case 'NONE':
-            case 'System':
+            case 13: // None
             default:
                 return `
                     <div class="notif-icon-wrapper system">
@@ -205,19 +202,20 @@ class NotificationView {
     formatRelativeTime(dateString) {
         const now = new Date();
         const date = new Date(dateString);
+        // Correct timezone parsing
         const diffMs = now - date;
         const diffSec = Math.floor(diffMs / 1000);
         const diffMin = Math.floor(diffSec / 60);
         const diffHr = Math.floor(diffMin / 60);
         const diffDays = Math.floor(diffHr / 24);
 
-        if (diffSec < 60) {
+        if (diffSec < 60 && diffSec >= 0) {
             return 'Just now';
-        } else if (diffMin < 60) {
+        } else if (diffMin < 60 && diffMin > 0) {
             return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
-        } else if (diffHr < 24) {
+        } else if (diffHr < 24 && diffHr > 0) {
             return `${diffHr} ${diffHr === 1 ? 'hour' : 'hours'} ago`;
-        } else if (diffDays < 7) {
+        } else if (diffDays < 7 && diffDays > 0) {
             return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
         } else {
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -264,8 +262,8 @@ class NotificationView {
             // Ignore click if clicking the delete button
             if (notifItem && !deleteBtn) {
                 e.stopPropagation();
-                const id = notifItem.dataset.id;
-                const type = notifItem.dataset.type;
+                const id = parseInt(notifItem.dataset.id, 10);
+                const type = parseInt(notifItem.dataset.type, 10);
                 const refId = notifItem.dataset.refId;
                 handler(id, type, refId);
             }
@@ -280,7 +278,7 @@ class NotificationView {
             if (deleteBtn) {
                 e.preventDefault();
                 e.stopPropagation();
-                const id = deleteBtn.dataset.id;
+                const id = parseInt(deleteBtn.dataset.id, 10);
                 handler(id);
             }
         });

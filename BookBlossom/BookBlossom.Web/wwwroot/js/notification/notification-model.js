@@ -3,25 +3,32 @@ class NotificationModel {
         this.notifications = [];
         this.filter = 'all'; // 'all' or 'unread'
         this.isLoading = false;
+        this.isInitialized = false;
     }
 
     /**
-     * Fetch all notifications from the storage with a small simulated network delay
+     * Fetch all notifications from the API
      */
     async fetchNotifications() {
         this.isLoading = true;
         
-        // Premium UI experience: simulated network delay to show visual skeleton/spinner loading
-        await new Promise(resolve => setTimeout(resolve, 350));
-
-        if (window.BookBlossomNotification) {
-            this.notifications = window.BookBlossomNotification.getNotifications();
-        } else {
-            console.error("BookBlossomNotification store not found. Using local memory mock.");
-            this.notifications = [];
+        try {
+            if (window.apiClient) {
+                // Fetch from backend
+                const data = await window.apiClient.apiGet('/api/Notification');
+                if (Array.isArray(data)) {
+                    this.notifications = data;
+                }
+                this.isInitialized = true;
+            } else {
+                console.error("apiClient not found.");
+            }
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+        } finally {
+            this.isLoading = false;
         }
 
-        this.isLoading = false;
         return this.getFilteredNotifications();
     }
 
@@ -30,7 +37,7 @@ class NotificationModel {
      */
     getFilteredNotifications() {
         if (this.filter === 'unread') {
-            return this.notifications.filter(n => !n.IsRead);
+            return this.notifications.filter(n => !n.isRead);
         }
         return this.notifications;
     }
@@ -39,16 +46,19 @@ class NotificationModel {
      * Mark a single notification as read
      */
     async markAsRead(id) {
-        if (window.BookBlossomNotification) {
-            this.notifications = window.BookBlossomNotification.markAsRead(id);
-            return true;
-        }
-        
-        // Fallback inside local state
-        const n = this.notifications.find(x => x.NotificationID === id);
-        if (n) {
-            n.IsRead = true;
-            return true;
+        try {
+            if (window.apiClient) {
+                await window.apiClient.apiPut(`/api/Notification/${id}/read`, {});
+                
+                // Update local state
+                const n = this.notifications.find(x => x.notificationID === id);
+                if (n) {
+                    n.isRead = true;
+                }
+                return true;
+            }
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
         }
         return false;
     }
@@ -57,34 +67,43 @@ class NotificationModel {
      * Mark all notifications as read
      */
     async markAllAsRead() {
-        if (window.BookBlossomNotification) {
-            this.notifications = window.BookBlossomNotification.markAllAsRead();
-            return true;
+        try {
+            if (window.apiClient) {
+                await window.apiClient.apiPut('/api/Notification/read-all', {});
+                
+                // Update local state
+                this.notifications = this.notifications.map(n => ({ ...n, isRead: true }));
+                return true;
+            }
+        } catch (error) {
+            console.error("Error marking all notifications as read:", error);
         }
-
-        // Fallback
-        this.notifications = this.notifications.map(n => ({ ...n, IsRead: true }));
-        return true;
+        return false;
     }
 
     /**
      * Delete a notification
      */
     async deleteNotification(id) {
-        if (window.BookBlossomNotification) {
-            this.notifications = window.BookBlossomNotification.deleteNotification(id);
-            return true;
+        try {
+            if (window.apiClient) {
+                await window.apiClient.apiDelete(`/api/Notification/${id}`);
+                
+                // Update local state
+                this.notifications = this.notifications.filter(n => n.notificationID !== id);
+                return true;
+            }
+        } catch (error) {
+            console.error("Error deleting notification:", error);
         }
-
-        this.notifications = this.notifications.filter(n => n.NotificationID !== id);
-        return true;
+        return false;
     }
 
     /**
      * Get number of unread notifications
      */
     getUnreadCount() {
-        return this.notifications.filter(n => !n.IsRead).length;
+        return this.notifications.filter(n => !n.isRead).length;
     }
 
     /**
@@ -96,5 +115,13 @@ class NotificationModel {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Append a new notification from SignalR
+     */
+    addNotification(notification) {
+        // notification is already camelCase from API
+        this.notifications.unshift(notification);
     }
 }

@@ -2,6 +2,7 @@ class NotificationController {
     constructor(model, view) {
         this.model = model;
         this.view = view;
+        this.hubConnection = null;
 
         // Bind View events to Controller handlers
         this.view.bindBellClick(this.handleToggleDropdown.bind(this));
@@ -10,11 +11,6 @@ class NotificationController {
         this.view.bindDeleteNotificationClick(this.handleDeleteNotification.bind(this));
         this.view.bindMarkAllReadClick(this.handleMarkAllAsRead.bind(this));
         this.view.bindFilterTabClick(this.handleFilterChange.bind(this));
-
-        // Listen for internal store updates to keep the navbar badge synced in real-time
-        window.addEventListener('bookblossom_notifications_updated', () => {
-            this.updateBadgeOnly();
-        });
     }
 
     /**
@@ -22,14 +18,50 @@ class NotificationController {
      */
     async init() {
         try {
-            // Load state silently on startup to show badge dot immediately
-            if (window.BookBlossomNotification) {
-                this.model.notifications = window.BookBlossomNotification.getNotifications();
-            }
+            const token = localStorage.getItem('accessToken');
+            if (!token) return; // Only for logged-in users
+
+            await this.model.fetchNotifications();
             this.updateBadgeOnly();
+            
+            // Connect to SignalR
+            this.initSignalR(token);
         } catch (error) {
             console.error("Failed to initialize notifications store", error);
         }
+    }
+
+    initSignalR(token) {
+        if (typeof signalR === 'undefined') {
+            console.warn("SignalR library not loaded. Real-time notifications disabled.");
+            return;
+        }
+
+        this.hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/notification", { accessTokenFactory: () => token })
+            .withAutomaticReconnect()
+            .build();
+
+        this.hubConnection.on("ReceiveNotification", (notification) => {
+            // SignalR provides camelCase properties
+            this.model.addNotification(notification);
+            this.updateBadgeOnly();
+            
+            // If dropdown is open, re-render
+            if (this.view.dropdown && this.view.dropdown.classList.contains('active')) {
+                const items = this.model.getFilteredNotifications();
+                const unreadCount = this.model.getUnreadCount();
+                this.view.render(items, this.model.filter, unreadCount);
+            } else {
+                if (window.apiClient && window.apiClient.showToast) {
+                    window.apiClient.showToast(notification.title, 'info');
+                }
+            }
+        });
+
+        this.hubConnection.start()
+            .then(() => console.log("Connected to NotificationHub"))
+            .catch(err => console.error("Error connecting to NotificationHub:", err));
     }
 
     /**
@@ -52,15 +84,20 @@ class NotificationController {
     /**
      * Handles clicking the bell icon to toggle the dropdown
      */
-    handleToggleDropdown() {
+    async handleToggleDropdown() {
         if (!this.view.dropdown) return;
         
         const isOpening = !this.view.dropdown.classList.contains('active');
         this.view.toggleDropdown();
 
         if (isOpening) {
-            // Trigger skeleton/loading and fetch fresh data
-            this.refreshDropdown();
+            if (!this.model.isInitialized) {
+                await this.refreshDropdown();
+            } else {
+                const items = this.model.getFilteredNotifications();
+                const unreadCount = this.model.getUnreadCount();
+                this.view.render(items, this.model.filter, unreadCount);
+            }
         }
     }
 
@@ -134,10 +171,8 @@ class NotificationController {
             this.view.render(items, this.model.filter, unreadCount);
             
             // Trigger a custom toast if global system helper is available
-            if (typeof window.showToast === 'function') {
-                window.showToast("All notifications marked as read", "success");
-            } else if (typeof showToast === 'function') {
-                showToast("All notifications marked as read", "success");
+            if (window.apiClient && window.apiClient.showToast) {
+                window.apiClient.showToast("All notifications marked as read", "success");
             }
         } catch (error) {
             console.error("Failed to mark all as read", error);
@@ -158,28 +193,33 @@ class NotificationController {
      * Navigates the application based on reference metadata
      */
     navigateByNotification(type, refId) {
+        // Enums map: 0 = OrderStatus, 1 = ReturnUpdate, 3 = NewThread, etc.
+        // We can just rely on basic logic if we pass the reference correctly.
+        // Currently the frontend passes type as integer from backend or maps it.
+        // The previous mock used strings like 'Order', 'Book', etc.
+        // With backend it will be an integer NotificationType.
+        
         switch (type) {
-            case 'Order':
-                // Navigate to My Orders section
+            case 0: // OrderStatus
+            case 11: // NewReturnRequest
                 window.location.href = '/Orders';
                 break;
-            case 'Book':
-                if (refId === 'w2') {
-                    // Navigate to Blind Date details using existing hash routing patterns
-                    window.location.href = `/BlindDate#blind-details-Mystery-Thriller`;
-                } else if (refId) {
+            case 1: // ReturnUpdate
+                window.location.href = '/Orders'; // Or return specific URL
+                break;
+            case 9: // NewBookArrival
+                if (refId) {
                     window.location.href = `/Explore#book-details-${encodeURIComponent(refId)}`;
                 } else {
                     window.location.href = '/Explore';
                 }
                 break;
-            case 'Community':
-                // Navigate to community forum/threads
+            case 3: // NewThread
+            case 10: // ReportAlert
+            case 7: // NewInteraction
                 window.location.href = '/Community';
                 break;
-            case 'System':
             default:
-                // Stay on current page or redirect to profile
                 window.location.href = '/Profile';
                 break;
         }
