@@ -122,14 +122,14 @@ namespace BookBlossom.Web.Controllers
                 // Guest
                 var (success, requiresLogin) =
                     await _tindbookService.RecordGuestSwipeActionAsync(guestId.Value, dto);
-
                 if (requiresLogin)
                 {
-                    // Nghiệp vụ: Guest không được AddToCart, bắt đăng nhập
-                    return Unauthorized(new
+                    // Guest quẹt AddToCart: Lưu tạm thành công, trả về Ok kèm cờ requiresLogin để Front-end hiển thị popup
+                    return Ok(new
                     {
+                        success = true,
                         requiresLogin = true,
-                        message = "Vui lòng đăng nhập hoặc đăng ký tài khoản để thêm sách vào giỏ hàng!"
+                        message = "Sách đã được lưu tạm vào giỏ hàng! Vui lòng đăng ký hoặc đăng nhập tài khoản mới để giữ lại sách và thanh toán."
                     });
                 }
 
@@ -166,11 +166,20 @@ namespace BookBlossom.Web.Controllers
 
             if (userId.HasValue)
             {
+                var canUndo = await _tindbookService.CanUndoTindbookAsync(userId.Value);
+                if (!canUndo)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Bạn đã hết lượt Hoàn tác trong ngày! Vui lòng nâng cấp gói dịch vụ để nhận thêm đặc quyền."
+                    });
+                }
+
                 var result = await _tindbookService.UndoLastSwipeAsync(userId.Value);
 
                 if (!result)
                 {
-                    return NotFound("Không có hành động nào để hoàn tác.");
+                    return NotFound(new { message = "Không có hành động nào để hoàn tác." });
                 }
 
                 return Ok(new
@@ -194,7 +203,7 @@ namespace BookBlossom.Web.Controllers
 
                 if (!result)
                 {
-                    return NotFound("Không có hành động nào để hoàn tác.");
+                    return NotFound(new { message = "Không có hành động nào để hoàn tác." });
                 }
 
                 return Ok(new
