@@ -140,7 +140,7 @@ class OrdersModel {
                 totalPrice: o.totalAmount,
                 shipReceiverName: o.shipReceiverName,
                 shipPhoneNumber: o.shipPhoneNumber,
-                shipDetailAddress: o.note || '',
+                shipDetailAddress: o.shipDetailAddress || '',
                 paymentMethod: this.mapPaymentMethod(o.paymentMethod),
                 paymentStatus: o.paymentStatus,
                 note: o.note,

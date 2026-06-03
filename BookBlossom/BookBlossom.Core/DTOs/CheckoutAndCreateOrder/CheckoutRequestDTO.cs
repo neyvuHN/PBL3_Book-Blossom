@@ -11,6 +11,8 @@ namespace BookBlossom.Core.DTOs.CheckoutAndCreateOrder
         // Mã voucher muốn áp dụng (Nullable - không bắt buộc)
         public string? VoucherCode { get; set; }
 
+        public string? Note { get; set; }
+
         // Danh sách các sản phẩm + số lượng được chọn từ giỏ hàng Luminae
         public List<CartItemCheckoutDTO> CartItems { get; set; } = new List<CartItemCheckoutDTO>();
     }

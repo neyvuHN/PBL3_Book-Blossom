@@ -427,6 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     addressID: addressId,
                     paymentMethod: 1, // VNPay
                     voucherCode: voucherCode,
+                    note: window.checkoutState.orderNote,
                     cartItems: cartItemsDto
                 };
 
@@ -468,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     addressID: addressId,
                     paymentMethod: 0, // COD
                     voucherCode: voucherCode,
+                    note: window.checkoutState.orderNote,
                     cartItems: cartItemsDto
                 };
 
@@ -509,8 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     document.querySelector('.btn-view-order').addEventListener('click', () => {
         document.getElementById('payment-success-overlay').style.display = 'none';
-        history.pushState(null, '', '/');
-        alert("Redirecting to Order Details...");
+        window.location.href = '/Orders';
     });
     document.querySelector('.btn-retry-payment').addEventListener('click', () => {
         document.getElementById('payment-failed-overlay').style.display = 'none';

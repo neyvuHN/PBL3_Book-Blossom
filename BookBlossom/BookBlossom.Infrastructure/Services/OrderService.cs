@@ -89,7 +89,7 @@ namespace BookBlossom.Infrastructure.Services
                     ShipPhoneNumber = deliveryAddress.PhoneNumber,
                     ShipDetailAddress = deliveryAddress.DetailAddress,
                     
-                    Note = null,
+                    Note = request.Note,
                     ShippingFee = 30000, // Phí vận chuyển mặc định
                     DiscountAmount = 0
                 };
@@ -320,6 +320,7 @@ namespace BookBlossom.Infrastructure.Services
                     IsRated = o.Reviews != null && o.Reviews.Any(),
                     ShipReceiverName = o.ShipReceiverName,
                     ShipPhoneNumber = o.ShipPhoneNumber,
+                    ShipDetailAddress = o.ShipDetailAddress,
                     Note = o.Note,
                     CancelReason = o.OrderStatus == OrderStatus.Returning ? (retReq != null ? retReq.ReturnReason : "Awaiting censorship") : (o.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
                     ReturnReason = retReq?.ReturnReason,
@@ -611,6 +612,7 @@ namespace BookBlossom.Infrastructure.Services
                 TotalAmount = o.TotalAmount,
                 ShipReceiverName = o.ShipReceiverName,
                 ShipPhoneNumber = o.ShipPhoneNumber,
+                ShipDetailAddress = o.ShipDetailAddress,
                 Note = o.Note,
                 CancelReason = o.OrderStatus == OrderStatus.Returning ? "Awaiting censorship" : (o.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
                 OrderItems = o.OrderDetails.Select(od => new OrderItemDTO

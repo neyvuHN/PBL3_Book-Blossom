@@ -16,6 +16,7 @@ namespace BookBlossom.Core.DTOs
         public decimal TotalAmount { get; set; }
         public string? ShipReceiverName { get; set; } = string.Empty;
         public string? ShipPhoneNumber { get; set; } = string.Empty;
+        public string? ShipDetailAddress { get; set; } = string.Empty;
         public string? Note { get; set; }
         public string? CancelReason { get; set; }
         public string? ReturnReason { get; set; }
