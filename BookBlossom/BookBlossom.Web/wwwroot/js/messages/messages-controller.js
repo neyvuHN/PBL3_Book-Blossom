@@ -236,19 +236,17 @@ class MessagesController {
             attachedBookID: attachedBookId
         };
 
-        // Clear previews and input instantly
+        // Clear previews instantly
         $('#tagged-books-preview').empty().hide();
         $('#media-attachment-preview').empty().hide();
-        this.view.$chatInput.val('');
-        this.view.resizeTextarea();
 
         // Optimistic UI update (Temporary Bubble)
         const tempId = "temp-" + Date.now();
         const tempMsg = {
             messageID: tempId,
             conversationID: this.model.activeConversationId,
-            senderName: this.model.currentUser.name || "You",
-            senderAvatar: this.model.currentUser.avatar || "/images/Avatar/default.png",
+            senderName: "You",
+            senderAvatar: "/images/Avatar/default.png",
             content: text,
             sentAt: new Date().toISOString(),
             attachmentUrls: attachmentUrls,

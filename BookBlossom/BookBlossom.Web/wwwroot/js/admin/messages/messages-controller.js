@@ -35,7 +35,7 @@ class AdminMessagesController {
             .withUrl("/chatHub")
             .withAutomaticReconnect()
             .build();
-            
+
         this.hubConnection.on("ReceiveMessage", (message) => {
             console.log("SignalR ReceiveMessage:", message);
             const msgConvoId = message.conversationID || message.conversationId;
@@ -45,14 +45,14 @@ class AdminMessagesController {
                 // but SendMessage re-fetches all anyway. Let's just append it.
                 this.view.renderMessages([message], true);
             }
-            
+
             // Reload conversations to update snippet and unread status
             this.loadConversations();
         });
-        
+
         this.hubConnection.start().then(() => {
             console.log("SignalR Connected Successfully!");
-            
+
             // Join global Admins group to receive ALL messages
             this.hubConnection.invoke("JoinAdminGroup")
                 .then(() => console.log("Joined Admins group to receive global chat updates."))
@@ -157,10 +157,10 @@ class AdminMessagesController {
         // Search conversation list
         this.view.$convoSearch.on('input', (e) => {
             const query = $(e.target).val().toLowerCase().trim();
-            this.view.$convoList.find('.convo-item').each(function() {
+            this.view.$convoList.find('.convo-item').each(function () {
                 const name = $(this).find('.convo-name').text().toLowerCase();
                 const preview = $(this).find('.convo-preview').text().toLowerCase();
-                
+
                 if (name.includes(query) || preview.includes(query)) {
                     $(this).show();
                 } else {
@@ -341,7 +341,7 @@ class AdminMessagesController {
                     $('#link-error').text("Link must contain 'bookblossom.com', start with '/', or use hash views like '#book-details-' / '#blind-details-'.").show();
                     return;
                 }
-                
+
                 if (linkVal.includes('#blind-details-')) {
                     const hashPart = linkVal.split('#blind-details-')[1];
                     bookId = decodeURIComponent(hashPart);
@@ -366,7 +366,7 @@ class AdminMessagesController {
                             $originalBtn.prop('disabled', true).text('Loading...');
                             const res = await this.model.fetchBookDetails(numericId);
                             $originalBtn.prop('disabled', false).text('Tag Book');
-                            
+
                             if (res && res.title) {
                                 bookId = res.bookID || res.bookId || numericId;
                                 bookTitle = res.title;
@@ -376,7 +376,7 @@ class AdminMessagesController {
                                 $('#link-error').text("Cannot find the book from this link. Please check again.").show();
                                 return;
                             }
-                        } catch(e) {
+                        } catch (e) {
                             $('#btn-confirm-tag-book').prop('disabled', false).text('Tag Book');
                             $('#link-error').text("Cannot find the book from this link. Please check again.").show();
                             return;
@@ -387,13 +387,13 @@ class AdminMessagesController {
                             $originalBtn.prop('disabled', true).text('Loading...');
                             const books = await window.apiClient.apiGet('/api/RealBook?searchTerm=' + encodeURIComponent(searchTerm));
                             $originalBtn.prop('disabled', false).text('Tag Book');
-                            
+
                             const matchedBook = (books && books.length > 0) ? books[0] : null;
                             if (!matchedBook) {
                                 $('#link-error').text("Cannot find the book from this link. Please check again.").show();
                                 return;
                             }
-                            
+
                             bookId = matchedBook.bookID || matchedBook.bookId || "";
                             bookTitle = matchedBook.title;
                             bookAuthor = matchedBook.author || matchedBook.authors || "BookBlossom Curated";
@@ -436,10 +436,10 @@ class AdminMessagesController {
         });
 
         // Tabs toggle inside Tag Book Modal
-        $(document).on('click', '#tag-book-modal .btn-modal-tab', function() {
+        $(document).on('click', '#tag-book-modal .btn-modal-tab', function () {
             $('#tag-book-modal .btn-modal-tab').removeClass('active');
             $(this).addClass('active');
-            
+
             const target = $(this).data('target');
             $('#tag-book-modal .modal-tab-content').hide().removeClass('active');
             $('#tag-book-modal #' + target).fadeIn(150).addClass('active');
@@ -451,7 +451,7 @@ class AdminMessagesController {
         });
 
         // Select Book inside lists (Delegated)
-        $(document).on('click', '#tag-book-modal .book-select-item', function() {
+        $(document).on('click', '#tag-book-modal .book-select-item', function () {
             $('#tag-book-modal .book-select-item').removeClass('selected');
             $(this).addClass('selected');
         });
@@ -501,7 +501,7 @@ class AdminMessagesController {
                 attachedBookTitle: bookTitle,
                 attachedBookImage: bookImg
             };
-            
+
             this.view.renderMessages([tempMsg], true);
             const $tempBubble = this.view.$chatStream.find(`[data-msg-id="${tempId}"]`);
             $tempBubble.css('opacity', '0.6');
@@ -573,7 +573,7 @@ class AdminMessagesController {
             $('#lightbox-img').attr('src', src).show();
             $('#lightbox-video').hide();
             $('#btn-lightbox-scroll-to-msg').attr('data-target-id', targetId).show();
-            
+
             $('#chat-image-lightbox').fadeIn(150).css('display', 'flex');
         });
 
@@ -586,14 +586,14 @@ class AdminMessagesController {
             $grid.empty();
 
             // Assign unique IDs to any untagged images in admin-chat-stream
-            $('#admin-chat-stream .chat-media-click').each(function(index) {
+            $('#admin-chat-stream .chat-media-click').each(function (index) {
                 if (!$(this).attr('id')) {
                     $(this).attr('id', 'admin-chat-img-' + index);
                 }
             });
 
             // Assign unique IDs to any untagged videos in admin-chat-stream
-            $('#admin-chat-stream video').each(function(index) {
+            $('#admin-chat-stream video').each(function (index) {
                 if (!$(this).attr('id')) {
                     $(this).attr('id', 'admin-chat-video-' + index);
                 }
@@ -609,7 +609,7 @@ class AdminMessagesController {
                 $('#shared-pictures-empty').hide();
                 $grid.show();
 
-                $images.each(function() {
+                $images.each(function () {
                     const src = $(this).attr('src');
                     const targetId = $(this).attr('id');
 
@@ -626,7 +626,7 @@ class AdminMessagesController {
                     $grid.append(itemHtml);
                 });
 
-                $videos.each(function() {
+                $videos.each(function () {
                     const src = $(this).attr('src');
                     const targetId = $(this).attr('id');
 
@@ -669,7 +669,7 @@ class AdminMessagesController {
 
                 const uniqueLinks = new Set();
 
-                $cards.each(function() {
+                $cards.each(function () {
                     const title = $(this).find('h4').text();
                     const img = $(this).find('img').attr('src');
                     const link = $(this).find('a').attr('href');
@@ -699,30 +699,30 @@ class AdminMessagesController {
         });
 
         // Click on shared grid image/video to view in Lightbox
-        $(document).on('click', '.shared-grid-img', function() {
+        $(document).on('click', '.shared-grid-img', function () {
             const src = $(this).data('src');
             const targetId = $(this).data('target-id');
-            
+
             $('#lightbox-img').attr('src', src).show();
             $('#lightbox-video').hide();
             $('#btn-lightbox-scroll-to-msg').attr('data-target-id', targetId).show();
-            
+
             $('#chat-image-lightbox').fadeIn(150).css('display', 'flex');
         });
 
-        $(document).on('click', '.shared-grid-video', function() {
+        $(document).on('click', '.shared-grid-video', function () {
             const src = $(this).data('src');
             const targetId = $(this).data('target-id');
-            
+
             $('#lightbox-img').hide();
             $('#lightbox-video').attr('src', src).show();
             $('#btn-lightbox-scroll-to-msg').attr('data-target-id', targetId).show();
-            
+
             const videoEl = document.getElementById('lightbox-video');
             if (videoEl) {
-                videoEl.play().catch(() => {});
+                videoEl.play().catch(() => { });
             }
-            
+
             $('#chat-image-lightbox').fadeIn(150).css('display', 'flex');
         });
 
@@ -736,17 +736,17 @@ class AdminMessagesController {
         });
 
         // Hide Lightbox Modal
-        $('#chat-image-lightbox').on('click', function(e) {
+        $('#chat-image-lightbox').on('click', function (e) {
             if ($(e.target).closest('#btn-lightbox-scroll-to-msg').length > 0 || $(e.target).closest('#lightbox-video').length > 0) {
                 return;
             }
-            
+
             const videoEl = document.getElementById('lightbox-video');
             if (videoEl) {
                 videoEl.pause();
             }
-            
-            $(this).fadeOut(150, function() {
+
+            $(this).fadeOut(150, function () {
                 if ($('#shared-pictures-modal').hasClass('active')) {
                     $('#shared-pictures-modal').show();
                 }
@@ -754,7 +754,7 @@ class AdminMessagesController {
         });
 
         // Close modals handler
-        $(document).on('click', '.btn-close-shared-modal, #shared-pictures-modal .modal-backdrop, #shared-links-modal .modal-backdrop', function() {
+        $(document).on('click', '.btn-close-shared-modal, #shared-pictures-modal .modal-backdrop, #shared-links-modal .modal-backdrop', function () {
             $(this).closest('.custom-modal').fadeOut(200).removeClass('active');
         });
     }
@@ -801,14 +801,14 @@ class AdminMessagesController {
 
         const self = this;
         const matches = [];
-        this.view.$chatStream.find('.msg-text-bubble').each(function() {
+        this.view.$chatStream.find('.msg-text-bubble').each(function () {
             const $bubble = $(this);
             const rawText = $bubble.text();
             const lowerText = rawText.toLowerCase();
 
             if (lowerText.includes(query)) {
                 matches.push($bubble);
-                
+
                 // Highlight matches using regex replace
                 const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
                 const newHtml = rawText.replace(regex, '<span class="chat-search-highlight" style="background-color: #ffeb3b; color: #000; font-weight: 700; padding: 1px 4px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">$1</span>');
@@ -854,7 +854,7 @@ class AdminMessagesController {
         this.currentSearchIndex = -1;
         this.view.$chatSearchResultsCount.text('0 matches');
 
-        this.view.$chatStream.find('.msg-text-bubble').each(function() {
+        this.view.$chatStream.find('.msg-text-bubble').each(function () {
             const $bubble = $(this);
             // Replace highlighted tags back to clean text
             const rawText = $bubble.text();
@@ -887,7 +887,7 @@ class AdminMessagesController {
             if (booksRecent.length === 0) {
                 $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
             }
-        } catch(e) {
+        } catch (e) {
             $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load books.</div>');
         }
 
@@ -916,7 +916,7 @@ class AdminMessagesController {
             if (wishItems.length === 0) {
                 $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Wishlist is empty.</div>');
             }
-        } catch(e) {
+        } catch (e) {
             $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load wishlist.</div>');
         }
     }
