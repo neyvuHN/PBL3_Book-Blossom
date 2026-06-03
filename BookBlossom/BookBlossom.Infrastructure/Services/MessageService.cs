@@ -57,7 +57,7 @@ namespace BookBlossom.Infrastructure.Services
                 ConversationID = conversation.ConversationID,
                 CustomerID = conversation.BuyerID,
                 CustomerName = conversation.User?.UserName ?? "Unknown",
-                CustomerAvatar = "/images/Avatar/default-avatar.png",
+                CustomerAvatar = conversation.User?.Avatar ?? "/images/Avatar/default.png",
                 UpdatedAt = DateTime.SpecifyKind(conversation.UpdatedAt, DateTimeKind.Local),
                 LastMessageSnippet = lastMessage != null ? (lastMessage.Content.Length > 30 ? lastMessage.Content.Substring(0, 30) + "..." : lastMessage.Content) : "",
                 HasUnreadMessages = unreadCount > 0
@@ -87,7 +87,7 @@ namespace BookBlossom.Infrastructure.Services
                     ConversationID = conversation.ConversationID,
                     CustomerID = conversation.BuyerID,
                     CustomerName = conversation.User?.UserName ?? "Unknown",
-                    CustomerAvatar = "/images/Avatar/default-avatar.png",
+                    CustomerAvatar = conversation.User?.Avatar ?? "/images/Avatar/default.png",
                     UpdatedAt = DateTime.SpecifyKind(conversation.UpdatedAt, DateTimeKind.Local),
                     LastMessageSnippet = lastMessage != null ? (lastMessage.Content.Length > 30 ? lastMessage.Content.Substring(0, 30) + "..." : lastMessage.Content) : "",
                     HasUnreadMessages = unreadCount > 0
@@ -116,7 +116,7 @@ namespace BookBlossom.Infrastructure.Services
                     MessageID = m.MessageID,
                     SenderID = m.SenderType == 1 ? conversation.BuyerID : 1,
                     SenderName = m.SenderType == 1 ? (conversation.User?.UserName ?? "Unknown") : "BookBlossom Shop",
-                    SenderAvatar = m.SenderType == 1 ? "/images/Avatar/default-avatar.png" : "/images/Avatar/admin.png",
+                    SenderAvatar = m.SenderType == 1 ? (conversation.User?.Avatar ?? "/images/Avatar/default.png") : "/images/Avatar/admin.png",
                     Content = m.Content,
                     SentAt = DateTime.SpecifyKind(m.CreatedAt, DateTimeKind.Local),
                     IsRead = m.SenderType == 1 ? m.IsReadByShop : m.IsReadByBuyer
