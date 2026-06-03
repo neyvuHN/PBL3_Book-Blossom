@@ -88,9 +88,15 @@ class MessagesView {
         }, 4000);
     }
 
-    renderMessages(messages) {
-        this.$chatStream.empty();
+    renderMessages(messages, append = false) {
+        if (!append) {
+            this.$chatStream.empty();
+        }
+        
         messages.forEach(msg => {
+            if (append && this.$chatStream.find(`#chat-msg-${msg.messageID}`).length > 0) {
+                return;
+            }
             let bubble = '';
             let time = new Date(msg.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             

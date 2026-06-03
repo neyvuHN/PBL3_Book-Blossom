@@ -277,6 +277,7 @@ app.UseMiddleware<OnboardingRedirectMiddleware>();
 
 app.MapStaticAssets();
 app.MapHub<NotificationHub>("/hubs/notification");
+app.MapHub<ChatHub>("/chatHub");
 app.MapControllers();
 
 app.MapControllerRoute(

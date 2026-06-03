@@ -114,6 +114,7 @@ namespace BookBlossom.Infrastructure.Services
                 var dto = new MessageDto
                 {
                     MessageID = m.MessageID,
+                    ConversationID = m.ConversationID,
                     SenderID = m.SenderType == 1 ? conversation.BuyerID : 1,
                     SenderName = m.SenderType == 1 ? (conversation.User?.UserName ?? "Unknown") : "BookBlossom Shop",
                     SenderAvatar = m.SenderType == 1 ? (conversation.User?.Avatar ?? "/images/Avatar/default.png") : "/images/Avatar/admin.png",

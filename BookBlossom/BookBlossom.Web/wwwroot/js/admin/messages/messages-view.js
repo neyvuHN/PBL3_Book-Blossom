@@ -144,14 +144,21 @@ class AdminMessagesView {
         });
     }
 
-    renderMessages(messages) {
-        this.$chatStream.empty();
-        if (messages.length === 0) {
+    renderMessages(messages, append = false) {
+        if (!append) {
+            this.$chatStream.empty();
+        }
+        
+        if (messages.length === 0 && !append) {
             this.$chatStream.append('<div style="padding: 40px; text-align: center; color: #aaa; font-style: italic;">No messages yet. Send a message to start conversation.</div>');
             return;
         }
 
         messages.forEach(msg => {
+            // Avoid duplicates
+            if (append && this.$chatStream.find(`[data-msg-id="${msg.messageID}"]`).length > 0) {
+                return;
+            }
             const time = new Date(msg.sentAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             
             let booksHtml = "";
@@ -187,7 +194,7 @@ class AdminMessagesView {
             if (msg.senderAvatar.includes('admin') || msg.senderName === "BookBlossom Shop") {
                 // Outgoing for Admin
                 bubble = `
-                    <div class="msg-bubble-group outgoing">
+                    <div class="msg-bubble-group outgoing" data-msg-id="${msg.messageID}">
                         <div class="msg-bubble-content">
                             <div class="msg-text-bubble" style="background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333;">
                                 ${contentHtml}
@@ -202,7 +209,7 @@ class AdminMessagesView {
                 // Incoming from User
                 const avatar = msg.senderAvatar || '/images/Avatar/default.png';
                 bubble = `
-                    <div class="msg-bubble-group incoming">
+                    <div class="msg-bubble-group incoming" data-msg-id="${msg.messageID}">
                         <div class="msg-avatar-container">
                             <img src="${avatar}" alt="${this.escapeHtml(msg.senderName)}" class="msg-avatar" onerror="this.src='/images/Avatar/default.png'">
                         </div>

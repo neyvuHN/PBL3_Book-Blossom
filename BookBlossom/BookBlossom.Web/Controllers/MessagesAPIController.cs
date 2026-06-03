@@ -9,6 +9,7 @@ using BookBlossom.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 
 namespace BookBlossom.Web.Controllers
 {
@@ -20,12 +21,18 @@ namespace BookBlossom.Web.Controllers
         private readonly IMessageService _messageService;
         private readonly ICallRequestService _callRequestService;
         private readonly ApplicationDbContext _context;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<BookBlossom.Web.Hubs.ChatHub> _hubContext;
 
-        public MessagesAPIController(IMessageService messageService, ICallRequestService callRequestService, ApplicationDbContext context)
+        public MessagesAPIController(
+            IMessageService messageService, 
+            ICallRequestService callRequestService, 
+            ApplicationDbContext context,
+            Microsoft.AspNetCore.SignalR.IHubContext<BookBlossom.Web.Hubs.ChatHub> hubContext)
         {
             _messageService = messageService;
             _callRequestService = callRequestService;
             _context = context;
+            _hubContext = hubContext;
         }
 
         private long GetCurrentUserId()
@@ -94,6 +101,15 @@ namespace BookBlossom.Web.Controllers
             {
                 var userId = GetCurrentUserId();
                 var result = await _messageService.SendMessageAsync(userId, dto);
+
+                // Broadcast the message using SignalR
+                if (result != null && result.MessageID > 0)
+                {
+                    await _hubContext.Clients
+                        .Group($"conversation-{result.ConversationID}")
+                        .SendAsync("ReceiveMessage", result);
+                }
+
                 return Ok(new { success = true, data = result });
             }
             catch (Exception ex)

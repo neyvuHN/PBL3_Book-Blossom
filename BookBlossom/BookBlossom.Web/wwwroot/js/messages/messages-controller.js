@@ -24,6 +24,33 @@ class MessagesController {
 
         // 2. Parse active product context from URL query params
         this.parseUrlContext();
+        
+        // 3. Initialize SignalR
+        this.initSignalR();
+    }
+
+    initSignalR() {
+        if (typeof signalR === 'undefined') {
+            console.warn("SignalR is not loaded.");
+            return;
+        }
+
+        this.hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .withAutomaticReconnect()
+            .build();
+            
+        this.hubConnection.on("ReceiveMessage", (message) => {
+            if (this.model.activeConversationId === message.conversationID) {
+                this.view.renderMessages([message], true);
+            }
+        });
+        
+        this.hubConnection.start().then(() => {
+            if (this.model.activeConversationId) {
+                this.hubConnection.invoke("JoinConversation", this.model.activeConversationId).catch(console.error);
+            }
+        }).catch(err => console.error("SignalR connection error:", err));
     }
 
     async loadMessagesFlow() {
@@ -31,6 +58,12 @@ class MessagesController {
             const conversationsRes = await this.model.fetchConversations();
             if (conversationsRes && conversationsRes.data && conversationsRes.data.length > 0) {
                 this.model.activeConversationId = conversationsRes.data[0].conversationID;
+                
+                // Join SignalR group if connected
+                if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
+                    this.hubConnection.invoke("JoinConversation", this.model.activeConversationId).catch(console.error);
+                }
+                
                 const messagesRes = await this.model.fetchMessages(this.model.activeConversationId);
                 if (messagesRes && messagesRes.data) {
                     this.view.renderMessages(messagesRes.data);

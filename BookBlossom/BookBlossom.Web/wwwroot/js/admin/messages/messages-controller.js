@@ -22,6 +22,37 @@ class AdminMessagesController {
         await this.loadSupportRequests();
         this.bindEvents();
         this.checkUrlParameters();
+        this.initSignalR();
+    }
+
+    initSignalR() {
+        if (typeof signalR === 'undefined') {
+            console.warn("SignalR is not loaded.");
+            return;
+        }
+
+        this.hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .withAutomaticReconnect()
+            .build();
+            
+        this.hubConnection.on("ReceiveMessage", (message) => {
+            // Check if message belongs to currently active conversation
+            if (this.model.activeConversationId === message.conversationID) {
+                // If it's my own message from another session or we already added it locally, this might duplicate,
+                // but SendMessage re-fetches all anyway. Let's just append it.
+                this.view.renderMessages([message], true);
+            }
+            
+            // Reload conversations to update snippet and unread status
+            this.loadConversations();
+        });
+        
+        this.hubConnection.start().then(() => {
+            if (this.model.activeConversationId) {
+                this.hubConnection.invoke("JoinConversation", this.model.activeConversationId).catch(console.error);
+            }
+        }).catch(err => console.error("SignalR connection error:", err));
     }
 
     async loadConversations() {
@@ -43,9 +74,17 @@ class AdminMessagesController {
     }
 
     async selectConversation(convoId, buyerName, buyerAvatar) {
+        if (this.model.activeConversationId && this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
+            this.hubConnection.invoke("LeaveConversation", this.model.activeConversationId).catch(console.error);
+        }
+
         this.model.activeConversationId = convoId;
         this.view.$chatMainArea.fadeIn(200);
         this.view.$reqDetailArea.hide();
+
+        if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
+            this.hubConnection.invoke("JoinConversation", convoId).catch(console.error);
+        }
 
         // 1. Instantly set basic header & profile info
         this.view.renderBuyerProfile({

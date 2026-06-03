@@ -18,6 +18,7 @@ namespace BookBlossom.Core.DTOs
     public class MessageDto
     {
         public long MessageID { get; set; }
+        public long ConversationID { get; set; }
         public long SenderID { get; set; }
         public string SenderName { get; set; } = string.Empty;
         public string SenderAvatar { get; set; } = string.Empty;
