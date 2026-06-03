@@ -347,13 +347,24 @@
             height: 48px;
         }
 
-        .convo-avatar {
+        .convo-avatar-container {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            object-fit: cover;
             border: 2px solid #fff;
             box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .convo-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .convo-avatar[src*="BookBlossom.png"] {
+            transform: scale(1.30);
         }
 
         .online-dot {
@@ -648,12 +659,24 @@
             align-self: flex-start;
         }
 
-        .msg-avatar {
+        .msg-avatar-container {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            object-fit: cover;
+            overflow: hidden;
             align-self: flex-end;
+            display: inline-block;
+        }
+
+        .msg-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .msg-avatar[src*="BookBlossom.png"] {
+            transform: scale(1.3);
         }
 
         .msg-bubble-content {
@@ -866,14 +889,25 @@
             text-align: center;
         }
 
-        .shop-profile-avatar {
+        .shop-profile-avatar-container {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            object-fit: cover;
             border: 3px solid #F4E1E2;
-            margin-bottom: 15px;
+            margin: 0 auto 15px;
             box-shadow: 0 4px 12px rgba(194, 24, 91, 0.1);
+            overflow: hidden;
+        }
+
+        .shop-profile-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .shop-profile-avatar[src*="BookBlossom.png"] {
+            transform: scale(1.3);
         }
 
         .shop-profile-name {

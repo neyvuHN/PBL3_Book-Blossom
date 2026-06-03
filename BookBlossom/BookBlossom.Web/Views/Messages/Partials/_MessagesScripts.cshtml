@@ -501,7 +501,9 @@
                             }
                             const shopBubble = `
                                 <div class="msg-bubble-group incoming">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                    <div class="msg-avatar-container">
+                                        <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                                    </div>
                                     <div class="msg-bubble-content">
                                         <div class="msg-text-bubble">${replyText}</div>
                                         <div class="msg-meta">${time} • Shop Supporter</div>
@@ -524,7 +526,9 @@
                             const replyText = "Oh! Thank you for sharing these media files. 📸 Our curators are looking at them right now! Let us know if you need any assistance or have specific preferences. 🌸";
                             const shopBubble = `
                                 <div class="msg-bubble-group incoming">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                    <div class="msg-avatar-container">
+                                        <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                                    </div>
                                     <div class="msg-bubble-content">
                                         <div class="msg-text-bubble">${replyText}</div>
                                         <div class="msg-meta">${time} • Shop Supporter</div>
@@ -600,7 +604,9 @@
                         const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
                         const shopBubble = `
                             <div class="msg-bubble-group incoming">
-                                <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                <div class="msg-avatar-container">
+                                    <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                                </div>
                                 <div class="msg-bubble-content">
                                     <div class="msg-text-bubble">${replyText}</div>
                                     <div class="msg-meta">${time} • Shop Supporter</div>
@@ -1142,7 +1148,9 @@
                 setTimeout(function() {
                     const replyHtml = `
                         <div class="msg-bubble-group incoming">
-                            <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                            <div class="msg-avatar-container">
+                                <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                            </div>
                             <div class="msg-bubble-content">
                                 <div class="msg-text-bubble">
                                     Thank you Jane! 🌸 We have successfully received your support ticket regarding <strong>${selectedTopics[0]}</strong>. A BookBlossom support specialist will call you at <strong>${phone}</strong> shortly!
