@@ -317,6 +317,39 @@ class AdminMessagesView {
         this.renderTaggedBookPreview(null);
         this.renderMediaPreviews([]);
     }
+
+    scrollToMessage(targetId) {
+        const $target = $('#' + targetId);
+        if ($target.length > 0) {
+            const stream = document.getElementById('admin-chat-stream');
+            const $stream = $('#admin-chat-stream');
+            
+            const targetScrollTop = $target.offset().top - $stream.offset().top + $stream.scrollTop() - 40;
+            
+            if (stream) {
+                stream.scrollTo({
+                    top: targetScrollTop,
+                    behavior: 'smooth'
+                });
+            }
+            
+            const $highlightTarget = $target.closest('.msg-text-bubble');
+            if ($highlightTarget.length > 0) {
+                $highlightTarget.css({
+                    'box-shadow': '0 0 0 5px rgba(194, 24, 91, 0.45)',
+                    'transition': 'all 0.3s ease',
+                    'transform': 'scale(1.015)'
+                });
+                
+                setTimeout(function() {
+                    $highlightTarget.css({
+                        'box-shadow': 'none',
+                        'transform': 'none'
+                    });
+                }, 1800);
+            }
+        }
+    }
 }
 
 // Attach to window namespace for global access

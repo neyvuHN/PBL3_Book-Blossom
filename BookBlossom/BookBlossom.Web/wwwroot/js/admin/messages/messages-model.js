@@ -103,9 +103,20 @@ class AdminMessagesModel {
         if (!window.apiClient) return [];
         try {
             const res = await window.apiClient.apiGet('/api/Wishlist');
-            return res?.data || [];
+            return res?.data || res || [];
         } catch (err) {
             console.error("Failed to fetch wishlist:", err);
+            throw err;
+        }
+    }
+
+    async fetchBookDetails(bookId) {
+        if (!window.apiClient) return null;
+        try {
+            const res = await window.apiClient.apiGet('/api/RealBook/' + bookId);
+            return res?.data || res || null;
+        } catch (err) {
+            console.error(`Failed to fetch book details for ${bookId}:`, err);
             throw err;
         }
     }
