@@ -37,8 +37,10 @@ class AdminMessagesController {
             .build();
             
         this.hubConnection.on("ReceiveMessage", (message) => {
+            console.log("SignalR ReceiveMessage:", message);
+            const msgConvoId = message.conversationID || message.conversationId;
             // Check if message belongs to currently active conversation
-            if (this.model.activeConversationId === message.conversationID) {
+            if (this.model.activeConversationId?.toString() === msgConvoId?.toString()) {
                 // If it's my own message from another session or we already added it locally, this might duplicate,
                 // but SendMessage re-fetches all anyway. Let's just append it.
                 this.view.renderMessages([message], true);
@@ -49,8 +51,11 @@ class AdminMessagesController {
         });
         
         this.hubConnection.start().then(() => {
+            console.log("SignalR Connected Successfully!");
             if (this.model.activeConversationId) {
-                this.hubConnection.invoke("JoinConversation", this.model.activeConversationId).catch(console.error);
+                this.hubConnection.invoke("JoinConversation", this.model.activeConversationId)
+                    .then(() => console.log("Joined conversation group:", this.model.activeConversationId))
+                    .catch(console.error);
             }
         }).catch(err => console.error("SignalR connection error:", err));
     }
@@ -83,7 +88,9 @@ class AdminMessagesController {
         this.view.$reqDetailArea.hide();
 
         if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
-            this.hubConnection.invoke("JoinConversation", convoId).catch(console.error);
+            this.hubConnection.invoke("JoinConversation", convoId)
+                .then(() => console.log("Joined conversation group:", convoId))
+                .catch(console.error);
         }
 
         // 1. Instantly set basic header & profile info

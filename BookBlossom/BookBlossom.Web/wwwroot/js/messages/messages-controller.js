@@ -41,14 +41,19 @@ class MessagesController {
             .build();
             
         this.hubConnection.on("ReceiveMessage", (message) => {
-            if (this.model.activeConversationId === message.conversationID) {
+            console.log("SignalR ReceiveMessage:", message);
+            const msgConvoId = message.conversationID || message.conversationId;
+            if (this.model.activeConversationId?.toString() === msgConvoId?.toString()) {
                 this.view.renderMessages([message], true);
             }
         });
         
         this.hubConnection.start().then(() => {
+            console.log("SignalR Connected Successfully!");
             if (this.model.activeConversationId) {
-                this.hubConnection.invoke("JoinConversation", this.model.activeConversationId).catch(console.error);
+                this.hubConnection.invoke("JoinConversation", this.model.activeConversationId)
+                    .then(() => console.log("Joined conversation group:", this.model.activeConversationId))
+                    .catch(console.error);
             }
         }).catch(err => console.error("SignalR connection error:", err));
     }
@@ -61,7 +66,9 @@ class MessagesController {
                 
                 // Join SignalR group if connected
                 if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
-                    this.hubConnection.invoke("JoinConversation", this.model.activeConversationId).catch(console.error);
+                    this.hubConnection.invoke("JoinConversation", this.model.activeConversationId)
+                        .then(() => console.log("Joined conversation group (initial load):", this.model.activeConversationId))
+                        .catch(console.error);
                 }
                 
                 const messagesRes = await this.model.fetchMessages(this.model.activeConversationId);
