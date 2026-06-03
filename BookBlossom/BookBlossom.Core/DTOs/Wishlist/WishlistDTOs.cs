@@ -8,7 +8,9 @@ namespace BookBlossom.Core.DTOs.Wishlist
         public long? BookID { get; set; }
         public long? BlindBookID { get; set; }
         public string? Title { get; set; }
+        public string? Author { get; set; }
         public decimal Price { get; set; }
+        public string? ImageUrl { get; set; }
         public DateTime AddedAt { get; set; }
     }
 

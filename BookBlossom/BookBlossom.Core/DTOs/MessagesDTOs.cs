@@ -22,7 +22,7 @@ namespace BookBlossom.Core.DTOs
         public string SenderName { get; set; } = string.Empty;
         public string SenderAvatar { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
-        public string? AttachmentUrl { get; set; }
+        public List<string>? AttachmentUrls { get; set; } = new List<string>();
         public long? AttachedBookID { get; set; }
         public string? AttachedBookTitle { get; set; }
         public string? AttachedBookAuthor { get; set; }
@@ -36,7 +36,7 @@ namespace BookBlossom.Core.DTOs
         public long? ConversationID { get; set; }
         public long? ReceiverID { get; set; } // If admin sends to customer, or customer initializes
         public string Content { get; set; } = string.Empty;
-        public string? AttachmentUrl { get; set; }
+        public List<string>? AttachmentUrls { get; set; } = new List<string>();
         public long? AttachedBookID { get; set; }
     }
 

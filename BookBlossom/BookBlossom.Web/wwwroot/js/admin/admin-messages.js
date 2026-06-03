@@ -136,12 +136,16 @@ function initAdminMessages() {
                         }
 
                         let mediaHtml = "";
-                        if (msg.attachmentUrl) {
-                            if (msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-                                mediaHtml = `<img src="${msg.attachmentUrl}" style="width: 100%; max-height: 200px; border-radius: 8px; margin-top:10px; object-fit:cover;">`;
-                            } else {
-                                mediaHtml = `<video src="${msg.attachmentUrl}" controls style="width: 100%; max-height: 200px; background: #000; border-radius: 8px; margin-top:10px;"></video>`;
-                            }
+                        if (msg.attachmentUrls && msg.attachmentUrls.length > 0) {
+                            mediaHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">`;
+                            msg.attachmentUrls.forEach(url => {
+                                if (url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+                                    mediaHtml += `<img src="${url}" style="width: calc(50% - 4px); min-width: 100px; height: 120px; object-fit: cover; border-radius: 8px;">`;
+                                } else {
+                                    mediaHtml += `<video src="${url}" controls style="width: 100%; max-height: 200px; background: #000; border-radius: 8px;"></video>`;
+                                }
+                            });
+                            mediaHtml += `</div>`;
                         }
 
                         let bubble = '';
