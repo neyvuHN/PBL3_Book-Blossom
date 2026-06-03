@@ -158,49 +158,71 @@ class ProfileView {
     }
 
     /**
-     * Renders badge medals to cabinet grid layout
+     * Renders badge medals to cabinet grid layout (including locked ones)
      */
-    renderBadgesGrid(cabinetElement, badges, maxDisplay) {
+    renderBadgesGrid(cabinetElement, allBadges, earnedBadgeNames, maxDisplay) {
         cabinetElement.empty();
         let displayCount = 0;
 
-        badges.forEach(badge => {
+        // Sort allBadges: earned badges first
+        const sortedBadges = [...allBadges].sort((a, b) => {
+            const aName = a.badgeName || a.BadgeName;
+            const bName = b.badgeName || b.BadgeName;
+            const aEarned = earnedBadgeNames.includes(aName);
+            const bEarned = earnedBadgeNames.includes(bName);
+            if (aEarned && !bEarned) return -1;
+            if (!aEarned && bEarned) return 1;
+            return 0;
+        });
+
+        sortedBadges.forEach(badge => {
             if (displayCount >= maxDisplay) return;
-            cabinetElement.append(this.getMedalHtml(badge, 'small'));
+            const name = badge.badgeName || badge.BadgeName;
+            const isEarned = earnedBadgeNames.includes(name);
+            cabinetElement.append(this.getMedalHtml(name, 'small', isEarned));
             displayCount++;
         });
 
-        if (badges.length >= 1) {
-            const circleContent = badges.length > maxDisplay
-                ? `<i class="fas fa-plus" style="font-size: 0.8rem; margin-bottom: 2px;"></i><span>${badges.length - maxDisplay}</span>`
-                : `<i class="fas fa-eye" style="font-size: 1.15rem; margin-bottom: 0;"></i>`;
-
-            cabinetElement.append(`
-                <div class="badge-medal-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
-                    <div class="view-all-circle">
-                        ${circleContent}
-                    </div>
-                    <span class="view-all-label">View All</span>
+        // Always append View All button
+        cabinetElement.append(`
+            <div class="badge-medal-view-all" data-bs-toggle="modal" data-bs-target="#allBadgesModal">
+                <div class="view-all-circle">
+                    <i class="fas fa-eye" style="font-size: 1.15rem; margin-bottom: 0;"></i>
                 </div>
-            `);
-        }
+                <span class="view-all-label">View All</span>
+            </div>
+        `);
     }
 
     /**
-     * Renders badge medals list in the modal view
+     * Renders badge medals list in the modal view (including locked ones)
      */
-    renderBadgesModal(modalBodyElement, badges, earnedDates) {
+    renderBadgesModal(modalBodyElement, allBadges, earnedBadgeNames, earnedDates) {
         modalBodyElement.empty();
-        badges.forEach(badge => {
-            const dateVal = (earnedDates && earnedDates[badge]) ? earnedDates[badge] : new Date().toISOString().split('T')[0];
-            modalBodyElement.append(this.getMedalHtml(badge, 'large', dateVal));
+
+        // Sort allBadges: earned badges first
+        const sortedBadges = [...allBadges].sort((a, b) => {
+            const aName = a.badgeName || a.BadgeName;
+            const bName = b.badgeName || b.BadgeName;
+            const aEarned = earnedBadgeNames.includes(aName);
+            const bEarned = earnedBadgeNames.includes(bName);
+            if (aEarned && !bEarned) return -1;
+            if (!aEarned && bEarned) return 1;
+            return 0;
+        });
+
+        sortedBadges.forEach(badge => {
+            const name = badge.badgeName || badge.BadgeName;
+            const isEarned = earnedBadgeNames.includes(name);
+            const dateVal = (earnedDates && earnedDates[name]) ? earnedDates[name] : null;
+            modalBodyElement.append(this.getMedalHtml(name, 'large', isEarned, dateVal));
         });
     }
 
     /**
      * Formulates complete HTML structure of a single 3D physical-like medal using custom SVG
      */
-    getMedalHtml(badgeName, sizeClass, earnedDate = null) {
+    getMedalHtml(badgeName, sizeClass, isEarned = true, earnedDate = null) {
         let scallopGrad = "goldGrad";
         let innerGrad = "goldInner";
         let iconClass = "fa-medal";
@@ -277,10 +299,14 @@ class ProfileView {
             themeClass = "theme-crimson";
         }
 
+        const lockedStyle = isEarned ? "" : "filter: grayscale(100%) opacity(0.45);";
+        const lockedTitle = isEarned ? `${titleText}: ${desc}` : `🔒 ${titleText} (Locked)`;
+        const finalIconClass = isEarned ? iconClass : "fa-lock";
+
         // Return modular HTML: Grid cabinet vs detailed Modal item
         if (sizeClass === 'small') {
             return `
-                <div class="badge-medal ${themeClass} ${levelClass}" title="${titleText}: ${desc}">
+                <div class="badge-medal ${themeClass} ${levelClass}" title="${lockedTitle}" style="${lockedStyle}">
                     <div class="medal-container">
                         <svg class="medal-svg" viewBox="0 0 100 100">
                             <!-- Left Ribbon Tail -->
@@ -299,7 +325,7 @@ class ProfileView {
                             <path class="medal-gloss" d="M 23 35 A 31.5 31.5 0 0 1 77 35 A 31.5 28 0 0 0 23 35 Z" fill="rgba(255,255,255,0.18)" />
                         </svg>
                         <div class="medal-icon-container">
-                            <i class="fas ${iconClass}"></i>
+                            <i class="fas ${finalIconClass}"></i>
                         </div>
                     </div>
                     <span class="medal-title">${titleText}</span>
@@ -307,17 +333,24 @@ class ProfileView {
             `;
         } else {
             // Large list item in modal
-            let formattedDate = '';
-            if (earnedDate) {
-                const dateObj = new Date(earnedDate);
-                const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                formattedDate = dateObj.toLocaleDateString('en-US', options);
+            const lockedRowStyle = isEarned ? "" : "filter: grayscale(100%) opacity(0.5);";
+            let dateHtml = '';
+            if (isEarned) {
+                let formattedDate = '';
+                if (earnedDate) {
+                    const dateObj = new Date(earnedDate);
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    formattedDate = dateObj.toLocaleDateString('en-US', options);
+                } else {
+                    formattedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                }
+                dateHtml = `<span class="badge-earned-date"><i class="far fa-calendar-alt me-1"></i> Earned on: ${formattedDate}</span>`;
             } else {
-                formattedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                dateHtml = `<span class="badge-earned-date" style="color:#b0b0b0;"><i class="fas fa-lock me-1"></i> Not yet earned</span>`;
             }
 
             return `
-                <div class="badge-modal-medal-row ${themeClass} ${levelClass}">
+                <div class="badge-modal-medal-row ${themeClass} ${levelClass}" style="${lockedRowStyle}">
                     <div class="medal-container" style="width: 70px; height: 80px;">
                         <svg class="medal-svg" viewBox="0 0 100 100">
                             <path class="ribbon-tail-left" d="M 36 50 L 15 92 L 32 83 L 45 92 Z" fill="url(#ribbonLeftGrad)" />
@@ -330,13 +363,13 @@ class ProfileView {
                             <path class="medal-gloss" d="M 23 35 A 31.5 31.5 0 0 1 77 35 A 31.5 28 0 0 0 23 35 Z" fill="rgba(255,255,255,0.18)" />
                         </svg>
                         <div class="medal-icon-container" style="font-size: 1.15rem; transform: translate(-50%, -50%) translateY(-4px);">
-                            <i class="fas ${iconClass}"></i>
+                            <i class="fas ${isEarned ? iconClass : "fa-lock"}"></i>
                         </div>
                     </div>
                     <div class="badge-modal-info">
                         <h6>${titleText}</h6>
                         <p>${desc}</p>
-                        <span class="badge-earned-date"><i class="far fa-calendar-alt me-1"></i> Earned on: ${formattedDate}</span>
+                        ${dateHtml}
                     </div>
                 </div>
             `;

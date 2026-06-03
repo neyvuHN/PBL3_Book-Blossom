@@ -21,6 +21,7 @@ namespace BookBlossom.Web.Controllers
         }
 
         [HttpGet("/Profile")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Index()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

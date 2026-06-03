@@ -4,6 +4,16 @@
  */
 
 const apiClient = (function () {
+    // Sync localStorage with session cookie
+    const hasAuthCookie = document.cookie.split(';').some(item => item.trim().startsWith('AuthToken='));
+    if (!hasAuthCookie && localStorage.getItem('accessToken')) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('roleId');
+    }
+
     // Standard Headers
     function getHeaders(isFormData = false) {
         const headers = {};

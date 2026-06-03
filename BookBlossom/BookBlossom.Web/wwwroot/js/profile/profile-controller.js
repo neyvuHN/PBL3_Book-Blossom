@@ -81,11 +81,19 @@ class ProfileController {
             // Fetch reputation
             const rep = await this.model.fetchMyReputation();
             
-            // Fetch badges
+            // Fetch all system badges
+            let allBadges = [];
+            try {
+                allBadges = await this.model.fetchAllBadges();
+            } catch (e) {
+                console.warn('Failed to fetch system badges:', e);
+            }
+
+            // Fetch user earned badges
             const badgesData = await this.model.fetchMyBadges(); // array of BadgeCustomerDTO: BadgeID, BadgeName, Description, EarnedAt
             
             // Map badges data to match expected format in ProfileView.render
-            const badges = (badgesData || []).map(b => b.badgeName || b.BadgeName);
+            const earnedBadgeNames = (badgesData || []).map(b => b.badgeName || b.BadgeName);
             const badgeEarnedDates = {};
             (badgesData || []).forEach(b => {
                 const name = b.badgeName || b.BadgeName;
@@ -131,18 +139,28 @@ class ProfileController {
 
             // Update badges cabinet
             const cabinet = $('#display-badges-cabinet');
-            if (cabinet.length && badges.length > 0) {
-                this.view.renderBadgesGrid(cabinet, badges, 4);
+            if (cabinet.length) {
+                if (allBadges.length > 0) {
+                    this.view.renderBadgesGrid(cabinet, allBadges, earnedBadgeNames, 4);
+                } else if (earnedBadgeNames.length > 0) {
+                    const fallbackBadges = earnedBadgeNames.map(name => ({ badgeName: name, BadgeName: name }));
+                    this.view.renderBadgesGrid(cabinet, fallbackBadges, earnedBadgeNames, 4);
+                }
             }
 
             // Update all badges modal body
             const modalBody = $('#allBadgesModal .modal-body .d-flex');
-            if (modalBody.length && badges.length > 0) {
-                this.view.renderBadgesModal(modalBody, badges, badgeEarnedDates);
+            if (modalBody.length) {
+                if (allBadges.length > 0) {
+                    this.view.renderBadgesModal(modalBody, allBadges, earnedBadgeNames, badgeEarnedDates);
+                } else if (earnedBadgeNames.length > 0) {
+                    const fallbackBadges = earnedBadgeNames.map(name => ({ badgeName: name, BadgeName: name }));
+                    this.view.renderBadgesModal(modalBody, fallbackBadges, earnedBadgeNames, badgeEarnedDates);
+                }
             }
 
             // Mystic Aura Update (Blind Date Destiny)
-            if (badges.includes("Blind Date Adventurer - Destiny")) {
+            if (earnedBadgeNames.includes("Blind Date Adventurer - Destiny")) {
                 $('.profile-avatar-wrapper').addClass("mystic-aura");
             } else {
                 $('.profile-avatar-wrapper').removeClass("mystic-aura");
@@ -210,8 +228,10 @@ class ProfileController {
                 
                 $('#edit-profile-form').slideUp(300);
 
-                // Reload the page to reflect changes properly via SSR
-                setTimeout(() => window.location.reload(), 1500);
+                // Reload the page to reflect changes properly via SSR with cache buster
+                setTimeout(() => {
+                    window.location.href = '/Profile?t=' + Date.now();
+                }, 1500);
             } catch (error) {
                 // Toast is handled by apiClient
                 $('#btn-edit-profile-save').prop('disabled', false).text('Save Changes');
@@ -335,8 +355,10 @@ class ProfileController {
                     self.view.showToast("Avatar image updated successfully!");
                     self.view.closeCropperModal();
                     
-                    // Reload to reflect new avatar generated from server
-                    setTimeout(() => window.location.reload(), 1500);
+                    // Reload to reflect new avatar generated from server with cache buster
+                    setTimeout(() => {
+                        window.location.href = '/Profile?t=' + Date.now();
+                    }, 1500);
                 } catch (error) {
                     $btn.prop('disabled', false).text('Apply Changes');
                 }

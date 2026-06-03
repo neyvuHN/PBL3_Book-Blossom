@@ -209,8 +209,8 @@
                     localStorage.setItem('userName', data.userName);
                     localStorage.setItem('roleId', data.roleID);
 
-                    // Set cookie for server-side Razor pages to authenticate
-                    document.cookie = "AuthToken=" + data.token + "; path=/; max-age=" + (60*60*24*7); // 7 days
+                    // Set cookie for server-side Razor pages to authenticate (Session cookie)
+                    document.cookie = "AuthToken=" + data.token + "; path=/;";
 
                     showToast('Đăng nhập thành công! Đang chuyển hướng...', 'success', 'Thành Công');
 

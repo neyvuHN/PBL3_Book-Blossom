@@ -273,6 +273,8 @@ app.UseMiddleware<GuestSessionMiddleware>();
 app.UseAuthentication(); // Thêm dòng này trước UseAuthorization
 app.UseAuthorization();
 
+app.UseMiddleware<OnboardingRedirectMiddleware>();
+
 app.MapStaticAssets();
 app.MapHub<NotificationHub>("/hubs/notification");
 app.MapControllers();

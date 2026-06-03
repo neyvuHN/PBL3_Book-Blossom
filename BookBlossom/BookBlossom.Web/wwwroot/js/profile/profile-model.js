@@ -112,6 +112,20 @@ class ProfileModel {
         }
     }
 
+    /**
+     * Fetches all available badges in the system.
+     * Route: GET /api/Badge
+     * @returns {Promise<Array>} List of all badges
+     */
+    async fetchAllBadges() {
+        try {
+            return await window.apiClient.apiGet('/api/Badge');
+        } catch (error) {
+            console.error('Failed to fetch all badges:', error);
+            throw error;
+        }
+    }
+
     // ─── Service Package API Methods ────────────────────────────────────
 
     /**
