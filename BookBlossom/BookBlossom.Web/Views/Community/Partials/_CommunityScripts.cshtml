@@ -12,6 +12,7 @@
         let selectedFiles = [];
         let userReputation = 100;
         let canUserComment = true;
+        let selectedBookId = null;
 
         function isAuthenticated() {
             return !!localStorage.getItem('accessToken');
@@ -186,6 +187,16 @@
                         <p class="post-text" style="line-height:1.5; color:#444;">${escapeHtml(post.content)}</p>
                         ${post.hashtags ? `<p style="color:#C2185B; font-weight:600; margin-top:8px; font-size:0.9rem;">${escapeHtml(post.hashtags)}</p>` : ''}
                         ${renderImages(post.images)}
+                        ${post.bookID ? `
+                        <div class="tagged-book-card" data-book-id="${post.bookID}" style="display:flex; align-items:center; gap:12px; background:#f9f9f9; border:1px solid #eee; border-radius:12px; padding:10px 14px; margin-top:12px;">
+                            <img src="${escapeHtml(imageUrl(post.bookImage))}" alt="Book Cover" class="tagged-book-img" style="width:48px; height:68px; object-fit:cover; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                            <div class="tagged-book-info" style="flex:1;">
+                                <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#222;">${escapeHtml(post.bookTitle)}</h4>
+                                <p style="margin:2px 0 0 0; font-size:0.82rem; color:#666;">${escapeHtml(post.bookAuthor || 'Unknown Author')}</p>
+                            </div>
+                            <a href="/Explore#book-details-${post.bookID}" class="btn-view-book" style="background:#C2185B; color:#fff; text-decoration:none; padding:6px 14px; border-radius:20px; font-size:0.8rem; font-weight:600; transition:all 0.2s; border:none; cursor:pointer;">View Book</a>
+                        </div>
+                        ` : ''}
                         ${renderReportBadge(post)}
                     </div>
 
@@ -311,6 +322,7 @@
             $('#thread-image-input').val('');
             selectedFiles = [];
             renderImagePreviews();
+            renderTaggedBookPreview(null);
         }
 
         function openEditModal(postId) {
@@ -650,6 +662,9 @@
                 formData.append('title', title);
                 formData.append('content', content);
                 formData.append('hashtags', hashtags);
+                if (selectedBookId) {
+                    formData.append('bookID', selectedBookId);
+                }
                 selectedFiles.forEach(file => formData.append('images', file));
 
                 await window.apiClient.apiUpload(THREAD_API, formData);
@@ -728,7 +743,9 @@
             }
 
             try {
-                await window.apiClient.apiPut(`${THREAD_API}/${postId}`, { title, content, hashtags });
+                const post = loadedPosts.get(String(postId));
+                const bookID = post ? post.bookID : null;
+                await window.apiClient.apiPut(`${THREAD_API}/${postId}`, { title, content, hashtags, bookID });
                 $('#edit-post-modal').fadeOut(180);
                 showToast('Đã cập nhật bài viết.');
                 await loadThreadFeed(true);
@@ -783,6 +800,187 @@
                 console.warn('Failed to fetch reputation check:', error);
             }
         }
+
+        function renderTaggedBookPreview(book) {
+            if (!book) {
+                selectedBookId = null;
+                $('#tagged-book-preview-container').hide().empty();
+                return;
+            }
+            selectedBookId = book.bookID;
+            const imgUrl = book.bookID ? `/images/Book/cover_${book.bookID}.jpg` : '/images/Book/book1.jpg';
+            $('#tagged-book-preview-container').html(`
+                <img src="${escapeHtml(imgUrl)}" alt="Book Cover" style="width: 36px; height: 50px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.15);">
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #222;">${escapeHtml(book.title)}</span>
+                    <span style="font-size: 0.75rem; color: #666;">${escapeHtml(book.authors || book.author || 'Unknown Author')}</span>
+                </div>
+                <button type="button" id="btn-remove-tagged-book" style="background: none; border: none; color: #ff4d4f; font-size: 1.1rem; cursor: pointer; padding: 4px;"><i class="fas fa-trash-alt"></i></button>
+            `).css('display', 'flex');
+        }
+
+        // Tag Book Modal Triggers & Logic (Similar to Messages, using the shared _HomeIndexModals.cshtml structure)
+        let tagBooksLoaded = false;
+        async function loadTagBooks() {
+            if (tagBooksLoaded || !window.apiClient) return;
+            tagBooksLoaded = true;
+
+            try {
+                // Fetch Recent Books (Real Books)
+                const resRecent = await window.apiClient.apiGet('/api/RealBook');
+                const booksRecent = Array.isArray(resRecent) ? resRecent : (resRecent?.data?.items || resRecent?.data || []);
+                const $recentList = $('#tab-recent .book-select-list').empty();
+                
+                booksRecent.slice(0, 15).forEach(book => {
+                    const imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : `/images/Book/cover_${book.bookID}.jpg`;
+                    const item = `
+                        <div class="book-select-item" data-id="${book.bookID}" data-title="${escapeHtml(book.title)}" data-author="${escapeHtml(book.author || 'Unknown')}" data-img="${escapeHtml(imgUrl)}" style="display:flex; align-items:center; gap:12px; padding:10px; border:1px solid #eee; border-radius:10px; cursor:pointer; transition:all 0.2s; margin-bottom:8px;">
+                            <img src="${escapeHtml(imgUrl)}" alt="Book" style="width:36px; height:50px; object-fit:cover; border-radius:4px;">
+                            <div style="flex:1;">
+                                <h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#222;">${escapeHtml(book.title)}</h4>
+                                <p style="margin:2px 0 0 0; font-size:0.78rem; color:#666;">${escapeHtml(book.author || 'Unknown')}</p>
+                            </div>
+                        </div>
+                    `;
+                    $recentList.append(item);
+                });
+                if (booksRecent.length === 0) {
+                    $recentList.html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
+                }
+
+                // Fetch Wishlist Items
+                if (isAuthenticated()) {
+                    const resWish = await window.apiClient.apiGet('/api/Wishlist');
+                    const wishItems = Array.isArray(resWish) ? resWish : (resWish?.data || []);
+                    const $wishList = $('#tab-wishlist .book-select-list').empty();
+
+                    wishItems.forEach(item => {
+                        const bookId = item.bookID || item.BookID;
+                        if (!bookId) return;
+                        const title = item.title || item.Title || 'Untitled Book';
+                        const author = item.author || item.Author || 'BookBlossom Selection';
+                        const imgUrl = `/images/Book/cover_${bookId}.jpg`;
+                        const html = `
+                            <div class="book-select-item" data-id="${bookId}" data-title="${escapeHtml(title)}" data-author="${escapeHtml(author)}" data-img="${escapeHtml(imgUrl)}" style="display:flex; align-items:center; gap:12px; padding:10px; border:1px solid #eee; border-radius:10px; cursor:pointer; transition:all 0.2s; margin-bottom:8px;">
+                                <img src="${escapeHtml(imgUrl)}" alt="Book" style="width:36px; height:50px; object-fit:cover; border-radius:4px;">
+                                <div style="flex:1;">
+                                    <h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#222;">${escapeHtml(title)}</h4>
+                                    <p style="margin:2px 0 0 0; font-size:0.78rem; color:#666;">${escapeHtml(author)}</p>
+                                </div>
+                            </div>
+                        `;
+                        $wishList.append(html);
+                    });
+                    if (wishItems.length === 0) {
+                        $wishList.html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
+                    }
+                } else {
+                    $('#tab-wishlist .book-select-list').html('<div style="text-align: center; padding: 20px; color: #888;">Please login to view wishlist.</div>');
+                }
+            } catch (err) {
+                console.error('Failed to load tag books:', err);
+            }
+        }
+
+        $(document).on('click', '.btn-tag-book', function (e) {
+            e.preventDefault();
+            if (!requireLogin()) return;
+            $('#tag-book-modal').fadeIn(200).addClass('active').css('display', 'flex');
+            
+            // Reset inputs and selections
+            $('#tag-book-link').val('');
+            $('#link-error').hide();
+            $('#tag-book-modal .book-select-item').removeClass('selected');
+            
+            // Activate first tab (By Link)
+            $('#tag-book-modal .btn-modal-tab').removeClass('active');
+            $('#tag-book-modal .btn-modal-tab[data-target="tab-link"]').addClass('active');
+            $('#tag-book-modal .modal-tab-content').hide().removeClass('active');
+            $('#tab-link').show().addClass('active');
+
+            loadTagBooks();
+        });
+
+        // Tab switching inside tag book modal
+        $(document).on('click', '#tag-book-modal .btn-modal-tab', function() {
+            $('#tag-book-modal .btn-modal-tab').removeClass('active');
+            $(this).addClass('active');
+            
+            const target = $(this).data('target');
+            $('#tag-book-modal .modal-tab-content').hide().removeClass('active');
+            $('#' + target).fadeIn(150).addClass('active');
+        });
+
+        // Select book inside lists
+        $(document).on('click', '#tag-book-modal .book-select-item', function() {
+            $('#tag-book-modal .book-select-item').removeClass('selected');
+            $(this).addClass('selected');
+        });
+
+        // Cancel / Dismiss Tag Book Modal
+        $(document).on('click', '#btn-cancel-tag-book, #tag-book-modal .modal-backdrop', function() {
+            $('#tag-book-modal').fadeOut(200).removeClass('active');
+        });
+
+        // Confirm Tag Book Selection
+        $(document).on('click', '#btn-confirm-tag-book', async function() {
+            const activeTab = $('#tag-book-modal .btn-modal-tab.active').data('target');
+
+            if (activeTab === 'tab-link') {
+                const linkVal = $('#tag-book-link').val().trim();
+                if (linkVal === '') {
+                    $('#link-error').text("Please enter a valid link.").show();
+                    return;
+                }
+                if (!linkVal.includes('bookblossom.com') && !linkVal.startsWith('/') && !linkVal.includes('#book-details')) {
+                    $('#link-error').text("Link must be from BookBlossom domain (contains 'bookblossom.com' or starts with '/').").show();
+                    return;
+                }
+                
+                // Resolve book details from link
+                let searchTerm = '';
+                if (linkVal.includes('#book-details-')) {
+                    searchTerm = decodeURIComponent(linkVal.split('#book-details-')[1]);
+                } else if (linkVal.includes('/book/')) {
+                    searchTerm = decodeURIComponent(linkVal.split('/book/')[1]);
+                } else {
+                    const lastSeg = linkVal.split('/').pop();
+                    searchTerm = decodeURIComponent(lastSeg);
+                }
+
+                try {
+                    const books = await window.apiClient.apiGet('/api/RealBook?searchTerm=' + encodeURIComponent(searchTerm));
+                    const matchedBook = Array.isArray(books) ? books[0] : null;
+                    if (!matchedBook) {
+                        $('#link-error').text("Cannot find the book from this link. Please check again.").show();
+                        return;
+                    }
+                    renderTaggedBookPreview(matchedBook);
+                    $('#tag-book-modal').fadeOut(200).removeClass('active');
+                } catch (err) {
+                    console.error(err);
+                    $('#link-error').text("Error searching book from link.").show();
+                }
+            } else {
+                // Selection tabs
+                const $selectedItem = $(`#${activeTab} .book-select-item.selected`);
+                if ($selectedItem.length === 0) {
+                    showToast("Please select a book first!", "error");
+                    return;
+                }
+                const book = {
+                    bookID: $selectedItem.data('id'),
+                    title: $selectedItem.data('title'),
+                    authors: $selectedItem.data('author')
+                };
+                renderTaggedBookPreview(book);
+                $('#tag-book-modal').fadeOut(200).removeClass('active');
+            }
+        });
+
+        $(document).on('click', '#btn-remove-tagged-book', function () {
+            renderTaggedBookPreview(null);
+        });
 
         async function initCommunity() {
             updateGuestState();

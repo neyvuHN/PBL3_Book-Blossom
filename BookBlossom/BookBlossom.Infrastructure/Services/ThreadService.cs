@@ -87,7 +87,8 @@ namespace BookBlossom.Infrastructure.Services
                 Hashtags = dto.Hashtags,
                 CreatedAt = now,
                 IsHidden = false,
-                ReportCount = 0
+                ReportCount = 0,
+                BookID = dto.BookID
             };
 
             _context.ThreadPosts.Add(post);
@@ -133,6 +134,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(p => p.User)
                 .Include(p => p.Images)
                 .Include(p => p.Comments)
+                .Include(p => p.Book).ThenInclude(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .FirstAsync(p => p.PostID == post.PostID);
 
             // 8. Send Notifications to Followers
@@ -174,6 +176,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(p => p.User)
                 .Include(p => p.Images)
                 .Include(p => p.Comments)
+                .Include(p => p.Book).ThenInclude(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .FirstOrDefaultAsync(p => p.PostID == postId);
 
             if (post == null)
@@ -189,6 +192,7 @@ namespace BookBlossom.Infrastructure.Services
             post.Title = dto.Title;
             post.Content = dto.Content;
             post.Hashtags = dto.Hashtags;
+            post.BookID = dto.BookID;
 
             await _context.SaveChangesAsync();
             var isLiked = await _context.ThreadLikes.AnyAsync(l => l.PostID == postId && l.CustomerID == customerId);
@@ -267,6 +271,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(p => p.User)
                 .Include(p => p.Images)
                 .Include(p => p.Comments)
+                .Include(p => p.Book).ThenInclude(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .Where(p => !p.IsHidden)
                 .OrderByDescending(p => p.CreatedAt)
                 .AsQueryable();
@@ -295,6 +300,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(p => p.Images)
                 .Include(p => p.Comments)
                     .ThenInclude(c => c.User)
+                .Include(p => p.Book).ThenInclude(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .FirstOrDefaultAsync(p => p.PostID == postId);
 
             if (post == null) return null;
@@ -568,7 +574,13 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     ImageID = img.ImageID,
                     ImagePath = img.ImagePath
-                }).ToList() ?? new List<ThreadImageDTO>()
+                }).ToList() ?? new List<ThreadImageDTO>(),
+                BookID = p.BookID,
+                BookTitle = p.Book?.Title,
+                BookAuthor = p.Book?.BookAuthors != null && p.Book.BookAuthors.Any()
+                    ? string.Join(", ", p.Book.BookAuthors.Select(ba => ba.Author != null ? ba.Author.AuthorName : string.Empty).Where(name => !string.IsNullOrEmpty(name)))
+                    : string.Empty,
+                BookImage = p.BookID.HasValue ? $"/images/Book/cover_{p.BookID.Value}.jpg" : null
             };
         }
     }
