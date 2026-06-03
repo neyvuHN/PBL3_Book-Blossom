@@ -725,53 +725,89 @@ class MessagesController {
                 return;
             }
             
-            const phone = $('#support-phone').val().trim();
+            const rawPhone = $('#support-phone').val().trim();
+            const phone = rawPhone.replace(/[\s.-]/g, '');
+            const phoneRegex = /^(0[3|5|7|8|9])[0-9]{8}$/;
+            if (!phoneRegex.test(phone)) {
+                alert('Số điện thoại không hợp lệ! Vui lòng nhập số điện thoại Việt Nam gồm 10 chữ số (bắt đầu bằng 03, 05, 07, 08 hoặc 09, ví dụ: 0935516370).');
+                return;
+            }
+            
             const notes = $('#support-notes').val().trim();
             
             $('#call-center-modal').fadeOut(200).removeClass('active');
             
-            const timestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-            
-            const ticketHtml = `
-                <div class="msg-bubble-group outgoing">
-                    <div class="msg-bubble-content">
-                        <div class="msg-text-bubble" style="background: #FFF5F6; border: 1.5px solid #EEC7C9; color: #333; padding: 15px; border-radius: 18px; box-shadow: 0 4px 15px rgba(194, 24, 91, 0.05); max-width: 320px;">
-                            <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; color: #C2185B; border-bottom: 1.5px dashed #EEC7C9; padding-bottom: 8px; margin-bottom: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-ticket-alt"></i> SUPPORT REQUEST TICKET
-                            </div>
-                            <div style="font-size: 0.8rem; line-height: 1.5; color: #444;">
-                                <strong>Topics:</strong> ${selectedTopics.join(', ')}<br>
-                                <strong>Phone:</strong> ${phone}<br>
-                                ${notes ? `<strong>Notes:</strong> ${notes}<br>` : ''}
-                                <span style="display: inline-block; margin-top: 8px; background: rgba(194, 24, 91, 0.1); color: #C2185B; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;"><i class="fas fa-spinner fa-spin" style="margin-right: 4px;"></i>Pending curation team</span>
+            let categoryValue = 0;
+            $('input[name="supportTopic"]:checked').each(function() {
+                const topic = $(this).val();
+                if (topic === 'Product / Book') categoryValue |= 1;
+                else if (topic === 'Order') categoryValue |= 2;
+                else if (topic === 'Payment') categoryValue |= 4;
+                else if (topic === 'Shipping') categoryValue |= 8;
+                else if (topic === 'Complaint / Refund') categoryValue |= 16;
+                else if (topic === 'Other') categoryValue |= 32;
+            });
+
+            const currentUsername = $('.user-dropdown .username').text().trim() || "Jane Doe";
+
+            const dto = {
+                category: categoryValue,
+                phoneNumber: phone,
+                note: notes,
+                conversationID: self.model.activeConversationId || null
+            };
+
+            if (window.apiClient) {
+                window.apiClient.apiPost('/api/MessagesAPI/call-request', dto).then(res => {
+                    const timestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    
+                    const ticketHtml = `
+                        <div class="msg-bubble-group outgoing">
+                            <div class="msg-bubble-content">
+                                <div class="msg-text-bubble" style="background: #FFF5F6; border: 1.5px solid #EEC7C9; color: #333; padding: 15px; border-radius: 18px; box-shadow: 0 4px 15px rgba(194, 24, 91, 0.05); max-width: 320px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; color: #C2185B; border-bottom: 1.5px dashed #EEC7C9; padding-bottom: 8px; margin-bottom: 8px; font-size: 0.9rem;">
+                                        <i class="fas fa-ticket-alt"></i> SUPPORT REQUEST TICKET
+                                    </div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5; color: #444;">
+                                        <strong>Topics:</strong> ${selectedTopics.join(', ')}<br>
+                                        <strong>Phone:</strong> ${phone}<br>
+                                        ${notes ? `<strong>Notes:</strong> ${notes}<br>` : ''}
+                                        <span style="display: inline-block; margin-top: 8px; background: rgba(194, 24, 91, 0.1); color: #C2185B; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;"><i class="fas fa-spinner fa-spin" style="margin-right: 4px;"></i>Pending curation team</span>
+                                    </div>
+                                </div>
+                                <div class="msg-meta">${timestamp} • ${currentUsername}</div>
                             </div>
                         </div>
-                        <div class="msg-meta">${timestamp} • Jane Doe</div>
-                    </div>
-                </div>
-            `;
-            
-            self.view.$chatStream.append(ticketHtml);
-            self.view.scrollToBottom();
-            
-            setTimeout(function() {
-                const replyHtml = `
-                    <div class="msg-bubble-group incoming">
-                        <div class="msg-avatar-container">
-                            <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
-                        </div>
-                        <div class="msg-bubble-content">
-                            <div class="msg-text-bubble">
-                                Thank you Jane! 🌸 We have successfully received your support ticket regarding <strong>${selectedTopics[0]}</strong>. A BookBlossom support specialist will call you at <strong>${phone}</strong> shortly!
+                    `;
+                    
+                    self.view.$chatStream.append(ticketHtml);
+                    self.view.scrollToBottom();
+                    
+                    setTimeout(function() {
+                        const replyHtml = `
+                            <div class="msg-bubble-group incoming">
+                                <div class="msg-avatar-container">
+                                    <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                                </div>
+                                <div class="msg-bubble-content">
+                                    <div class="msg-text-bubble">
+                                        Thank you ${currentUsername}! 🌸 We have successfully received your support ticket regarding <strong>${selectedTopics[0]}</strong>. A BookBlossom support specialist will call you at <strong>${phone}</strong> shortly!
+                                    </div>
+                                    <div class="msg-meta">${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} • Shop Supporter</div>
+                                </div>
                             </div>
-                            <div class="msg-meta">${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} • Shop Supporter</div>
-                        </div>
-                    </div>
-                `;
-                self.view.$chatStream.append(replyHtml);
-                self.view.scrollToBottom();
-                self.view.showConfettiOrToast("Support request sent! Our curator will reach out to you within minutes.");
-            }, 2000);
+                        `;
+                        self.view.$chatStream.append(replyHtml);
+                        self.view.scrollToBottom();
+                        self.view.showConfettiOrToast("Support request sent! Our curator will reach out to you within minutes.");
+                    }, 2000);
+                }).catch(err => {
+                    console.error("Failed to submit support request:", err);
+                    alert("Failed to submit support request: " + (err.message || err));
+                });
+            } else {
+                alert("API Client is not ready. Please try again.");
+            }
         });
 
         // Dismiss Modal
@@ -827,15 +863,19 @@ class MessagesController {
                     bookTitle = "Mystery Blind Book (" + bookId + ")";
                     bookAuthor = "BookBlossom Curated";
                     bookImg = "/images/BlindDateBook/BlindBook.jpg";
-                } else if (linkVal.includes('#book-details-')) {
-                    const hashPart = linkVal.split('#book-details-')[1];
-                    bookId = decodeURIComponent(hashPart);
-                    bookTitle = isNaN(bookId) ? bookId : "Book #" + bookId;
-                    bookAuthor = "BookBlossom Curated";
-                    bookImg = "/images/Book/book1.jpg";
-                    
-                    let numericId = parseInt(bookId);
-                    if (!isNaN(numericId)) {
+                } else if (linkVal.includes('#book-details-') || linkVal.includes('/book/') || linkVal.includes('/Explore')) {
+                    let searchTerm = '';
+                    if (linkVal.includes('#book-details-')) {
+                        searchTerm = decodeURIComponent(linkVal.split('#book-details-')[1]);
+                    } else if (linkVal.includes('/book/')) {
+                        searchTerm = decodeURIComponent(linkVal.split('/book/')[1]);
+                    } else {
+                        const lastSeg = linkVal.split('/').pop();
+                        searchTerm = decodeURIComponent(lastSeg);
+                    }
+
+                    let numericId = parseInt(searchTerm);
+                    if (!isNaN(numericId) && numericId.toString() === searchTerm.trim()) {
                         try {
                             const $originalBtn = $('#btn-confirm-tag-book');
                             $originalBtn.prop('disabled', true).text('Loading...');
@@ -843,12 +883,41 @@ class MessagesController {
                             $originalBtn.prop('disabled', false).text('Tag Book');
                             
                             if (res && res.title) {
+                                bookId = res.bookID || res.bookId || numericId;
                                 bookTitle = res.title;
-                                if (res.authors) bookAuthor = res.authors;
-                                if (res.sampleFilePath && res.sampleFilePath.includes('.')) bookImg = res.sampleFilePath; 
+                                bookAuthor = res.author || res.authors || "BookBlossom Curated";
+                                bookImg = res.sampleFilePath && res.sampleFilePath.includes('.') ? res.sampleFilePath : "/images/Book/book1.jpg";
+                            } else {
+                                $('#link-error').text("Cannot find the book from this link. Please check again.").show();
+                                return;
                             }
                         } catch(e) {
                             $('#btn-confirm-tag-book').prop('disabled', false).text('Tag Book');
+                            $('#link-error').text("Cannot find the book from this link. Please check again.").show();
+                            return;
+                        }
+                    } else {
+                        try {
+                            const $originalBtn = $('#btn-confirm-tag-book');
+                            $originalBtn.prop('disabled', true).text('Loading...');
+                            const books = await window.apiClient.apiGet('/api/RealBook?searchTerm=' + encodeURIComponent(searchTerm));
+                            $originalBtn.prop('disabled', false).text('Tag Book');
+                            
+                            const matchedBook = (books && books.length > 0) ? books[0] : null;
+                            if (!matchedBook) {
+                                $('#link-error').text("Cannot find the book from this link. Please check again.").show();
+                                return;
+                            }
+                            
+                            bookId = matchedBook.bookID || matchedBook.bookId || "";
+                            bookTitle = matchedBook.title;
+                            bookAuthor = matchedBook.author || matchedBook.authors || "BookBlossom Curated";
+                            bookImg = matchedBook.sampleFilePath && matchedBook.sampleFilePath.includes('.') ? matchedBook.sampleFilePath : "/images/Book/book1.jpg";
+                        } catch (err) {
+                            $('#btn-confirm-tag-book').prop('disabled', false).text('Tag Book');
+                            console.error(err);
+                            $('#link-error').text("Error searching book from link.").show();
+                            return;
                         }
                     }
                 } else {

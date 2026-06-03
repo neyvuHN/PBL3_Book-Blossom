@@ -36,8 +36,8 @@ namespace BookBlossom.Infrastructure.Services
                 conversation = new Conversation
                 {
                     BuyerID = customerId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
                     IsClosed = false
                 };
                 _context.Conversations.Add(conversation);
@@ -58,7 +58,7 @@ namespace BookBlossom.Infrastructure.Services
                 CustomerID = conversation.BuyerID,
                 CustomerName = conversation.User?.UserName ?? "Unknown",
                 CustomerAvatar = "/images/Avatar/default-avatar.png",
-                UpdatedAt = conversation.UpdatedAt,
+                UpdatedAt = DateTime.SpecifyKind(conversation.UpdatedAt, DateTimeKind.Local),
                 LastMessageSnippet = lastMessage != null ? (lastMessage.Content.Length > 30 ? lastMessage.Content.Substring(0, 30) + "..." : lastMessage.Content) : "",
                 HasUnreadMessages = unreadCount > 0
             };
@@ -88,7 +88,7 @@ namespace BookBlossom.Infrastructure.Services
                     CustomerID = conversation.BuyerID,
                     CustomerName = conversation.User?.UserName ?? "Unknown",
                     CustomerAvatar = "/images/Avatar/default-avatar.png",
-                    UpdatedAt = conversation.UpdatedAt,
+                    UpdatedAt = DateTime.SpecifyKind(conversation.UpdatedAt, DateTimeKind.Local),
                     LastMessageSnippet = lastMessage != null ? (lastMessage.Content.Length > 30 ? lastMessage.Content.Substring(0, 30) + "..." : lastMessage.Content) : "",
                     HasUnreadMessages = unreadCount > 0
                 });
@@ -118,7 +118,7 @@ namespace BookBlossom.Infrastructure.Services
                     SenderName = m.SenderType == 1 ? (conversation.User?.UserName ?? "Unknown") : "BookBlossom Shop",
                     SenderAvatar = m.SenderType == 1 ? "/images/Avatar/default-avatar.png" : "/images/Avatar/admin.png",
                     Content = m.Content,
-                    SentAt = m.CreatedAt,
+                    SentAt = DateTime.SpecifyKind(m.CreatedAt, DateTimeKind.Local),
                     IsRead = m.SenderType == 1 ? m.IsReadByShop : m.IsReadByBuyer
                 };
 
@@ -150,7 +150,7 @@ namespace BookBlossom.Infrastructure.Services
             var sender = await _context.Users.FindAsync(senderId);
             if (sender != null && (sender.RoleID == UserRole.Admin || false))
             {
-                senderType = 2; // Shop/Admin
+                senderType = 0; // Shop/Admin (0 satisfies check constraint [SenderType]=(1) OR [SenderType]=(0))
             }
 
             if (dto.ConversationID.HasValue && dto.ConversationID.Value > 0)
@@ -176,9 +176,9 @@ namespace BookBlossom.Infrastructure.Services
                 Content = dto.Content ?? "",
                 MessageType = 1,
                 IsReadByBuyer = senderType == 1,
-                IsReadByShop = senderType == 2,
+                IsReadByShop = senderType == 0,
                 IsDeleted = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             _context.Messages.Add(message);
@@ -233,7 +233,7 @@ namespace BookBlossom.Infrastructure.Services
                         FileName = "Media",
                         FileType = fileUrlToSave.EndsWith(".mp4") ? "video" : "image",
                         AttachmentType = 1, // Media
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.Now
                     });
                 }
             }
@@ -251,7 +251,7 @@ namespace BookBlossom.Infrastructure.Services
                         FileType = string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)),
                         FileSize = book.BookID,
                         AttachmentType = 2, // Book
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.Now
                     });
                 }
             }
@@ -259,7 +259,7 @@ namespace BookBlossom.Infrastructure.Services
             var conversation = await _context.Conversations.FindAsync(conversationId);
             if (conversation != null)
             {
-                conversation.UpdatedAt = DateTime.UtcNow;
+                conversation.UpdatedAt = DateTime.Now;
             }
 
             await _context.SaveChangesAsync();
@@ -283,7 +283,7 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     message.IsReadByShop = true;
                 }
-                else if (!isShop && message.SenderType == 2 && !message.IsReadByBuyer)
+                else if (!isShop && message.SenderType == 0 && !message.IsReadByBuyer)
                 {
                     message.IsReadByBuyer = true;
                 }
