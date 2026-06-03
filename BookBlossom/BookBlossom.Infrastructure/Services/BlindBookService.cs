@@ -22,12 +22,18 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<BlindBook>> GetAllBlindBooksAsync()
         {
-            return await _context.BlindBooks.Include(b => b.RealBook).ToListAsync();
+            return await _context.BlindBooks
+                .Include(b => b.RealBook)
+                .Include(b => b.Images)
+                .ToListAsync();
         }
 
         public async Task<BlindBook?> GetByIdAsync(long blindBookId)
         {
-            return await _context.BlindBooks.Include(b => b.RealBook).FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
+            return await _context.BlindBooks
+                .Include(b => b.RealBook)
+                .Include(b => b.Images)
+                .FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
         }
 
         // --- Marketing Manager ---

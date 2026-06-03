@@ -93,9 +93,13 @@ namespace BookBlossom.Web.Controllers
                 Keywords = b.Keywords,
                 Quotes = b.Quotes,
                 Category = b.Category,
-                Hashtags = b.Hashtags,
+                Hashtags = b.Hashtags ?? string.Empty,
                 Price = b.Price,
-                StockQuantity = b.StockQuantity
+                StockQuantity = b.StockQuantity,
+                ImagePaths = b.Images
+                    .OrderBy(i => i.SortOrder)
+                    .Select(i => i.ImagePath)
+                    .ToList()
             });
 
             return Ok(clientResult);
@@ -114,9 +118,13 @@ namespace BookBlossom.Web.Controllers
                 Keywords = book.Keywords,
                 Quotes = book.Quotes,
                 Category = book.Category,
-                Hashtags = book.Hashtags,
+                Hashtags = book.Hashtags ?? string.Empty,
                 Price = book.Price,
-                StockQuantity = book.StockQuantity
+                StockQuantity = book.StockQuantity,
+                ImagePaths = book.Images
+                    .OrderBy(i => i.SortOrder)
+                    .Select(i => i.ImagePath)
+                    .ToList()
             };
 
             return Ok(clientDto);

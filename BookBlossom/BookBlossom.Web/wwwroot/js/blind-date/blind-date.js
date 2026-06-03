@@ -57,7 +57,11 @@
 
         books.forEach((book, index) => {
             const imgId = (book.blindBookID % 5) + 1;
-            const imgSrc = `/images/BlindDateBook/BlindBook${imgId}.jpg`;
+            const fallbackImg = `/images/BlindDateBook/BlindBook${imgId}.jpg`;
+            // Ưu tiên ảnh thật từ DB (imagePaths đã sort theo SortOrder từ API)
+            const imgSrc = (book.imagePaths && book.imagePaths.length > 0)
+                ? book.imagePaths[0]
+                : fallbackImg;
 
             const conditions = ['Pristine - Like new', 'Gift-ready', 'Well Loved - Has character', 'Gently read'];
             const condition = conditions[book.blindBookID % conditions.length];
@@ -476,10 +480,29 @@
     function initBlindCards() {
         $(document)
             .off('click.blindCard')
-            .on('click.blindCard', '#blind-date-grid .blind-card', function (e) {
+            .on('click.blindCard', '#blind-date-grid .blind-card', async function (e) {
                 e.preventDefault();
 
                 const id = $(this).attr('data-id');
+                if (!id) return;
+
+                // Fetch detail from API to get real images (imagePaths)
+                try {
+                    const response = await fetch(`/api/blindbook/${id}`);
+                    if (response.ok) {
+                        const realBookData = await response.json();
+                        const mapFn = window.BookBlossomBlindDateDetails && window.BookBlossomBlindDateDetails.mapBookData;
+                        const blindBookData = mapFn ? mapFn(realBookData) : getBlindBookDataFromObject(realBookData);
+                        if (window.BookBlossomBlindDateDetails) {
+                            window.BookBlossomBlindDateDetails.show(blindBookData);
+                        }
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Error fetching blind book detail for card:', err);
+                }
+
+                // Fallback to cached book list data (no real images)
                 const book = allBlindBooks.find(b => {
                     const bid = b.blindBookID || b.blindBookId || b.id;
                     return bid && bid.toString() === id.toString();
@@ -487,7 +510,6 @@
                 if (!book) return;
 
                 const blindBookData = getBlindBookDataFromObject(book);
-
                 if (window.BookBlossomBlindDateDetails) {
                     window.BookBlossomBlindDateDetails.show(blindBookData);
                 }
@@ -498,53 +520,32 @@
         const bookId = book.blindBookID || book.blindBookId || book.id || 0;
         const imgId = (bookId % 5) + 1;
         const imgSrc = `/images/BlindDateBook/BlindBook${imgId}.jpg`;
-        const hashtags = book.Hashtags || book.hashtags || '#Mystery #BlindDate';
-        const desc = book.Quotes || book.quotes || 'An intriguing mystery waiting to be solved...';
-        const price = Number(book.Price || book.price || 0).toLocaleString('vi-VN') + ' VNĐ';
+        const hashtags = book.hashtags || book.Hashtags || '#Mystery #BlindDate';
+        const quotes = book.quotes || book.Quotes || 'An intriguing mystery waiting to be solved...';
+        const priceNum = book.price !== undefined ? book.price : (book.Price || 0);
+        const price = Number(priceNum).toLocaleString('vi-VN') + ' VNĐ';
 
         const conditionsList = ['Pristine - Like new', 'Gift-ready', 'Well Loved - Has character', 'Gently read'];
         const condition = conditionsList[bookId % conditionsList.length];
 
-        let firstLine = 'The clock struck thirteen, and I knew I was in trouble...';
-        let rating = '4.2';
-        let ratingRange = '4.0 - 4.2';
-        let year = '1994';
-        let category = book.Category || 'Mystery & Thriller';
-        let keywords = book.Keywords || 'Suspenseful, intriguing, dark secrets';
-
-        if (category.toLowerCase().includes('romance')) {
-            firstLine = 'The dough was cold, but their glances were fiery.';
-            rating = '4.3';
-            ratingRange = '4.1 - 4.4';
-            year = '2018';
-            keywords = 'Sweet, slow-burn romance, culinary baking, enemies-to-lovers, Parisian vibe';
-        } else if (category.toLowerCase().includes('science') || category.toLowerCase().includes('sci-fi') || category.toLowerCase().includes('space')) {
-            firstLine = 'The stars did not welcome us; they watched us in silence.';
-            rating = '4.6';
-            ratingRange = '4.4 - 4.7';
-            year = '2021';
-            keywords = 'Deep space expedition, alien technology, emotional AI companion, space opera epic';
-        } else if (category.toLowerCase().includes('literary') || category.toLowerCase().includes('drama') || category.toLowerCase().includes('family')) {
-            firstLine = "Grandmother's cedar chest smelled of lavender and unspoken truths.";
-            rating = '4.1';
-            ratingRange = '3.9 - 4.2';
-            year = '1998';
-            keywords = 'Emotional drama, multi-generational secrets, female-led narrative, beautiful prose';
-        }
+        const rating = '4.2';
+        const ratingRange = '4.0 - 4.2';
+        const year = '1994';
+        const category = book.category || book.Category || 'Mystery & Thriller';
+        const keywords = book.keywords || book.Keywords || 'Suspenseful, intriguing, dark secrets';
 
         return {
-            blindBookID: book.blindBookID,
-            imgSrc,
-            hashtags,
-            desc,
-            price,
-            condition,
-            firstLine,
-            rating,
-            ratingRange,
-            year,
-            category,
-            keywords
+            blindBookID: bookId,
+            imgSrc: imgSrc,
+            hashtags: hashtags,
+            quotes: quotes,
+            price: price,
+            condition: condition,
+            rating: rating,
+            ratingRange: ratingRange,
+            year: year,
+            category: category,
+            keywords: keywords
         };
     }
 

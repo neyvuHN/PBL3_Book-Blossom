@@ -27,6 +27,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<BlindBook> BlindBooks { get; set; }
+        public DbSet<BlindBookImage> BlindBookImages { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<MembershipRank> MembershipRanks { get; set; }
