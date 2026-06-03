@@ -640,6 +640,7 @@ async function loadInventoryBooks(isInitial = false) {
                                 data-title="${book.title.replace(/"/g, '&quot;')}"
                                 data-price="${book.price}"
                                 data-stock="${book.unitsInStock}"
+                                data-reserved="${book.reservedQuantity}"
                                 data-mainimage="${imgUrl}"
                                 data-category-name="${book.categoryName}"
                                 title="Create Blind Date Package">

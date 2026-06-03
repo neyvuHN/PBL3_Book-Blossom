@@ -37,7 +37,9 @@ class BlindDateModel {
             status: item.status, // Pending = 0, Approved = 1, Rejected = 2
             rejectReason: item.rejectReason,
             isLocked: item.isLocked,
-            hasOrders: item.hasOrders
+            hasOrders: item.hasOrders,
+            realBookUnitsInStock: item.realBookUnitsInStock || 0,
+            realBookReservedQuantity: item.realBookReservedQuantity || 0
         };
     }
 

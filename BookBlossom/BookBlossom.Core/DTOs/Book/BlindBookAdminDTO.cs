@@ -11,6 +11,8 @@ namespace BookBlossom.DTOs.BlindBook
         public string? RejectReason { get; set; }
         public bool IsLocked { get; set; }
         public bool HasOrders { get; set; }
+        public int RealBookUnitsInStock { get; set; }
+        public int RealBookReservedQuantity { get; set; }
 
         public BlindBookRequestStatus Status { get; set; } 
     }

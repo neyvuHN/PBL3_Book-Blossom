@@ -163,14 +163,17 @@ class BlindDateView {
         if (bookData.stockInfo) {
             this.realBookStockInfo.textContent = bookData.stockInfo;
         } else {
-            this.realBookStockInfo.textContent = `Current stock: ${bookData.stock}`;
+            const reserved = bookData.reserved || 0;
+            const available = Math.max(0, bookData.stock - reserved);
+            this.realBookStockInfo.textContent = `Current stock: ${bookData.stock} (Reserved: ${reserved}, Available: ${available})`;
         }
         
         const originalPrice = bookData.realBookPrice || bookData.price || 0;
         this.realBookPrice.textContent = `Current price: ${parseFloat(originalPrice).toLocaleString()} ₫`;
         
         // Set validations and defaults
-        this.inputQuantity.max = bookData.stock || 999;
+        const reservedQty = bookData.reserved || 0;
+        this.inputQuantity.max = bookData.stock ? Math.max(0, bookData.stock - reservedQty) : 999;
         this.inputQuantity.value = isEditMode ? bookData.quantity : 1;
         this.inputPrice.value = isEditMode ? bookData.price : (bookData.price || 0);
         

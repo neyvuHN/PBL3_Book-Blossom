@@ -23,6 +23,7 @@ class BlindDateController {
                         title: createBtn.dataset.title,
                         price: parseFloat(createBtn.dataset.price),
                         stock: parseInt(createBtn.dataset.stock, 10),
+                        reserved: parseInt(createBtn.dataset.reserved, 10) || 0,
                         image: createBtn.dataset.mainimage,
                         categoryName: createBtn.dataset.categoryName
                     };
@@ -89,11 +90,18 @@ class BlindDateController {
                 if (restockBtn) {
                     e.preventDefault();
                     const id = parseInt(restockBtn.dataset.id, 10);
-                    const quantityStr = prompt('Enter the quantity of books to restock:');
+                    const packageData = this.model.getBlindDate(id);
+                    const availableStock = packageData ? Math.max(0, packageData.realBookUnitsInStock - packageData.realBookReservedQuantity) : 0;
+
+                    const quantityStr = prompt(`Enter the quantity of books to restock (Max available: ${availableStock}):`);
                     if (quantityStr !== null) {
                         const quantity = parseInt(quantityStr, 10);
                         if (isNaN(quantity) || quantity <= 0) {
                             alert('Invalid quantity.');
+                            return;
+                        }
+                        if (quantity > availableStock) {
+                            alert(`Quantity cannot exceed the available stock of the real book (Max available: ${availableStock}).`);
                             return;
                         }
                         try {
@@ -112,12 +120,19 @@ class BlindDateController {
                 if (approveRestockBtn) {
                     e.preventDefault();
                     const id = parseInt(approveRestockBtn.dataset.id, 10);
+                    const packageData = this.model.getBlindDate(id);
+                    const availableStock = packageData ? Math.max(0, packageData.realBookUnitsInStock - packageData.realBookReservedQuantity) : 0;
                     const defaultQty = parseInt(approveRestockBtn.dataset.quantity, 10) || 0;
-                    const quantityStr = prompt(`Confirm quantity to restock in inventory:`, defaultQty);
+
+                    const quantityStr = prompt(`Confirm quantity to restock in inventory (Max available: ${availableStock}):`, defaultQty);
                     if (quantityStr !== null) {
                         const quantity = parseInt(quantityStr, 10);
                         if (isNaN(quantity) || quantity <= 0) {
                             alert('Invalid quantity.');
+                            return;
+                        }
+                        if (quantity > availableStock) {
+                            alert(`Quantity cannot exceed the available stock of the real book (Max available: ${availableStock}).`);
                             return;
                         }
                         try {
@@ -172,12 +187,16 @@ class BlindDateController {
                 
                 // Validate quantity constraint against actual book stock (only for new requests)
                 if (!data.id) {
-                    const stockStr = this.view.realBookStockInfo.textContent; 
-                    const maxStock = parseInt(stockStr.replace(/\D/g, '')) || 0;
-                    
-                    if (data.quantity > maxStock) {
-                        alert('Quantity cannot exceed the actual inventory stock of the real book.');
-                        return;
+                    const selectBtn = document.querySelector(`.btn-create-blind-date[data-book-id="${data.realBookId}"]`);
+                    if (selectBtn) {
+                        const stock = parseInt(selectBtn.dataset.stock, 10) || 0;
+                        const reserved = parseInt(selectBtn.dataset.reserved, 10) || 0;
+                        const available = Math.max(0, stock - reserved);
+                        
+                        if (data.quantity > available) {
+                            alert(`Quantity cannot exceed the available stock of the real book (Max available: ${available}).`);
+                            return;
+                        }
                     }
                 }
                 

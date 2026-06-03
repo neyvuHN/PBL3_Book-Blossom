@@ -75,7 +75,9 @@ namespace BookBlossom.Web.Controllers
                     RejectReason = b.RejectReason,
                     Status = b.BlindBookRequestStatus,
                     IsLocked = b.IsLocked,
-                    HasOrders = idsWithOrders.Contains(b.BlindBookID)
+                    HasOrders = idsWithOrders.Contains(b.BlindBookID),
+                    RealBookUnitsInStock = b.RealBook?.UnitsInStock ?? 0,
+                    RealBookReservedQuantity = b.RealBook?.ReservedQuantity ?? 0
                 });
 
                 return Ok(staffResult);

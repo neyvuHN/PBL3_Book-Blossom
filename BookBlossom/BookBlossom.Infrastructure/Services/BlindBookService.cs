@@ -56,10 +56,16 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<bool> CreateRestockRequestAsync(long blindBookId, int quantity, string marketingId)
         {
-            var book = await _context.BlindBooks.FindAsync(blindBookId);
+            var book = await _context.BlindBooks.Include(b => b.RealBook).FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
             if (book == null) return false;
 
             if (quantity <= 0) throw new ArgumentException("Số lượng bổ sung phải lớn hơn 0.");
+
+            if (book.RealBook == null) throw new Exception("Không tìm thấy thông tin sách thật liên quan.");
+
+            int availableStock = book.RealBook.UnitsInStock - book.RealBook.ReservedQuantity;
+            if (quantity > availableStock)
+                throw new Exception($"Số lượng bổ sung ({quantity}) không được vượt quá số lượng tồn kho khả dụng (Tồn kho: {book.RealBook.UnitsInStock}, Giữ chỗ: {book.RealBook.ReservedQuantity}, Khả dụng: {availableStock}).");
 
             book.RequestQuantity = quantity;
             book.BlindBookRequestStatus = BlindBookRequestStatus.Pending; 
@@ -82,9 +88,11 @@ namespace BookBlossom.Infrastructure.Services
             var book = await _context.BlindBooks.Include(b => b.RealBook).FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
             if (book == null || book.BlindBookRequestStatus != BlindBookRequestStatus.Pending) return false;
 
-            // Nghiệp vụ 4: Kiểm tra tồn kho thực tế của RealBook (Đã lược bỏ check OrderDetails chưa làm tới)
-            if (book.RealBook == null || book.RequestQuantity > book.RealBook.UnitsInStock)
-                throw new Exception($"Số lượng duyệt vượt quá lượng sách thật hiện có trong kho ({book.RealBook?.UnitsInStock ?? 0}).");
+            if (book.RealBook == null) throw new Exception("Không tìm thấy thông tin sách thật liên quan.");
+
+            int availableStock = book.RealBook.UnitsInStock - book.RealBook.ReservedQuantity;
+            if (book.RequestQuantity > availableStock)
+                throw new Exception($"Số lượng duyệt ({book.RequestQuantity}) không được vượt quá số lượng tồn kho khả dụng (Tồn kho: {book.RealBook.UnitsInStock}, Giữ chỗ: {book.RealBook.ReservedQuantity}, Khả dụng: {availableStock}).");
 
             // Tự động sinh mã Barcode duy nhất khi duyệt
             book.Barcode = $"BLD{DateTime.UtcNow:yyyyMMddHHmmssfff}{book.BlindBookID}";
@@ -110,9 +118,11 @@ namespace BookBlossom.Infrastructure.Services
             var book = await _context.BlindBooks.Include(b => b.RealBook).FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
             if (book == null || book.BlindBookRequestStatus != BlindBookRequestStatus.Pending) return false;
 
-            // Kiểm tra tồn kho thực tế của RealBook khi Restock
-            if (book.RealBook == null || approvedQuantity > book.RealBook.UnitsInStock)
-                throw new Exception($"Số lượng duyệt bổ sung vượt quá lượng sách thật hiện có trong kho ({book.RealBook?.UnitsInStock ?? 0}).");
+            if (book.RealBook == null) throw new Exception("Không tìm thấy thông tin sách thật liên quan.");
+
+            int availableStock = book.RealBook.UnitsInStock - book.RealBook.ReservedQuantity;
+            if (approvedQuantity > availableStock)
+                throw new Exception($"Số lượng duyệt bổ sung ({approvedQuantity}) không được vượt quá số lượng tồn kho khả dụng (Tồn kho: {book.RealBook.UnitsInStock}, Giữ chỗ: {book.RealBook.ReservedQuantity}, Khả dụng: {availableStock}).");
 
             book.StockQuantity += approvedQuantity; 
             book.RequestQuantity = 0; 
