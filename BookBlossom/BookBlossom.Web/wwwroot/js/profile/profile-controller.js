@@ -15,14 +15,152 @@ class ProfileController {
             "/images/Avatar/avatar3.jpg",
             "/images/Avatar/avatar4.jpg"
         ];
+        // Cached packages from API for subscription modal
+        this._packages = [];
+        this._currentPlanName = null;
     }
 
     /**
      * Initializes and binds all event listeners and triggers initial render
      */
-    init() {
+    async init() {
         // Initial presentation load is handled by server-side rendering (SSR)
         this.bindEvents();
+
+        // Load subscription data from API in background
+        await this.loadSubscriptionData();
+
+        // Load reputation and badges data
+        await this.loadReputationAndBadges();
+
+        // Auto-open upgrade modal if redirected with ?openUpgrade=true
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openUpgrade') === 'true') {
+            this.openSubscriptionModalWithData();
+            // Clean up URL without reload
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }
+
+    /**
+     * Loads all packages + current user's service from API (background, non-blocking)
+     */
+    async loadSubscriptionData() {
+        try {
+            // Fetch all available packages
+            const packages = await this.model.fetchAllPackages();
+            this._packages = packages || [];
+
+            // Try to fetch current user's service (may fail for new users)
+            try {
+                const myService = await this.model.fetchMyService();
+                if (myService && myService.packageName) {
+                    this._currentPlanName = myService.packageName;
+                } else {
+                    this._currentPlanName = 'Free';
+                }
+            } catch (e) {
+                // User has no subscription → Free
+                this._currentPlanName = 'Free';
+            }
+
+            // Update the modal plan cards with real API data
+            if (this._packages.length > 0) {
+                this.view.updateSubscriptionPlans(this._packages);
+            }
+        } catch (error) {
+            console.warn('Failed to load subscription data (non-critical):', error);
+        }
+    }
+
+    /**
+     * Loads current user's reputation and badge collections from API and refreshes the view.
+     */
+    async loadReputationAndBadges() {
+        try {
+            // Fetch reputation
+            const rep = await this.model.fetchMyReputation();
+            
+            // Fetch badges
+            const badgesData = await this.model.fetchMyBadges(); // array of BadgeCustomerDTO: BadgeID, BadgeName, Description, EarnedAt
+            
+            // Map badges data to match expected format in ProfileView.render
+            const badges = (badgesData || []).map(b => b.badgeName || b.BadgeName);
+            const badgeEarnedDates = {};
+            (badgesData || []).forEach(b => {
+                const name = b.badgeName || b.BadgeName;
+                const earnedAt = b.earnedAt || b.EarnedAt;
+                if (name && earnedAt) {
+                    // Format date nicely
+                    const dateObj = new Date(earnedAt);
+                    badgeEarnedDates[name] = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                }
+            });
+
+            // Update UI elements for reputation
+            const points = rep.points !== undefined ? rep.points : rep.Points;
+            const rank = rep.rank !== undefined ? rep.rank : rep.Rank;
+            
+            if (points !== undefined) {
+                $('#display-rep-score').text(points);
+                const repPercent = (points / 150) * 100;
+                $('#reputation-svg-fill').attr('stroke-dasharray', `${repPercent}, 100`);
+
+                const warningBox = $('#reputation-warning-box');
+                const warningMsg = $('#reputation-warning-message');
+                warningBox.removeClass('warning-safe warning-warning warning-danger');
+
+                if (points < 60) {
+                    warningBox.addClass('warning-danger').find('i').attr('class', 'fas fa-exclamation-triangle');
+                    warningMsg.html('Warning: Reputation score too low (&lt; 60). Commenting &amp; Thread posting is BANNED, and Cash on Delivery (COD) method is DISABLED.');
+                } else if (points < 80) {
+                    warningBox.addClass('warning-warning').find('i').attr('class', 'fas fa-exclamation-circle');
+                    warningMsg.html('Warning: Reputation score low (&lt; 80). Thread posting &amp; Commenting are BANNED. Keep score above 80 to restore community privileges.');
+                } else {
+                    warningBox.addClass('warning-safe').find('i').attr('class', 'fas fa-check-circle');
+                    warningMsg.html('Your reputation score is stellar! You have full commenting, posting privileges and COD checkout active.');
+                }
+            }
+
+            if (rank) {
+                $('#display-tier-text').text(rank);
+                $('#display-tier-badge')
+                    .removeClass('tier-Copper tier-Silver tier-Gold tier-Diamond tier-Bronze tier-Đồng tier-Bạc tier-Vàng tier-KimCương')
+                    .addClass('tier-' + rank);
+            }
+
+            // Update badges cabinet
+            const cabinet = $('#display-badges-cabinet');
+            if (cabinet.length && badges.length > 0) {
+                this.view.renderBadgesGrid(cabinet, badges, 4);
+            }
+
+            // Update all badges modal body
+            const modalBody = $('#allBadgesModal .modal-body .d-flex');
+            if (modalBody.length && badges.length > 0) {
+                this.view.renderBadgesModal(modalBody, badges, badgeEarnedDates);
+            }
+
+            // Mystic Aura Update (Blind Date Destiny)
+            if (badges.includes("Blind Date Adventurer - Destiny")) {
+                $('.profile-avatar-wrapper').addClass("mystic-aura");
+            } else {
+                $('.profile-avatar-wrapper').removeClass("mystic-aura");
+            }
+
+        } catch (error) {
+            console.warn('Failed to load reputation/badge data:', error);
+        }
+    }
+
+    /**
+     * Opens the subscription modal with API-loaded data
+     */
+    openSubscriptionModalWithData() {
+        // Use the SSR-provided current plan as fallback (from the badge text in the page)
+        const ssrPlan = $('#display-sub-badge').text().replace(' Package', '').trim();
+        const currentPlan = this._currentPlanName || ssrPlan || 'Free';
+        this.view.openSubscriptionModal(currentPlan);
     }
 
     /**
@@ -207,7 +345,7 @@ class ProfileController {
 
         // Show Premium plans modal overlay on clicking Upgrade button
         $('#btn-upgrade-pkg, #btn-upgrade-pkg-footer').on('click', function () {
-            self.view.openSubscriptionModal(self.model.user.subscriptionPackage);
+            self.openSubscriptionModalWithData();
         });
 
         // Close Premium plans modal overlay
@@ -222,104 +360,100 @@ class ProfileController {
             }
         });
 
-        // Select Premium plan upgrade option (standard Free vs VNPay basic/pro checkout)
-        $(document).on('click', '.btn-select-plan', function () {
-            const planName = $(this).attr('data-plan');
-            const price = parseInt($(this).attr('data-price')) || 0;
-            const currentPkg = self.model.user.subscriptionPackage;
+        // ═══════════════════════════════════════════════════════════════════
+        // SELECT PLAN: Real API integration (replaces mock VNPay simulation)
+        // Route: POST /api/ServicePackage/subscribe/{packageId}
+        // ═══════════════════════════════════════════════════════════════════
+        $(document).on('click', '.btn-select-plan', async function () {
+            const $btn = $(this);
+            const planName = $btn.attr('data-plan');
+            const packageId = parseInt($btn.attr('data-package-id')) || 0;
+            const price = parseInt($btn.attr('data-price')) || 0;
 
+            // Don't proceed if it's the current plan
+            const ssrPlan = $('#display-sub-badge').text().replace(' Package', '').trim();
+            const currentPkg = self._currentPlanName || ssrPlan || 'Free';
             if (planName === currentPkg) return;
+
+            // Check if user is authenticated
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                self.view.closeSubscriptionModal();
+                window.apiClient.showToast('Vui lòng đăng nhập để nâng cấp gói dịch vụ.', 'error', 'Yêu cầu đăng nhập');
+                setTimeout(() => {
+                    window.location.href = '/Auth/Login';
+                }, 1500);
+                return;
+            }
+
+            // Validate packageId
+            if (packageId <= 0) {
+                window.apiClient.showToast('Không thể xác định gói dịch vụ. Vui lòng tải lại trang.', 'error');
+                return;
+            }
 
             // Close the plans modal
             self.view.closeSubscriptionModal();
 
+            // Disable button to prevent double-click
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
             if (planName === "Free") {
-                // Free package does not require VNPay simulation, downgrade instantly!
-                let threadLimit = 3;
-                let undoLimit = 2;
-                let badges = ["True Bookworm"];
-
-                // Reset limits if exceeded
-                if (self.model.user.currentMonthThreadCount > 3) {
-                    self.model.user.currentMonthThreadCount = 2;
+                // ─── Downgrade to Free ───────────────────────────────────
+                try {
+                    await self.model.subscribeToPackage(packageId, 1);
+                    self.view.showToast("Đã chuyển về gói Free thành công!");
+                    // Reload page to reflect SSR changes
+                    setTimeout(() => window.location.reload(), 1500);
+                } catch (error) {
+                    $btn.prop('disabled', false).text('Activate Standard');
+                    window.apiClient.showToast(error.message || 'Chuyển gói thất bại. Vui lòng thử lại.', 'error');
                 }
-                if (self.model.user.dailyUndoCount > 2) {
-                    self.model.user.dailyUndoCount = 1;
-                }
-
-                self.model.updateMultipleFields({
-                    subscriptionPackage: "Free",
-                    maxMonthlyThreadLimit: threadLimit,
-                    maxDailyUndoLimit: undoLimit,
-                    badges: badges
-                });
-
-                self.view.render(self.model.user);
-                self.view.showToast("Downgraded to Free package successfully!");
             } else {
-                // Basic or Pro package checkout flow - VNPay Redirect Simulation!
+                // ─── Upgrade to Basic/Pro (with UX animation) ────────────
+                // Show VNPay loading animation for UX polish
                 self.view.showVNPayLoading();
 
-                // 1. Simulate VNPay loading screen redirect (2.5 seconds)
-                setTimeout(() => {
-                    self.view.hideVNPayLoading();
-                    self.view.showVNPayReturn();
+                try {
+                    // Call real API to subscribe
+                    await self.model.subscribeToPackage(packageId, 1);
 
-                    // 2. Simulate payment status verification screen (2 seconds)
+                    // Transition: loading → verifying → success
                     setTimeout(() => {
-                        self.view.hideVNPayReturn();
+                        self.view.hideVNPayLoading();
+                        self.view.showVNPayReturn();
 
-                        // Set correct limits & badges based on plan choice
-                        let threadLimit = 20;
-                        let undoLimit = 5;
-                        let badges = [
-                            "Review Champion - Critic", 
-                            "Knowledge Ambassador", 
-                            "Blind Date Adventurer - Seeker", 
-                            "True Bookworm"
-                        ];
+                        setTimeout(() => {
+                            self.view.hideVNPayReturn();
 
-                        if (planName === "Pro") {
-                            threadLimit = 9999;
-                            undoLimit = 9999;
-                            badges = [
-                                "Review Champion - Sage", 
-                                "Knowledge Ambassador", 
-                                "Blind Date Adventurer - Destiny", 
-                                "True Bookworm",
-                                "Exemplary User",
-                                "Moderator Assistant"
-                            ];
-                        }
-
-                        // Save updated state back to the model
-                        self.model.updateMultipleFields({
-                            subscriptionPackage: planName,
-                            maxMonthlyThreadLimit: threadLimit,
-                            maxDailyUndoLimit: undoLimit,
-                            badges: badges
-                        });
-
-                        // Re-render display view
-                        self.view.render(self.model.user);
-
-                        // Trigger payment success overlay
-                        self.view.showPaymentSuccess(planName, price);
-                        self.view.showToast(`Upgraded to ${planName} package successfully!`);
+                            // Show payment success overlay
+                            self.view.showPaymentSuccess(planName, price);
+                            self.view.showToast(`Nâng cấp lên gói ${planName} thành công!`);
+                        }, 2000);
                     }, 2000);
-                }, 2500);
+                } catch (error) {
+                    // Hide loading screens on error
+                    self.view.hideVNPayLoading();
+                    self.view.hideVNPayReturn();
+
+                    // Show payment failed overlay
+                    self.view.showPaymentFailed(planName);
+                    $btn.prop('disabled', false).text('Upgrade Now');
+                }
             }
         });
 
-        // Continue shopping / Enjoy privileges button actions in payment success overlay
+        // Continue / Enjoy Privileges button in payment success overlay → reload page
         $(document).on('click', '#payment-success-overlay .btn-continue-shopping, #payment-success-overlay .btn-view-order', function () {
             self.view.hidePaymentSuccess();
+            // Reload page to get updated SSR data (new package, new limits)
+            window.location.reload();
         });
 
         // Retry upgrade action in failed overlay
         $(document).on('click', '#payment-failed-overlay .btn-retry-payment', function () {
             self.view.hidePaymentFailed();
-            self.view.openSubscriptionModal(self.model.user.subscriptionPackage);
+            self.openSubscriptionModalWithData();
         });
 
         // Close action in failed overlay

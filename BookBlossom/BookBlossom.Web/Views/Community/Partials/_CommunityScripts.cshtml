@@ -10,6 +10,8 @@
         let activePostIdToShare = null;
         const loadedPosts = new Map();
         let selectedFiles = [];
+        let userReputation = 100;
+        let canUserComment = true;
 
         function isAuthenticated() {
             return !!localStorage.getItem('accessToken');
@@ -203,8 +205,18 @@
                         <div class="comment-list" id="comments-${post.postID}"></div>
                         <div class="comment-input-area" style="display:flex; gap:10px; align-items:center; margin-top:12px; border-top:1px solid #eee; padding-top:10px;">
                             <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
-                            <input type="text" placeholder="Write a comment..." class="comment-input" data-post-id="${post.postID}" style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px; outline:none; font-size:0.9rem;">
-                            <button class="btn-send-comment-api" data-post-id="${post.postID}" style="background:#C2185B; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="far fa-paper-plane" style="font-size:0.85rem;"></i></button>
+                            <input type="text" 
+                                   placeholder="${canUserComment ? 'Write a comment...' : 'Điểm uy tín dưới 80, bình luận đã bị chặn...'}" 
+                                   class="comment-input" 
+                                   data-post-id="${post.postID}" 
+                                   ${canUserComment ? '' : 'disabled'}
+                                   style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px; outline:none; font-size:0.9rem; ${canUserComment ? '' : 'background:#f0f2f5; cursor:not-allowed;'}" />
+                            <button class="btn-send-comment-api" 
+                                    data-post-id="${post.postID}" 
+                                    ${canUserComment ? '' : 'disabled'}
+                                    style="${canUserComment ? 'background:#C2185B; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;' : 'background:#ccc; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:not-allowed; display:flex; align-items:center; justify-content:center;'}">
+                                <i class="far fa-paper-plane" style="font-size:0.85rem;"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -411,6 +423,10 @@
 
         $(document).on('click', '.btn-send-comment-api', async function () {
             if (!requireLogin()) return;
+            if (!canUserComment) {
+                showToast('Hạn chế quyền lực: Điểm uy tín của bạn dưới 80, bị cấm bình luận.', 'error');
+                return;
+            }
 
             const postId = $(this).attr('data-post-id');
             const $post = $(this).closest('.thread-post');
@@ -610,6 +626,10 @@
 
         $(document).on('click', '.btn-submit-thread-post', async function () {
             if (!requireLogin()) return;
+            if (userReputation < 80) {
+                showToast('Hạn chế quyền lực: Điểm uy tín của bạn dưới 80, bị cấm đăng bài viết mới.', 'error');
+                return;
+            }
 
             const title = $('#thread-title-input').val().trim();
             const content = $('#thread-content-input').val().trim();
@@ -637,9 +657,47 @@
                 resetCreateForm();
                 await loadThreadFeed(true);
             } catch (error) {
-                handleApiError(error, 'Không tạo được bài viết.');
+                if (error?.message && error.message.includes('vượt quá giới hạn đăng bài')) {
+                    showUpgradeSubscriptionModal(error.message);
+                } else {
+                    handleApiError(error, 'Không tạo được bài viết.');
+                }
             }
         });
+
+        function showUpgradeSubscriptionModal(message) {
+            let $upgradeModal = $('#community-upgrade-modal');
+            if ($upgradeModal.length === 0) {
+                $upgradeModal = $(`
+                    <div id="community-upgrade-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,0.5); position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999;">
+                        <div class="modal-dialog modal-dialog-centered" role="document" style="max-width:500px; width:90%;">
+                            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 30px rgba(0,0,0,0.15); background: white; overflow:hidden;">
+                                <div class="modal-header" style="border-bottom: none; padding: 25px 25px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <h5 class="modal-title" style="font-family: 'Lora', serif; font-weight: 700; font-size: 1.5rem; color: #2c3e50; margin:0;">Hết lượt đăng bài!</h5>
+                                    <button type="button" class="btn-close-upgrade" style="background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div class="modal-body" style="padding: 10px 25px 25px; color: #555;">
+                                    <p style="font-size: 15px; line-height: 1.6; margin:0;">${message} Hãy nâng cấp lên gói thành viên cao cấp (Basic/Pro) để nhận thêm lượt đăng bài và nhiều đặc quyền khác!</p>
+                                </div>
+                                <div class="modal-footer" style="border-top: none; padding: 10px 25px 25px; gap: 10px; display:flex; justify-content:flex-end;">
+                                    <button type="button" class="btn-close-upgrade" style="background:none; border:1px solid #ddd; border-radius: 50px; padding: 8px 20px; font-weight: 600; cursor:pointer;">Để sau</button>
+                                    <a href="/Profile?openUpgrade=true" style="background: linear-gradient(135deg, #c2185b, #ec4899); border: none; border-radius: 50px; padding: 8px 25px; font-weight: 600; color: white; text-decoration: none; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.3);">Xem Các Gói Dịch Vụ</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                $('body').append($upgradeModal);
+
+                // Add close handler specifically for this modal
+                $upgradeModal.find('.btn-close-upgrade').on('click', function() {
+                    $upgradeModal.fadeOut(200);
+                });
+            } else {
+                $upgradeModal.find('.modal-body p').text(`${message} Hãy nâng cấp lên gói thành viên cao cấp (Basic/Pro) để nhận thêm lượt đăng bài và nhiều đặc quyền khác!`);
+            }
+            $upgradeModal.hide().fadeIn(200);
+        }
 
         $(document).on('click', '.btn-edit-thread-post', function (e) {
             e.preventDefault();
@@ -695,7 +753,43 @@
             }
         });
 
-        updateGuestState();
-        loadThreadFeed(true);
+        async function checkReputationAndRestrict() {
+            if (!isAuthenticated()) return;
+            try {
+                const rep = await window.apiClient.apiGet('/api/Reputation/my-reputation');
+                userReputation = rep.points !== undefined ? rep.points : rep.Points;
+                canUserComment = rep.canComment !== undefined ? rep.canComment : rep.CanComment;
+
+                if (userReputation < 80) {
+                    // Disable thread creation card buttons / inputs
+                    $('#thread-title-input, #thread-content-input, #thread-hashtag-input, #thread-image-input').prop('disabled', true);
+                    $('.btn-submit-thread-post').prop('disabled', true).css({
+                        'background': '#ccc',
+                        'cursor': 'not-allowed',
+                        'box-shadow': 'none'
+                    }).text('Bị chặn (Uy tín < 80)');
+
+                    // Add warning banner inside create card if not already exists
+                    if ($('#community-rep-warning').length === 0) {
+                        $('#create-thread-post-card').prepend(`
+                            <div id="community-rep-warning" style="background:#fff2f0; border:1px solid #ffccc7; color:#ff4d4f; padding:12px 16px; border-radius:12px; margin-bottom:15px; display:flex; align-items:center; gap:10px; font-size:0.9rem; font-weight:600;">
+                                <i class="fas fa-exclamation-triangle" style="font-size:1.1rem;"></i>
+                                <span>Tài khoản của bạn có điểm uy tín là ${userReputation} (< 80). Bạn đã bị chặn đăng bài viết mới và bình luận trong cộng đồng.</span>
+                            </div>
+                        `);
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to fetch reputation check:', error);
+            }
+        }
+
+        async function initCommunity() {
+            updateGuestState();
+            await checkReputationAndRestrict();
+            await loadThreadFeed(true);
+        }
+
+        initCommunity();
     });
 </script>

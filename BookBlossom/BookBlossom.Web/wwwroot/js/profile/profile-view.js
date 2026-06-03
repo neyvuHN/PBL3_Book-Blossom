@@ -58,12 +58,12 @@ class ProfileView {
         const spendingVal = Number(user.totalSpending) || 0;
         const thresholdVal = Number(user.nextTierThreshold) || 5000000;
         $('#display-spending-text').text(
-            new Intl.NumberFormat('vi-VN').format(spendingVal) + ' / ' + 
+            new Intl.NumberFormat('vi-VN').format(spendingVal) + ' / ' +
             new Intl.NumberFormat('vi-VN').format(thresholdVal) + ' VND'
         );
         const spendPercent = Math.min(100, (spendingVal / thresholdVal) * 100);
         $('#display-spending-progress').css('width', spendPercent + '%');
-        
+
         const diffSpending = Math.max(0, thresholdVal - spendingVal);
         if (diffSpending > 0) {
             $('#display-spending-hint').html(
@@ -99,7 +99,7 @@ class ProfileView {
         const streak = Math.min(3, Math.max(0, Number(user.currentOrderStreak) || 0));
         const streakPercent = streak * 50;
         $('#display-streak-line').css('width', streakPercent + '%');
-        
+
         // Update Step dots
         $('.streak-step').removeClass('completed active');
         if (streak >= 1) $('#streak-step-1').addClass('completed'); else $('#streak-step-1').addClass('active');
@@ -171,7 +171,7 @@ class ProfileView {
         });
 
         if (badges.length >= 1) {
-            const circleContent = badges.length > maxDisplay 
+            const circleContent = badges.length > maxDisplay
                 ? `<i class="fas fa-plus" style="font-size: 0.8rem; margin-bottom: 2px;"></i><span>${badges.length - maxDisplay}</span>`
                 : `<i class="fas fa-eye" style="font-size: 1.15rem; margin-bottom: 0;"></i>`;
 
@@ -367,6 +367,37 @@ class ProfileView {
     }
 
     /**
+     * Updates the subscription plan cards in the modal with real data from the API.
+     * Maps API packages to the existing Free/Basic/Pro card layout.
+     * @param {Array} packages - Array of ServicePackage objects from API
+     */
+    updateSubscriptionPlans(packages) {
+        if (!packages || !Array.isArray(packages)) return;
+
+        packages.forEach(pkg => {
+            const planName = pkg.packageName; // "Free", "Basic", "Pro"
+            const $card = $(`.sub-plan-card[data-plan-card="${planName}"]`);
+            if (!$card.length) return;
+
+            // Update price display
+            const priceFormatted = new Intl.NumberFormat('vi-VN').format(pkg.price);
+            $card.find('.plan-price-display').text(`${priceFormatted} VND`);
+
+            // Update data attributes on the button
+            const $btn = $card.find('.btn-select-plan');
+            $btn.attr('data-package-id', pkg.packageID);
+            $btn.attr('data-price', pkg.price);
+
+            // Update thread/undo limit text
+            const isUnlimitedThread = pkg.threadLimit >= 999999;
+            const isUnlimitedUndo = pkg.undoLimit >= 999999;
+
+            $card.find('.plan-thread-limit').text(isUnlimitedThread ? 'Unlimited' : pkg.threadLimit);
+            $card.find('.plan-undo-limit').text(isUnlimitedUndo ? 'Unlimited' : pkg.undoLimit);
+        });
+    }
+
+    /**
      * Opens subscription plans overlay with dark slate glassmorphism
      */
     openSubscriptionModal(currentPlan) {
@@ -485,7 +516,7 @@ class ProfileView {
 
         // Customize the text for subscription business
         $('#payment-success-overlay h2').text("Subscription Upgraded!");
-        
+
         // Find the details card wrapper inside success screen
         const cardBox = $('#payment-success-overlay div[style*="background: #f8fafc"]');
         if (cardBox.length) {
@@ -640,10 +671,10 @@ class ProfileView {
         $('#cropper-workspace').css('display', 'flex');
         $('#cropper-controls').css('display', 'flex');
         $('#btn-save-cropper').removeAttr('disabled');
-        
+
         const $img = $('#cropper-image');
         $img.attr('src', src);
-        
+
         // Reset transform values
         $img.css({
             'left': '50%',
@@ -671,7 +702,7 @@ class ProfileView {
         if (!img || !img.src) return;
 
         const originalImg = new Image();
-        originalImg.onload = function() {
+        originalImg.onload = function () {
             const canvas = document.createElement('canvas');
             canvas.width = 200;
             canvas.height = 200;

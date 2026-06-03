@@ -28,14 +28,9 @@ namespace BookBlossom.Web.ViewModels.Profile
         public int CurrentOrderStreak { get; set; } = 2; // progress out of 3 successful orders
         
         // Badges Collection
-        public List<string> Badges { get; set; } = new List<string> { 
-            "Review Champion - Critic", 
-            "Knowledge Ambassador", 
-            "Blind Date Adventurer - Destiny", 
-            "True Bookworm",
-            "Exemplary User",
-            "Moderator Assistant"
-        };
+        public List<string> Badges { get; set; } = new List<string>();
+        public Dictionary<string, string> BadgeEarnedDates { get; set; } = new Dictionary<string, string>();
+        public List<string> AllBadgeNames { get; set; } = new List<string>(); // All badges from DB
         
         // Subscription limits
         public string SubscriptionPackage { get; set; } = "Basic"; // Free, Basic (50k/month), Pro (200k/month)

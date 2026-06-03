@@ -25,9 +25,17 @@ namespace BookBlossom.Web.Controllers
             if (!long.TryParse(customerIdStr, out long customerId)) return Unauthorized();
 
             var rep = await _reputationService.GetReputationWithRankAsync(customerId);
+            var canComment = await _reputationService.CanCommentAsync(customerId);
+            var canUseCod = await _reputationService.CanUseCodAsync(customerId);
             return Ok(new {
+                points = rep.ReputationPoint,
                 Points = rep.ReputationPoint,
-                Rank = rep.MembershipRank?.RankType
+                rank = rep.MembershipRank?.RankType.ToString(),
+                Rank = rep.MembershipRank?.RankType.ToString(),
+                canComment = canComment,
+                CanComment = canComment,
+                canUseCod = canUseCod,
+                CanUseCod = canUseCod
             });
         }
     }    

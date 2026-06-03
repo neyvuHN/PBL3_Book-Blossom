@@ -1,43 +1,74 @@
 function initAdminMessages() {
     // Mock Buyers Database for Profile Syncing
-    const mockBuyers = {
-        "1": {
-            name: "Anna Smith",
-            avatar: "/images/Avatar/avatar1.jpg",
-            status: "Active now",
-            isOnline: true,
-            joined: "Joined: 6 months ago",
-            orders: "12",
-            spent: "1.5M VND",
-            address: "123 Book St, District 1, Ho Chi Minh City",
-            phone: "0987 654 321",
-            email: "anna.smith@example.com"
-        },
-        "2": {
-            name: "John Doe",
-            avatar: "/images/Avatar/avatar1.jpg",
-            status: "Offline",
-            isOnline: false,
-            joined: "Joined: 3 months ago",
-            orders: "8",
-            spent: "950K VND",
-            address: "456 Flower Ave, District 3, Ho Chi Minh City",
-            phone: "0912 345 678",
-            email: "john.doe@example.com"
-        },
-        "3": {
-            name: "Michael Brown",
-            avatar: "/images/Avatar/avatar1.jpg",
-            status: "Offline",
-            isOnline: false,
-            joined: "Joined: 1 year ago",
-            orders: "5",
-            spent: "620K VND",
-            address: "789 Pine Rd, District 5, Ho Chi Minh City",
-            phone: "0933 445 566",
-            email: "michael.brown@example.com"
+    
+    let activeConversationId = null;
+
+    // Load Conversations
+    function loadAdminConversations() {
+        if (window.apiClient) {
+            window.apiClient.apiGet('/api/MessagesAPI/conversations').then(res => {
+                if (res && res.data) {
+                    const $list = $('#admin-convo-list');
+                    $list.empty();
+                    res.data.forEach(c => {
+                        let unreadIndicator = c.hasUnreadMessages ? '<span style="color:red; font-weight:bold; font-size:1.2rem; margin-left:auto;">•</span>' : '';
+                        let item = `
+                            <div class="convo-item" data-convo-id="${c.conversationID}" data-buyer-name="${c.customerName}" data-buyer-avatar="${c.customerAvatar}">
+                                <div class="convo-avatar-wrapper">
+                                    <img src="${c.customerAvatar}" alt="Buyer" class="convo-avatar" onerror="this.src='/images/Avatar/default.png'">
+                                </div>
+                                <div class="convo-info">
+                                    <div class="convo-name-time">
+                                        <span class="convo-name">${c.customerName}</span>
+                                        <span class="convo-time">${new Date(c.updatedAt).toLocaleTimeString('vi-VN')}</span>
+                                    </div>
+                                    <div class="convo-preview" style="display:flex; align-items:center;">
+                                        ${c.lastMessageSnippet} ${unreadIndicator}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        $list.append(item);
+                    });
+                }
+            });
         }
-    };
+    }
+
+    // Load Support Requests
+    function loadAdminSupportRequests() {
+        if (window.apiClient) {
+            window.apiClient.apiGet('/api/MessagesAPI/call-requests').then(res => {
+                if (res && res.data) {
+                    const $list = $('#support-requests-tab .request-list');
+                    $list.empty();
+                    res.data.forEach(req => {
+                        let statusClass = req.status === 0 ? "status-pending" : (req.status === 1 ? "status-resolved" : "status-closed");
+                        let item = `
+                            <div class="request-item" data-req-id="${req.requestID}" data-buyer-name="${req.customerName}">
+                                <div class="req-header">
+                                    <span class="req-type">${req.categoryName}</span>
+                                    <span class="req-time">${new Date(req.createdAt).toLocaleTimeString('vi-VN')}</span>
+                                </div>
+                                <div class="req-buyer">${req.customerName}</div>
+                                <div class="req-preview">${req.note}</div>
+                                <div class="req-footer">
+                                    <span class="req-phone"><i class="fas fa-phone-alt"></i> ${req.phoneNumber}</span>
+                                    <span class="req-status ${statusClass}">${req.statusName}</span>
+                                </div>
+                            </div>
+                        `;
+                        $list.append(item);
+                    });
+                }
+            });
+        }
+    }
+
+    // Initialize data
+    loadAdminConversations();
+    loadAdminSupportRequests();
+
 
     // 1. Tab Switching (Conversations vs Support Requests)
     $('.tab-btn').on('click', function() {
@@ -52,98 +83,114 @@ function initAdminMessages() {
     });
 
     // Function to sync buyer profile to right sidebar and header
-    function syncBuyerProfile(buyerIdOrName) {
-        let buyer = null;
-        if (mockBuyers[buyerIdOrName]) {
-            buyer = mockBuyers[buyerIdOrName];
-        } else {
-            buyer = Object.values(mockBuyers).find(b => b.name.toLowerCase() === buyerIdOrName.toString().toLowerCase());
-        }
+    
+    function syncBuyerProfile(buyerName, avatar) {
+        // We only have basic info from API in this snippet, fill the rest with placeholders
+        $('#admin-chat-search-bar').hide();
+        adminClearSearchHighlights();
+        $('#admin-chat-search-input').val('');
 
-        if (!buyer) {
-            // Generate temporary buyer if not found in mock database
-            buyer = {
-                name: decodeURIComponent(buyerIdOrName),
-                avatar: "/images/Avatar/avatar1.jpg",
-                status: "Offline",
-                isOnline: false,
-                joined: "Joined: Recently",
-                orders: "1",
-                spent: "0 VND",
-                address: "N/A",
-                phone: "N/A",
-                email: "N/A"
-            };
-        }
-
-        if (buyer) {
-            // Close search bar if open & clear highlights
-            $('#admin-chat-search-bar').hide();
-            adminClearSearchHighlights();
-            $('#admin-chat-search-input').val('');
-
-            // Update Center Header
-            $('#current-chat-name').text(buyer.name);
-            $('#current-chat-avatar').attr('src', buyer.avatar);
-            
-            if (buyer.isOnline) {
-                $('#current-chat-online').show();
-                $('#current-chat-status').html('<i class="fas fa-circle" style="color: #2e7d32; font-size: 0.6rem;"></i> Active now');
-            } else {
-                $('#current-chat-online').hide();
-                $('#current-chat-status').html('<i class="fas fa-circle" style="color: #888; font-size: 0.6rem;"></i> Offline');
-            }
-
-            // Update Right Sidebar
-            $('#sidebar-buyer-name').text(buyer.name);
-            $('#sidebar-buyer-avatar').attr('src', buyer.avatar);
-            $('#sidebar-buyer-joined').text(buyer.joined);
-            $('#sidebar-buyer-orders').text(buyer.orders);
-            $('#sidebar-buyer-spent').text(buyer.spent);
-            $('#sidebar-buyer-address').text(buyer.address);
-            $('#sidebar-buyer-phone').text(buyer.phone);
-            $('#sidebar-buyer-email').text(buyer.email);
-            
-            // Update input placeholder
-            $('#admin-message-input').attr('placeholder', `Type a message to ${buyer.name}...`);
-            return buyer;
-        }
-        return null;
+        $('#current-chat-name').text(buyerName);
+        $('#current-chat-avatar').attr('src', avatar);
+        
+        $('#sidebar-buyer-name').text(buyerName);
+        $('#sidebar-buyer-avatar').attr('src', avatar);
+        $('#admin-message-input').attr('placeholder', `Type a message to ${buyerName}...`);
     }
 
+
     // 2. Handle Conversation Selection
+    
     $('#admin-convo-list').on('click', '.convo-item', function() {
-        // Reset state
         $('#admin-convo-list .convo-item').removeClass('active');
         $(this).addClass('active');
 
-        const buyerId = $(this).data('buyer-id');
+        activeConversationId = $(this).data('convo-id');
+        const buyerName = $(this).data('buyer-name');
+        const buyerAvatar = $(this).data('buyer-avatar');
 
-        // Ensure Chat Area is visible, Hide Request Details
         $('#admin-req-detail-area').hide();
         $('#admin-chat-main-area').fadeIn(200);
 
-        // Sync Profile Data
-        const buyer = syncBuyerProfile(buyerId);
+        syncBuyerProfile(buyerName, buyerAvatar);
         
-        if (buyer) {
-            // Clear chat stream and simulate load
-            $('#admin-chat-stream').empty().append(`
-                <div class="chat-date-separator">
-                    <span>Today</span>
-                </div>
-                <div class="msg-bubble-group incoming">
-                    <img src="${buyer.avatar}" class="msg-avatar" onerror="this.src='/images/Avatar/avatar1.jpg'">
-                    <div class="msg-bubble-content">
-                        <div class="msg-text-bubble">
-                            Hello! I am ${buyer.name}. Can you help me?
-                        </div>
-                        <div class="msg-meta">Just now</div>
-                    </div>
-                </div>
-            `);
+        // Load messages from API
+        if (window.apiClient) {
+            window.apiClient.apiGet('/api/MessagesAPI/conversations/' + activeConversationId).then(res => {
+                if (res && res.data) {
+                    const $stream = $('#admin-chat-stream');
+                    $stream.empty();
+                    res.data.forEach(msg => {
+                        let time = new Date(msg.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                        let booksHtml = "";
+                        if (msg.attachedBookID) {
+                            booksHtml = `
+                                <div style="display: flex; gap: 12px; align-items: start; background: #fff; padding: 12px; border-radius: 12px; border: 1.5px solid rgba(194, 24, 91, 0.1); margin-top: 10px;">
+                                    <img src="${msg.attachedBookImage || '/images/Book/book1.jpg'}" style="width: 45px; height: 62px; object-fit: cover; border-radius: 4px;">
+                                    <div style="flex: 1; min-width: 0; text-align: left;">
+                                        <h4 style="font-size: 0.85rem; font-weight: 700; color: #111; margin: 0 0 2px 0;">${msg.attachedBookTitle}</h4>
+                                        <a href="/Explore#book-details-${encodeURIComponent(msg.attachedBookTitle)}" style="font-size: 0.72rem; font-weight: 700; color: #C2185B; text-decoration: none; display: inline-block; margin-top: 6px;" target="_blank"><i class="fas fa-external-link-alt"></i> View Book</a>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        let mediaHtml = "";
+                        if (msg.attachmentUrl) {
+                            if (msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+                                mediaHtml = `<img src="${msg.attachmentUrl}" style="width: 100%; max-height: 200px; border-radius: 8px; margin-top:10px; object-fit:cover;">`;
+                            } else {
+                                mediaHtml = `<video src="${msg.attachmentUrl}" controls style="width: 100%; max-height: 200px; background: #000; border-radius: 8px; margin-top:10px;"></video>`;
+                            }
+                        }
+
+                        let bubble = '';
+                        if (msg.senderAvatar.includes('admin')) {
+                            // Outgoing for Admin
+                            bubble = `
+                                <div class="msg-bubble-group outgoing">
+                                    <div class="msg-bubble-content">
+                                        <div class="msg-text-bubble" style="background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333;">
+                                            ${msg.content ? `<div>${msg.content}</div>` : ''}
+                                            ${booksHtml}
+                                            ${mediaHtml}
+                                        </div>
+                                        <div class="msg-meta">${time}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Incoming from User
+                            bubble = `
+                                <div class="msg-bubble-group incoming">
+                                    <img src="${msg.senderAvatar}" alt="${msg.senderName}" class="msg-avatar">
+                                    <div class="msg-bubble-content">
+                                        <div class="msg-text-bubble">
+                                            ${msg.content ? `<div>${msg.content}</div>` : ''}
+                                            ${booksHtml}
+                                            ${mediaHtml}
+                                        </div>
+                                        <div class="msg-meta">${time}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        $stream.append(bubble);
+                    });
+                    
+                    // Rebind view functions if any
+                    setTimeout(() => {
+                        const stream = document.getElementById('admin-chat-stream');
+                        if(stream) stream.scrollTop = stream.scrollHeight;
+                    }, 50);
+                    
+                    // Reload conversations to update read status
+                    loadAdminConversations();
+                }
+            });
         }
     });
+
 
     // 3. Handle Support Request Selection
     $('.request-item').on('click', function() {
@@ -158,8 +205,7 @@ function initAdminMessages() {
         const reqStatusText = $(this).find('.req-status').text();
 
         // Find associated phone from database if possible
-        const buyer = Object.values(mockBuyers).find(b => b.name === reqBuyer);
-        const reqPhone = buyer ? buyer.phone : '09xxxxxxxx';
+        const reqPhone = $(this).find('.req-phone').text().trim().replace(' ', '');
 
         // Update Detail View
         $('#detail-req-buyer').text(reqBuyer);
@@ -224,6 +270,65 @@ function initAdminMessages() {
     // ==========================================
 
     // A. Tag Book Modal Triggers
+    let adminTagBooksLoaded = false;
+    function loadAdminTagBooks() {
+        if (adminTagBooksLoaded || !window.apiClient) return;
+        adminTagBooksLoaded = true;
+        
+        // Fetch Recent (Real Books)
+        window.apiClient.apiGet('/api/RealBook?pageSize=5').then(res => {
+            let items = res.data.items || res.data;
+            if (items && Array.isArray(items)) {
+                $('#recent-books-list').empty();
+                items.slice(0, 5).forEach(book => {
+                    let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
+                    let item = `
+                        <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                            <img src="${imgUrl}" alt="Book">
+                            <div>
+                                <h4>${book.title}</h4>
+                                <p>${book.author || 'Unknown'} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                            </div>
+                        </div>
+                    `;
+                    $('#recent-books-list').append(item);
+                });
+                if (items.length === 0) {
+                    $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
+                }
+            }
+        }).catch(() => {
+            $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load books.</div>');
+        });
+        
+        // Wishlist for admin doesn't make much sense, but we load it anyway
+        window.apiClient.apiGet('/api/Wishlist').then(res => {
+            let items = res.data.items || res.data;
+            if (items && Array.isArray(items)) {
+                $('#wishlist-books-list').empty();
+                items.slice(0, 5).forEach(item => {
+                    let imgUrl = item.imageUrl || '/images/Book/book1.jpg';
+                    let link = item.blindBookID ? `/Explore#blind-details-${encodeURIComponent(item.title)}` : `/Explore#book-details-${encodeURIComponent(item.title)}`;
+                    let html = `
+                        <div class="book-select-item" data-title="${item.title}" data-author="BookBlossom" data-img="${imgUrl}" data-link="${link}">
+                            <img src="${imgUrl}" alt="Book">
+                            <div>
+                                <h4>${item.title}</h4>
+                                <p>BookBlossom • ₫${item.price ? item.price.toLocaleString('vi-VN') : '0'}</p>
+                            </div>
+                        </div>
+                    `;
+                    $('#wishlist-books-list').append(html);
+                });
+                if (items.length === 0) {
+                    $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
+                }
+            }
+        }).catch(() => {
+            $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load wishlist.</div>');
+        });
+    }
+
     $('#btn-admin-tag-book-trigger').on('click', function(e) {
         e.preventDefault();
         $('#tag-book-modal').fadeIn(200).addClass('active').css('display', 'flex');
@@ -231,6 +336,7 @@ function initAdminMessages() {
         $('#tag-book-link').val('');
         $('#link-error').hide();
         $('#tag-book-modal .book-select-item').removeClass('selected');
+        loadAdminTagBooks();
     });
 
     // B. Media Attachment File Browser Trigger
@@ -338,7 +444,8 @@ function initAdminMessages() {
         $('#' + target).fadeIn(150).addClass('active');
     });
 
-    $('#tag-book-modal .book-select-item').on('click', function() {
+    // Select Book inside lists (Delegated)
+    $('#tag-book-modal').on('click', '.book-select-item', function() {
         $('#tag-book-modal .book-select-item').removeClass('selected');
         $(this).addClass('selected');
     });
@@ -948,3 +1055,16 @@ function initAdminMessages() {
 }
 
 // initAdminMessages is exposed globally and will be called by Messages.cshtml inline script.
+
+
+
+    $('#btn-resolve-req').on('click', function() {
+        const reqId = $('#admin-req-detail-area').data('active-req-id');
+        if (window.apiClient && reqId) {
+            window.apiClient.apiPut(`/api/MessagesAPI/call-requests/${reqId}/resolve`, {}).then(() => {
+                $('#detail-req-status').removeClass().addClass('status-resolved').text('Resolved');
+                loadAdminSupportRequests();
+                alert("Request marked as resolved successfully!");
+            });
+        }
+    });

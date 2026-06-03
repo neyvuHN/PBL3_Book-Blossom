@@ -95,6 +95,8 @@ builder.Services.AddScoped<IReputationService, ReputationService>();
 
 // Đăng ký IStatisticsService
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<BookBlossom.Core.Interfaces.Services.IMessageService, BookBlossom.Infrastructure.Services.MessageService>();
+builder.Services.AddScoped<BookBlossom.Core.Interfaces.Services.ICallRequestService, BookBlossom.Infrastructure.Services.CallRequestService>();
 
 // Đăng ký IAuditService
 builder.Services.AddScoped<IAuditService, AuditService>();
