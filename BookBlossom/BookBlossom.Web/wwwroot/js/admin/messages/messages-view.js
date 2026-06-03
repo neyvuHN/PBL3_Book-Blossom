@@ -155,14 +155,16 @@ class AdminMessagesView {
         }
 
         messages.forEach(msg => {
+            const msgId = msg.messageID || msg.messageId;
             // Avoid duplicates
-            if (append && this.$chatStream.find(`[data-msg-id="${msg.messageID}"]`).length > 0) {
+            if (append && this.$chatStream.find(`[data-msg-id="${msgId}"]`).length > 0) {
                 return;
             }
             const time = new Date(msg.sentAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             
             let booksHtml = "";
-            if (msg.attachedBookID) {
+            const attachedBookId = msg.attachedBookID || msg.attachedBookId;
+            if (attachedBookId) {
                 const bookTitleEscaped = this.escapeHtml(msg.attachedBookTitle);
                 booksHtml = `
                     <div style="display: flex; gap: 12px; align-items: start; background: #fff; padding: 12px; border-radius: 12px; border: 1.5px solid rgba(194, 24, 91, 0.1); margin-top: 10px;">
@@ -194,7 +196,7 @@ class AdminMessagesView {
             if (msg.senderAvatar.includes('admin') || msg.senderName === "BookBlossom Shop") {
                 // Outgoing for Admin
                 bubble = `
-                    <div class="msg-bubble-group outgoing" data-msg-id="${msg.messageID}">
+                    <div class="msg-bubble-group outgoing" data-msg-id="${msgId}">
                         <div class="msg-bubble-content">
                             <div class="msg-text-bubble" style="background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333;">
                                 ${contentHtml}
@@ -209,7 +211,7 @@ class AdminMessagesView {
                 // Incoming from User
                 const avatar = msg.senderAvatar || '/images/Avatar/default.png';
                 bubble = `
-                    <div class="msg-bubble-group incoming" data-msg-id="${msg.messageID}">
+                    <div class="msg-bubble-group incoming" data-msg-id="${msgId}">
                         <div class="msg-avatar-container">
                             <img src="${avatar}" alt="${this.escapeHtml(msg.senderName)}" class="msg-avatar" onerror="this.src='/images/Avatar/default.png'">
                         </div>

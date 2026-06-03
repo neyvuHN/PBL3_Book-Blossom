@@ -259,7 +259,14 @@
                     const data = await response.json();
 
                     if (!response.ok) {
-                        throw new Error(data.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
+                        let errMsg = data.message || data.Message;
+                        if (!errMsg && data.errors) {
+                            errMsg = Object.values(data.errors).flat().join('\n');
+                        }
+                        if (!errMsg && data.title) {
+                            errMsg = data.title;
+                        }
+                        throw new Error(errMsg || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
                     }
 
                     // Display user phone number inside the modal
@@ -338,7 +345,14 @@
 
                     const data = await response.json();
                     if (!response.ok) {
-                        throw new Error(data.message || 'Gửi lại OTP thất bại.');
+                        let errMsg = data.message || data.Message;
+                        if (!errMsg && data.errors) {
+                            errMsg = Object.values(data.errors).flat().join('\n');
+                        }
+                        if (!errMsg && data.title) {
+                            errMsg = data.title;
+                        }
+                        throw new Error(errMsg || 'Gửi lại OTP thất bại.');
                     }
 
                     showToast('A new OTP has been sent to ' + phoneInput.value, 'success', 'OTP Sent');
@@ -426,7 +440,14 @@
                     const data = await response.json();
 
                     if (!response.ok) {
-                        throw new Error(data.message || 'Mã OTP không chính xác.');
+                        let errMsg = data.message || data.Message;
+                        if (!errMsg && data.errors) {
+                            errMsg = Object.values(data.errors).flat().join('\n');
+                        }
+                        if (!errMsg && data.title) {
+                            errMsg = data.title;
+                        }
+                        throw new Error(errMsg || 'Mã OTP không chính xác.');
                     }
 
                     // Save token to LocalStorage

@@ -236,33 +236,19 @@ class MessagesController {
             attachedBookID: attachedBookId
         };
 
-        // Post to server
-        this.model.sendMessage(dto).then(res => {
-            console.log("Message sent to DB", res);
-        }).catch(err => {
-            console.error("Failed to save message", err);
-        });
-
-        // Construct and append user bubble
-        const userBubble = `
-            <div class="msg-bubble-group outgoing">
-                <div class="msg-bubble-content">
-                    <div class="msg-text-bubble" style="${($chips.length > 0 || $mediaItems.length > 0) ? 'background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333; box-shadow: 0 5px 20px rgba(194, 24, 91, 0.03);' : ''}">
-                        ${text !== '' ? `<div style="font-weight: 500;">${text}</div>` : ''}
-                        ${booksHtml}
-                        ${mediaHtml}
-                    </div>
-                    <div class="msg-meta">${time} • Sent <i class="fas fa-check-double" style="color: #C2185B; margin-left: 2px;"></i></div>
-                </div>
-            </div>
-        `;
-
-        this.view.$chatStream.append(userBubble);
-        this.view.scrollToBottom();
-
         // Clear previews
         $('#tagged-books-preview').empty().hide();
         $('#media-attachment-preview').empty().hide();
+
+        // Post to server
+        this.model.sendMessage(dto).then(res => {
+            console.log("Message sent to DB", res);
+            if (res && (res.messageID || res.messageId)) {
+                this.view.renderMessages([res], true);
+            }
+        }).catch(err => {
+            console.error("Failed to save message", err);
+        });
 
         // Update convo item preview on left pane
         let previewText = text !== '' ? text : "";

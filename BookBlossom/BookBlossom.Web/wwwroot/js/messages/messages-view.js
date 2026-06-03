@@ -94,14 +94,16 @@ class MessagesView {
         }
         
         messages.forEach(msg => {
-            if (append && this.$chatStream.find(`#chat-msg-${msg.messageID}`).length > 0) {
+            const msgId = msg.messageID || msg.messageId;
+            if (append && this.$chatStream.find(`#chat-msg-${msgId}`).length > 0) {
                 return;
             }
             let bubble = '';
             let time = new Date(msg.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             
             let booksHtml = "";
-            if (msg.attachedBookID) {
+            const attachedBookId = msg.attachedBookID || msg.attachedBookId;
+            if (attachedBookId) {
                 booksHtml = `
                     <div style="display: flex; gap: 12px; align-items: start; background: #fff; padding: 12px; border-radius: 12px; border: 1.5px solid rgba(194, 24, 91, 0.1); margin-top: 10px;">
                         <img src="${msg.attachedBookImage || '/images/Book/book1.jpg'}" style="width: 45px; height: 62px; object-fit: cover; border-radius: 4px;">
@@ -130,7 +132,7 @@ class MessagesView {
             if (msg.senderAvatar && msg.senderAvatar.includes('admin')) {
                 // Incoming from Shop
                 bubble = `
-                    <div class="msg-bubble-group incoming" id="chat-msg-${msg.messageID}">
+                    <div class="msg-bubble-group incoming" id="chat-msg-${msgId}">
                         <div class="msg-avatar-container">
                             <img src="${msg.senderAvatar}" alt="${msg.senderName}" class="msg-avatar">
                         </div>
@@ -147,7 +149,7 @@ class MessagesView {
             } else {
                 // Outgoing from User
                 bubble = `
-                    <div class="msg-bubble-group outgoing" id="chat-msg-${msg.messageID}">
+                    <div class="msg-bubble-group outgoing" id="chat-msg-${msgId}">
                         <div class="msg-bubble-content">
                             <div class="msg-text-bubble" style="background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333;">
                                 ${msg.content ? `<div style="font-weight: 500;">${msg.content}</div>` : ''}
