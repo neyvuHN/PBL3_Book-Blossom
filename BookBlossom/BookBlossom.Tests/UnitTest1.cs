@@ -1,8 +1,10 @@
 using Xunit;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using BookBlossom.Infrastructure.Data;
+using BookBlossom.Core.Enums;
 
 namespace BookBlossom.Tests
 {

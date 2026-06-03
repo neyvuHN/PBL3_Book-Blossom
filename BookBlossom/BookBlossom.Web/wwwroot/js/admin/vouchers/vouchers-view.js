@@ -79,6 +79,7 @@ class VouchersView {
         this.btnCreate.addEventListener('click', () => {
             this.form.reset();
             document.getElementById('vId').value = '';
+            document.getElementById('vCode').disabled = false;
             document.getElementById('modalTitle').textContent = 'Create New Voucher';
             this.selectedCategories = [];
             this.selectedBooks = [];
@@ -423,6 +424,7 @@ class VouchersView {
         document.getElementById('vId').value = voucher.id;
         document.getElementById('vCampaignName').value = voucher.campaignName || '';
         document.getElementById('vCode').value = voucher.code;
+        document.getElementById('vCode').disabled = true;
         document.getElementById('vType').value = voucher.type;
         document.getElementById('vValue').value = voucher.value;
         document.getElementById('vMaxDiscount').value = voucher.maxDiscount;

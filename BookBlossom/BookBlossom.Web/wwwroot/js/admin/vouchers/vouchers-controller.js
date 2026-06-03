@@ -26,11 +26,11 @@ class VouchersController {
             this.view.openSelectionModal('Books', this.model.mockBooks);
         });
 
-        await this.refreshGrid();
+        await this.refreshGrid(true); // Force fetch on startup
     }
 
-    async refreshGrid() {
-        let vouchers = await this.model.getAllVouchers();
+    async refreshGrid(forceFetch = false) {
+        let vouchers = await this.model.getAllVouchers(forceFetch);
         const filters = this.view.getFilterValues();
 
         // Apply Status Filter
@@ -54,7 +54,7 @@ class VouchersController {
                 await this.model.addVoucher(voucher);
             }
             this.view.closeModal();
-            await this.refreshGrid();
+            await this.refreshGrid(true); // Force fetch after modification
         } catch (e) {
             console.error("Failed to save voucher", e);
         }
@@ -69,11 +69,11 @@ class VouchersController {
 
     async handleDeleteVoucher(id) {
         if (await this.model.deleteVoucher(id)) {
-            await this.refreshGrid();
+            await this.refreshGrid(true); // Force fetch after deletion
         }
     }
 
     async handleFilters() {
-        await this.refreshGrid();
+        await this.refreshGrid(false); // Local caching when filtering
     }
 }

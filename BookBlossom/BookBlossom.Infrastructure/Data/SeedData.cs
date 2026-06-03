@@ -564,6 +564,168 @@ namespace BookBlossom.Infrastructure.Data
                     }
                 }
             }
+
+            // 10. Seed Vouchers mẫu đủ 5 trạng thái
+            if (!await context.Vouchers.AnyAsync(v => v.VoucherCode == "WELCOMENEW"))
+            {
+                var vouchers = new[]
+                {
+                    new Voucher
+                    {
+                        VoucherName = "Mừng Khai Trương",
+                        VoucherCode = "WELCOMENEW",
+                        DiscountType = VoucherDiscountType.Percentage,
+                        DiscountValue = 10,
+                        MaxDiscountAmount = 50000,
+                        MinOrderValue = 100000,
+                        TotalLimit = 500,
+                        UsedCount = 120,
+                        StatusVoucher = VoucherStatus.Active,
+                        StartDate = DateTime.UtcNow.AddDays(-10),
+                        EndDate = DateTime.UtcNow.AddDays(20),
+                        IsStackable = true,
+                        IsAutoRefundable = true,
+                        MinReputationRequired = 0,
+                        MembershipRankRequired = 0
+                    },
+                    new Voucher
+                    {
+                        VoucherName = "Mùa Hè Rực Rỡ",
+                        VoucherCode = "SUMMER2026",
+                        DiscountType = VoucherDiscountType.Fixed,
+                        DiscountValue = 30000,
+                        MaxDiscountAmount = 30000,
+                        MinOrderValue = 150000,
+                        TotalLimit = 100,
+                        UsedCount = 0,
+                        StatusVoucher = VoucherStatus.Scheduled,
+                        StartDate = DateTime.UtcNow.AddDays(5),
+                        EndDate = DateTime.UtcNow.AddDays(25),
+                        IsStackable = false,
+                        IsAutoRefundable = true,
+                        MinReputationRequired = 50,
+                        MembershipRankRequired = 1
+                    },
+                    new Voucher
+                    {
+                        VoucherName = "Tri Ân Độc Giả Thân Thiết",
+                        VoucherCode = "VIPMEMBERS",
+                        DiscountType = VoucherDiscountType.Percentage,
+                        DiscountValue = 25,
+                        MaxDiscountAmount = 150000,
+                        MinOrderValue = 300000,
+                        TotalLimit = 50,
+                        UsedCount = 5,
+                        StatusVoucher = VoucherStatus.Active,
+                        StartDate = DateTime.UtcNow.AddDays(-5),
+                        EndDate = DateTime.UtcNow.AddDays(15),
+                        IsStackable = true,
+                        IsAutoRefundable = false,
+                        MinReputationRequired = 100,
+                        MembershipRankRequired = 3
+                    },
+                    new Voucher
+                    {
+                        VoucherName = "Nháp Sự Kiện Sắp Tới",
+                        VoucherCode = "DRAFTVOUCH",
+                        DiscountType = VoucherDiscountType.Fixed,
+                        DiscountValue = 50000,
+                        MaxDiscountAmount = 50000,
+                        MinOrderValue = 200000,
+                        TotalLimit = 1000,
+                        UsedCount = 0,
+                        StatusVoucher = VoucherStatus.Draft,
+                        StartDate = DateTime.UtcNow.AddDays(30),
+                        EndDate = DateTime.UtcNow.AddDays(60),
+                        IsStackable = false,
+                        IsAutoRefundable = false,
+                        MinReputationRequired = 0,
+                        MembershipRankRequired = 0
+                    },
+                    new Voucher
+                    {
+                        VoucherName = "Sự Kiện Sách Hay Tạm Dừng",
+                        VoucherCode = "MIDYEARRUS",
+                        DiscountType = VoucherDiscountType.Fixed,
+                        DiscountValue = 20000,
+                        MaxDiscountAmount = 20000,
+                        MinOrderValue = 100000,
+                        TotalLimit = 300,
+                        UsedCount = 45,
+                        StatusVoucher = VoucherStatus.Paused,
+                        StartDate = DateTime.UtcNow.AddDays(-15),
+                        EndDate = DateTime.UtcNow.AddDays(15),
+                        IsStackable = false,
+                        IsAutoRefundable = true,
+                        MinReputationRequired = 20,
+                        MembershipRankRequired = 0
+                    },
+                    new Voucher
+                    {
+                        VoucherName = "Giờ Vàng Tuần Trước",
+                        VoucherCode = "FLASHPAST",
+                        DiscountType = VoucherDiscountType.Percentage,
+                        DiscountValue = 50,
+                        MaxDiscountAmount = 200000,
+                        MinOrderValue = 400000,
+                        TotalLimit = 50,
+                        UsedCount = 50,
+                        StatusVoucher = VoucherStatus.Ended,
+                        StartDate = DateTime.UtcNow.AddDays(-10),
+                        EndDate = DateTime.UtcNow.AddDays(-3),
+                        IsStackable = true,
+                        IsAutoRefundable = true,
+                        MinReputationRequired = 80,
+                        MembershipRankRequired = 2
+                    }
+                };
+                await context.Vouchers.AddRangeAsync(vouchers);
+                await context.SaveChangesAsync();
+            }
+
+            // Cập nhật ngẫu nhiên các voucher đã seed vào các đơn hàng completed chưa có voucher
+            var vouchersToAssign = await context.Vouchers
+                .Where(v => v.VoucherCode == "WELCOMENEW" || v.VoucherCode == "VIPMEMBERS" || v.VoucherCode == "MIDYEARRUS" || v.VoucherCode == "FLASHPAST")
+                .ToListAsync();
+
+            if (vouchersToAssign.Any())
+            {
+                var unassignedCompletedOrders = await context.Orders
+                    .Where(o => o.OrderStatus == OrderStatus.Completed && o.VoucherID == null)
+                    .ToListAsync();
+                
+                if (unassignedCompletedOrders.Any())
+                {
+                    int index = 0;
+                    foreach (var orderItem in unassignedCompletedOrders)
+                    {
+                        var v = vouchersToAssign[index % vouchersToAssign.Count];
+                        index++;
+
+                        decimal subtotal = orderItem.TotalAmount - orderItem.ShippingFee.GetValueOrDefault();
+                        if (subtotal <= 0) subtotal = 100000;
+                        
+                        decimal discount = 0;
+                        if (v.DiscountType == VoucherDiscountType.Fixed)
+                        {
+                            discount = v.DiscountValue;
+                        }
+                        else
+                        {
+                            discount = subtotal * v.DiscountValue / 100;
+                            if (v.MaxDiscountAmount > 0 && discount > v.MaxDiscountAmount)
+                                discount = v.MaxDiscountAmount;
+                        }
+                        
+                        if (discount > subtotal) discount = subtotal * 0.5m;
+                        
+                        orderItem.VoucherID = v.VoucherID;
+                        orderItem.DiscountAmount = discount;
+                        orderItem.TotalAmount = subtotal + orderItem.ShippingFee.GetValueOrDefault() - discount;
+                    }
+                    await context.SaveChangesAsync();
+                }
+            }
         }
     }
 }

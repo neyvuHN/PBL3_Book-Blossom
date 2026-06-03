@@ -46,7 +46,10 @@ class VouchersModel {
         }
     }
 
-    async getAllVouchers() {
+    async getAllVouchers(forceFetch = false) {
+        if (this.vouchers.length > 0 && !forceFetch) {
+            return this.vouchers;
+        }
         if (!window.apiClient) return [];
         try {
             const rawVouchers = await window.apiClient.apiGet('/api/management/Voucher');
@@ -83,7 +86,7 @@ class VouchersModel {
                     stackable: v.isStackable,
                     autoRestore: v.isAutoRefundable,
                     status: invStatusMap[v.statusVoucher] || 'Draft',
-                    roi: formatCompactVND(stats.totalRevenueGenerated || 0),
+                    roi: stats.roi ? `${stats.roi}x` : '0.00x',
                     selectedCategories: v.applicableCategoryIDs || [],
                     selectedBooks: [],
                     stats: stats
@@ -138,6 +141,7 @@ class VouchersModel {
     async addVoucher(voucher) {
         if (!window.apiClient) return null;
         const rankMap = { 'None': 0, 'Bronze': 1, 'Silver': 2, 'Gold': 3, 'Diamond': 4 };
+        const statusMap = { 'Draft': 0, 'Schedule': 1, 'Active': 2, 'Pause': 3, 'End': 4 };
         const payload = {
             voucherName: voucher.campaignName,
             voucherCode: voucher.code,
@@ -155,6 +159,7 @@ class VouchersModel {
             isStackable: !!voucher.stackable,
             isAutoRefundable: !!voucher.autoRestore,
             maxUsagePerUser: 1,
+            statusVoucher: statusMap[voucher.status] ?? 0,
             applicableCategoryIDs: voucher.scope === 'SpecificCategory' || voucher.scope === 'Both' ? voucher.selectedCategories : []
         };
 

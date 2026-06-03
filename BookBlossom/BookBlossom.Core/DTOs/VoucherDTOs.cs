@@ -48,6 +48,7 @@ namespace BookBlossom.Core.DTOs
         public bool IsStackable { get; set; } = false;
         public bool IsAutoRefundable { get; set; } = false;
         public int MaxUsagePerUser { get; set; } = 1;
+        public VoucherStatus StatusVoucher { get; set; } = VoucherStatus.Draft;
         // Nếu rỗng = áp dụng toàn sàn
         public List<long> ApplicableCategoryIDs { get; set; } = new();
     }

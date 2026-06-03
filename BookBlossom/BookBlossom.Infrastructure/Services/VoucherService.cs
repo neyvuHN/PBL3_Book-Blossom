@@ -61,7 +61,7 @@ namespace BookBlossom.Infrastructure.Services
                 UsedCount = 0,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
-                StatusVoucher = VoucherStatus.Draft,
+                StatusVoucher = dto.StatusVoucher,
                 MinReputationRequired = dto.MinReputationRequired,
                 MembershipRankRequired = dto.MembershipRankRequired,
                 IsForNewUser = dto.IsForNewUser,
