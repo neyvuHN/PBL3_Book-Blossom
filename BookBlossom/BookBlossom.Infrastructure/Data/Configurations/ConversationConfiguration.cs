@@ -8,12 +8,12 @@ namespace BookBlossom.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Conversation> builder)
         {
-            builder.ToTable("Conversations");
+            builder.ToTable("Conversation", "Chat");
             builder.HasKey(c => c.ConversationID);
 
             builder.HasOne(c => c.User)
-                .WithOne()
-                .HasForeignKey<Conversation>(c => c.CustomerID)
+                .WithMany()
+                .HasForeignKey(c => c.BuyerID)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

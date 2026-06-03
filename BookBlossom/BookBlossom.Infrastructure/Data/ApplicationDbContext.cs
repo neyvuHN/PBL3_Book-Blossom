@@ -50,6 +50,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<BadgeCustomer> BadgeCustomers { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<MessageAttachment> MessageAttachments { get; set; }
         public DbSet<CallRequest> CallRequests { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<CustomerVoucher> CustomerVouchers { get; set; }

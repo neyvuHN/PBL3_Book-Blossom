@@ -6,10 +6,11 @@ namespace BookBlossom.Core.Entities
     public class Conversation
     {
         public long ConversationID { get; set; }
-        public long CustomerID { get; set; }
+        public long BuyerID { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsClosed { get; set; } = false;
 
         // Navigation properties
         public virtual User User { get; set; } = null!;

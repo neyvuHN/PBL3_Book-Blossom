@@ -277,9 +277,10 @@ function initAdminMessages() {
         
         // Fetch Recent (Real Books)
         window.apiClient.apiGet('/api/RealBook?pageSize=5').then(res => {
-            if (res && res.data && res.data.items) {
+            let items = res.data.items || res.data;
+            if (items && Array.isArray(items)) {
                 $('#recent-books-list').empty();
-                res.data.items.slice(0, 5).forEach(book => {
+                items.slice(0, 5).forEach(book => {
                     let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
                     let item = `
                         <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
@@ -292,7 +293,7 @@ function initAdminMessages() {
                     `;
                     $('#recent-books-list').append(item);
                 });
-                if (res.data.items.length === 0) {
+                if (items.length === 0) {
                     $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
                 }
             }
@@ -302,24 +303,24 @@ function initAdminMessages() {
         
         // Wishlist for admin doesn't make much sense, but we load it anyway
         window.apiClient.apiGet('/api/Wishlist').then(res => {
-            if (res && res.data) {
+            let items = res.data.items || res.data;
+            if (items && Array.isArray(items)) {
                 $('#wishlist-books-list').empty();
-                res.data.slice(0, 5).forEach(item => {
-                    let book = item.realBook;
-                    if (!book) return;
-                    let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
+                items.slice(0, 5).forEach(item => {
+                    let imgUrl = item.imageUrl || '/images/Book/book1.jpg';
+                    let link = item.blindBookID ? `/Explore#blind-details-${encodeURIComponent(item.title)}` : `/Explore#book-details-${encodeURIComponent(item.title)}`;
                     let html = `
-                        <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                        <div class="book-select-item" data-title="${item.title}" data-author="BookBlossom" data-img="${imgUrl}" data-link="${link}">
                             <img src="${imgUrl}" alt="Book">
                             <div>
-                                <h4>${book.title}</h4>
-                                <p>${book.author || 'Unknown'} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                                <h4>${item.title}</h4>
+                                <p>BookBlossom • ₫${item.price ? item.price.toLocaleString('vi-VN') : '0'}</p>
                             </div>
                         </div>
                     `;
                     $('#wishlist-books-list').append(html);
                 });
-                if (res.data.length === 0) {
+                if (items.length === 0) {
                     $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
                 }
             }

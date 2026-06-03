@@ -2,6 +2,13 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/apiClient.js" asp-append-version="true"></script>
+    <script src="~/js/shared/cart-store.js" asp-append-version="true"></script>
+    <script src="~/js/shared/wishlist-store.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="~/js/notification/notification-model.js" asp-append-version="true"></script>
+    <script src="~/js/notification/notification-view.js" asp-append-version="true"></script>
+    <script src="~/js/notification/notification-controller.js" asp-append-version="true"></script>
+    <script src="~/js/shared/layout.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
 
@@ -417,6 +424,33 @@
                         }
                     });
                     mediaHtml += `</div>`;
+                }
+
+                let attachedBookId = null;
+                if ($chips.length > 0) {
+                    let did = $chips.first().data('id');
+                    if(did) attachedBookId = parseInt(did);
+                }
+                
+                let attachmentUrl = null;
+                if ($mediaItems.length > 0) {
+                    attachmentUrl = $mediaItems.first().data('src');
+                }
+                
+                const dto = {
+                    conversationID: typeof activeConversationId !== 'undefined' ? activeConversationId : null,
+                    receiverID: 1, // Admin shop user ID 
+                    content: text,
+                    attachmentUrl: attachmentUrl,
+                    attachedBookID: attachedBookId
+                };
+
+                if (window.apiClient) {
+                    window.apiClient.apiPost('/api/MessagesAPI', dto).then(res => {
+                        console.log("Message sent to DB", res);
+                    }).catch(err => {
+                        console.error("Failed to save message", err);
+                    });
                 }
 
                 // Construct user message bubble
@@ -956,12 +990,13 @@
                 
                 // Fetch Recent (Real Books)
                 window.apiClient.apiGet('/api/RealBook?pageSize=5').then(res => {
-                    if (res && res.data && res.data.items) {
+                    let items = res.data.items || res.data;
+                    if (items && Array.isArray(items)) {
                         $('#recent-books-list').empty();
-                        res.data.items.slice(0, 5).forEach(book => {
+                        items.slice(0, 5).forEach(book => {
                             let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
                             let item = `
-                                <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                                <div class="book-select-item" data-id="${book.bookID}" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
                                     <img src="${imgUrl}" alt="Book">
                                     <div>
                                         <h4>${book.title}</h4>
@@ -971,7 +1006,7 @@
                             `;
                             $('#recent-books-list').append(item);
                         });
-                        if (res.data.items.length === 0) {
+                        if (items.length === 0) {
                             $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
                         }
                     }
@@ -982,24 +1017,24 @@
                 // Fetch Wishlist
                 if (!isGuest()) {
                     window.apiClient.apiGet('/api/Wishlist').then(res => {
-                        if (res && res.data) {
+                        let items = res.data.items || res.data;
+                        if (items && Array.isArray(items)) {
                             $('#wishlist-books-list').empty();
-                            res.data.slice(0, 5).forEach(item => {
-                                let book = item.realBook;
-                                if (!book) return;
-                                let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
+                            items.slice(0, 5).forEach(item => {
+                                let imgUrl = item.imageUrl || '/images/Book/book1.jpg';
+                                let link = item.blindBookID ? `/Explore#blind-details-${encodeURIComponent(item.title)}` : `/Explore#book-details-${encodeURIComponent(item.title)}`;
                                 let html = `
-                                    <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                                    <div class="book-select-item" data-id="${item.bookID || item.blindBookID}" data-title="${item.title}" data-author="BookBlossom" data-img="${imgUrl}" data-link="${link}">
                                         <img src="${imgUrl}" alt="Book">
                                         <div>
-                                            <h4>${book.title}</h4>
-                                            <p>${book.author || 'Unknown'} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                                            <h4>${item.title}</h4>
+                                            <p>BookBlossom • ₫${item.price ? item.price.toLocaleString('vi-VN') : '0'}</p>
                                         </div>
                                     </div>
                                 `;
                                 $('#wishlist-books-list').append(html);
                             });
-                            if (res.data.length === 0) {
+                            if (items.length === 0) {
                                 $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
                             }
                         }
@@ -1230,11 +1265,12 @@
                     bookAuthor = $selectedItem.data('author');
                     bookImg = $selectedItem.data('img');
                     bookLink = $selectedItem.data('link');
+                    let bookId = $selectedItem.data('id');
                 }
 
                 // Append chip into the preview bar instead of sending!
                 const previewChip = `
-                    <div class="tagged-book-preview-chip" data-title="${bookTitle}" data-author="${bookAuthor}" data-img="${bookImg}" data-link="${bookLink}" style="display: inline-flex; align-items: center; gap: 8px; background: #F4E1E2; border: 1.5px solid #EEC7C9; padding: 6px 12px; border-radius: 20px; font-size: 0.82rem; color: #C2185B; font-weight: 600; margin: 2px;">
+                    <div class="tagged-book-preview-chip" data-id="${bookId}" data-title="${bookTitle}" data-author="${bookAuthor}" data-img="${bookImg}" data-link="${bookLink}" style="display: inline-flex; align-items: center; gap: 8px; background: #F4E1E2; border: 1.5px solid #EEC7C9; padding: 6px 12px; border-radius: 20px; font-size: 0.82rem; color: #C2185B; font-weight: 600; margin: 2px;">
                         <img src="${bookImg}" style="width: 18px; height: 26px; object-fit: cover; border-radius: 3px;">
                         <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${bookTitle}</span>
                         <button class="btn-remove-tagged-book" style="background: none; border: none; color: #C2185B; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; outline: none;"><i class="fas fa-times-circle"></i></button>
