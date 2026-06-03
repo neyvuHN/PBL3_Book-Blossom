@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="~/css/globals.css">
     <link rel="stylesheet" href="~/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="~/js/apiClient.js"></script>
     <style>
         /* Hiệu ứng ẩn/hiện mượt mà */
         .reveal-item {
@@ -194,9 +195,8 @@
         // Load Tags from API
         async function loadTags() {
             try {
-                const res = await fetch('/api/Onboarding/tags');
-                if (res.ok) {
-                    const categories = await res.json();
+                const categories = await window.apiClient.apiGet('/api/Onboarding/tags');
+                if (categories) {
                     tagsCloud.innerHTML = '';
                     categories.forEach(cat => {
                         const tag = document.createElement('div');
@@ -272,7 +272,7 @@
             const selectedTags = Array.from(document.querySelectorAll('.tag.selected')).map(tag => parseInt(tag.dataset.id));
             
             if (!isSkipped && selectedTags.length < 3) {
-                alert('Please select at least 3 genres!');
+                window.apiClient.showToast('Vui lòng chọn ít nhất 3 thể loại sách!', 'error', 'Yêu cầu');
                 return;
             }
 
@@ -291,54 +291,27 @@
             try {
                 if (token) {
                     // It's a User
-                    const prefRes = await fetch('/api/Onboarding/preferences', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(payload)
-                    });
+                    await window.apiClient.apiPost('/api/Onboarding/preferences', payload);
+                    await window.apiClient.apiPost('/api/Onboarding/finalize');
                     
-                    if (prefRes.ok) {
-                        const finRes = await fetch('/api/Onboarding/finalize', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        
-                        if (finRes.ok) {
-                            window.location.href = '/';
-                        } else {
-                            alert("Failed to finalize onboarding");
-                        }
-                    } else {
-                        alert("Failed to save preferences");
-                    }
+                    window.apiClient.showToast('Lưu sở thích thành công! Đang chuyển hướng...', 'success', 'Thành Công');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
                 } else if (guestId) {
                     // It's a Guest
-                    const prefRes = await fetch('/api/Onboarding/guest/preferences', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Guest-Id': guestId
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (prefRes.ok) {
+                    await window.apiClient.apiPost('/api/Onboarding/guest/preferences', payload);
+                    window.apiClient.showToast('Lưu sở thích Guest thành công! Đang chuyển hướng...', 'success', 'Thành Công');
+                    setTimeout(() => {
                         window.location.href = '/';
-                    } else {
-                        alert("Failed to save guest preferences");
-                    }
+                    }, 1000);
                 } else {
                     // No user/guest info
                     window.location.href = '/Auth/Login';
                 }
             } catch (err) {
                 console.error(err);
-                alert("An error occurred. Please try again.");
+                window.apiClient.showToast(err.message || "Đã xảy ra lỗi. Vui lòng thử lại.", "error", "Lỗi");
             } finally {
                 btnExplore.disabled = false;
                 btnExplore.textContent = 'Start Exploring';
