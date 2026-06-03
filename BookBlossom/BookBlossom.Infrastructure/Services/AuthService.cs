@@ -253,7 +253,7 @@ namespace BookBlossom.Infrastructure.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(15), 
+                expires: DateTime.Now.AddDays(7), 
                 signingCredentials: creds
             );
         }
