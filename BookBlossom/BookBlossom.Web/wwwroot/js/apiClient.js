@@ -208,10 +208,10 @@ const apiClient = (function () {
             return request(endpoint, { method: 'DELETE' });
         },
         
-        apiUpload: (endpoint, formData) => {
+        apiUpload: (endpoint, formData, method = 'POST') => {
             // Do not JSON.stringify formData, and allow browser to set boundary in Content-Type
             return request(endpoint, {
-                method: 'POST',
+                method: method,
                 body: formData
             });
         },
