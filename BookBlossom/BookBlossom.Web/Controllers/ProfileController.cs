@@ -64,7 +64,7 @@ namespace BookBlossom.Web.Controllers
 
             var model = new ProfileViewModel
             {
-                Avatar = string.IsNullOrEmpty(user.Avatar) ? "/images/Avatar/default.jpg" : user.Avatar,
+                Avatar = string.IsNullOrEmpty(user.Avatar) ? "https://i.pinimg.com/736x/fa/7e/a6/fa7ea6ce4e90b794eef88dde93522dd6.jpg" : user.Avatar,
                 FullName = $"{user.LastName} {user.FirstName}".Trim(),
                 Username = user.UserName ?? "Unknown",
                 PhoneNumber = user.PhoneNumber ?? "",
