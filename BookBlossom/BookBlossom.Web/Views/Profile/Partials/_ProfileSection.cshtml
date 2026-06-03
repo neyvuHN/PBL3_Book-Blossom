@@ -672,25 +672,25 @@
             <button id="btn-close-subscription" style="background: #f1f5f9; border: none; font-size: 1.1rem; color: #475569; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;"><i class="fas fa-times"></i></button>
         </div>
 
-        <!-- Body: Three Plans Grid -->
-        <div style="padding: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; background: #f8fafc; max-height: 70vh; overflow-y: auto;">
+        <!-- Body: Three Plans Grid (dynamically populated by JS from API) -->
+        <div id="subscription-plans-grid" style="padding: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; background: #f8fafc; max-height: 70vh; overflow-y: auto;">
             <!-- Free Plan -->
             <div class="sub-plan-card" data-plan-card="Free" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; position: relative;">
                 <div>
                     <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Standard</span>
                     <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Free Plan</h4>
                     <div style="margin: 15px 0 20px;">
-                        <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">0 VND</span>
+                        <span class="plan-price-display" style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">0 VND</span>
                         <span style="color: #64748b; font-size: 0.85rem;">/month</span>
                     </div>
-                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
-                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 3 threads / month</li>
-                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 2 Tindbook undos / day</li>
+                    <ul class="plan-benefits-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> <span class="plan-thread-limit">3</span> threads / month</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> <span class="plan-undo-limit">2</span> Tindbook undos / day</li>
                         <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Critic Badge & sharing honors</li>
                         <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Mystic Destiny glow aura</li>
                     </ul>
                 </div>
-                <button class="btn-select-plan" data-plan="Free" data-price="0" style="margin-top: 30px; width: 100%; background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">Active Plan</button>
+                <button class="btn-select-plan" data-plan="Free" data-package-id="0" data-price="0" style="margin-top: 30px; width: 100%; background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">Active Plan</button>
             </div>
 
             <!-- Basic Plan -->
@@ -699,17 +699,17 @@
                     <span style="background: #fdf2f8; color: #c2185b; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Most Popular</span>
                     <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Basic Plan</h4>
                     <div style="margin: 15px 0 20px;">
-                        <span style="font-size: 1.8rem; font-weight: 800; color: #c2185b;">50,000 VND</span>
+                        <span class="plan-price-display" style="font-size: 1.8rem; font-weight: 800; color: #c2185b;">50,000 VND</span>
                         <span style="color: #64748b; font-size: 0.85rem;">/month</span>
                     </div>
-                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
-                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 20 threads / month</li>
-                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> 5 Tindbook undos / day</li>
+                    <ul class="plan-benefits-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> <span class="plan-thread-limit">20</span> threads / month</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> <span class="plan-undo-limit">5</span> Tindbook undos / day</li>
                         <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Critic Badge & sharing honors</li>
                         <li style="color: #94a3b8; text-decoration: line-through;"><i class="fas fa-times-circle" style="margin-right: 8px;"></i> Mystic Destiny glow aura</li>
                     </ul>
                 </div>
-                <button class="btn-select-plan select-premium" data-plan="Basic" data-price="50000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #c2185b 0%, #ec4899 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.25);">Upgrade Now</button>
+                <button class="btn-select-plan select-premium" data-plan="Basic" data-package-id="0" data-price="50000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #c2185b 0%, #ec4899 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.25);">Upgrade Now</button>
             </div>
 
             <!-- Pro Plan -->
@@ -719,17 +719,17 @@
                     <span style="background: #f3e5f5; color: #7b1fa2; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Best Value</span>
                     <h4 style="margin: 12px 0 6px; font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 750; color: #0f172a;">Pro Plan</h4>
                     <div style="margin: 15px 0 20px;">
-                        <span style="font-size: 1.8rem; font-weight: 800; color: #7b1fa2;">200,000 VND</span>
+                        <span class="plan-price-display" style="font-size: 1.8rem; font-weight: 800; color: #7b1fa2;">200,000 VND</span>
                         <span style="color: #64748b; font-size: 0.85rem;">/month</span>
                     </div>
-                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
-                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Unlimited monthly threads</li>
-                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Unlimited Tindbook undos</li>
+                    <ul class="plan-benefits-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: #475569;">
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> <span class="plan-thread-limit">Unlimited</span> monthly threads</li>
+                        <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> <span class="plan-undo-limit">Unlimited</span> Tindbook undos</li>
                         <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Sage Badge & sharing honors</li>
                         <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Mystic Destiny glow aura active</li>
                     </ul>
                 </div>
-                <button class="btn-select-plan select-premium" data-plan="Pro" data-price="200000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #7b1fa2 0%, #c084fc 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(123, 31, 162, 0.25);">Upgrade Now</button>
+                <button class="btn-select-plan select-premium" data-plan="Pro" data-package-id="0" data-price="200000" style="margin-top: 30px; width: 100%; background: linear-gradient(135deg, #7b1fa2 0%, #c084fc 100%); color: #fff; border: none; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(123, 31, 162, 0.25);">Upgrade Now</button>
             </div>
         </div>
     </div>

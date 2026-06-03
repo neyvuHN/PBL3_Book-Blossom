@@ -34,8 +34,8 @@ namespace BookBlossom.Web.Controllers
                     .ThenInclude(cd => cd.CustomerReputations)
                 .Include(u => u.CustomerDetail)
                     .ThenInclude(cd => cd.MembershipRank)
-                .Include(u => u.CustomerDetail)
-                    .ThenInclude(cd => cd.ServicePackage)
+                .Include(u => u.CustomerService)
+                    .ThenInclude(cs => cs.ServicePackage)
                 .FirstOrDefaultAsync(u => u.UserID == userId);
 
             if (user == null)
@@ -66,13 +66,17 @@ namespace BookBlossom.Web.Controllers
                 
                 CurrentOrderStreak = user.CustomerDetail?.CurrentOrderStreak ?? 0,
                 
-                SubscriptionPackage = user.CustomerDetail?.ServicePackage?.PackageName ?? "Free",
-                CurrentMonthThreadCount = user.CustomerDetail?.CurrentMonthThreadCount ?? 0,
-                MaxMonthlyThreadLimit = user.CustomerDetail?.ServicePackage?.ThreadLimit ?? 3,
+                SubscriptionPackage = user.CustomerService?.ServicePackage?.PackageName ?? "Free",
+                CurrentMonthThreadCount = (user.CustomerDetail?.LastThreadResetDate?.Month == System.DateTime.UtcNow.Month && user.CustomerDetail?.LastThreadResetDate?.Year == System.DateTime.UtcNow.Year)
+                    ? (user.CustomerDetail?.CurrentMonthThreadCount ?? 0)
+                    : 0,
+                MaxMonthlyThreadLimit = user.CustomerService?.ServicePackage?.ThreadLimit ?? 3,
                 LastThreadResetDate = user.CustomerDetail?.LastThreadResetDate ?? System.DateTime.Now,
                 
-                DailyUndoCount = user.CustomerDetail?.DailyUndoCount ?? 0,
-                MaxDailyUndoLimit = user.CustomerDetail?.ServicePackage?.UndoLimit ?? 2,
+                DailyUndoCount = (user.CustomerDetail?.LastUndoDate?.Date == System.DateTime.UtcNow.Date)
+                    ? (user.CustomerDetail?.DailyUndoCount ?? 0)
+                    : 0,
+                MaxDailyUndoLimit = user.CustomerService?.ServicePackage?.UndoLimit ?? 2,
                 LastUndoDate = user.CustomerDetail?.LastUndoDate ?? System.DateTime.Now,
 
                 DeliveryAddresses = await _context.DeliveryAddresses

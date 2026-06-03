@@ -325,6 +325,19 @@ namespace BookBlossom.Infrastructure.Services
 
             _context.SwipeLogs.Remove(lastSwipe);
 
+            // Update CustomerDetail DailyUndoCount
+            var customer = await _context.CustomerDetails.FirstOrDefaultAsync(c => c.CustomerID == userId);
+            if (customer != null)
+            {
+                var todayDate = DateTime.UtcNow.Date;
+                if (customer.LastUndoDate?.Date != todayDate)
+                {
+                    customer.DailyUndoCount = 0;
+                    customer.LastUndoDate = todayDate;
+                }
+                customer.DailyUndoCount += 1;
+            }
+
             // Ghi nhận lịch sử dịch vụ
             _context.ServiceHistories.Add(new ServiceHistory {
                 CustomerID = userId, Price = 0,
