@@ -1892,8 +1892,9 @@ body {
 }
 
 .btn-tag-book {
-    background: #f9f9f9;
-    border: 1px solid #ddd;
+    background: #C2185B;
+    color: #fff;
+    border: 1px solid #C2185B;
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 0.9rem;
@@ -1902,7 +1903,9 @@ body {
 }
 
 .btn-tag-book:hover {
-    background: #eee;
+    background: #ad1457;
+    border-color: #ad1457;
+    color: #fff;
 }
 
 .sell-toggle {

@@ -42,6 +42,16 @@
                 return !getCookie("AuthToken");
             }
 
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text.toString()
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
             function renderMessages(messages) {
                 $('#chat-stream').empty();
                 messages.forEach(msg => {
@@ -985,6 +995,7 @@
                 tagBooksLoaded = true;
                 
                 // Fetch Recent (Real Books)
+<<<<<<< Updated upstream
                 window.apiClient.apiGet('/api/RealBook?pageSize=5').then(res => {
                     let items = res.data ? (res.data.items || res.data) : (res.items || res);
                     if (items && Array.isArray(items)) {
@@ -1005,6 +1016,26 @@
                         if (items.length === 0) {
                             $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
                         }
+=======
+                window.apiClient.apiGet('/api/RealBook?pageSize=15').then(res => {
+                    const booksRecent = Array.isArray(res) ? res : (res?.data?.items || res?.data || []);
+                    $('#recent-books-list').empty();
+                    booksRecent.slice(0, 15).forEach(book => {
+                        let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : `/images/Book/cover_${book.bookID}.jpg`;
+                        let item = `
+                            <div class="book-select-item" data-title="${escapeHtml(book.title)}" data-author="${escapeHtml(book.author || 'Unknown')}" data-img="${escapeHtml(imgUrl)}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                                <img src="${escapeHtml(imgUrl)}" alt="Book">
+                                <div>
+                                    <h4>${escapeHtml(book.title)}</h4>
+                                    <p>${escapeHtml(book.author || 'Unknown')} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                                </div>
+                            </div>
+                        `;
+                        $('#recent-books-list').append(item);
+                    });
+                    if (booksRecent.length === 0) {
+                        $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
+>>>>>>> Stashed changes
                     }
                 }).catch(() => {
                     $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load books.</div>');
@@ -1013,6 +1044,7 @@
                 // Fetch Wishlist
                 if (!isGuest()) {
                     window.apiClient.apiGet('/api/Wishlist').then(res => {
+<<<<<<< Updated upstream
                         let items = res.data ? (res.data.items || res.data) : (res.items || res);
                         if (items && Array.isArray(items)) {
                             $('#wishlist-books-list').empty();
@@ -1033,6 +1065,30 @@
                             if (items.length === 0) {
                                 $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
                             }
+=======
+                        const wishItems = Array.isArray(res) ? res : (res?.data || []);
+                        $('#wishlist-books-list').empty();
+                        wishItems.forEach(item => {
+                            const bookId = item.bookID || item.BookID;
+                            if (!bookId) return;
+                            const title = item.title || item.Title || 'Untitled Book';
+                            const author = item.author || item.Author || 'BookBlossom Selection';
+                            const price = item.price || item.Price || 0;
+                            const imgUrl = `/images/Book/cover_${bookId}.jpg`;
+                            let html = `
+                                <div class="book-select-item" data-title="${escapeHtml(title)}" data-author="${escapeHtml(author)}" data-img="${escapeHtml(imgUrl)}" data-link="/Explore#book-details-${encodeURIComponent(title)}">
+                                    <img src="${escapeHtml(imgUrl)}" alt="Book">
+                                    <div>
+                                        <h4>${escapeHtml(title)}</h4>
+                                        <p>${escapeHtml(author)} • ₫${price ? price.toLocaleString('vi-VN') : '0'}</p>
+                                    </div>
+                                </div>
+                            `;
+                            $('#wishlist-books-list').append(html);
+                        });
+                        if (wishItems.length === 0) {
+                            $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
+>>>>>>> Stashed changes
                         }
                     }).catch(() => {
                         $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load wishlist.</div>');

@@ -22,5 +22,10 @@ namespace BookBlossom.Core.DTOs.Thread
 
         public List<ThreadImageDTO> Images { get; set; } = new List<ThreadImageDTO>();
         public List<ThreadCommentDTO> Comments { get; set; } = new List<ThreadCommentDTO>();
+
+        public long? BookID { get; set; }
+        public string? BookTitle { get; set; }
+        public string? BookAuthor { get; set; }
+        public string? BookImage { get; set; }
     }
 }

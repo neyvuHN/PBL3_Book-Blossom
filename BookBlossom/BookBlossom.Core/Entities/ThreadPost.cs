@@ -16,7 +16,10 @@ namespace BookBlossom.Core.Entities
         public int LikeCount { get; set; } = 0;
         public int ShareCount { get; set; } = 0;
 
+        public long? BookID { get; set; }
+
         // Navigation properties
+        public virtual RealBook? Book { get; set; }
         public virtual User User { get; set; } = null!;
         public virtual ICollection<ThreadComment> Comments { get; set; } = new List<ThreadComment>();
         public virtual ICollection<ThreadImage> Images { get; set; } = new List<ThreadImage>();
