@@ -10,6 +10,8 @@
         let activePostIdToShare = null;
         const loadedPosts = new Map();
         let selectedFiles = [];
+        let userReputation = 100;
+        let canUserComment = true;
 
         function isAuthenticated() {
             return !!localStorage.getItem('accessToken');
@@ -203,8 +205,18 @@
                         <div class="comment-list" id="comments-${post.postID}"></div>
                         <div class="comment-input-area" style="display:flex; gap:10px; align-items:center; margin-top:12px; border-top:1px solid #eee; padding-top:10px;">
                             <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="comment-avatar">
-                            <input type="text" placeholder="Write a comment..." class="comment-input" data-post-id="${post.postID}" style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px; outline:none; font-size:0.9rem;">
-                            <button class="btn-send-comment-api" data-post-id="${post.postID}" style="background:#C2185B; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="far fa-paper-plane" style="font-size:0.85rem;"></i></button>
+                            <input type="text" 
+                                   placeholder="${canUserComment ? 'Write a comment...' : 'Điểm uy tín dưới 80, bình luận đã bị chặn...'}" 
+                                   class="comment-input" 
+                                   data-post-id="${post.postID}" 
+                                   ${canUserComment ? '' : 'disabled'}
+                                   style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px; outline:none; font-size:0.9rem; ${canUserComment ? '' : 'background:#f0f2f5; cursor:not-allowed;'}" />
+                            <button class="btn-send-comment-api" 
+                                    data-post-id="${post.postID}" 
+                                    ${canUserComment ? '' : 'disabled'}
+                                    style="${canUserComment ? 'background:#C2185B; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;' : 'background:#ccc; border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:not-allowed; display:flex; align-items:center; justify-content:center;'}">
+                                <i class="far fa-paper-plane" style="font-size:0.85rem;"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -411,6 +423,10 @@
 
         $(document).on('click', '.btn-send-comment-api', async function () {
             if (!requireLogin()) return;
+            if (!canUserComment) {
+                showToast('Hạn chế quyền lực: Điểm uy tín của bạn dưới 80, bị cấm bình luận.', 'error');
+                return;
+            }
 
             const postId = $(this).attr('data-post-id');
             const $post = $(this).closest('.thread-post');
@@ -610,6 +626,10 @@
 
         $(document).on('click', '.btn-submit-thread-post', async function () {
             if (!requireLogin()) return;
+            if (userReputation < 80) {
+                showToast('Hạn chế quyền lực: Điểm uy tín của bạn dưới 80, bị cấm đăng bài viết mới.', 'error');
+                return;
+            }
 
             const title = $('#thread-title-input').val().trim();
             const content = $('#thread-content-input').val().trim();
@@ -733,7 +753,43 @@
             }
         });
 
-        updateGuestState();
-        loadThreadFeed(true);
+        async function checkReputationAndRestrict() {
+            if (!isAuthenticated()) return;
+            try {
+                const rep = await window.apiClient.apiGet('/api/Reputation/my-reputation');
+                userReputation = rep.points !== undefined ? rep.points : rep.Points;
+                canUserComment = rep.canComment !== undefined ? rep.canComment : rep.CanComment;
+
+                if (userReputation < 80) {
+                    // Disable thread creation card buttons / inputs
+                    $('#thread-title-input, #thread-content-input, #thread-hashtag-input, #thread-image-input').prop('disabled', true);
+                    $('.btn-submit-thread-post').prop('disabled', true).css({
+                        'background': '#ccc',
+                        'cursor': 'not-allowed',
+                        'box-shadow': 'none'
+                    }).text('Bị chặn (Uy tín < 80)');
+
+                    // Add warning banner inside create card if not already exists
+                    if ($('#community-rep-warning').length === 0) {
+                        $('#create-thread-post-card').prepend(`
+                            <div id="community-rep-warning" style="background:#fff2f0; border:1px solid #ffccc7; color:#ff4d4f; padding:12px 16px; border-radius:12px; margin-bottom:15px; display:flex; align-items:center; gap:10px; font-size:0.9rem; font-weight:600;">
+                                <i class="fas fa-exclamation-triangle" style="font-size:1.1rem;"></i>
+                                <span>Tài khoản của bạn có điểm uy tín là ${userReputation} (< 80). Bạn đã bị chặn đăng bài viết mới và bình luận trong cộng đồng.</span>
+                            </div>
+                        `);
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to fetch reputation check:', error);
+            }
+        }
+
+        async function initCommunity() {
+            updateGuestState();
+            await checkReputationAndRestrict();
+            await loadThreadFeed(true);
+        }
+
+        initCommunity();
     });
 </script>

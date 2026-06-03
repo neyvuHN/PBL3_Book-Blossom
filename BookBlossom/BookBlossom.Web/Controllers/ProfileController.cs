@@ -34,6 +34,9 @@ namespace BookBlossom.Web.Controllers
                     .ThenInclude(cd => cd.CustomerReputations)
                 .Include(u => u.CustomerDetail)
                     .ThenInclude(cd => cd.MembershipRank)
+                .Include(u => u.CustomerDetail)
+                    .ThenInclude(cd => cd.BadgeCustomers)
+                        .ThenInclude(bc => bc.Badge)
                 .Include(u => u.CustomerService)
                     .ThenInclude(cs => cs.ServicePackage)
                 .FirstOrDefaultAsync(u => u.UserID == userId);
@@ -45,6 +48,19 @@ namespace BookBlossom.Web.Controllers
 
             var reputation = user.CustomerDetail?.CustomerReputations?.FirstOrDefault();
 
+            // Count actual thread posts for current month from DB (more reliable than cached counter)
+            var now = System.DateTime.UtcNow;
+            var actualThreadCount = await _context.ThreadPosts
+                .CountAsync(tp => tp.CustomerID == userId
+                    && tp.CreatedAt.Year == now.Year
+                    && tp.CreatedAt.Month == now.Month);
+
+            // Load ALL badge names from DB
+            var allBadgeNames = await _context.Badges
+                .OrderBy(b => b.BadgeID)
+                .Select(b => b.BadgeName)
+                .ToListAsync();
+
             var model = new ProfileViewModel
             {
                 Avatar = string.IsNullOrEmpty(user.Avatar) ? "/images/Avatar/default.jpg" : user.Avatar,
@@ -55,21 +71,28 @@ namespace BookBlossom.Web.Controllers
                 Gender = user.Gender ?? "Unknown",
                 Birthdate = user.Birthday ?? new System.DateTime(2000, 1, 1),
                 Bio = user.Note ?? "Cập nhật tiểu sử của bạn tại đây.",
-                MemberSince = System.DateTime.Now, // User doesn't have CreatedAt currently
+                MemberSince = System.DateTime.Now,
                 
                 MembershipTier = user.CustomerDetail?.MembershipRank?.RankType?.ToString() ?? "Đồng",
                 TotalSpending = user.CustomerDetail?.TotalSpending ?? 0,
-                NextTierThreshold = 5000000, // Hardcode for now, could be calculated based on next rank
+                NextTierThreshold = 5000000,
                 
                 ReputationScore = reputation?.ReputationPoint ?? 100,
                 MaxReputationScore = 150,
                 
                 CurrentOrderStreak = user.CustomerDetail?.CurrentOrderStreak ?? 0,
                 
+                Badges = user.CustomerDetail?.BadgeCustomers?.Select(bc => bc.Badge.BadgeName).ToList() ?? new List<string>(),
+                BadgeEarnedDates = user.CustomerDetail?.BadgeCustomers?
+                    .GroupBy(bc => bc.Badge.BadgeName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.First().EarnedAt.ToString("MMMM dd, yyyy")
+                    ) ?? new Dictionary<string, string>(),
+                AllBadgeNames = allBadgeNames,
+                
                 SubscriptionPackage = user.CustomerService?.ServicePackage?.PackageName ?? "Free",
-                CurrentMonthThreadCount = (user.CustomerDetail?.LastThreadResetDate?.Month == System.DateTime.UtcNow.Month && user.CustomerDetail?.LastThreadResetDate?.Year == System.DateTime.UtcNow.Year)
-                    ? (user.CustomerDetail?.CurrentMonthThreadCount ?? 0)
-                    : 0,
+                CurrentMonthThreadCount = actualThreadCount,
                 MaxMonthlyThreadLimit = user.CustomerService?.ServicePackage?.ThreadLimit ?? 3,
                 LastThreadResetDate = user.CustomerDetail?.LastThreadResetDate ?? System.DateTime.Now,
                 

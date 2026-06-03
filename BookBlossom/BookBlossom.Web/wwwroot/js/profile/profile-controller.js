@@ -30,6 +30,9 @@ class ProfileController {
         // Load subscription data from API in background
         await this.loadSubscriptionData();
 
+        // Load reputation and badges data
+        await this.loadReputationAndBadges();
+
         // Auto-open upgrade modal if redirected with ?openUpgrade=true
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('openUpgrade') === 'true') {
@@ -67,6 +70,86 @@ class ProfileController {
             }
         } catch (error) {
             console.warn('Failed to load subscription data (non-critical):', error);
+        }
+    }
+
+    /**
+     * Loads current user's reputation and badge collections from API and refreshes the view.
+     */
+    async loadReputationAndBadges() {
+        try {
+            // Fetch reputation
+            const rep = await this.model.fetchMyReputation();
+            
+            // Fetch badges
+            const badgesData = await this.model.fetchMyBadges(); // array of BadgeCustomerDTO: BadgeID, BadgeName, Description, EarnedAt
+            
+            // Map badges data to match expected format in ProfileView.render
+            const badges = (badgesData || []).map(b => b.badgeName || b.BadgeName);
+            const badgeEarnedDates = {};
+            (badgesData || []).forEach(b => {
+                const name = b.badgeName || b.BadgeName;
+                const earnedAt = b.earnedAt || b.EarnedAt;
+                if (name && earnedAt) {
+                    // Format date nicely
+                    const dateObj = new Date(earnedAt);
+                    badgeEarnedDates[name] = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                }
+            });
+
+            // Update UI elements for reputation
+            const points = rep.points !== undefined ? rep.points : rep.Points;
+            const rank = rep.rank !== undefined ? rep.rank : rep.Rank;
+            
+            if (points !== undefined) {
+                $('#display-rep-score').text(points);
+                const repPercent = (points / 150) * 100;
+                $('#reputation-svg-fill').attr('stroke-dasharray', `${repPercent}, 100`);
+
+                const warningBox = $('#reputation-warning-box');
+                const warningMsg = $('#reputation-warning-message');
+                warningBox.removeClass('warning-safe warning-warning warning-danger');
+
+                if (points < 60) {
+                    warningBox.addClass('warning-danger').find('i').attr('class', 'fas fa-exclamation-triangle');
+                    warningMsg.html('Warning: Reputation score too low (&lt; 60). Commenting &amp; Thread posting is BANNED, and Cash on Delivery (COD) method is DISABLED.');
+                } else if (points < 80) {
+                    warningBox.addClass('warning-warning').find('i').attr('class', 'fas fa-exclamation-circle');
+                    warningMsg.html('Warning: Reputation score low (&lt; 80). Thread posting &amp; Commenting are BANNED. Keep score above 80 to restore community privileges.');
+                } else {
+                    warningBox.addClass('warning-safe').find('i').attr('class', 'fas fa-check-circle');
+                    warningMsg.html('Your reputation score is stellar! You have full commenting, posting privileges and COD checkout active.');
+                }
+            }
+
+            if (rank) {
+                $('#display-tier-text').text(rank);
+                $('#display-tier-badge')
+                    .removeClass('tier-Copper tier-Silver tier-Gold tier-Diamond tier-Bronze tier-Đồng tier-Bạc tier-Vàng tier-KimCương')
+                    .addClass('tier-' + rank);
+            }
+
+            // Update badges cabinet
+            const cabinet = $('#display-badges-cabinet');
+            if (cabinet.length && badges.length > 0) {
+                this.view.renderBadgesGrid(cabinet, badges, 4);
+            }
+
+            // Update all badges modal body
+            const modalBody = $('#allBadgesModal .modal-body .d-flex');
+            if (modalBody.length && badges.length > 0) {
+                this.view.renderBadgesModal(modalBody, badges, badgeEarnedDates);
+            }
+
+            // Mystic Aura Update (Blind Date Destiny)
+            if (badges.includes("Blind Date Adventurer - Destiny")) {
+                $('.profile-avatar-wrapper').addClass("mystic-aura");
+            } else {
+                $('.profile-avatar-wrapper').removeClass("mystic-aura");
+            }
+
+        } catch (error) {
+            console.warn('Failed to load reputation/badge data:', error);
         }
     }
 
