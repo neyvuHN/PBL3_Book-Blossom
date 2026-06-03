@@ -13,5 +13,7 @@ namespace BookBlossom.Core.DTOs.Thread
 
         [StringLength(500, ErrorMessage = "Thẻ hashtag không được vượt quá 500 ký tự.")]
         public string? Hashtags { get; set; }
+
+        public long? BookID { get; set; }
     }
 }

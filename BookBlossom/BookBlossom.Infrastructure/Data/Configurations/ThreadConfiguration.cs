@@ -33,6 +33,12 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                 .HasForeignKey(p => p.CustomerID)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Configure BookID FK referencing Book
+            builder.HasOne(p => p.Book)
+                .WithMany()
+                .HasForeignKey(p => p.BookID)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Indices
             builder.HasIndex(p => p.ReportCount);
             builder.HasIndex(p => p.CreatedAt);

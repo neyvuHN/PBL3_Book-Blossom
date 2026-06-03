@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -130,10 +131,10 @@ namespace BookBlossom.Infrastructure.Services
                     dto.AttachedBookImage = bookAttachment.FileUrl;
                 }
 
-                var mediaAttachment = m.Attachments.FirstOrDefault(a => a.AttachmentType == 1);
-                if (mediaAttachment != null)
+                var mediaAttachments = m.Attachments.Where(a => a.AttachmentType == 1).ToList();
+                if (mediaAttachments.Any())
                 {
-                    dto.AttachmentUrl = mediaAttachment.FileUrl;
+                    dto.AttachmentUrls = mediaAttachments.Select(a => a.FileUrl).ToList();
                 }
 
                 result.Add(dto);
@@ -183,17 +184,58 @@ namespace BookBlossom.Infrastructure.Services
             _context.Messages.Add(message);
             await _context.SaveChangesAsync(); // Save to get MessageID
 
-            if (!string.IsNullOrEmpty(dto.AttachmentUrl))
+            if (dto.AttachmentUrls != null && dto.AttachmentUrls.Any())
             {
-                _context.MessageAttachments.Add(new MessageAttachment
+                foreach (var attachmentUrl in dto.AttachmentUrls)
                 {
-                    MessageID = message.MessageID,
-                    FileUrl = dto.AttachmentUrl,
-                    FileName = "Media",
-                    FileType = dto.AttachmentUrl.Contains(".mp4") ? "video" : "image",
-                    AttachmentType = 1, // Media
-                    CreatedAt = DateTime.UtcNow
-                });
+                    if (string.IsNullOrEmpty(attachmentUrl)) continue;
+
+                    string fileUrlToSave = attachmentUrl;
+
+                    if (attachmentUrl.StartsWith("data:"))
+                    {
+                        try
+                        {
+                            var match = System.Text.RegularExpressions.Regex.Match(attachmentUrl, @"data:(?<type>.+?);base64,(?<data>.+)");
+                            if (match.Success)
+                            {
+                                string mimeType = match.Groups["type"].Value;
+                                string base64Data = match.Groups["data"].Value;
+                                string extension = mimeType.Contains("video") ? ".mp4" : (mimeType.Contains("png") ? ".png" : ".jpg");
+                                
+                                string fileName = Guid.NewGuid().ToString() + extension;
+                                var conversationForBuyer = await _context.Conversations.FindAsync(conversationId);
+                                long buyerId = conversationForBuyer?.BuyerID ?? senderId;
+                                
+                                string uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "chat", $"buyer_{buyerId}");
+                                if (!Directory.Exists(uploadDir))
+                                {
+                                    Directory.CreateDirectory(uploadDir);
+                                }
+                                
+                                string filePath = Path.Combine(uploadDir, fileName);
+                                byte[] imageBytes = Convert.FromBase64String(base64Data);
+                                await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+                                
+                                fileUrlToSave = $"/uploads/chat/buyer_{buyerId}/{fileName}";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Fallback to original if parsing or saving fails
+                        }
+                    }
+
+                    _context.MessageAttachments.Add(new MessageAttachment
+                    {
+                        MessageID = message.MessageID,
+                        FileUrl = fileUrlToSave,
+                        FileName = "Media",
+                        FileType = fileUrlToSave.EndsWith(".mp4") ? "video" : "image",
+                        AttachmentType = 1, // Media
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
             }
 
             if (dto.AttachedBookID.HasValue && dto.AttachedBookID.Value > 0)

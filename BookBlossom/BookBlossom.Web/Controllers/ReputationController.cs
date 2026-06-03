@@ -28,13 +28,9 @@ namespace BookBlossom.Web.Controllers
             var canComment = await _reputationService.CanCommentAsync(customerId);
             var canUseCod = await _reputationService.CanUseCodAsync(customerId);
             return Ok(new {
-                points = rep.ReputationPoint,
                 Points = rep.ReputationPoint,
-                rank = rep.MembershipRank?.RankType.ToString(),
                 Rank = rep.MembershipRank?.RankType.ToString(),
-                canComment = canComment,
                 CanComment = canComment,
-                canUseCod = canUseCod,
                 CanUseCod = canUseCod
             });
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,6 +11,7 @@ namespace BookBlossom.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            /* Table Author already exists in DB
             migrationBuilder.CreateTable(
                 name: "Author",
                 schema: "Book",
@@ -24,6 +25,7 @@ namespace BookBlossom.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Author", x => x.AuthorID);
                 });
+            */
 
             migrationBuilder.CreateTable(
                 name: "CallRequests",
@@ -73,6 +75,7 @@ namespace BookBlossom.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            /* Table BookAuthor already exists in DB
             migrationBuilder.CreateTable(
                 name: "BookAuthor",
                 schema: "Book",
@@ -99,6 +102,7 @@ namespace BookBlossom.Infrastructure.Migrations
                         principalColumn: "BookID",
                         onDelete: ReferentialAction.Cascade);
                 });
+            */
 
             migrationBuilder.CreateTable(
                 name: "Messages",
@@ -138,11 +142,13 @@ namespace BookBlossom.Infrastructure.Migrations
                         principalColumn: "UserID");
                 });
 
+            /* Index IX_BookAuthor_AuthorID already exists or matches existing table
             migrationBuilder.CreateIndex(
                 name: "IX_BookAuthor_AuthorID",
                 schema: "Book",
                 table: "BookAuthor",
                 column: "AuthorID");
+            */
 
             migrationBuilder.CreateIndex(
                 name: "IX_CallRequests_CustomerID",

@@ -42,6 +42,16 @@
                 return !getCookie("AuthToken");
             }
 
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text.toString()
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
             function renderMessages(messages) {
                 $('#chat-stream').empty();
                 messages.forEach(msg => {
@@ -63,12 +73,16 @@
                     }
 
                     let mediaHtml = "";
-                    if (msg.attachmentUrl) {
-                        if (msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-                            mediaHtml = `<div class="chat-lightbox-trigger" data-src="${msg.attachmentUrl}" style="cursor: zoom-in; width: 100%; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; margin-top:10px;"><img src="${msg.attachmentUrl}" style="width: 100%; height: auto; max-height: 200px; object-fit: cover;"></div>`;
-                        } else {
-                            mediaHtml = `<div style="width: 100%; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; margin-top:10px;"><video src="${msg.attachmentUrl}" controls style="width: 100%; max-height: 200px; background: #000;"></video></div>`;
-                        }
+                    if (msg.attachmentUrls && msg.attachmentUrls.length > 0) {
+                        mediaHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">`;
+                        msg.attachmentUrls.forEach(url => {
+                            if (url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+                                mediaHtml += `<div class="chat-lightbox-trigger" data-src="${url}" style="cursor: zoom-in; width: calc(50% - 4px); min-width: 100px; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9;"><img src="${url}" style="width: 100%; height: 120px; object-fit: cover; display: block;"></div>`;
+                            } else {
+                                mediaHtml += `<div style="width: 100%; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9;"><video src="${url}" controls style="width: 100%; max-height: 200px; background: #000;"></video></div>`;
+                            }
+                        });
+                        mediaHtml += `</div>`;
                     }
 
                     if (msg.senderAvatar && msg.senderAvatar.includes('admin')) {
@@ -143,17 +157,7 @@
                 }
             }
 
-            // Dropdown Toggle
-            const $userDropdown = $('.user-dropdown');
-            $userDropdown.on('click', function(e) {
-                e.stopPropagation();
-                $(this).toggleClass('active');
-            });
-            $(document).on('click', function(e) {
-                if (!$userDropdown.is(e.target) && $userDropdown.has(e.target).length === 0) {
-                    $userDropdown.removeClass('active');
-                }
-            });
+
 
             // Conversation search filtering
             $('#convo-search-input').on('input', function() {
@@ -432,16 +436,18 @@
                     if(did) attachedBookId = parseInt(did);
                 }
                 
-                let attachmentUrl = null;
+                let attachmentUrls = [];
                 if ($mediaItems.length > 0) {
-                    attachmentUrl = $mediaItems.first().data('src');
+                    $mediaItems.each(function() {
+                        attachmentUrls.push($(this).data('src'));
+                    });
                 }
                 
                 const dto = {
                     conversationID: typeof activeConversationId !== 'undefined' ? activeConversationId : null,
                     receiverID: 1, // Admin shop user ID 
                     content: text,
-                    attachmentUrl: attachmentUrl,
+                    attachmentUrls: attachmentUrls,
                     attachedBookID: attachedBookId
                 };
 
@@ -505,7 +511,9 @@
                             }
                             const shopBubble = `
                                 <div class="msg-bubble-group incoming">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                    <div class="msg-avatar-container">
+                                        <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                                    </div>
                                     <div class="msg-bubble-content">
                                         <div class="msg-text-bubble">${replyText}</div>
                                         <div class="msg-meta">${time} • Shop Supporter</div>
@@ -528,7 +536,9 @@
                             const replyText = "Oh! Thank you for sharing these media files. 📸 Our curators are looking at them right now! Let us know if you need any assistance or have specific preferences. 🌸";
                             const shopBubble = `
                                 <div class="msg-bubble-group incoming">
-                                    <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                    <div class="msg-avatar-container">
+                                        <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                                    </div>
                                     <div class="msg-bubble-content">
                                         <div class="msg-text-bubble">${replyText}</div>
                                         <div class="msg-meta">${time} • Shop Supporter</div>
@@ -604,7 +614,9 @@
                         const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
                         const shopBubble = `
                             <div class="msg-bubble-group incoming">
-                                <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                                <div class="msg-avatar-container">
+                                    <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                                </div>
                                 <div class="msg-bubble-content">
                                     <div class="msg-text-bubble">${replyText}</div>
                                     <div class="msg-meta">${time} • Shop Supporter</div>
@@ -989,8 +1001,9 @@
                 tagBooksLoaded = true;
                 
                 // Fetch Recent (Real Books)
+<<<<<<< Updated upstream
                 window.apiClient.apiGet('/api/RealBook?pageSize=5').then(res => {
-                    let items = res.data.items || res.data;
+                    let items = res.data ? (res.data.items || res.data) : (res.items || res);
                     if (items && Array.isArray(items)) {
                         $('#recent-books-list').empty();
                         items.slice(0, 5).forEach(book => {
@@ -1009,6 +1022,26 @@
                         if (items.length === 0) {
                             $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
                         }
+=======
+                window.apiClient.apiGet('/api/RealBook?pageSize=15').then(res => {
+                    const booksRecent = Array.isArray(res) ? res : (res?.data?.items || res?.data || []);
+                    $('#recent-books-list').empty();
+                    booksRecent.slice(0, 15).forEach(book => {
+                        let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : `/images/Book/cover_${book.bookID}.jpg`;
+                        let item = `
+                            <div class="book-select-item" data-title="${escapeHtml(book.title)}" data-author="${escapeHtml(book.author || 'Unknown')}" data-img="${escapeHtml(imgUrl)}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                                <img src="${escapeHtml(imgUrl)}" alt="Book">
+                                <div>
+                                    <h4>${escapeHtml(book.title)}</h4>
+                                    <p>${escapeHtml(book.author || 'Unknown')} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                                </div>
+                            </div>
+                        `;
+                        $('#recent-books-list').append(item);
+                    });
+                    if (booksRecent.length === 0) {
+                        $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
+>>>>>>> Stashed changes
                     }
                 }).catch(() => {
                     $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load books.</div>');
@@ -1017,7 +1050,8 @@
                 // Fetch Wishlist
                 if (!isGuest()) {
                     window.apiClient.apiGet('/api/Wishlist').then(res => {
-                        let items = res.data.items || res.data;
+<<<<<<< Updated upstream
+                        let items = res.data ? (res.data.items || res.data) : (res.items || res);
                         if (items && Array.isArray(items)) {
                             $('#wishlist-books-list').empty();
                             items.slice(0, 5).forEach(item => {
@@ -1037,6 +1071,30 @@
                             if (items.length === 0) {
                                 $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
                             }
+=======
+                        const wishItems = Array.isArray(res) ? res : (res?.data || []);
+                        $('#wishlist-books-list').empty();
+                        wishItems.forEach(item => {
+                            const bookId = item.bookID || item.BookID;
+                            if (!bookId) return;
+                            const title = item.title || item.Title || 'Untitled Book';
+                            const author = item.author || item.Author || 'BookBlossom Selection';
+                            const price = item.price || item.Price || 0;
+                            const imgUrl = `/images/Book/cover_${bookId}.jpg`;
+                            let html = `
+                                <div class="book-select-item" data-title="${escapeHtml(title)}" data-author="${escapeHtml(author)}" data-img="${escapeHtml(imgUrl)}" data-link="/Explore#book-details-${encodeURIComponent(title)}">
+                                    <img src="${escapeHtml(imgUrl)}" alt="Book">
+                                    <div>
+                                        <h4>${escapeHtml(title)}</h4>
+                                        <p>${escapeHtml(author)} • ₫${price ? price.toLocaleString('vi-VN') : '0'}</p>
+                                    </div>
+                                </div>
+                            `;
+                            $('#wishlist-books-list').append(html);
+                        });
+                        if (wishItems.length === 0) {
+                            $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
+>>>>>>> Stashed changes
                         }
                     }).catch(() => {
                         $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load wishlist.</div>');
@@ -1146,7 +1204,9 @@
                 setTimeout(function() {
                     const replyHtml = `
                         <div class="msg-bubble-group incoming">
-                            <img src="/images/Avatar/avatar1.jpg" alt="BookBlossom Shop" class="msg-avatar">
+                            <div class="msg-avatar-container">
+                                <img src="/images/Avatar/BookBlossom.png" alt="BookBlossom Shop" class="msg-avatar">
+                            </div>
                             <div class="msg-bubble-content">
                                 <div class="msg-text-bubble">
                                     Thank you Jane! 🌸 We have successfully received your support ticket regarding <strong>${selectedTopics[0]}</strong>. A BookBlossom support specialist will call you at <strong>${phone}</strong> shortly!
@@ -1222,9 +1282,9 @@
             });
 
             // Confirm Tag Book click
-            $('#btn-confirm-tag-book').on('click', function() {
+            $('#btn-confirm-tag-book').on('click', async function() {
                 const activeTab = $('#tag-book-modal .btn-modal-tab.active').data('target');
-                let bookTitle = "", bookAuthor = "", bookImg = "", bookLink = "";
+                let bookTitle = "", bookAuthor = "", bookImg = "", bookLink = "", bookId = "";
 
                 if (activeTab === 'tab-link') {
                     const linkVal = $('#tag-book-link').val().trim();
@@ -1240,14 +1300,34 @@
                     // Construct metadata from link
                     if (linkVal.includes('#blind-details-')) {
                         const hashPart = linkVal.split('#blind-details-')[1];
-                        bookTitle = "Mystery Blind Book (" + decodeURIComponent(hashPart) + ")";
+                        bookId = decodeURIComponent(hashPart);
+                        bookTitle = "Mystery Blind Book (" + bookId + ")";
                         bookAuthor = "BookBlossom Curated";
-                        bookImg = "/images/Book/book1.jpg";
+                        bookImg = "/images/BlindDateBook/BlindBook.jpg";
                     } else if (linkVal.includes('#book-details-')) {
                         const hashPart = linkVal.split('#book-details-')[1];
-                        bookTitle = decodeURIComponent(hashPart);
+                        bookId = decodeURIComponent(hashPart);
+                        bookTitle = isNaN(bookId) ? bookId : "Book #" + bookId;
                         bookAuthor = "BookBlossom Curated";
                         bookImg = "/images/Book/book1.jpg";
+                        
+                        let numericId = parseInt(bookId);
+                        if (!isNaN(numericId)) {
+                            try {
+                                const $originalBtn = $('#btn-confirm-tag-book');
+                                $originalBtn.prop('disabled', true).text('Loading...');
+                                const res = await window.apiClient.apiGet('/api/RealBook/' + numericId);
+                                $originalBtn.prop('disabled', false).text('Tag Book');
+                                
+                                if (res && res.title) {
+                                    bookTitle = res.title;
+                                    if (res.authors) bookAuthor = res.authors;
+                                    if (res.sampleFilePath && res.sampleFilePath.includes('.')) bookImg = res.sampleFilePath; 
+                                }
+                            } catch(e) {
+                                $('#btn-confirm-tag-book').prop('disabled', false).text('Tag Book');
+                            }
+                        }
                     } else {
                         bookTitle = "BookBlossom Shared Book";
                         bookAuthor = "Community Curator";
@@ -1265,7 +1345,7 @@
                     bookAuthor = $selectedItem.data('author');
                     bookImg = $selectedItem.data('img');
                     bookLink = $selectedItem.data('link');
-                    let bookId = $selectedItem.data('id');
+                    bookId = $selectedItem.data('id') || "";
                 }
 
                 // Append chip into the preview bar instead of sending!

@@ -47,9 +47,13 @@ namespace BookBlossom.Infrastructure.Services
                 Title = w.BookID.HasValue 
                     ? (w.Book?.Title ?? "Unknown Book") 
                     : (w.BlindBook != null ? $"Blind Book ({w.BlindBook.Category})" : "Unknown Blind Book"),
+                Author = w.BookID.HasValue 
+                    ? string.Join(", ", w.Book.BookAuthors.Select(ba => ba.Author.AuthorName))
+                    : "Unknown",
                 Price = w.BookID.HasValue 
                     ? (w.Book?.Price ?? 0) 
                     : (w.BlindBook?.Price ?? 0),
+                ImageUrl = "/images/Book/book1.jpg", // Default image as RealBook doesn't map to BookImage
                 AddedAt = w.AddedAt
             });
         }
