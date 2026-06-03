@@ -7,6 +7,7 @@
     let currentSearchTerm = '';
     let currentCategory = '';
     let currentSortOrder = 'Ascending'; // Default
+    let allBooks = [];
 
     $(document).ready(function () {
         initExplorePage();
@@ -15,7 +16,9 @@
         initExploreSearch();
         initExplorePriceSlider();
         initExploreCustomDropdowns();
+        initExploreShowMoreToggles();
         initExploreBookCards();
+        initFilterActions();
         loadBooks();
     });
 
@@ -96,7 +99,9 @@
         const url = `/api/realbook?searchTerm=${encodeURIComponent(currentSearchTerm)}&category=${encodeURIComponent(currentCategory)}&sortOrder=${currentSortOrder}`;
         try {
             const books = await apiClient.apiGet(url);
-            renderBooks(books);
+            allBooks = books || [];
+            generateDynamicFilters(allBooks);
+            renderBooks(allBooks);
         } catch (error) {
             console.error('Failed to load books', error);
         }
@@ -227,9 +232,9 @@
                 $dropdown.addClass('open');
             });
 
-            $dropdown.find('li')
-                .off('click.explore')
-                .on('click.explore', function () {
+            $dropdown.find('.dropdown-list')
+                .off('click.explore', 'li')
+                .on('click.explore', 'li', function () {
                     $input.val($(this).text());
                     $dropdown.removeClass('open');
                 });
@@ -242,6 +247,231 @@
                     }
                 });
         });
+    }
+
+    function initExploreShowMoreToggles() {
+        $('#filter-sidebar').off('click.showMore', '.view-more-link').on('click.showMore', '.view-more-link', function (e) {
+            e.preventDefault();
+            const $this = $(this);
+            const target = $this.data('target');
+            
+            const hiddenItems = $(`.hidden-${target}-item`);
+            const isExpanded = $this.hasClass('expanded');
+            if (isExpanded) {
+                hiddenItems.slideUp(200);
+                $this.removeClass('expanded').text(`+ View More (${hiddenItems.length})`);
+            } else {
+                hiddenItems.slideDown(200);
+                $this.addClass('expanded').text('- View Less');
+            }
+        });
+    }
+
+    function generateDynamicFilters(books) {
+        if (!books) return;
+
+        // 1. Gather unique authors
+        const authorSet = new Set();
+        books.forEach(b => {
+            const authorsStr = b.authors || b.Authors || 'Unknown Author';
+            authorsStr.split(/,+/).forEach(a => {
+                const clean = a.trim();
+                if (clean) authorSet.add(clean);
+            });
+        });
+        const authors = [...authorSet].sort();
+
+        // 2. Gather unique genres (categories)
+        const genreSet = new Set();
+        books.forEach(b => {
+            if (b.categoryName) genreSet.add(b.categoryName);
+        });
+        const genres = [...genreSet].sort();
+
+        // 3. Gather unique publishers
+        const publisherSet = new Set();
+        books.forEach(b => {
+            const pub = b.publisher || b.Publisher || 'Unknown Publisher';
+            publisherSet.add(pub.trim());
+        });
+        const publishers = [...publisherSet].sort();
+
+        // 4. Gather unique publish years
+        const years = [...new Set(books.map(b => b.publishYear || b.PublishYear).filter(Boolean))].sort((a, b) => b - a);
+
+        const visibleCount = 5;
+
+        // Render Authors
+        const $authorList = $('#explore-author-checkbox-list');
+        $authorList.empty();
+        authors.forEach((auth, idx) => {
+            const isHiddenStyle = idx >= visibleCount ? 'style="display: none;"' : '';
+            const itemClass = idx >= visibleCount ? 'filter-checkbox-item hidden-author-item' : 'filter-checkbox-item';
+            const itemId = `author-${normalizeText(auth).replace(/\s+/g, '-')}`;
+            $authorList.append(`
+                <label class="${itemClass}" ${isHiddenStyle} style="display: block; margin-bottom: 8px; cursor: pointer; font-size: 0.95rem; color: #555;">
+                    <input type="checkbox" id="${itemId}" value="${auth}" style="margin-right: 8px;"> ${auth}
+                </label>
+            `);
+        });
+        if (authors.length > visibleCount) {
+            $authorList.append(`
+                <a href="javascript:void(0)" class="view-more-link filter-show-more" data-target="author" style="color: #C2185B; font-weight: 600; font-size: 0.9rem; text-decoration: none; display: inline-block; margin-top: 8px; transition: color 0.2s;">
+                    + View More (${authors.length - visibleCount})
+                </a>
+            `);
+        }
+
+        // Render Genres
+        const $genreList = $('#explore-genre-checkbox-list');
+        $genreList.empty();
+        genres.forEach((genre, idx) => {
+            const isHiddenStyle = idx >= visibleCount ? 'style="display: none;"' : '';
+            const itemClass = idx >= visibleCount ? 'filter-checkbox-item hidden-genre-item' : 'filter-checkbox-item';
+            const itemId = `genre-${normalizeText(genre).replace(/\s+/g, '-')}`;
+            $genreList.append(`
+                <label class="${itemClass}" ${isHiddenStyle} style="display: block; margin-bottom: 8px; cursor: pointer; font-size: 0.95rem; color: #555;">
+                    <input type="checkbox" id="${itemId}" value="${genre}" style="margin-right: 8px;"> ${genre}
+                </label>
+            `);
+        });
+        if (genres.length > visibleCount) {
+            $genreList.append(`
+                <a href="javascript:void(0)" class="view-more-link filter-show-more" data-target="genre" style="color: #C2185B; font-weight: 600; font-size: 0.9rem; text-decoration: none; display: inline-block; margin-top: 8px; transition: color 0.2s;">
+                    + View More (${genres.length - visibleCount})
+                </a>
+            `);
+        }
+
+        // Render Publishers
+        const $publisherList = $('#explore-publisher-checkbox-list');
+        $publisherList.empty();
+        publishers.forEach((pub, idx) => {
+            const isHiddenStyle = idx >= visibleCount ? 'style="display: none;"' : '';
+            const itemClass = idx >= visibleCount ? 'filter-checkbox-item hidden-publisher-item' : 'filter-checkbox-item';
+            const itemId = `publisher-${normalizeText(pub).replace(/\s+/g, '-')}`;
+            $publisherList.append(`
+                <label class="${itemClass}" ${isHiddenStyle} style="display: block; margin-bottom: 8px; cursor: pointer; font-size: 0.95rem; color: #555;">
+                    <input type="checkbox" id="${itemId}" value="${pub}" style="margin-right: 8px;"> ${pub}
+                </label>
+            `);
+        });
+        if (publishers.length > visibleCount) {
+            $publisherList.append(`
+                <a href="javascript:void(0)" class="view-more-link filter-show-more" data-target="publisher" style="color: #C2185B; font-weight: 600; font-size: 0.9rem; text-decoration: none; display: inline-block; margin-top: 8px; transition: color 0.2s;">
+                    + View More (${publishers.length - visibleCount})
+                </a>
+            `);
+        }
+
+        // Render Years
+        const $fromList = $('#year-from-dropdown .dropdown-list');
+        const $toList = $('#year-to-dropdown .dropdown-list');
+        $fromList.empty();
+        $toList.empty();
+        years.forEach(yr => {
+            $fromList.append(`<li>${yr}</li>`);
+            $toList.append(`<li>${yr}</li>`);
+        });
+    }
+
+    function initFilterActions() {
+        // Apply Filters
+        $('#btn-apply-explore-filters').off('click.exploreApply').on('click.exploreApply', function (e) {
+            e.preventDefault();
+            applyExploreFilters();
+        });
+
+        // Clear Filters
+        $('#clear-explore-filters').off('click.exploreClear').on('click.exploreClear', function (e) {
+            e.preventDefault();
+
+            // Uncheck checkboxes
+            $('#explore-author-checkbox-list input[type="checkbox"]').prop('checked', false);
+            $('#explore-genre-checkbox-list input[type="checkbox"]').prop('checked', false);
+            $('#explore-publisher-checkbox-list input[type="checkbox"]').prop('checked', false);
+
+            // Reset price sliders
+            $('#explore-price-min').val(0);
+            $('#explore-price-max').val(1000);
+            // Re-trigger visual slider updates
+            $('#explore-price-min').trigger('input');
+
+            // Clear years
+            $('#publish-year-from').val('');
+            $('#publish-year-to').val('');
+
+            // Re-render full list
+            renderBooks(allBooks);
+        });
+    }
+
+    function applyExploreFilters() {
+        const checkedAuthors = $('#explore-author-checkbox-list input[type="checkbox"]:checked').map(function () {
+            return $(this).val();
+        }).get();
+
+        const checkedGenres = $('#explore-genre-checkbox-list input[type="checkbox"]:checked').map(function () {
+            return $(this).val();
+        }).get();
+
+        const checkedPublishers = $('#explore-publisher-checkbox-list input[type="checkbox"]:checked').map(function () {
+            return $(this).val();
+        }).get();
+
+        const minPrice = (parseInt($('#explore-price-min').val(), 10) || 0) * 1000;
+        const maxPrice = (parseInt($('#explore-price-max').val(), 10) || 1000) * 1000;
+
+        const fromYear = parseInt($('#publish-year-from').val(), 10) || null;
+        const toYear = parseInt($('#publish-year-to').val(), 10) || null;
+
+        const filtered = allBooks.filter(book => {
+            // 1. Author Filter (Skip if no author is checked)
+            if (checkedAuthors.length > 0) {
+                const bookAuthors = (book.authors || book.Authors || 'Unknown Author').split(/,+/).map(a => a.trim().toLowerCase());
+                const hasAuthorMatch = checkedAuthors.some(auth => bookAuthors.includes(auth.toLowerCase()));
+                if (!hasAuthorMatch) return false;
+            }
+
+            // 2. Genre Filter (Skip if no genre is checked)
+            if (checkedGenres.length > 0) {
+                const bookGenre = (book.categoryName || '').trim().toLowerCase();
+                const hasGenreMatch = checkedGenres.some(g => bookGenre === g.toLowerCase());
+                if (!hasGenreMatch) return false;
+            }
+
+            // 3. Publisher Filter (Skip if no publisher is checked)
+            if (checkedPublishers.length > 0) {
+                const bookPublisher = (book.publisher || book.Publisher || 'Unknown Publisher').trim().toLowerCase();
+                const hasPublisherMatch = checkedPublishers.some(p => bookPublisher === p.toLowerCase());
+                if (!hasPublisherMatch) return false;
+            }
+
+            // 4. Price Filter
+            const bookPrice = Number(book.price || book.Price || 0);
+            if (bookPrice < minPrice || bookPrice > maxPrice) return false;
+
+            // 5. Publish Year Filter
+            const bookYear = parseInt(book.publishYear || book.PublishYear, 10);
+            if (bookYear) {
+                if (fromYear && bookYear < fromYear) return false;
+                if (toYear && bookYear > toYear) return false;
+            } else {
+                if (fromYear || toYear) return false;
+            }
+
+            return true;
+        });
+
+        renderBooks(filtered);
+    }
+
+    function normalizeText(text) {
+        return (text || '')
+            .toString()
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
     function initExploreBookCards() {
