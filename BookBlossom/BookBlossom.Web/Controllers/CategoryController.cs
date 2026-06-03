@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using BookBlossom.Core.DTOs.Category;
 using BookBlossom.Core.Enums;
 using BookBlossom.Core.Interfaces.Services;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace BookBlossom.Web.Controllers
 {
@@ -13,10 +15,12 @@ namespace BookBlossom.Web.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
+        private readonly IAuditService _auditService;
 
-        public CategoryController(ICategoryService categoryService)
+        public CategoryController(ICategoryService categoryService, IAuditService auditService)
         {
             _categoryService = categoryService;
+            _auditService = auditService;
         }
 
         /// <summary>
@@ -63,6 +67,22 @@ namespace BookBlossom.Web.Controllers
             try
             {
                 var createdCategory = await _categoryService.CreateCategoryAsync(request);
+
+                var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (long.TryParse(adminIdStr, out long adminId))
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                    await _auditService.LogActionAsync(
+                        adminId,
+                        null,
+                        ActionType.ADD_CATEGORY,
+                        "Categories",
+                        null,
+                        JsonSerializer.Serialize(new { ID = createdCategory.CategoryID, Name = createdCategory.CategoryName }),
+                        ipAddress
+                    );
+                }
+
                 return CreatedAtAction(nameof(GetById), new { id = createdCategory.CategoryID }, createdCategory);
             }
             catch (InvalidOperationException ex)

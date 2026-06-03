@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authorization; // 🚨 BẮT BUỘC: Thêm thư việ
 using BookBlossom.Core.Interfaces;
 using BookBlossom.Core.DTOs.Book;
 using BookBlossom.Core.Enums;
+using BookBlossom.Core.Interfaces.Services;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace BookBlossom.API.Controllers
 {
@@ -13,10 +16,12 @@ namespace BookBlossom.API.Controllers
     public class RealBookController : ControllerBase
     {
         private readonly IRealBookService _realBookService;
+        private readonly IAuditService _auditService;
 
-        public RealBookController(IRealBookService realBookService)
+        public RealBookController(IRealBookService realBookService, IAuditService auditService)
         {
             _realBookService = realBookService;
+            _auditService = auditService;
         }
 
         // ==========================================
@@ -33,7 +38,24 @@ namespace BookBlossom.API.Controllers
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
                 var result = await _realBookService.CreateRealBookAsync(request);
-                if (result) return StatusCode(201, new { message = "Thêm mới sách thật thành công!" });
+                if (result)
+                {
+                    var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (long.TryParse(adminIdStr, out long adminId))
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                        await _auditService.LogActionAsync(
+                            adminId,
+                            null,
+                            ActionType.ADD_BOOK,
+                            "RealBooks",
+                            null,
+                            JsonSerializer.Serialize(new { Title = request.Title, ISBN = request.ISBN, Price = request.Price, Stock = request.UnitsInStock }),
+                            ipAddress
+                        );
+                    }
+                    return StatusCode(201, new { message = "Thêm mới sách thật thành công!" });
+                }
                 
                 return BadRequest(new { message = "Không thể thêm sách. Vui lòng kiểm tra lại." });
             }

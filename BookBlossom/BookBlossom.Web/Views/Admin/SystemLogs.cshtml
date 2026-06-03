@@ -194,6 +194,9 @@
                 <option value="LOCK_ACCOUNT">Lock Account</option>
                 <option value="UNLOCK_ACCOUNT">Unlock Account</option>
                 <option value="EXPORT">Data Export</option>
+                <option value="ADD_BOOK">Add Book</option>
+                <option value="ADD_CATEGORY">Add Category</option>
+                <option value="ADD_VOUCHER">Add Voucher</option>
             </select>
             <input type="date" id="dateFilter" />
         </div>
@@ -293,6 +296,9 @@
                         else if (action === "LOCK_ACCOUNT") { badgeClass = "badge-lock"; icon = "ph-lock-key"; }
                         else if (action === "UNLOCK_ACCOUNT") { badgeClass = "badge-unlock"; icon = "ph-lock-key-open"; }
                         else if (action === "EXPORT") { badgeClass = "badge-export"; icon = "ph-export"; }
+                        else if (action === "ADD_BOOK") { badgeClass = "badge-create"; icon = "ph-book-open"; }
+                        else if (action === "ADD_CATEGORY") { badgeClass = "badge-create"; icon = "ph-folders"; }
+                        else if (action === "ADD_VOUCHER") { badgeClass = "badge-create"; icon = "ph-ticket"; }
 
                         const oldDataHtml = log.oldData ? `<div class="json-data">${log.oldData}</div>` : `<span style="color: #94a3b8; font-style: italic;">N/A</span>`;
                         const newDataHtml = log.newData ? `<div class="json-data">${log.newData}</div>` : `<span style="color: #94a3b8; font-style: italic;">N/A</span>`;
