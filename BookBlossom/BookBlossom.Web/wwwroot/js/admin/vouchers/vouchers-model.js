@@ -75,7 +75,7 @@ class VouchersModel {
                     value: v.discountValue,
                     maxDiscount: v.maxDiscountAmount,
                     minOrder: v.minOrderValue,
-                    minPlan: 'None', // Keep as static none
+                    minPlan: { 0: 'None', 1: 'Basic', 2: 'Pro' }[v.minPlan] || 'None',
                     minScore: v.minReputationRequired,
                     minRank: invRankMap[v.membershipRankRequired] || 'None',
                     budget: v.totalLimit,
@@ -118,7 +118,7 @@ class VouchersModel {
                 value: v.discountValue,
                 maxDiscount: v.maxDiscountAmount,
                 minOrder: v.minOrderValue,
-                minPlan: 'None',
+                minPlan: { 0: 'None', 1: 'Basic', 2: 'Pro', 3: 'Premium' }[v.minPlan] || 'None',
                 minScore: v.minReputationRequired,
                 minRank: invRankMap[v.membershipRankRequired] || 'None',
                 budget: v.totalLimit,
@@ -150,10 +150,11 @@ class VouchersModel {
             maxDiscountAmount: parseFloat(voucher.maxDiscount || 0),
             minOrderValue: parseFloat(voucher.minOrder || 0),
             totalLimit: parseInt(voucher.budget),
-            startDate: new Date(voucher.startDate).toISOString(),
-            endDate: new Date(voucher.endDate).toISOString(),
+            startDate: voucher.startDate,
+            endDate: voucher.endDate,
             minReputationRequired: parseInt(voucher.minScore || 0),
             membershipRankRequired: rankMap[voucher.minRank] || 0,
+            minPlan: { 'None': 0, 'Basic': 1, 'Pro': 2 }[voucher.minPlan] || 0,
             isForNewUser: false,
             requiredBadgeID: null,
             isStackable: !!voucher.stackable,
@@ -185,15 +186,17 @@ class VouchersModel {
         
         const payload = {
             voucherName: voucher.campaignName,
+            discountType: voucher.type,
             discountValue: parseFloat(voucher.value),
             maxDiscountAmount: parseFloat(voucher.maxDiscount || 0),
             minOrderValue: parseFloat(voucher.minOrder || 0),
             totalLimit: parseInt(voucher.budget),
-            startDate: new Date(voucher.startDate).toISOString(),
-            endDate: new Date(voucher.endDate).toISOString(),
+            startDate: voucher.startDate,
+            endDate: voucher.endDate,
             statusVoucher: statusMap[voucher.status] ?? 0,
             minReputationRequired: parseInt(voucher.minScore || 0),
             membershipRankRequired: rankMap[voucher.minRank] || 0,
+            minPlan: { 'None': 0, 'Basic': 1, 'Pro': 2 }[voucher.minPlan] || 0,
             isForNewUser: false,
             requiredBadgeID: null,
             isStackable: !!voucher.stackable,
@@ -217,20 +220,5 @@ class VouchersModel {
         }
     }
 
-    async deleteVoucher(id) {
-        if (!window.apiClient) return false;
-        try {
-            await window.apiClient.apiDelete(`/api/management/Voucher/${id}`);
-            if (window.apiClient.showToast) {
-                window.apiClient.showToast("Voucher deleted successfully!", "success");
-            }
-            return true;
-        } catch (e) {
-            console.error("Failed to delete voucher", e);
-            if (window.apiClient.showToast) {
-                window.apiClient.showToast(e.message || "Failed to delete voucher.", "error");
-            }
-            return false;
-        }
-    }
+
 }

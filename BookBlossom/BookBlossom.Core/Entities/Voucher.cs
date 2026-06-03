@@ -26,6 +26,9 @@ namespace BookBlossom.Core.Entities
         // Được lưu dạng tinyint trong DB
         public VoucherStatus StatusVoucher { get; set; } = VoucherStatus.Draft;
 
+        // Gói hội viên tối thiểu để dùng voucher
+        public SubscriptionType MinPlan { get; set; } = SubscriptionType.Free;
+
         // Điểm uy tín tối thiểu để dùng voucher
         public int MinReputationRequired { get; set; } = 0;
 

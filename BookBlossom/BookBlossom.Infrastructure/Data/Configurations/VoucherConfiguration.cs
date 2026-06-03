@@ -57,6 +57,12 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                    .HasColumnType("tinyint")
                    .IsRequired();
 
+            // MinPlan lưu dạng tinyint trong DB
+            builder.Property(v => v.MinPlan)
+                   .HasColumnType("tinyint")
+                   .IsRequired()
+                   .HasDefaultValue(SubscriptionType.Free);
+
             builder.Property(v => v.MinReputationRequired).IsRequired();
             builder.Property(v => v.MembershipRankRequired).IsRequired();
             builder.Property(v => v.IsForNewUser).IsRequired();

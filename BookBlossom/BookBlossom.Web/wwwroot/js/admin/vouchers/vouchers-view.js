@@ -136,6 +136,7 @@ class VouchersView {
                 else alert("Minimum order value cannot be negative.");
                 return;
             }
+
             if (new Date(startDate) >= new Date(endDate)) {
                 if (window.apiClient && window.apiClient.showToast) window.apiClient.showToast("End date must be strictly after the start date.", "error");
                 else alert("End date must be strictly after the start date.");
@@ -249,16 +250,7 @@ class VouchersView {
         });
     }
 
-    bindDeleteVoucher(handler) {
-        this.grid.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-delete')) {
-                if (confirm('Are you sure you want to delete this voucher?')) {
-                    const id = e.target.closest('.btn-delete').dataset.id;
-                    handler(id);
-                }
-            }
-        });
-    }
+
 
     bindFilters(handler) {
         this.filterStatus.addEventListener('change', () => handler());
@@ -410,7 +402,6 @@ class VouchersView {
                         </div>
                         <div style="display: flex; gap: 8px; width: auto;">
                             <button class="btn-action btn-edit" data-id="${v.id}" style="padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; flex: none;"><i class="ph ph-pencil"></i> Edit</button>
-                            <button class="btn-action btn-delete" data-id="${v.id}" style="color: #ef4444; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; flex: none;"><i class="ph ph-trash"></i> Delete</button>
                         </div>
                     </div>
                 </div>

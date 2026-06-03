@@ -21,6 +21,7 @@ namespace BookBlossom.Core.DTOs
         public VoucherStatus StatusVoucher { get; set; }
         public int MinReputationRequired { get; set; }
         public int MembershipRankRequired { get; set; }
+        public SubscriptionType MinPlan { get; set; }
         public bool IsForNewUser { get; set; }
         public long? RequiredBadgeID { get; set; }
         public bool IsStackable { get; set; }
@@ -43,6 +44,7 @@ namespace BookBlossom.Core.DTOs
         public DateTime EndDate { get; set; }
         public int MinReputationRequired { get; set; } = 0;
         public int MembershipRankRequired { get; set; } = 0;
+        public SubscriptionType MinPlan { get; set; } = SubscriptionType.Free;
         public bool IsForNewUser { get; set; } = false;
         public long? RequiredBadgeID { get; set; }
         public bool IsStackable { get; set; } = false;
@@ -57,6 +59,7 @@ namespace BookBlossom.Core.DTOs
     public class UpdateVoucherDTO
     {
         public string? VoucherName { get; set; }
+        public VoucherDiscountType? DiscountType { get; set; }
         public decimal? DiscountValue { get; set; }
         public decimal? MaxDiscountAmount { get; set; }
         public decimal? MinOrderValue { get; set; }
@@ -66,6 +69,7 @@ namespace BookBlossom.Core.DTOs
         public VoucherStatus? StatusVoucher { get; set; }
         public int? MinReputationRequired { get; set; }
         public int? MembershipRankRequired { get; set; }
+        public SubscriptionType? MinPlan { get; set; }
         public bool? IsForNewUser { get; set; }
         public long? RequiredBadgeID { get; set; }
         public bool? IsStackable { get; set; }

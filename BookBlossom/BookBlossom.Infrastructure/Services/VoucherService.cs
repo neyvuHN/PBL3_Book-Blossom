@@ -25,6 +25,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<VoucherDTO>> GetAllVouchersAsync()
         {
+            await AutoUpdateVoucherStatusesAsync();
             var vouchers = await _context.Vouchers
                 .Include(v => v.VoucherCategories)
                 .OrderByDescending(v => v.VoucherID)
@@ -35,6 +36,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<VoucherDTO?> GetVoucherByIdAsync(long voucherId)
         {
+            await AutoUpdateVoucherStatusesAsync();
             var voucher = await _context.Vouchers
                 .Include(v => v.VoucherCategories)
                 .FirstOrDefaultAsync(v => v.VoucherID == voucherId);
@@ -48,6 +50,9 @@ namespace BookBlossom.Infrastructure.Services
             bool codeExists = await _context.Vouchers.AnyAsync(v => v.VoucherCode == dto.VoucherCode);
             if (codeExists)
                 throw new InvalidOperationException($"Mã voucher '{dto.VoucherCode}' đã tồn tại.");
+
+            if (dto.EndDate <= dto.StartDate)
+                throw new InvalidOperationException("Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
 
             var voucher = new Voucher
             {
@@ -64,6 +69,7 @@ namespace BookBlossom.Infrastructure.Services
                 StatusVoucher = dto.StatusVoucher,
                 MinReputationRequired = dto.MinReputationRequired,
                 MembershipRankRequired = dto.MembershipRankRequired,
+                MinPlan = dto.MinPlan,
                 IsForNewUser = dto.IsForNewUser,
                 RequiredBadgeID = dto.RequiredBadgeID,
                 IsStackable = dto.IsStackable,
@@ -98,7 +104,15 @@ namespace BookBlossom.Infrastructure.Services
 
             if (voucher == null) return null;
 
+
+
+            var checkStart = dto.StartDate ?? voucher.StartDate;
+            var checkEnd = dto.EndDate ?? voucher.EndDate;
+            if (checkEnd <= checkStart)
+                throw new InvalidOperationException("Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+
             if (dto.VoucherName != null) voucher.VoucherName = dto.VoucherName;
+            if (dto.DiscountType.HasValue) voucher.DiscountType = dto.DiscountType.Value;
             if (dto.DiscountValue.HasValue) voucher.DiscountValue = dto.DiscountValue.Value;
             if (dto.MaxDiscountAmount.HasValue) voucher.MaxDiscountAmount = dto.MaxDiscountAmount.Value;
             if (dto.MinOrderValue.HasValue) voucher.MinOrderValue = dto.MinOrderValue.Value;
@@ -108,6 +122,7 @@ namespace BookBlossom.Infrastructure.Services
             if (dto.StatusVoucher.HasValue) voucher.StatusVoucher = dto.StatusVoucher.Value;
             if (dto.MinReputationRequired.HasValue) voucher.MinReputationRequired = dto.MinReputationRequired.Value;
             if (dto.MembershipRankRequired.HasValue) voucher.MembershipRankRequired = dto.MembershipRankRequired.Value;
+            if (dto.MinPlan.HasValue) voucher.MinPlan = dto.MinPlan.Value;
             if (dto.IsForNewUser.HasValue) voucher.IsForNewUser = dto.IsForNewUser.Value;
             if (dto.RequiredBadgeID.HasValue) voucher.RequiredBadgeID = dto.RequiredBadgeID.Value;
             if (dto.IsStackable.HasValue) voucher.IsStackable = dto.IsStackable.Value;
@@ -174,9 +189,13 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<CustomerVoucherDTO>> GetMyVouchersAsync(long customerId)
         {
+            await AutoUpdateVoucherStatusesAsync();
             var customerVouchers = await _context.CustomerVouchers
                 .Include(cv => cv.Voucher)
-                .Where(cv => cv.CustomerID == customerId)
+                .Where(cv => cv.CustomerID == customerId 
+                          && cv.Voucher.StatusVoucher != VoucherStatus.Paused
+                          && cv.Voucher.StatusVoucher != VoucherStatus.Draft
+                          && cv.Voucher.StatusVoucher != VoucherStatus.Ended)
                 .OrderBy(cv => cv.IsUsed)
                 .ThenBy(cv => cv.Voucher.EndDate)
                 .ToListAsync();
@@ -198,6 +217,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<bool> ClaimVoucherAsync(long customerId, string voucherCode)
         {
+            await AutoUpdateVoucherStatusesAsync();
             var voucher = await _context.Vouchers
                 .FirstOrDefaultAsync(v => v.VoucherCode == voucherCode);
 
@@ -247,6 +267,7 @@ namespace BookBlossom.Infrastructure.Services
             decimal orderSubTotal,
             List<long> bookCategoryIds)
         {
+            await AutoUpdateVoucherStatusesAsync();
             var invalid = new VoucherValidationResultDTO { IsValid = false };
 
             // 1. Tìm voucher theo mã
@@ -336,6 +357,34 @@ namespace BookBlossom.Infrastructure.Services
                 if (customerRankType < voucher.MembershipRankRequired)
                 {
                     invalid.ErrorMessage = $"Hạng thành viên của bạn không đủ điều kiện để dùng voucher này.";
+                    return invalid;
+                }
+            }
+
+            // 8.5. Kiểm tra gói dịch vụ (MinPlan)
+            if (voucher.MinPlan > SubscriptionType.Free)
+            {
+                var customerService = await _context.CustomerServices
+                    .Include(cs => cs.ServicePackage)
+                    .FirstOrDefaultAsync(cs => cs.CustomerID == customerId);
+
+                SubscriptionType currentPlan = SubscriptionType.Free;
+                if (customerService != null && (customerService.EndDate == null || customerService.EndDate >= DateTime.UtcNow))
+                {
+                    var pkgName = customerService.ServicePackage?.PackageName?.ToLower() ?? "";
+                    if (pkgName.Contains("pro"))
+                    {
+                        currentPlan = SubscriptionType.Pro;
+                    }
+                    else if (pkgName.Contains("basic"))
+                    {
+                        currentPlan = SubscriptionType.Basic;
+                    }
+                }
+
+                if (currentPlan < voucher.MinPlan)
+                {
+                    invalid.ErrorMessage = $"Gói dịch vụ của bạn không đủ điều kiện để dùng voucher này (yêu cầu tối thiểu {voucher.MinPlan}).";
                     return invalid;
                 }
             }
@@ -443,7 +492,45 @@ namespace BookBlossom.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
-        // ─── HELPER ──────────────────────────────────────────────────────────
+        private async Task AutoUpdateVoucherStatusesAsync()
+        {
+            var now = DateTime.UtcNow;
+
+            // 1. Scheduled -> Active: Nếu đã đến StartDate nhưng chưa quá EndDate và đang Scheduled
+            var toActive = await _context.Vouchers
+                .Where(v => v.StatusVoucher == VoucherStatus.Scheduled && v.StartDate <= now && v.EndDate > now)
+                .ToListAsync();
+
+            foreach (var v in toActive)
+            {
+                v.StatusVoucher = VoucherStatus.Active;
+            }
+
+            // 2. Active/Scheduled/Paused/Draft -> Ended: Nếu đã quá EndDate (ngoại trừ các voucher đã kết thúc)
+            var toEnded = await _context.Vouchers
+                .Where(v => v.StatusVoucher != VoucherStatus.Ended && v.EndDate <= now)
+                .ToListAsync();
+
+            foreach (var v in toEnded)
+            {
+                v.StatusVoucher = VoucherStatus.Ended;
+            }
+
+            // 3. Active -> Scheduled: Nếu ngày bắt đầu ở tương lai và đang là Active
+            var toScheduled = await _context.Vouchers
+                .Where(v => v.StatusVoucher == VoucherStatus.Active && v.StartDate > now)
+                .ToListAsync();
+
+            foreach (var v in toScheduled)
+            {
+                v.StatusVoucher = VoucherStatus.Scheduled;
+            }
+
+            if (toActive.Any() || toEnded.Any() || toScheduled.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
 
         private static VoucherDTO MapToDTO(Voucher v) => new VoucherDTO
         {
@@ -461,6 +548,7 @@ namespace BookBlossom.Infrastructure.Services
             StatusVoucher = v.StatusVoucher,
             MinReputationRequired = v.MinReputationRequired,
             MembershipRankRequired = v.MembershipRankRequired,
+            MinPlan = v.MinPlan,
             IsForNewUser = v.IsForNewUser,
             RequiredBadgeID = v.RequiredBadgeID,
             IsStackable = v.IsStackable,

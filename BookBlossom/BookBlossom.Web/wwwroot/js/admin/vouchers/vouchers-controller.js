@@ -8,7 +8,7 @@ class VouchersController {
         this.view.bindCloseModal();
         this.view.bindSaveVoucher(this.handleSaveVoucher.bind(this));
         this.view.bindEditVoucher(this.handleEditVoucher.bind(this));
-        this.view.bindDeleteVoucher(this.handleDeleteVoucher.bind(this));
+
         this.view.bindFilters(this.handleFilters.bind(this));
 
         // Initial render
@@ -67,11 +67,7 @@ class VouchersController {
         }
     }
 
-    async handleDeleteVoucher(id) {
-        if (await this.model.deleteVoucher(id)) {
-            await this.refreshGrid(true); // Force fetch after deletion
-        }
-    }
+
 
     async handleFilters() {
         await this.refreshGrid(false); // Local caching when filtering
