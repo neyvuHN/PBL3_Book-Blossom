@@ -107,7 +107,7 @@
     }
 
     async function removeItem(id) {
-        const existing = cachedItems.find(i => i.id === id || i.bookID === id || i.blindBookID === id || `book-${i.bookID}` === id || `blind-${i.blindBookID}` === id || `tindbook-${i.bookID}` === id);
+        const existing = cachedItems.find(i => String(i.id) === String(id) || String(i.bookID) === String(id) || String(i.blindBookID) === String(id) || `book-${i.bookID}` === String(id) || `blind-${i.blindBookID}` === String(id) || `tindbook-${i.bookID}` === String(id));
         
         let targetWishlistId = id;
         let removedFromApi = false;
@@ -131,7 +131,7 @@
 
         let mocks = getMockItems();
         const initialLen = mocks.length;
-        mocks = mocks.filter(i => i.id !== id && i.bookID !== id && i.blindBookID !== id && `book-${i.bookID}` !== id && `blind-${i.blindBookID}` !== id && `tindbook-${i.bookID}` !== id);
+        mocks = mocks.filter(i => String(i.id) !== String(id) && String(i.bookID) !== String(id) && String(i.blindBookID) !== String(id) && `book-${i.bookID}` !== String(id) && `blind-${i.blindBookID}` !== String(id) && `tindbook-${i.bookID}` !== String(id));
         if (mocks.length < initialLen) {
             saveMockItems(mocks);
             removedFromApi = true;

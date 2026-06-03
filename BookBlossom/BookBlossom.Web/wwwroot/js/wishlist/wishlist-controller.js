@@ -48,7 +48,7 @@ class WishlistController {
 
     async handleAddToCart(id) {
         // Find item
-        const item = this.model.items.find(i => i.id === id);
+        const item = this.model.items.find(i => String(i.id) === String(id));
         if (item) {
             console.log("Adding to cart:", item);
             try {
@@ -79,8 +79,8 @@ class WishlistController {
                 } else if (window.BookBlossomCart) {
                     showToast(`Added "${item.title}" to cart!`, 'success');
                     window.BookBlossomCart.addToCart({
-                        bookID: item.isBlindDate ? null : (item.bookID || parseInt(item.id.replace(/\D/g, '')) || 1),
-                        blindBookID: item.isBlindDate ? (item.blindBookID || parseInt(item.id.replace(/\D/g, '')) || 1) : null,
+                        bookID: item.isBlindDate ? null : (item.bookID || parseInt(String(item.id).replace(/\D/g, '')) || 1),
+                        blindBookID: item.isBlindDate ? (item.blindBookID || parseInt(String(item.id).replace(/\D/g, '')) || 1) : null,
                         qty: 1
                     }).catch(err => {
                         console.error('Failed background add to cart', err);
@@ -92,21 +92,31 @@ class WishlistController {
                 console.error("Failed to add to cart", error);
                 showToast('Failed to add item to cart.', 'error');
             }
+        } else {
+            console.error("Could not find item with id", id);
         }
     }
 
     handleNavigateToDetails(id, isBlind) {
-        const item = this.model.items.find(i => i.id === id);
+        const item = this.model.items.find(i => String(i.id) === String(id));
         if (item) {
             if (isBlind) {
-                // Navigate to blind date book details using SPA hash
-                const tags = item.hashtags && item.hashtags.length
-                    ? item.hashtags.join('-')
-                    : 'Mystery';
-                window.location.href = `/BlindDate#blind-details-${encodeURIComponent(tags)}`;
+                const idToUse = item.blindBookID || item.id;
+                if (typeof idToUse === 'number' || (typeof idToUse === 'string' && !idToUse.includes('blind-') && !idToUse.includes('book-'))) {
+                    window.location.href = `/BlindDate#blind-details-${idToUse}`;
+                } else {
+                    const tags = item.hashtags && item.hashtags.length
+                        ? item.hashtags.join('-')
+                        : 'Mystery';
+                    window.location.href = `/BlindDate#blind-details-${encodeURIComponent(tags)}`;
+                }
             } else {
-                // Navigate to normal book details using SPA hash
-                window.location.href = `/Explore#book-details-${encodeURIComponent(item.title)}`;
+                const idToUse = item.bookID || item.id;
+                if (typeof idToUse === 'number' || (typeof idToUse === 'string' && !idToUse.includes('blind-') && !idToUse.includes('book-'))) {
+                    window.location.href = `/Explore#book-details-${idToUse}`;
+                } else {
+                    window.location.href = `/Explore#book-details-${encodeURIComponent(item.title)}`;
+                }
             }
         }
     }
