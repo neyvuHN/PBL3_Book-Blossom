@@ -377,14 +377,14 @@ class OrdersController {
                 if (btnResolve) {
                     const id = btnResolve.getAttribute('data-id');
                     this.view.showConfirmDialog(
-                        'Approve Refund Request?',
-                        `Approve this Refund Only ticket #${id} and release transaction funds?`,
+                        'Resolve Complaint Ticket?',
+                        `Resolve this support ticket #${id} and release transaction funds?`,
                         'success',
                         async () => {
-                            this.view.showToast('Resolving', 'Approving refund on server...', 'info');
+                            this.view.showToast('Resolving', 'Resolving ticket on server...', 'info');
                             try {
                                 await this.model.reviewReturnRequest(id, true);
-                                this.view.showToast('Ticket Resolved', `Refund approved & ticket #${id} resolved successfully.`, 'success');
+                                this.view.showToast('Ticket Resolved', `Ticket #${id} resolved successfully.`, 'success');
                                 await this.loadAllData();
                             } catch (err) {
                                 this.view.showToast('Failed to Resolve', err.message, 'error');

@@ -81,9 +81,9 @@ namespace BookBlossom.Web.ViewModels.Admin
         public string ModeratorNote { get; set; } = string.Empty;
         
         /// <summary>
-        /// "Pending Support", "Resolved"
+        /// "Pending", "Resolved"
         /// </summary>
-        public string Status { get; set; } = "Pending Support";
+        public string Status { get; set; } = "Pending";
         public string TransferredDate { get; set; } = string.Empty;
     }
 }

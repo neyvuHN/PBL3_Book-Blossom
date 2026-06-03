@@ -533,20 +533,14 @@ class OrdersView {
         }
 
         const tableRowsHtml = complaints.map(c => {
-            const isPending = c.status === 'Pending Support';
+            const isPending = c.status === 'Pending';
             const actionHtml = isPending 
                 ? `<div style="display:flex; gap:6px; justify-content:flex-end;">
-                     ${c.raw && c.raw.unboxVideoPath ? `<button class="btn-outline-action btn-play-video" data-video="${c.raw.unboxVideoPath}" style="padding: 6px 12px; font-size:0.75rem; border-color:#82758D; color:#82758D;">
-                         <i class="ph ph-video-camera"></i> Proof
-                     </button>` : ''}
                      <button class="btn-outline-action btn-contact-buyer" data-buyer="${c.buyerName}" style="padding: 6px 12px; font-size:0.75rem;">
                          Contact
                      </button>
                      <button class="btn-primary-action btn-resolve-complaint" data-id="${c.id}" style="padding: 6px 12px; font-size:0.75rem; background-color:#27AE60; box-shadow:none;">
-                         Approve
-                     </button>
-                     <button class="btn-outline-action btn-reject-complaint" data-id="${c.id}" style="padding: 6px 12px; font-size:0.75rem; border-color:#EB5757; color:#EB5757;">
-                         Reject
+                         Resolve
                      </button>
                    </div>`
                 : `<span style="color:#27AE60; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:4px; justify-content:flex-end;">

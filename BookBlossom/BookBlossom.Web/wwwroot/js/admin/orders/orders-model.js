@@ -202,9 +202,9 @@ class OrdersModel {
                 // Map Return Requests with RefundOnly (resolutionType === 0) to complaints
                 const refundOnlyList = returnRequests.filter(r => r.resolutionType === 0);
                 this.complaints = refundOnlyList.map(r => {
-                    let status = "Pending Support";
+                    let status = "Pending";
                     if (r.returnStatus === 1) status = "Resolved";
-                    if (r.returnStatus === 2) status = "Resolved (Rejected)";
+                    if (r.returnStatus === 2) status = "Resolved";
 
                     return {
                         id: r.returnRequestID.toString(),

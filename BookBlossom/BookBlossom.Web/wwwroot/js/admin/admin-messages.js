@@ -6,7 +6,7 @@ function initAdminMessages() {
     // Load Conversations
     function loadAdminConversations() {
         if (window.apiClient) {
-            window.apiClient.apiGet('/api/MessagesAPI/conversations').then(res => {
+            return window.apiClient.apiGet('/api/MessagesAPI/conversations').then(res => {
                 if (res && res.data) {
                     const $list = $('#admin-convo-list');
                     $list.empty();
@@ -31,8 +31,10 @@ function initAdminMessages() {
                         $list.append(item);
                     });
                 }
+                return res;
             });
         }
+        return Promise.resolve(null);
     }
 
     // Load Support Requests
@@ -66,7 +68,23 @@ function initAdminMessages() {
     }
 
     // Initialize data
-    loadAdminConversations();
+    loadAdminConversations().then(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const buyerParam = urlParams.get('buyer');
+        if (buyerParam) {
+            const cleanName = decodeURIComponent(buyerParam).trim().toLowerCase();
+            const $match = $('.convo-item').filter(function() {
+                return $(this).data('buyer-name').toString().trim().toLowerCase() === cleanName;
+            });
+            if ($match.length > 0) {
+                $match.click();
+            } else {
+                console.log("No conversation found matching buyer:", buyerParam);
+            }
+            // Clean up the URL search param without reloading
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    });
     loadAdminSupportRequests();
 
 
