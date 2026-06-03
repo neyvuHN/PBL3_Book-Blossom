@@ -24,6 +24,7 @@ namespace BookBlossom.Tests.Services
         public Task<bool> SubscribeAsync(long customerId, long targetId, string targetType) => Task.FromResult(true);
         public Task<bool> UnsubscribeAsync(long customerId, long targetId, string targetType) => Task.FromResult(true);
         public Task<IEnumerable<SubscriptionDTO>> GetSubscriptionsAsync(long customerId) => Task.FromResult<IEnumerable<SubscriptionDTO>>(new List<SubscriptionDTO>());
+        public Task<bool> DeleteNotificationAsync(long userId, long notificationId) => Task.FromResult(true);
     }
 
     public class GamificationServiceTests

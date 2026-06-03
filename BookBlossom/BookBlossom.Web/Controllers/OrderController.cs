@@ -261,6 +261,64 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
+        // API 2.3: Cập nhật địa chỉ giao hàng (Customer)
+        [HttpPut("address/{addressId}")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> UpdateAddress(long addressId, [FromBody] CreateAddressRequestDTO dto)
+        {
+            if (dto == null) return BadRequest("Dữ liệu trống.");
+
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ." });
+            }
+
+            try
+            {
+                var address = await _context.Set<DeliveryAddress>()
+                    .FirstOrDefaultAsync(da => da.AddressID == addressId && da.CustomerID == customerId);
+
+                if (address == null)
+                {
+                    return NotFound(new { message = "Địa chỉ không tồn tại hoặc bạn không có quyền cập nhật địa chỉ này." });
+                }
+
+                if (dto.IsDefault)
+                {
+                    var existingDefaults = await _context.Set<DeliveryAddress>()
+                        .Where(da => da.CustomerID == customerId && da.IsDefault == true && da.AddressID != addressId)
+                        .ToListAsync();
+
+                    foreach (var addr in existingDefaults)
+                    {
+                        addr.IsDefault = false;
+                    }
+                }
+
+                address.ReceiverName = dto.ReceiverName;
+                address.PhoneNumber = dto.PhoneNumber;
+                address.DetailAddress = dto.DetailAddress;
+                address.IsDefault = dto.IsDefault;
+
+                _context.Set<DeliveryAddress>().Update(address);
+                await _context.SaveChangesAsync();
+
+                return Ok(new AddressResponseDTO
+                {
+                    AddressID = address.AddressID,
+                    ReceiverName = address.ReceiverName,
+                    PhoneNumber = address.PhoneNumber,
+                    DetailAddress = address.DetailAddress,
+                    IsDefault = address.IsDefault ?? false
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi khi cập nhật địa chỉ.", detail = ex.Message });
+            }
+        }
+
         // API 2.1: Lấy danh sách địa chỉ giao hàng của User hiện tại (Customer)
         [HttpGet("address")]
         [Authorize(Policy = "CustomerOnly")]

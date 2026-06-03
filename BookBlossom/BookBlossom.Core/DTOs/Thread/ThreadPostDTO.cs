@@ -15,7 +15,10 @@ namespace BookBlossom.Core.DTOs.Thread
         public DateTime CreatedAt { get; set; }
         public bool IsHidden { get; set; }
         public int ReportCount { get; set; }
+        public int LikeCount { get; set; }
+        public int ShareCount { get; set; }
         public int CommentsCount { get; set; }
+        public bool IsLikedByCurrentUser { get; set; }
 
         public List<ThreadImageDTO> Images { get; set; } = new List<ThreadImageDTO>();
         public List<ThreadCommentDTO> Comments { get; set; } = new List<ThreadCommentDTO>();

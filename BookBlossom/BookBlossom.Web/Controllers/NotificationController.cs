@@ -84,6 +84,25 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteNotification(long id)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _notificationService.DeleteNotificationAsync(userId, id);
+                if (!result)
+                {
+                    return NotFound(new { message = "Không tìm thấy thông báo hoặc thông báo không thuộc quyền sở hữu của bạn." });
+                }
+                return Ok(new { message = "Đã xóa thông báo." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("subscribe")]
         public async Task<IActionResult> Subscribe([FromBody] SubscribeRequestDTO request)
         {

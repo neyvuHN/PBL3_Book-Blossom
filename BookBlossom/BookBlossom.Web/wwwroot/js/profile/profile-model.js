@@ -53,47 +53,32 @@ class ProfileModel {
         this.validateBadges();
     }
 
+    // loadUser is not needed since SSR loads the initial data.
+    // However, keeping an empty user object or basic state helps.
     loadUser() {
-        let stored = localStorage.getItem(this.storageKey);
-        if (!stored) {
-            this.saveUser(this.defaultUser);
-            return { ...this.defaultUser };
-        }
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error("Error parsing user data, resetting to default", e);
-            return { ...this.defaultUser };
-        }
+        return {}; 
     }
 
-    saveUser(userState = this.user) {
-        this.user = userState;
-        localStorage.setItem(this.storageKey, JSON.stringify(this.user));
+    // Replace localStorage with real API call
+    async updateProfileData(formData) {
+        try {
+            return await window.apiClient.apiUpload('/api/profile', formData);
+        } catch (error) {
+            console.error('Failed to update profile', error);
+            throw error;
+        }
     }
 
     updateField(field, value) {
-        this.user[field] = value;
-        this.saveUser();
+        // No longer storing in localStorage. Updates are handled via API.
     }
 
     updateMultipleFields(fieldsObj) {
-        this.user = { ...this.user, ...fieldsObj };
-        this.saveUser();
+        // No longer storing in localStorage. Updates are handled via API.
     }
 
-    /**
-     * Ensures user badges collection is valid.
-     */
     validateBadges() {
-        if (!this.user.badges || !Array.isArray(this.user.badges)) {
-            this.user.badges = [...this.defaultUser.badges];
-            this.saveUser();
-        }
-        if (!this.user.badgeEarnedDates || typeof this.user.badgeEarnedDates !== 'object') {
-            this.user.badgeEarnedDates = { ...this.defaultUser.badgeEarnedDates };
-            this.saveUser();
-        }
+        // Not used anymore.
     }
 }
 

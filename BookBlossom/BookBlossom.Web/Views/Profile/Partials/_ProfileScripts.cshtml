@@ -4,3 +4,207 @@
 <script src="~/js/profile/profile-model.js" asp-append-version="true"></script>
 <script src="~/js/profile/profile-view.js" asp-append-version="true"></script>
 <script src="~/js/profile/profile-controller.js" asp-append-version="true"></script>
+
+<script>
+// ====================================================
+// DELIVERY ADDRESS CRUD – Profile Page
+// ====================================================
+(function () {
+    const overlay  = document.getElementById('profile-address-modal-overlay');
+    const content  = document.getElementById('profile-address-modal-content');
+    const title    = document.getElementById('profile-addr-modal-title');
+    const editId   = document.getElementById('profile-addr-edit-id');
+    const inpName  = document.getElementById('profile-addr-name');
+    const inpPhone = document.getElementById('profile-addr-phone');
+    const inpAddr  = document.getElementById('profile-addr-detail');
+    const chkDef   = document.getElementById('profile-addr-default');
+
+    // Custom Delete Modal Elements
+    const deleteOverlay = document.getElementById('profile-address-delete-modal-overlay');
+    const deleteContent = document.getElementById('profile-address-delete-modal-content');
+    const btnCancelDelete = document.getElementById('btn-cancel-delete-addr');
+    const btnConfirmDelete = document.getElementById('btn-confirm-delete-addr');
+    let addressIdToDelete = null;
+
+    function openModal(mode, data) {
+        title.textContent = mode === 'add' ? 'Add New Address' : 'Edit Address';
+        editId.value   = data?.id    ?? '';
+        inpName.value  = data?.name  ?? '';
+        inpPhone.value = data?.phone ?? '';
+        inpAddr.value  = data?.addr  ?? '';
+        chkDef.checked = data?.isDefault ?? false;
+
+        overlay.style.display = 'flex';
+        void overlay.offsetWidth;
+        content.style.opacity   = '1';
+        content.style.transform = 'scale(1)';
+    }
+
+    function closeModal() {
+        content.style.opacity   = '0';
+        content.style.transform = 'scale(0.95)';
+        setTimeout(() => { overlay.style.display = 'none'; }, 280);
+    }
+
+    function openDeleteModal(id) {
+        addressIdToDelete = id;
+        deleteOverlay.style.display = 'flex';
+        void deleteOverlay.offsetWidth;
+        deleteContent.style.opacity   = '1';
+        deleteContent.style.transform = 'scale(1)';
+    }
+
+    function closeDeleteModal() {
+        deleteContent.style.opacity   = '0';
+        deleteContent.style.transform = 'scale(0.95)';
+        setTimeout(() => { deleteOverlay.style.display = 'none'; }, 280);
+        addressIdToDelete = null;
+    }
+
+    document.getElementById('btn-add-address') ?.addEventListener('click', () => openModal('add'));
+    document.getElementById('btn-close-profile-addr')  ?.addEventListener('click', closeModal);
+    document.getElementById('btn-cancel-profile-addr') ?.addEventListener('click', closeModal);
+    overlay?.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+    btnCancelDelete?.addEventListener('click', closeDeleteModal);
+    deleteOverlay?.addEventListener('click', e => { if (e.target === deleteOverlay) closeDeleteModal(); });
+
+    // Edit button – fill form from data-* attributes
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-edit-address');
+        if (!btn) return;
+        openModal('edit', {
+            id: btn.dataset.id,
+            name: btn.dataset.name,
+            phone: btn.dataset.phone,
+            addr: btn.dataset.address,
+            isDefault: btn.dataset.default === 'true'
+        });
+    });
+
+    // Delete button - Opens Custom Confirm Modal
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-delete-address');
+        if (!btn) return;
+        openDeleteModal(btn.dataset.id);
+    });
+
+    // Confirm Delete Action
+    btnConfirmDelete?.addEventListener('click', async function () {
+        if (!addressIdToDelete) return;
+        try {
+            await window.apiClient.apiDelete(`/api/Order/address/${addressIdToDelete}`);
+            const item = document.querySelector(`.profile-address-item[data-address-id="${addressIdToDelete}"]`);
+            if (item) item.remove();
+            checkEmptyState();
+            closeDeleteModal();
+            window.apiClient.showToast('Address deleted successfully.', 'success');
+        } catch (err) {
+            closeDeleteModal();
+            window.apiClient.showToast(err.message || 'Failed to delete address.', 'error');
+        }
+    });
+
+    // Save (add or update)
+    document.getElementById('btn-save-profile-addr')?.addEventListener('click', async function () {
+        const name  = inpName.value.trim();
+        const phone = inpPhone.value.trim();
+        const addr  = inpAddr.value.trim();
+        const isDef = chkDef.checked;
+        const id    = editId.value;
+
+        if (!name || !phone || !addr) {
+            window.apiClient.showToast('Please fill in all required fields.', 'error');
+            return;
+        }
+
+        const payload = { receiverName: name, phoneNumber: phone, detailAddress: addr, isDefault: isDef };
+
+        try {
+            if (id) {
+                // Update using PUT
+                await window.apiClient.apiPut(`/api/Order/address/${id}`, payload);
+            } else {
+                // Create using POST
+                await window.apiClient.apiPost('/api/Order/address', payload);
+            }
+
+            closeModal();
+            window.apiClient.showToast('Address saved successfully!', 'success');
+            // Refresh address list by reloading the DOM from API
+            await refreshAddressList();
+        } catch (err) {
+            window.apiClient.showToast(err.message || 'Failed to save address.', 'error');
+        }
+    });
+
+    async function refreshAddressList() {
+        try {
+            const addresses = await window.apiClient.apiGet('/api/Order/address');
+            const container = document.getElementById('address-list-container');
+            // Remove existing items (keep the empty hint)
+            container.querySelectorAll('.profile-address-item').forEach(el => el.remove());
+
+            const hint = document.getElementById('address-empty-hint');
+
+            if (!addresses || addresses.length === 0) {
+                if (hint) hint.style.display = 'block';
+                return;
+            }
+            if (hint) hint.style.display = 'none';
+
+            // Sort addresses: default first
+            addresses.sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
+
+            addresses.forEach(addr => {
+                const bg     = addr.isDefault ? '#fff8fb' : '#fafafa';
+                const border = addr.isDefault ? '#f5c6d8' : '#eee';
+                const defBadge = addr.isDefault
+                    ? `<span style="background:#C2185B;color:#fff;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.3px;">Default</span>`
+                    : '';
+
+                const html = `
+                <div class="profile-address-item" data-address-id="${addr.addressID}"
+                    style="background:${bg};border:1.5px solid ${border};border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:all 0.2s;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex:1;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                <span style="font-weight:700;color:#222;font-size:0.95rem;">${addr.receiverName}</span>
+                                ${defBadge}
+                            </div>
+                            <div style="color:#666;font-size:0.85rem;margin-bottom:2px;"><i class="fas fa-phone me-1" style="color:#aaa;font-size:0.75rem;"></i>${addr.phoneNumber}</div>
+                            <div style="color:#555;font-size:0.85rem;line-height:1.4;"><i class="fas fa-map-pin me-1" style="color:#C2185B;font-size:0.75rem;"></i>${addr.detailAddress}</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:6px;margin-left:10px;">
+                            <button type="button" class="btn-edit-address"
+                                data-id="${addr.addressID}"
+                                data-name="${addr.receiverName}"
+                                data-phone="${addr.phoneNumber}"
+                                data-address="${addr.detailAddress}"
+                                data-default="${addr.isDefault}"
+                                style="background:#f1f5f9;border:none;color:#475569;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;" title="Edit">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button type="button" class="btn-delete-address"
+                                data-id="${addr.addressID}"
+                                style="background:#fee2e2;border:none;color:#dc2626;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        } catch (err) {
+            console.warn('Could not refresh address list', err);
+        }
+    }
+
+    function checkEmptyState() {
+        const items = document.querySelectorAll('.profile-address-item');
+        const hint  = document.getElementById('address-empty-hint');
+        if (hint) hint.style.display = items.length === 0 ? 'block' : 'none';
+    }
+})();
+</script>
+

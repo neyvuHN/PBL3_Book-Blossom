@@ -28,6 +28,12 @@ namespace BookBlossom.Web.Controllers
             _reputationService = reputationService;
         }
 
+        private long? GetCurrentCustomerId()
+        {
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return long.TryParse(customerIdStr, out var customerId) ? customerId : null;
+        }
+
         // 1. GET ALL (Feed) - Cho phép xem công khai không cần đăng nhập
         [HttpGet("feed")]
         public async Task<IActionResult> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -51,7 +57,7 @@ namespace BookBlossom.Web.Controllers
                     if (pageSize < 1 || pageSize > 50) pageSize = 10;
                 }
 
-                var result = await _service.GetFeedAsync(page, pageSize);
+                var result = await _service.GetFeedAsync(page, pageSize, GetCurrentCustomerId());
                 return Ok(result);
             }
             catch (Exception ex)
@@ -87,7 +93,7 @@ namespace BookBlossom.Web.Controllers
                     }
                 }
 
-                var post = await _service.GetPostByIdAsync(postId);
+                var post = await _service.GetPostByIdAsync(postId, GetCurrentCustomerId());
                 if (post == null)
                 {
                     return NotFound(new { message = "Không tìm thấy bài viết hoặc bài viết đã bị ẩn." });
@@ -274,6 +280,69 @@ namespace BookBlossom.Web.Controllers
         }
 
         // 8. ADD COMMENT - Chỉ khách hàng đăng nhập (CustomerOnly)
+        [HttpPost("{postId}/like")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> ToggleLike(long postId)
+        {
+            var customerId = GetCurrentCustomerId();
+            if (!customerId.HasValue)
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc đã hết hạn." });
+            }
+
+            try
+            {
+                var result = await _service.ToggleLikeAsync(customerId.Value, postId);
+                return Ok(new
+                {
+                    message = result.IsLiked ? "Đã thích bài viết." : "Đã bỏ thích bài viết.",
+                    isLiked = result.IsLiked,
+                    likeCount = result.LikeCount
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi khi cập nhật lượt thích.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("{postId}/share")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> SharePost(long postId, [FromBody] ShareThreadPostDTO dto)
+        {
+            var customerId = GetCurrentCustomerId();
+            if (!customerId.HasValue)
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc đã hết hạn." });
+            }
+
+            try
+            {
+                var shareCount = await _service.SharePostAsync(customerId.Value, postId, dto ?? new ShareThreadPostDTO());
+                return Ok(new
+                {
+                    message = "Ghi nhận chia sẻ bài viết thành công.",
+                    shareCount
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi khi ghi nhận chia sẻ bài viết.", detail = ex.Message });
+            }
+        }
+
         [HttpPost("{postId}/comment")]
         [Authorize(Policy = "CustomerOnly")]
         public async Task<IActionResult> AddComment(long postId, [FromBody] CreateThreadCommentDTO dto)

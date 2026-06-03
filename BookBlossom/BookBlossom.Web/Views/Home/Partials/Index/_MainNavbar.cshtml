@@ -1,3 +1,26 @@
+@using BookBlossom.Infrastructure.Data
+@using System.Security.Claims
+@inject ApplicationDbContext DbContext
+
+@{
+    string currentUsername = User.Identity?.Name ?? "Jane Doe";
+    string currentAvatar = "/images/Avatar/default.jpg";
+
+    if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (long.TryParse(userIdStr, out long userId))
+        {
+            var currentUser = DbContext.Users.Find(userId);
+            if (currentUser != null)
+            {
+                currentUsername = currentUser.UserName ?? currentUsername;
+                currentAvatar = string.IsNullOrEmpty(currentUser.Avatar) ? "/images/Avatar/default.jpg" : currentUser.Avatar;
+            }
+        }
+    }
+}
+
 <!-- Premium Navbar -->
     <nav class="premium-navbar" id="main-navbar">
         <a class="nav-logo" href="/" id="nav-logo">
@@ -28,8 +51,8 @@
                     </div>
                 </div>
                 <div class="user-dropdown">
-                    <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                    <span class="username">@(User.Identity?.Name ?? "Jane Doe")</span>
+                    <img src="@currentAvatar" alt="Avatar" class="avatar">
+                    <span class="username">@currentUsername</span>
                     <i class="fas fa-chevron-down"></i>
                     <div class="dropdown-menu">
                         <a href="/Profile" class="dropdown-item"><i class="far fa-user-circle"></i> My Account</a>

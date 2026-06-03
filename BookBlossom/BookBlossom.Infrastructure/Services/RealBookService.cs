@@ -65,6 +65,27 @@ namespace BookBlossom.Infrastructure.Services
                 IsContinued = true    // Mặc định cho phép hiển thị kinh doanh công khai
             };
 
+            // Thêm các tác giả
+            if (!string.IsNullOrWhiteSpace(request.Authors))
+            {
+                var authorNames = request.Authors.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                 .Select(a => a.Trim())
+                                                 .Where(a => !string.IsNullOrEmpty(a))
+                                                 .ToList();
+
+                foreach (var name in authorNames)
+                {
+                    var author = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorName.ToLower() == name.ToLower());
+                    if (author == null)
+                    {
+                        author = new Author { AuthorName = name };
+                        _context.Authors.Add(author);
+                    }
+
+                    realBook.BookAuthors.Add(new BookAuthor { Book = realBook, Author = author });
+                }
+            }
+
             _context.RealBooks.Add(realBook);
             var success = await _context.SaveChangesAsync() > 0;
 
@@ -106,7 +127,11 @@ namespace BookBlossom.Infrastructure.Services
         public async Task<List<RealBookDTO>> GetAllRealBooksAsync(string searchTerm = "", string category = "", SortOrder sortOrder = SortOrder.Ascending, bool includeDiscontinued = false)
         {
             // Lấy danh sách sách, tùy chọn bao gồm cả sách ngừng kinh doanh
-            var query = _context.RealBooks.Include(b => b.Category).AsQueryable();
+            var query = _context.RealBooks
+                .Include(b => b.Category)
+                .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
+                .AsQueryable();
+
             if (!includeDiscontinued)
             {
                 query = query.Where(b => b.IsContinued);
@@ -129,25 +154,31 @@ namespace BookBlossom.Infrastructure.Services
             if (sortOrder == SortOrder.Ascending) query = query.OrderBy(b => b.Price);
             else query = query.OrderByDescending(b => b.Price);
 
-            return await query.Select(b => MapToDTO(b)).ToListAsync();
+            var books = await query.ToListAsync();
+            return books.Select(MapToDTO).ToList();
         }
 
         // 3. HÀM LẤY SÁCH THEO CATEGORY ID (GET BY CATEGORY)
         public async Task<List<RealBookDTO>> GetRealBooksByCategoryIdAsync(long categoryId, SortOrder sortOrder = SortOrder.Ascending)
         {
-            var query = _context.RealBooks.Include(b => b.Category)
+            var query = _context.RealBooks
+                .Include(b => b.Category)
+                .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .Where(b => b.CategoryID == categoryId && b.IsContinued).AsQueryable();
 
             if (sortOrder == SortOrder.Ascending) query = query.OrderBy(b => b.Price);
             else query = query.OrderByDescending(b => b.Price);
 
-            return await query.Select(b => MapToDTO(b)).ToListAsync();
+            var books = await query.ToListAsync();
+            return books.Select(MapToDTO).ToList();
         }
 
         // 4. HÀM LẤY CHI TIẾT MỘT CUỐN SÁCH (GET BY ID)
         public async Task<RealBookDTO?> GetRealBookByIdAsync(long id)
         {
-            var book = await _context.RealBooks.Include(b => b.Category)
+            var book = await _context.RealBooks
+                .Include(b => b.Category)
+                .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .FirstOrDefaultAsync(b => b.BookID == id && b.IsContinued);
 
             if (book == null) return null;
@@ -157,13 +188,40 @@ namespace BookBlossom.Infrastructure.Services
         // 5. HÀM CẬP NHẬT THÔNG TIN SÁCH (UPDATE)
         public async Task<bool> UpdateRealBookAsync(long id, UpdateRealBookDTO request)
         {
-            var book = await _context.RealBooks.FindAsync(id);
+            var book = await _context.RealBooks
+                .Include(b => b.BookAuthors)
+                .FirstOrDefaultAsync(b => b.BookID == id);
             if (book == null) throw new Exception("Không tìm thấy cuốn sách cần cập nhật.");
 
             // Kiểm tra chống trùng mã ISBN với các cuốn sách KHÁC cuốn đang sửa
             if (await _context.RealBooks.AnyAsync(b => b.ISBN == request.ISBN && b.BookID != id))
             {
                 throw new Exception("Mã ISBN này đã bị trùng với một cuốn sách khác trên hệ thống.");
+            }
+
+            // Xóa toàn bộ liên kết tác giả cũ của sách này
+            _context.BookAuthors.RemoveRange(book.BookAuthors);
+            book.BookAuthors.Clear();
+
+            // Thêm các tác giả mới
+            if (!string.IsNullOrWhiteSpace(request.Authors))
+            {
+                var authorNames = request.Authors.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                 .Select(a => a.Trim())
+                                                 .Where(a => !string.IsNullOrEmpty(a))
+                                                 .ToList();
+
+                foreach (var name in authorNames)
+                {
+                    var author = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorName.ToLower() == name.ToLower());
+                    if (author == null)
+                    {
+                        author = new Author { AuthorName = name };
+                        _context.Authors.Add(author);
+                    }
+
+                    book.BookAuthors.Add(new BookAuthor { Book = book, Author = author });
+                }
             }
 
             // Nếu Store Manager tải lên file đọc thử mới, thực hiện lưu đè/lưu mới
@@ -266,7 +324,10 @@ namespace BookBlossom.Infrastructure.Services
                 Weight = b.Weight,
                 UnitsInStock = b.UnitsInStock,
                 ReservedQuantity = b.ReservedQuantity,
-                IsContinued = b.IsContinued
+                IsContinued = b.IsContinued,
+                Authors = b.BookAuthors != null && b.BookAuthors.Any()
+                    ? string.Join(", ", b.BookAuthors.Select(ba => ba.Author != null ? ba.Author.AuthorName : string.Empty).Where(name => !string.IsNullOrEmpty(name)))
+                    : string.Empty
             };
         }
 

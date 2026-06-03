@@ -162,7 +162,7 @@ namespace BookBlossom.Infrastructure.Services
                 Email = request.Email,
                 LastName = request.LastName,
                 FirstName = request.FirstName,
-                Avatar = request.Avatar,
+                Avatar = string.IsNullOrEmpty(request.Avatar) ? "/images/Avatar/default.jpg" : request.Avatar,
                 Gender = request.Gender,
                 Birthday = request.Birthday,
                 RoleID = UserRole.Customer,

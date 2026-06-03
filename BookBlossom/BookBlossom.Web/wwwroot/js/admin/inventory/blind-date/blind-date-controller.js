@@ -336,8 +336,7 @@ class BlindDateController {
     }
 }
 
-// Initialize MVC when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+function initBlindDateMVC() {
     const blindDateModel = new BlindDateModel();
     const blindDateView = new BlindDateView();
     const blindDateController = new BlindDateController(blindDateModel, blindDateView);
@@ -349,7 +348,12 @@ document.addEventListener('DOMContentLoaded', () => {
             blindDateController.loadDataFromServer();
         });
     }
-});
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBlindDateMVC);
+} else {
+    initBlindDateMVC();
+}
 
 // ==========================================
 // SPA ROUTER: Khởi tạo lại khi điều hướng đến trang Inventory

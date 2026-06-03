@@ -36,6 +36,8 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<ThreadPost> ThreadPosts { get; set; }
         public DbSet<ThreadComment> ThreadComments { get; set; }
         public DbSet<ThreadImage> ThreadImages { get; set; }
+        public DbSet<ThreadLike> ThreadLikes { get; set; }
+        public DbSet<ThreadShare> ThreadShares { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
@@ -51,11 +53,28 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<VoucherCategory> VoucherCategories { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
-
+        public DbSet<Author> Authors { get; set; }
+        public DbSet<BookAuthor> BookAuthors { get; set; }
+        public DbSet<DeliveryAddress> DeliveryAddresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<BookAuthor>(entity =>
+            {
+                entity.HasKey(ba => new { ba.BookID, ba.AuthorID });
+
+                entity.HasOne(ba => ba.Book)
+                      .WithMany(b => b.BookAuthors)
+                      .HasForeignKey(ba => ba.BookID)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ba => ba.Author)
+                      .WithMany(a => a.BookAuthors)
+                      .HasForeignKey(ba => ba.AuthorID)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // 1. VẪN MỞ DÒNG QUÉT TỰ ĐỘNG NÀY ĐỂ GIỮ CHO USER, CUSTOMERDETAIL... KHÔNG BỊ LỖI
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

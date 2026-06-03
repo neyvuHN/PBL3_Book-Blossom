@@ -1,3 +1,43 @@
+@using BookBlossom.Infrastructure.Data
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+
+
+@{
+    string defaultName = "John Doe";
+    string defaultPhone = "0987654321";
+    string defaultAddress = "Phường Bến Nghé, Quận 1, Hồ Chí Minh";
+
+    if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (long.TryParse(userIdStr, out long userId))
+        {
+            var user = DbContext.Users.Find(userId);
+            if (user != null)
+            {
+                defaultName = $"{user.LastName} {user.FirstName}".Trim();
+                if (string.IsNullOrEmpty(defaultName)) defaultName = user.UserName;
+                defaultPhone = user.PhoneNumber ?? defaultPhone;
+            }
+
+            var delAddress = DbContext.DeliveryAddresses
+                .Where(da => da.CustomerID == userId)
+                .OrderByDescending(da => da.IsDefault)
+                .ThenByDescending(da => da.AddressID)
+                .FirstOrDefault();
+
+            if (delAddress != null)
+            {
+                defaultName = delAddress.ReceiverName;
+                defaultPhone = delAddress.PhoneNumber;
+                defaultAddress = delAddress.DetailAddress;
+            }
+        }
+    }
+}
+
 <!-- Shipping Address Editor Modal -->
     <div id="address-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div id="address-modal-content" style="background: #fff; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
@@ -11,15 +51,15 @@
             <div style="padding: 25px; display: flex; flex-direction: column; gap: 20px;">
                 <div class="form-group">
                     <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
-                    <textarea id="address-input-text" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full shipping address...">Phường Bến Nghé, Quận 1, Hồ Chí Minh</textarea>
+                    <textarea id="address-input-text" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full shipping address...">@defaultAddress</textarea>
                 </div>
                 <div class="form-group">
                     <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Receiver Name</label>
-                    <input type="text" id="address-input-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="John Doe">
+                    <input type="text" id="address-input-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultName">
                 </div>
                 <div class="form-group">
                     <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number</label>
-                    <input type="tel" id="address-input-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="0987654321">
+                    <input type="tel" id="address-input-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultPhone">
                 </div>
             </div>
 
@@ -65,15 +105,15 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
-                        <textarea id="checkout-address" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full address...">Phường Bến Nghé, Quận 1, Hồ Chí Minh</textarea>
+                        <textarea id="checkout-address" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full address...">@defaultAddress</textarea>
                     </div>
                     <div class="form-group">
                         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Receiver Name</label>
-                        <input type="text" id="checkout-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="John Doe">
+                        <input type="text" id="checkout-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultName">
                     </div>
                     <div class="form-group">
                         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number <span style="color: #999; font-size: 0.75rem; text-transform: none;">(Editable for shipper)</span></label>
-                        <input type="tel" id="checkout-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="0987654321">
+                        <input type="tel" id="checkout-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultPhone">
                     </div>
                 </div>
 

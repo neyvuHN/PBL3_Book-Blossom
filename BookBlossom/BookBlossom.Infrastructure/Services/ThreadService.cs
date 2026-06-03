@@ -21,14 +21,21 @@ namespace BookBlossom.Infrastructure.Services
         private readonly ILogger<ThreadService> _logger;
         private readonly INotificationService _notificationService;
         private readonly IReputationService _reputationService;
+        private readonly IGamificationService? _gamificationService;
         private readonly string _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "threads");
 
-        public ThreadService(ApplicationDbContext context, ILogger<ThreadService> logger, INotificationService notificationService, IReputationService reputationService)
+        public ThreadService(
+            ApplicationDbContext context,
+            ILogger<ThreadService> logger,
+            INotificationService notificationService,
+            IReputationService reputationService,
+            IGamificationService? gamificationService = null)
         {
             _context = context;
             _logger = logger;
             _notificationService = notificationService;
             _reputationService = reputationService;
+            _gamificationService = gamificationService;
             if (!Directory.Exists(_uploadFolder))
             {
                 Directory.CreateDirectory(_uploadFolder);
@@ -184,7 +191,8 @@ namespace BookBlossom.Infrastructure.Services
             post.Hashtags = dto.Hashtags;
 
             await _context.SaveChangesAsync();
-            return MapToPostDTO(post);
+            var isLiked = await _context.ThreadLikes.AnyAsync(l => l.PostID == postId && l.CustomerID == customerId);
+            return MapToPostDTO(post, isLiked);
         }
 
         public async Task<bool> DeletePostAsync(long userId, UserRole role, long postId)
@@ -253,7 +261,7 @@ namespace BookBlossom.Infrastructure.Services
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<IEnumerable<ThreadPostDTO>> GetFeedAsync(int page, int pageSize)
+        public async Task<IEnumerable<ThreadPostDTO>> GetFeedAsync(int page, int pageSize, long? currentCustomerId = null)
         {
             var query = _context.ThreadPosts
                 .Include(p => p.User)
@@ -266,10 +274,21 @@ namespace BookBlossom.Infrastructure.Services
             var pagedQuery = query.Skip((page - 1) * pageSize).Take(pageSize);
             var posts = await pagedQuery.ToListAsync();
 
-            return posts.Select(MapToPostDTO);
+            var likedPostIds = new HashSet<long>();
+            if (currentCustomerId.HasValue && posts.Count > 0)
+            {
+                var postIds = posts.Select(p => p.PostID).ToList();
+                likedPostIds = (await _context.ThreadLikes
+                    .Where(l => l.CustomerID == currentCustomerId.Value && postIds.Contains(l.PostID))
+                    .Select(l => l.PostID)
+                    .ToListAsync())
+                    .ToHashSet();
+            }
+
+            return posts.Select(p => MapToPostDTO(p, likedPostIds.Contains(p.PostID)));
         }
 
-        public async Task<ThreadPostDTO?> GetPostByIdAsync(long postId)
+        public async Task<ThreadPostDTO?> GetPostByIdAsync(long postId, long? currentCustomerId = null)
         {
             var post = await _context.ThreadPosts
                 .Include(p => p.User)
@@ -281,7 +300,9 @@ namespace BookBlossom.Infrastructure.Services
             if (post == null) return null;
 
             // Load comments sorted by CreatedAt asc
-            var dto = MapToPostDTO(post);
+            var isLiked = currentCustomerId.HasValue &&
+                await _context.ThreadLikes.AnyAsync(l => l.PostID == postId && l.CustomerID == currentCustomerId.Value);
+            var dto = MapToPostDTO(post, isLiked);
             dto.Comments = post.Comments
                 .OrderBy(c => c.CreatedAt)
                 .Select(c => new ThreadCommentDTO
@@ -296,6 +317,72 @@ namespace BookBlossom.Infrastructure.Services
                 }).ToList();
 
             return dto;
+        }
+
+        public async Task<(bool IsLiked, int LikeCount)> ToggleLikeAsync(long customerId, long postId)
+        {
+            var post = await _context.ThreadPosts.FirstOrDefaultAsync(p => p.PostID == postId && !p.IsHidden);
+            if (post == null)
+            {
+                throw new KeyNotFoundException("Bài viết không tồn tại hoặc đã bị ẩn.");
+            }
+
+            var existingLike = await _context.ThreadLikes.FindAsync(postId, customerId);
+            var isLiked = existingLike == null;
+
+            if (existingLike != null)
+            {
+                _context.ThreadLikes.Remove(existingLike);
+                post.LikeCount = Math.Max(0, post.LikeCount - 1);
+            }
+            else
+            {
+                _context.ThreadLikes.Add(new ThreadLike
+                {
+                    PostID = postId,
+                    CustomerID = customerId,
+                    CreatedAt = DateTime.UtcNow
+                });
+                post.LikeCount += 1;
+            }
+
+            await _context.SaveChangesAsync();
+            return (isLiked, post.LikeCount);
+        }
+
+        public async Task<int> SharePostAsync(long customerId, long postId, ShareThreadPostDTO dto)
+        {
+            var post = await _context.ThreadPosts.FirstOrDefaultAsync(p => p.PostID == postId && !p.IsHidden);
+            if (post == null)
+            {
+                throw new KeyNotFoundException("Bài viết không tồn tại hoặc đã bị ẩn.");
+            }
+
+            var share = new ThreadShare
+            {
+                PostID = postId,
+                CustomerID = customerId,
+                ShareUrl = dto?.ShareUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ThreadShares.Add(share);
+            post.ShareCount += 1;
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                if (_gamificationService != null)
+                {
+                    await _gamificationService.RecordShareActionAsync(customerId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi cập nhật gamification sau khi chia sẻ bài viết cộng đồng.");
+            }
+
+            return post.ShareCount;
         }
 
         public async Task<ThreadCommentDTO> AddCommentAsync(long customerId, long postId, CreateThreadCommentDTO dto)
@@ -459,7 +546,7 @@ namespace BookBlossom.Infrastructure.Services
             }
         }
 
-        private static ThreadPostDTO MapToPostDTO(ThreadPost p)
+        private static ThreadPostDTO MapToPostDTO(ThreadPost p, bool isLikedByCurrentUser = false)
         {
             return new ThreadPostDTO
             {
@@ -473,7 +560,10 @@ namespace BookBlossom.Infrastructure.Services
                 CreatedAt = p.CreatedAt,
                 IsHidden = p.IsHidden,
                 ReportCount = p.ReportCount,
+                LikeCount = p.LikeCount,
+                ShareCount = p.ShareCount,
                 CommentsCount = p.Comments?.Count ?? 0,
+                IsLikedByCurrentUser = isLikedByCurrentUser,
                 Images = p.Images?.Select(img => new ThreadImageDTO
                 {
                     ImageID = img.ImageID,

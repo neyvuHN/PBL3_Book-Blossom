@@ -35,6 +35,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // Đăng ký GuestService
 builder.Services.AddScoped<IGuestService, GuestService>();
 
+// Đăng ký UserService
+builder.Services.AddScoped<IUserService, UserService>();
+
 // Đăng ký Service Module
 builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
 builder.Services.AddHostedService<SubscriptionExpiryJob>();

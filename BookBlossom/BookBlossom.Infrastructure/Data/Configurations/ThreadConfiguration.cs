@@ -21,6 +21,12 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.Property(p => p.Hashtags)
                 .HasMaxLength(500);
 
+            builder.Property(p => p.LikeCount)
+                .HasDefaultValue(0);
+
+            builder.Property(p => p.ShareCount)
+                .HasDefaultValue(0);
+
             // Configure CustomerID FK referencing User
             builder.HasOne(p => p.User)
                 .WithMany()
@@ -73,6 +79,59 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                 .WithMany(p => p.Images)
                 .HasForeignKey(i => i.PostID)
                 .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+
+    public class ThreadLikeConfiguration : IEntityTypeConfiguration<ThreadLike>
+    {
+        public void Configure(EntityTypeBuilder<ThreadLike> builder)
+        {
+            builder.ToTable("ThreadLike", "Thread");
+            builder.HasKey(l => new { l.PostID, l.CustomerID });
+
+            builder.Property(l => l.CreatedAt)
+                .HasDefaultValueSql("SYSDATETIME()");
+
+            builder.HasOne(l => l.Post)
+                .WithMany(p => p.Likes)
+                .HasForeignKey(l => l.PostID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(l => l.User)
+                .WithMany()
+                .HasForeignKey(l => l.CustomerID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(l => l.CustomerID);
+        }
+    }
+
+    public class ThreadShareConfiguration : IEntityTypeConfiguration<ThreadShare>
+    {
+        public void Configure(EntityTypeBuilder<ThreadShare> builder)
+        {
+            builder.ToTable("ThreadShare", "Thread");
+            builder.HasKey(s => s.ShareID);
+
+            builder.Property(s => s.ShareUrl)
+                .HasMaxLength(1000);
+
+            builder.Property(s => s.CreatedAt)
+                .HasDefaultValueSql("SYSDATETIME()");
+
+            builder.HasOne(s => s.Post)
+                .WithMany(p => p.Shares)
+                .HasForeignKey(s => s.PostID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.CustomerID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(s => s.PostID);
+            builder.HasIndex(s => s.CustomerID);
+            builder.HasIndex(s => s.CreatedAt);
         }
     }
 }
