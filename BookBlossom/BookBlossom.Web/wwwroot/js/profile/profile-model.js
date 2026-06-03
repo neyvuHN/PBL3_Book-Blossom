@@ -84,6 +84,34 @@ class ProfileModel {
         // Not used anymore.
     }
 
+    /**
+     * Fetches current user's reputation score, rank, and privileges.
+     * Route: GET /api/Reputation/my-reputation
+     * @returns {Promise<Object>} Reputation data
+     */
+    async fetchMyReputation() {
+        try {
+            return await window.apiClient.apiGet('/api/Reputation/my-reputation');
+        } catch (error) {
+            console.error('Failed to fetch reputation:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Fetches the current user's earned badges.
+     * Route: GET /api/Badge/my-collection
+     * @returns {Promise<Array>} List of earned badges
+     */
+    async fetchMyBadges() {
+        try {
+            return await window.apiClient.apiGet('/api/Badge/my-collection');
+        } catch (error) {
+            console.error('Failed to fetch user badges:', error);
+            throw error;
+        }
+    }
+
     // ─── Service Package API Methods ────────────────────────────────────
 
     /**
