@@ -148,17 +148,6 @@ class UsersController {
                 });
                 return;
             }
-
-            // 2. Check if they clicked the Buyer Note Button
-            const noteBtn = e.target.closest('.btn-buyer-note');
-            if (noteBtn) {
-                e.stopPropagation();
-                this.selectedBuyerId = userId;
-                this.view.openBuyerNoteModal(user.username, user.note || '');
-                return;
-            }
-
-
         };
 
         // Delegate to all table container panes

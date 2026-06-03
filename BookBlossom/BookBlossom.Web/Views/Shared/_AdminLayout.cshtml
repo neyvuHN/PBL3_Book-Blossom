@@ -96,6 +96,8 @@
     <script src="~/js/admin/admin-dashboard.js" asp-append-version="true"></script>
     <!-- Include Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @await Html.PartialAsync("AdminPartials/_AdminProfileModal")
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

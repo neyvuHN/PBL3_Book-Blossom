@@ -1,3 +1,21 @@
+@inject BookBlossom.Infrastructure.Data.ApplicationDbContext DbContext
+@using System.Security.Claims
+@{
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var adminName = "Admin Stella";
+    var adminAvatar = "https://i.pravatar.cc/150?img=1";
+    if (!string.IsNullOrEmpty(userIdClaim) && long.TryParse(userIdClaim, out var userId))
+    {
+        var currentAdmin = DbContext.Users.FirstOrDefault(u => u.UserID == userId);
+        if (currentAdmin != null)
+        {
+            adminName = $"{currentAdmin.LastName} {currentAdmin.FirstName}".Trim();
+            if (string.IsNullOrEmpty(adminName)) adminName = currentAdmin.UserName;
+            adminAvatar = string.IsNullOrEmpty(currentAdmin.Avatar) ? "/images/Avatar/default.jpg" : currentAdmin.Avatar;
+        }
+    }
+}
+
 <div class="admin-topbar">
     <div class="topbar-left">
         <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle Sidebar" title="Toggle Sidebar">
@@ -10,13 +28,13 @@
         </div>
     </div>
     <div class="topbar-right">
-        <div class="admin-profile-premium">
+        <div class="admin-profile-premium" id="admin-topbar-profile" title="Chỉnh sửa thông tin cá nhân & Đổi mật khẩu">
             <div class="admin-profile-info">
                 <span class="greeting">Welcome Back</span>
-                <span class="name">Admin Stella</span>
+                <span class="name" id="admin-topbar-name">@adminName</span>
             </div>
             <div class="admin-avatar-wrapper">
-                <img src="https://i.pravatar.cc/150?img=1" alt="Admin Avatar" class="admin-avatar">
+                <img src="@adminAvatar" alt="Admin Avatar" class="admin-avatar" id="admin-topbar-avatar-img">
                 <span class="online-pulse"></span>
             </div>
         </div>

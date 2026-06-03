@@ -198,44 +198,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.ToTable("BookAuthor", "Book");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.CallRequest", b =>
-                {
-                    b.Property<long>("RequestID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("RequestID"));
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("CustomerID")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("RequestID");
-
-                    b.HasIndex("CustomerID");
-
-                    b.ToTable("CallRequests", (string)null);
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.Cart", b =>
                 {
                     b.Property<long>("CartID")
@@ -347,31 +309,6 @@ namespace BookBlossom.Infrastructure.Migrations
                             Description = "Sách thuộc thể loại kinh dị, giật gân và bí ẩn",
                             Status = (byte)1
                         });
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Conversation", b =>
-                {
-                    b.Property<long>("ConversationID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ConversationID"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("CustomerID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ConversationID");
-
-                    b.HasIndex("CustomerID")
-                        .IsUnique();
-
-                    b.ToTable("Conversations", (string)null);
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>
@@ -698,47 +635,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.HasKey("RankID");
 
                     b.ToTable("MembershipRank", "Rank");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Message", b =>
-                {
-                    b.Property<long>("MessageID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("MessageID"));
-
-                    b.Property<long?>("AttachedBookID")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("AttachmentUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("ConversationID")
-                        .HasColumnType("bigint");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<long>("SenderID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("MessageID");
-
-                    b.HasIndex("AttachedBookID");
-
-                    b.HasIndex("ConversationID");
-
-                    b.HasIndex("SenderID");
-
-                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.OTPLog", b =>
@@ -1507,7 +1403,7 @@ namespace BookBlossom.Infrastructure.Migrations
 
                     b.HasKey("SwipeLogID");
 
-                    b.ToTable("SwipeLogs");
+                    b.ToTable("SwipeLogs", (string)null);
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.SystemConfiguration", b =>
@@ -1628,9 +1524,6 @@ namespace BookBlossom.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("PostID"));
 
-                    b.Property<long?>("BookID")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1667,8 +1560,6 @@ namespace BookBlossom.Infrastructure.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.HasKey("PostID");
-
-                    b.HasIndex("BookID");
 
                     b.HasIndex("CreatedAt");
 
@@ -2042,17 +1933,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("Book");
                 });
 
-            modelBuilder.Entity("BookBlossom.Core.Entities.CallRequest", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BookBlossom.Core.Entities.Cart", b =>
                 {
                     b.HasOne("BookBlossom.Core.Entities.BlindBook", "BlindBook")
@@ -2073,17 +1953,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("BlindBook");
 
                     b.Navigation("Book");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Conversation", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.User", "User")
-                        .WithOne()
-                        .HasForeignKey("BookBlossom.Core.Entities.Conversation", "CustomerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2257,32 +2126,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("Book");
 
                     b.Navigation("Importing");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Message", b =>
-                {
-                    b.HasOne("BookBlossom.Core.Entities.RealBook", "AttachedBook")
-                        .WithMany()
-                        .HasForeignKey("AttachedBookID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("BookBlossom.Core.Entities.Conversation", "Conversation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookBlossom.Core.Entities.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("AttachedBook");
-
-                    b.Navigation("Conversation");
-
-                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.Order", b =>
@@ -2548,18 +2391,11 @@ namespace BookBlossom.Infrastructure.Migrations
 
             modelBuilder.Entity("BookBlossom.Core.Entities.ThreadPost", b =>
                 {
-                    b.HasOne("BookBlossom.Core.Entities.RealBook", "Book")
-                        .WithMany()
-                        .HasForeignKey("BookID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("BookBlossom.Core.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("CustomerID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Book");
 
                     b.Navigation("User");
                 });
@@ -2673,11 +2509,6 @@ namespace BookBlossom.Infrastructure.Migrations
                     b.Navigation("CustomerPreferences");
 
                     b.Navigation("RealBooks");
-                });
-
-            modelBuilder.Entity("BookBlossom.Core.Entities.Conversation", b =>
-                {
-                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("BookBlossom.Core.Entities.CustomerDetail", b =>

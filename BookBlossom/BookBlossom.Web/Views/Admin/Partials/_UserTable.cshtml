@@ -9,14 +9,13 @@
             <th>Reputation Score</th>
             <th>Join Date</th>
             <th>Status</th>
-            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         @if (Model == null || !Model.Any())
         {
             <tr>
-                <td colspan="7" style="text-align: center; padding: 30px; color: #888;">
+                <td colspan="6" style="text-align: center; padding: 30px; color: #888;">
                     No records found matching this list.
                 </td>
             </tr>
@@ -90,11 +89,6 @@
                             </label>
                             <span class="status-text">@user.Status</span>
                         </div>
-                    </td>
-                    <td style="position: relative; text-align: center;">
-                        <button class="action-trigger-btn btn-buyer-note" title="Buyer Notes">
-                            <i class="ph ph-note"></i>
-                        </button>
                     </td>
                 </tr>
             }

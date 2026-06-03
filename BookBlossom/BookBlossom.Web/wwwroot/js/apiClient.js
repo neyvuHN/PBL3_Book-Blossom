@@ -84,7 +84,17 @@ const apiClient = (function () {
             showToast('Bạn không có quyền thực hiện chức năng này.', 'error', 'Forbidden');
             throw new Error('Forbidden');
         } else {
-            const message = errorData?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+            let message = errorData?.message;
+            if (!message && errorData?.errors) {
+                const errorKeys = Object.keys(errorData.errors);
+                if (errorKeys.length > 0) {
+                    const firstKeyErrors = errorData.errors[errorKeys[0]];
+                    if (Array.isArray(firstKeyErrors) && firstKeyErrors.length > 0) {
+                        message = firstKeyErrors[0];
+                    }
+                }
+            }
+            message = message || 'Đã có lỗi xảy ra. Vui lòng thử lại.';
             throw new Error(message);
         }
     }

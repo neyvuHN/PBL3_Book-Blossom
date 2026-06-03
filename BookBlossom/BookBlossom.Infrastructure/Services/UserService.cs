@@ -67,6 +67,22 @@ namespace BookBlossom.Infrastructure.Services
             return true;
         }
 
+        public async Task<bool> ChangePasswordAsync(long userId, ChangePasswordRequestDTO dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+
+            if (!BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.Password))
+            {
+                throw new Exception("Mật khẩu cũ không chính xác.");
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public Task<IEnumerable<AddressDTO>> GetAddressesAsync(long userId)
         {
             throw new NotImplementedException();

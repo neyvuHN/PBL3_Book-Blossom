@@ -41,7 +41,7 @@ class UsersView {
     showLoading() {
         const loadingHtml = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: #888;">
+                <td colspan="6" style="text-align: center; padding: 40px; color: #888;">
                     <div class="users-loading-spinner"></div>
                     <div style="font-weight: 500; font-size: 0.9rem;">Đang tải danh sách người dùng...</div>
                 </td>
@@ -150,11 +150,6 @@ class UsersView {
                         <span class="status-text">${user.status}</span>
                     </div>
                 </td>
-                <td style="position: relative; text-align: center;">
-                    <button class="action-trigger-btn btn-buyer-note" title="${user.note && user.note.trim().length > 0 ? 'Edit Note' : 'Add Note'}">
-                        <i class="ph ${user.note && user.note.trim().length > 0 ? 'ph-note-pencil note-active' : 'ph-note'}"></i>
-                    </button>
-                </td>
             </tr>
         `;
     }
@@ -168,7 +163,7 @@ class UsersView {
         if (users.length === 0) {
             this.bodies.buyers.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 30px; color: #888;">
+                    <td colspan="6" style="text-align: center; padding: 30px; color: #888;">
                         No buyers found matching your criteria.
                     </td>
                 </tr>
@@ -187,7 +182,7 @@ class UsersView {
         if (users.length === 0) {
             this.bodies.banned.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 30px; color: #888;">
+                    <td colspan="6" style="text-align: center; padding: 30px; color: #888;">
                         No banned users found matching your criteria.
                     </td>
                 </tr>

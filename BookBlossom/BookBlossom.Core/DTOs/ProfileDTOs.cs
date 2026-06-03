@@ -40,4 +40,18 @@ namespace BookBlossom.Core.DTOs
         
         public bool IsDefault { get; set; }
     }
+
+    public class ChangePasswordRequestDTO
+    {
+        [Required(ErrorMessage = "Mật khẩu cũ không được để trống")]
+        public string OldPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Mật khẩu mới không được để trống")]
+        [MinLength(6, ErrorMessage = "Mật khẩu mới phải có tối thiểu 6 ký tự")]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Xác nhận mật khẩu mới không được để trống")]
+        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
 }

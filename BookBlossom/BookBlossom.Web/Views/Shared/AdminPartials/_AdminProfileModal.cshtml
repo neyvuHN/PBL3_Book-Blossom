@@ -1,0 +1,416 @@
+@inject BookBlossom.Infrastructure.Data.ApplicationDbContext DbContext
+@using System.Security.Claims
+@{
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    BookBlossom.Core.Entities.User currentAdmin = null;
+    var adminName = "Admin Stella";
+    if (!string.IsNullOrEmpty(userIdClaim) && long.TryParse(userIdClaim, out var userId))
+    {
+        currentAdmin = DbContext.Users.FirstOrDefault(u => u.UserID == userId);
+        if (currentAdmin != null)
+        {
+            adminName = $"{currentAdmin.LastName} {currentAdmin.FirstName}".Trim();
+            if (string.IsNullOrEmpty(adminName)) adminName = currentAdmin.UserName;
+        }
+    }
+}
+
+<div id="admin-profile-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div id="admin-profile-modal-content" style="background: #fff; border-radius: 20px; width: 90%; max-width: 750px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; font-family: 'Inter', sans-serif;">
+        <!-- Modal Header -->
+        <div style="padding: 20px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+            <h4 style="margin: 0; font-family: 'Lora', serif; font-size: 1.25rem; font-weight: 700; color: #2C2630; display: flex; align-items: center; gap: 8px;">
+                <i class="ph ph-user" style="font-size: 1.4rem; color: #E3597D;"></i> Hồ Sơ Quản Trị Viên
+            </h4>
+            <button id="btn-close-admin-profile" style="background: none; border: none; font-size: 1.5rem; color: #888; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s;" onmouseover="this.style.color='#2C2630'" onmouseout="this.style.color='#888'">&times;</button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div style="display: flex; flex-direction: row; flex-grow: 1; min-height: 400px;">
+            <!-- Left Tab Navigation & Avatar -->
+            <div style="width: 220px; background: #f8fafc; border-right: 1px solid #f1f5f9; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                <!-- Avatar Upload Area -->
+                <div style="position: relative; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; border: 3px solid #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer;" id="admin-avatar-click-zone">
+                    <img id="admin-modal-avatar-img" src="@(string.IsNullOrEmpty(currentAdmin?.Avatar) ? "/images/Avatar/default.jpg" : currentAdmin.Avatar)" style="width: 100%; height: 100%; object-fit: cover;" />
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.5); color: #fff; text-align: center; font-size: 0.72rem; padding: 4px 0; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <i class="ph ph-camera"></i> Thay đổi
+                    </div>
+                </div>
+                <input type="file" id="admin-avatar-file-input" style="display: none;" accept="image/*" />
+                
+                <div style="text-align: center; width: 100%; overflow: hidden;">
+                    <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="admin-modal-display-name">@adminName</div>
+                    <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">Administrator</div>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
+                    <button class="admin-profile-tab active" data-target="admin-tab-info" style="width: 100%; background: #E3597D; color: #fff; border: none; padding: 10px 14px; border-radius: 10px; text-align: left; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; outline: none;">
+                        <i class="ph ph-user-circle" style="font-size: 1.1rem;"></i> Thông tin cá nhân
+                    </button>
+                    <button class="admin-profile-tab" data-target="admin-tab-password" style="width: 100%; background: transparent; color: #64748b; border: none; padding: 10px 14px; border-radius: 10px; text-align: left; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; outline: none;">
+                        <i class="ph ph-key" style="font-size: 1.1rem;"></i> Đổi mật khẩu
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Right Tab Contents -->
+            <div style="flex-grow: 1; padding: 24px; overflow-y: auto; max-height: 480px;">
+                <!-- Tab 1: Info -->
+                <div id="admin-tab-info" class="admin-tab-content">
+                    <form id="admin-info-form" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: flex; gap: 16px;">
+                            <div class="form-group-custom" style="flex: 1;">
+                                <label for="admin-info-lastname" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Họ</label>
+                                <input type="text" id="admin-info-lastname" class="form-input-custom" value="@(currentAdmin?.LastName)" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" placeholder="Họ của bạn" required />
+                            </div>
+                            <div class="form-group-custom" style="flex: 1;">
+                                <label for="admin-info-firstname" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Tên</label>
+                                <input type="text" id="admin-info-firstname" class="form-input-custom" value="@(currentAdmin?.FirstName)" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" placeholder="Tên của bạn" required />
+                            </div>
+                        </div>
+                        <div class="form-group-custom">
+                            <label for="admin-info-username" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Tên đăng nhập</label>
+                            <input type="text" id="admin-info-username" class="form-input-custom" value="@(currentAdmin?.UserName)" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" placeholder="Tên đăng nhập" required />
+                        </div>
+                        <div class="form-group-custom">
+                            <label for="admin-info-email" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Email</label>
+                            <input type="email" id="admin-info-email" class="form-input-custom" value="@(currentAdmin?.Email)" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" placeholder="admin@bookblossom.com" required />
+                        </div>
+                        <div class="form-group-custom">
+                            <label for="admin-info-gender" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Giới tính</label>
+                            <select id="admin-info-gender" class="form-input-custom" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s; background: #fff; -webkit-appearance: none;">
+                                <option value="Male" selected="@(currentAdmin?.Gender == "Male")">Nam</option>
+                                <option value="Female" selected="@(currentAdmin?.Gender == "Female")">Nữ</option>
+                                <option value="Other" selected="@(currentAdmin?.Gender == "Other")">Khác</option>
+                            </select>
+                        </div>
+                        <div class="form-group-custom">
+                            <label for="admin-info-birthday" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Ngày sinh</label>
+                            <input type="date" id="admin-info-birthday" class="form-input-custom" value="@(currentAdmin?.Birthday?.ToString("yyyy-MM-dd"))" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" />
+                        </div>
+                        <div class="form-group-custom">
+                            <label for="admin-info-bio" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Ghi chú tiểu sử</label>
+                            <textarea id="admin-info-bio" class="form-input-custom" rows="2" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s; resize: none;" placeholder="Mô tả ngắn về bạn...">@(currentAdmin?.Note)</textarea>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                            <button type="submit" style="background: #E3597D; color: #fff; border: none; padding: 10px 24px; border-radius: 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(227,89,125,0.25); outline: none;" id="btn-save-admin-info">
+                                <i class="ph ph-floppy-disk"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Tab 2: Change Password -->
+                <div id="admin-tab-password" class="admin-tab-content" style="display: none;">
+                    <form id="admin-password-form" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="form-group-custom">
+                            <label for="admin-pwd-old" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Mật khẩu hiện tại</label>
+                            <input type="password" id="admin-pwd-old" class="form-input-custom" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" placeholder="********" required />
+                            <span id="err-admin-pwd-old" class="validation-error-msg" style="color: #E3597D; font-size: 0.78rem; margin-top: 4px; display: none;"></span>
+                        </div>
+                        <div class="form-group-custom">
+                            <label for="admin-pwd-new" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Mật khẩu mới</label>
+                            <input type="password" id="admin-pwd-new" class="form-input-custom" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" placeholder="********" required />
+                            <span id="err-admin-pwd-new" class="validation-error-msg" style="color: #E3597D; font-size: 0.78rem; margin-top: 4px; display: none;"></span>
+                        </div>
+                        <div class="form-group-custom">
+                            <label for="admin-pwd-confirm" style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">Xác nhận mật khẩu mới</label>
+                            <input type="password" id="admin-pwd-confirm" class="form-input-custom" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" placeholder="********" required />
+                            <span id="err-admin-pwd-confirm" class="validation-error-msg" style="color: #E3597D; font-size: 0.78rem; margin-top: 4px; display: none;"></span>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                            <button type="submit" style="background: #E3597D; color: #fff; border: none; padding: 10px 24px; border-radius: 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(227,89,125,0.25); outline: none;" id="btn-save-admin-pwd">
+                                <i class="ph ph-shield-check"></i> Cập nhật mật khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Tab switching logic
+        const tabs = document.querySelectorAll('.admin-profile-tab');
+        const contents = document.querySelectorAll('.admin-tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.style.background = 'transparent';
+                    t.style.color = '#64748b';
+                });
+                
+                tab.classList.add('active');
+                tab.style.background = '#E3597D';
+                tab.style.color = '#fff';
+                
+                const target = tab.getAttribute('data-target');
+                contents.forEach(c => {
+                    c.style.display = 'none';
+                });
+                document.getElementById(target).style.display = 'block';
+            });
+        });
+
+        function resetModalForms() {
+            // Reset inputs
+            const oldPwd = document.getElementById('admin-pwd-old');
+            const newPwd = document.getElementById('admin-pwd-new');
+            const confPwd = document.getElementById('admin-pwd-confirm');
+            if (oldPwd) oldPwd.value = '';
+            if (newPwd) newPwd.value = '';
+            if (confPwd) confPwd.value = '';
+
+            // Reset buttons
+            const btnSavePwd = document.getElementById('btn-save-admin-pwd');
+            if (btnSavePwd) {
+                btnSavePwd.disabled = false;
+                btnSavePwd.innerHTML = '<i class="ph ph-shield-check"></i> Cập nhật mật khẩu';
+            }
+            const btnSaveInfo = document.getElementById('btn-save-admin-info');
+            if (btnSaveInfo) {
+                btnSaveInfo.disabled = false;
+                btnSaveInfo.innerHTML = '<i class="ph ph-floppy-disk"></i> Lưu thay đổi';
+            }
+
+            // Clear errors
+            const errOld = document.getElementById('err-admin-pwd-old');
+            const errNew = document.getElementById('err-admin-pwd-new');
+            const errConfirm = document.getElementById('err-admin-pwd-confirm');
+            if (errOld) { errOld.style.display = 'none'; errOld.textContent = ''; }
+            if (errNew) { errNew.style.display = 'none'; errNew.textContent = ''; }
+            if (errConfirm) { errConfirm.style.display = 'none'; errConfirm.textContent = ''; }
+        }
+
+        // Show modal when clicking on admin welcome bar in topbar
+        const topbarProfile = document.getElementById('admin-topbar-profile');
+        const modalOverlay = document.getElementById('admin-profile-modal-overlay');
+        const btnClose = document.getElementById('btn-close-admin-profile');
+
+        if (topbarProfile) {
+            topbarProfile.addEventListener('click', () => {
+                resetModalForms();
+                modalOverlay.style.display = 'flex';
+            });
+        }
+
+        if (btnClose) {
+            btnClose.addEventListener('click', () => {
+                resetModalForms();
+                modalOverlay.style.display = 'none';
+            });
+        }
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                resetModalForms();
+                modalOverlay.style.display = 'none';
+            }
+        });
+
+        // Click on avatar zone triggers file input click
+        const avatarZone = document.getElementById('admin-avatar-click-zone');
+        const fileInput = document.getElementById('admin-avatar-file-input');
+        const modalAvatarImg = document.getElementById('admin-modal-avatar-img');
+
+        if (avatarZone && fileInput) {
+            avatarZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        modalAvatarImg.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Info Form Submit
+        const infoForm = document.getElementById('admin-info-form');
+        if (infoForm) {
+            infoForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const lastName = document.getElementById('admin-info-lastname').value.trim();
+                const firstName = document.getElementById('admin-info-firstname').value.trim();
+                const userName = document.getElementById('admin-info-username').value.trim();
+                const email = document.getElementById('admin-info-email').value.trim();
+                const gender = document.getElementById('admin-info-gender').value;
+                const birthday = document.getElementById('admin-info-birthday').value;
+                const bio = document.getElementById('admin-info-bio').value.trim();
+                
+                const formData = new FormData();
+                formData.append('firstName', firstName);
+                formData.append('lastName', lastName);
+                formData.append('userName', userName);
+                formData.append('email', email);
+                formData.append('gender', gender);
+                if (birthday) {
+                    formData.append('birthdate', birthday);
+                }
+                formData.append('bio', bio);
+                if (fileInput.files.length > 0) {
+                    formData.append('avatarImage', fileInput.files[0]);
+                }
+
+                const btnSave = document.getElementById('btn-save-admin-info');
+                const origHtml = btnSave.innerHTML;
+
+                try {
+                    btnSave.disabled = true;
+                    btnSave.innerHTML = '<i class="ph ph-spinner-gap spin" style="animation: spin 1s linear infinite;"></i> Đang lưu...';
+
+                    await window.apiClient.apiUpload('/api/profile', formData);
+                    
+                    window.apiClient.showToast("Cập nhật thông tin cá nhân thành công!", "success", "Thành công");
+
+                    const fullName = `${lastName} ${firstName}`.trim();
+                    document.getElementById('admin-topbar-name').textContent = fullName || userName;
+                    document.getElementById('admin-modal-display-name').textContent = fullName || userName;
+
+                    if (fileInput.files.length > 0) {
+                        const fileReader = new FileReader();
+                        fileReader.onload = (evt) => {
+                            document.getElementById('admin-topbar-avatar-img').src = evt.target.result;
+                        };
+                        fileReader.readAsDataURL(fileInput.files[0]);
+                    }
+
+                    setTimeout(() => {
+                        modalOverlay.style.display = 'none';
+                        window.location.reload();
+                    }, 1200);
+
+                } catch (err) {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = origHtml;
+                    window.apiClient.showToast(err.message || "Không thể cập nhật thông tin.", "error", "Lỗi");
+                }
+            });
+        }
+
+        // Password Form Submit
+        const pwdForm = document.getElementById('admin-password-form');
+        if (pwdForm) {
+            pwdForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Clear previous error messages
+                const errOld = document.getElementById('err-admin-pwd-old');
+                const errNew = document.getElementById('err-admin-pwd-new');
+                const errConfirm = document.getElementById('err-admin-pwd-confirm');
+
+                errOld.style.display = 'none';
+                errOld.textContent = '';
+                errNew.style.display = 'none';
+                errNew.textContent = '';
+                errConfirm.style.display = 'none';
+                errConfirm.textContent = '';
+
+                const oldPasswordInput = document.getElementById('admin-pwd-old');
+                const newPasswordInput = document.getElementById('admin-pwd-new');
+                const confirmPasswordInput = document.getElementById('admin-pwd-confirm');
+
+                const oldPassword = oldPasswordInput.value;
+                const newPassword = newPasswordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+
+                let hasError = false;
+
+                if (!oldPassword) {
+                    errOld.textContent = "Vui lòng nhập mật khẩu hiện tại.";
+                    errOld.style.display = 'block';
+                    oldPasswordInput.focus();
+                    hasError = true;
+                }
+
+                if (!newPassword) {
+                    errNew.textContent = "Vui lòng nhập mật khẩu mới.";
+                    errNew.style.display = 'block';
+                    if (!hasError) { newPasswordInput.focus(); hasError = true; }
+                } else if (newPassword.length < 6) {
+                    errNew.textContent = "Mật khẩu mới phải có tối thiểu 6 ký tự.";
+                    errNew.style.display = 'block';
+                    if (!hasError) { newPasswordInput.focus(); hasError = true; }
+                }
+
+                if (!confirmPassword) {
+                    errConfirm.textContent = "Vui lòng xác nhận mật khẩu mới.";
+                    errConfirm.style.display = 'block';
+                    if (!hasError) { confirmPasswordInput.focus(); hasError = true; }
+                } else if (newPassword !== confirmPassword) {
+                    errConfirm.textContent = "Mật khẩu xác nhận không khớp với mật khẩu mới.";
+                    errConfirm.style.display = 'block';
+                    if (!hasError) { confirmPasswordInput.focus(); hasError = true; }
+                }
+
+                if (hasError) return;
+
+                const btnSavePwd = document.getElementById('btn-save-admin-pwd');
+                const origHtml = btnSavePwd.innerHTML;
+
+                try {
+                    btnSavePwd.disabled = true;
+                    btnSavePwd.innerHTML = '<i class="ph ph-spinner-gap spin" style="animation: spin 1s linear infinite;"></i> Đang xử lý...';
+
+                    await window.apiClient.apiPost('/api/profile/change-password', {
+                        oldPassword,
+                        newPassword,
+                        confirmPassword
+                    });
+
+                    window.apiClient.showToast("Đổi mật khẩu thành công!", "success", "Thành công");
+
+                    oldPasswordInput.value = '';
+                    newPasswordInput.value = '';
+                    confirmPasswordInput.value = '';
+
+                    setTimeout(() => {
+                        modalOverlay.style.display = 'none';
+                    }, 1200);
+
+                } catch (err) {
+                    btnSavePwd.disabled = false;
+                    btnSavePwd.innerHTML = origHtml;
+
+                    const errMsg = err.message || "";
+                    if (errMsg.includes("Mật khẩu cũ không chính xác")) {
+                        errOld.textContent = errMsg;
+                        errOld.style.display = 'block';
+                        oldPasswordInput.focus();
+                    } else if (errMsg.includes("xác nhận không khớp") || errMsg.includes("ConfirmPassword")) {
+                        errConfirm.textContent = errMsg;
+                        errConfirm.style.display = 'block';
+                        confirmPasswordInput.focus();
+                    } else if (errMsg.includes("tối thiểu 6 ký tự") || errMsg.includes("NewPassword")) {
+                        errNew.textContent = errMsg;
+                        errNew.style.display = 'block';
+                        newPasswordInput.focus();
+                    } else {
+                        window.apiClient.showToast(errMsg || "Không thể đổi mật khẩu.", "error", "Lỗi");
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        display: inline-block;
+    }
+</style>

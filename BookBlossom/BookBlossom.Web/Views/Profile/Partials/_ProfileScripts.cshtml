@@ -205,6 +205,149 @@
         const hint  = document.getElementById('address-empty-hint');
         if (hint) hint.style.display = items.length === 0 ? 'block' : 'none';
     }
+
+    // ====================================================
+    // CHANGE PASSWORD – Profile Page
+    // ====================================================
+    const pwdOverlay = document.getElementById('profile-password-modal-overlay');
+    const pwdContent = document.getElementById('profile-password-modal-content');
+    const btnOpenPwd = document.getElementById('btn-change-password-toggle');
+    const btnClosePwd = document.getElementById('btn-close-profile-pwd');
+    const btnCancelPwd = document.getElementById('btn-cancel-profile-pwd');
+    const btnSavePwd = document.getElementById('btn-save-profile-pwd');
+
+    const pwdOld = document.getElementById('profile-pwd-old');
+    const pwdNew = document.getElementById('profile-pwd-new');
+    const pwdConfirm = document.getElementById('profile-pwd-confirm');
+
+    const errOld = document.getElementById('err-profile-pwd-old');
+    const errNew = document.getElementById('err-profile-pwd-new');
+    const errConfirm = document.getElementById('err-profile-pwd-confirm');
+
+    function resetPwdModal() {
+        if (pwdOld) pwdOld.value = '';
+        if (pwdNew) pwdNew.value = '';
+        if (pwdConfirm) pwdConfirm.value = '';
+        if (errOld) { errOld.style.display = 'none'; errOld.textContent = ''; }
+        if (errNew) { errNew.style.display = 'none'; errNew.textContent = ''; }
+        if (errConfirm) { errConfirm.style.display = 'none'; errConfirm.textContent = ''; }
+        if (btnSavePwd) {
+            btnSavePwd.disabled = false;
+            btnSavePwd.textContent = 'Đổi Mật Khẩu';
+        }
+    }
+
+    function openPwdModal() {
+        resetPwdModal();
+        if (pwdOverlay && pwdContent) {
+            pwdOverlay.style.display = 'flex';
+            void pwdOverlay.offsetWidth;
+            pwdContent.style.opacity = '1';
+            pwdContent.style.transform = 'scale(1)';
+        }
+    }
+
+    function closePwdModal() {
+        if (pwdContent && pwdOverlay) {
+            pwdContent.style.opacity = '0';
+            pwdContent.style.transform = 'scale(0.95)';
+            setTimeout(() => { pwdOverlay.style.display = 'none'; }, 280);
+        }
+    }
+
+    btnOpenPwd?.addEventListener('click', openPwdModal);
+    btnClosePwd?.addEventListener('click', closePwdModal);
+    btnCancelPwd?.addEventListener('click', closePwdModal);
+    pwdOverlay?.addEventListener('click', e => { if (e.target === pwdOverlay) closePwdModal(); });
+
+    btnSavePwd?.addEventListener('click', async function () {
+        if (!errOld || !errNew || !errConfirm || !pwdOld || !pwdNew || !pwdConfirm) return;
+
+        errOld.style.display = 'none';
+        errOld.textContent = '';
+        errNew.style.display = 'none';
+        errNew.textContent = '';
+        errConfirm.style.display = 'none';
+        errConfirm.textContent = '';
+
+        const oldPassword = pwdOld.value;
+        const newPassword = pwdNew.value;
+        const confirmPassword = pwdConfirm.value;
+
+        let hasError = false;
+
+        if (!oldPassword) {
+            errOld.textContent = "Vui lòng nhập mật khẩu hiện tại.";
+            errOld.style.display = 'block';
+            pwdOld.focus();
+            hasError = true;
+        }
+
+        if (!newPassword) {
+            errNew.textContent = "Vui lòng nhập mật khẩu mới.";
+            errNew.style.display = 'block';
+            if (!hasError) { pwdNew.focus(); hasError = true; }
+        } else if (newPassword.length < 6) {
+            errNew.textContent = "Mật khẩu mới phải có tối thiểu 6 ký tự.";
+            errNew.style.display = 'block';
+            if (!hasError) { pwdNew.focus(); hasError = true; }
+        }
+
+        if (!confirmPassword) {
+            errConfirm.textContent = "Vui lòng xác nhận mật khẩu mới.";
+            errConfirm.style.display = 'block';
+            if (!hasError) { pwdConfirm.focus(); hasError = true; }
+        } else if (newPassword !== confirmPassword) {
+            errConfirm.textContent = "Mật khẩu xác nhận không khớp với mật khẩu mới.";
+            errConfirm.style.display = 'block';
+            if (!hasError) { pwdConfirm.focus(); hasError = true; }
+        }
+
+        if (hasError) return;
+
+        const originalBtnText = btnSavePwd.textContent;
+        try {
+            btnSavePwd.disabled = true;
+            btnSavePwd.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+
+            await window.apiClient.apiPost('/api/profile/change-password', {
+                oldPassword,
+                newPassword,
+                confirmPassword
+            });
+
+            window.apiClient.showToast("Đổi mật khẩu thành công!", "success");
+            closePwdModal();
+        } catch (err) {
+            btnSavePwd.disabled = false;
+            btnSavePwd.textContent = originalBtnText;
+
+            const errMsg = err.message || "";
+            if (errMsg.includes("Mật khẩu cũ không chính xác")) {
+                errOld.textContent = errMsg;
+                errOld.style.display = 'block';
+                pwdOld.focus();
+            } else if (errMsg.includes("xác nhận không khớp") || errMsg.includes("ConfirmPassword")) {
+                errConfirm.textContent = errMsg;
+                errConfirm.style.display = 'block';
+                pwdConfirm.focus();
+            } else if (errMsg.includes("tối thiểu 6 ký tự") || errMsg.includes("NewPassword")) {
+                errNew.textContent = errMsg;
+                errNew.style.display = 'block';
+                pwdNew.focus();
+            } else {
+                window.apiClient.showToast(errMsg || "Không thể đổi mật khẩu.", "error");
+            }
+        }
+    });
+
+    // Auto-open change password modal if redirected with ?openPwd=true
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('openPwd') === 'true') {
+        openPwdModal();
+        // Clean up URL without reload
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 })();
 </script>
 
