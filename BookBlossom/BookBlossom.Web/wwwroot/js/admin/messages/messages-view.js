@@ -86,7 +86,8 @@ class AdminMessagesView {
         }
 
         conversations.forEach(c => {
-            const activeClass = c.conversationID === activeConvoId ? 'active' : '';
+            const convoId = c.conversationID || c.conversationId;
+            const activeClass = convoId === activeConvoId ? 'active' : '';
             const unreadIndicator = c.hasUnreadMessages 
                 ? '<span style="color:red; font-weight:bold; font-size:1.2rem; margin-left:auto;">•</span>' 
                 : '';
@@ -94,7 +95,7 @@ class AdminMessagesView {
             const time = new Date(c.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
             const item = `
-                <div class="convo-item ${activeClass}" data-convo-id="${c.conversationID}" data-buyer-name="${this.escapeHtml(c.customerName)}" data-buyer-avatar="${avatar}">
+                <div class="convo-item ${activeClass}" data-convo-id="${convoId}" data-buyer-name="${this.escapeHtml(c.customerName)}" data-buyer-avatar="${avatar}">
                     <div class="convo-avatar-wrapper">
                         <div class="convo-avatar-container">
                             <img src="${avatar}" alt="Buyer" class="convo-avatar" onerror="this.src='/images/Avatar/default.png'">

@@ -108,6 +108,10 @@ namespace BookBlossom.Web.Controllers
                     await _hubContext.Clients
                         .Group($"conversation-{result.ConversationID}")
                         .SendAsync("ReceiveMessage", result);
+
+                    await _hubContext.Clients
+                        .Group("Admins")
+                        .SendAsync("ReceiveMessage", result);
                 }
 
                 return Ok(new { success = true, data = result });

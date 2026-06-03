@@ -52,6 +52,12 @@ class AdminMessagesController {
         
         this.hubConnection.start().then(() => {
             console.log("SignalR Connected Successfully!");
+            
+            // Join global Admins group to receive ALL messages
+            this.hubConnection.invoke("JoinAdminGroup")
+                .then(() => console.log("Joined Admins group to receive global chat updates."))
+                .catch(console.error);
+
             if (this.model.activeConversationId) {
                 this.hubConnection.invoke("JoinConversation", this.model.activeConversationId)
                     .then(() => console.log("Joined conversation group:", this.model.activeConversationId))

@@ -62,7 +62,7 @@ class MessagesController {
         try {
             const conversationsRes = await this.model.fetchConversations();
             if (conversationsRes && conversationsRes.data && conversationsRes.data.length > 0) {
-                this.model.activeConversationId = conversationsRes.data[0].conversationID;
+                this.model.activeConversationId = conversationsRes.data[0].conversationID || conversationsRes.data[0].conversationId;
                 
                 // Join SignalR group if connected
                 if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {

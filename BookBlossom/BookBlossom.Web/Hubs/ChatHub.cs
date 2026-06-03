@@ -16,5 +16,13 @@ namespace BookBlossom.Web.Hubs
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conversation-{conversationId}");
         }
+
+        public async Task JoinAdminGroup()
+        {
+            if (Context.User != null && (Context.User.IsInRole("Admin") || Context.User.IsInRole("Staff")))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
+            }
+        }
     }
 }

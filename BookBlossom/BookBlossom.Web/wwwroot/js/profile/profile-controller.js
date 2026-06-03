@@ -80,7 +80,7 @@ class ProfileController {
         try {
             // Fetch reputation
             const rep = await this.model.fetchMyReputation();
-            
+
             // Fetch all system badges
             let allBadges = [];
             try {
@@ -91,7 +91,7 @@ class ProfileController {
 
             // Fetch user earned badges
             const badgesData = await this.model.fetchMyBadges(); // array of BadgeCustomerDTO: BadgeID, BadgeName, Description, EarnedAt
-            
+
             // Map badges data to match expected format in ProfileView.render
             const earnedBadgeNames = (badgesData || []).map(b => b.badgeName || b.BadgeName);
             const badgeEarnedDates = {};
@@ -108,7 +108,7 @@ class ProfileController {
             // Update UI elements for reputation
             const points = rep.points !== undefined ? rep.points : rep.Points;
             const rank = rep.rank !== undefined ? rep.rank : rep.Rank;
-            
+
             if (points !== undefined) {
                 $('#display-rep-score').text(points);
                 const repPercent = (points / 150) * 100;
@@ -133,7 +133,7 @@ class ProfileController {
             if (rank) {
                 $('#display-tier-text').text(rank);
                 $('#display-tier-badge')
-                    .removeClass('tier-Copper tier-Silver tier-Gold tier-Diamond tier-Bronze tier-Đồng tier-Bạc tier-Vàng tier-KimCương')
+                    .removeClass('tier-Copper tier-Silver tier-Gold tier-Diamond tier-Bronze tier-Bronze tier-Silver tier-Gold tier-Diamond')
                     .addClass('tier-' + rank);
             }
 
@@ -203,7 +203,7 @@ class ProfileController {
         // Submit form details
         $('#edit-profile-form').on('submit', async function (e) {
             e.preventDefault();
-            
+
             const fullName = $('#input-fullname').val().trim();
             const lastSpaceIndex = fullName.lastIndexOf(' ');
             const firstName = lastSpaceIndex === -1 ? fullName : fullName.substring(lastSpaceIndex + 1);
@@ -225,7 +225,7 @@ class ProfileController {
 
                 await self.model.updateProfileData(formData);
                 self.view.showToast("Profile details updated successfully!");
-                
+
                 $('#edit-profile-form').slideUp(300);
 
                 // Reload the page to reflect changes properly via SSR with cache buster
@@ -311,10 +311,10 @@ class ProfileController {
         $(document).on('mousedown touchstart', '#cropper-image', function (e) {
             e.preventDefault();
             self.cropper.isDragging = true;
-            
+
             const clientX = e.type === 'touchstart' ? e.originalEvent.touches[0].clientX : e.clientX;
             const clientY = e.type === 'touchstart' ? e.originalEvent.touches[0].clientY : e.clientY;
-            
+
             self.cropper.startX = clientX - self.cropper.x;
             self.cropper.startY = clientY - self.cropper.y;
         });
@@ -322,13 +322,13 @@ class ProfileController {
         // Calculate and update translation variables on mouse/touch drag
         $(document).on('mousemove touchmove', function (e) {
             if (!self.cropper.isDragging) return;
-            
+
             const clientX = e.type === 'touchmove' ? e.originalEvent.touches[0].clientX : e.clientX;
             const clientY = e.type === 'touchmove' ? e.originalEvent.touches[0].clientY : e.clientY;
-            
+
             self.cropper.x = clientX - self.cropper.startX;
             self.cropper.y = clientY - self.cropper.startY;
-            
+
             self.view.updateCropperImageTransform(self.cropper.scale, self.cropper.x, self.cropper.y);
         });
 
@@ -346,7 +346,7 @@ class ProfileController {
                 // Convert base64 DataURL to Blob
                 const fetchRes = await fetch(croppedDataUrl);
                 const blob = await fetchRes.blob();
-                
+
                 const formData = new FormData();
                 formData.append('avatarImage', blob, 'avatar.png');
 
@@ -354,7 +354,7 @@ class ProfileController {
                     await self.model.updateProfileData(formData);
                     self.view.showToast("Avatar image updated successfully!");
                     self.view.closeCropperModal();
-                    
+
                     // Reload to reflect new avatar generated from server with cache buster
                     setTimeout(() => {
                         window.location.href = '/Profile?t=' + Date.now();
