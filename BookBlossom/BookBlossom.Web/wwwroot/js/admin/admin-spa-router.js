@@ -25,6 +25,10 @@ class AdminSpaRouter {
         /** Đang fetch không? Tránh double-click */
         this._navigating = false;
 
+        /** Hỗ trợ hủy kết nối fetch cũ khi click chuyển tab mới liên tục */
+        this._abortController = null;
+        this._navigationId = 0;
+
         /** Tên event phát khi SPA hoàn tất swap */
         this.PAGE_READY_EVENT = 'spa:page-ready';
 
@@ -64,7 +68,14 @@ class AdminSpaRouter {
         const main = document.querySelector('main[role="main"]');
         if (!main) return;
 
-        // Lấy scripts của trang hiện tại (những scripts không phải layout)
+        const existing = this._cache.get(url);
+        if (existing) {
+            existing.html = main.innerHTML;
+            existing.ts = Date.now();
+            return;
+        }
+
+        // Lấy scripts của trang hiện tại (những scripts không phải layout) - Chỉ thu thập lần đầu khi chưa có cache
         const pageScripts = [];
         document.querySelectorAll('script').forEach(s => {
             if (s.src) {
@@ -81,10 +92,16 @@ class AdminSpaRouter {
             }
         });
 
+        // Lấy inline <style> block đặc thù của page hiện tại
+        const normalizedUrl = this._normalizeUrl(window.location.pathname);
+        const existingStyle = document.querySelector(`style[data-spa-page="${normalizedUrl}"]`);
+        const inlineStyles = existingStyle ? [existingStyle.textContent] : [];
+
         this._cache.set(url, {
             html: main.innerHTML,
             scripts: pageScripts,
             styleHrefs: this._getCurrentPageStyles(),
+            inlineStyles: inlineStyles,
             title: document.title,
             ts: Date.now()
         });
@@ -119,21 +136,48 @@ class AdminSpaRouter {
         // Không navigate lại trang hiện tại
         if (normalized === currentNormalized) return;
 
+        // Chặn click trùng lặp khi đang tải trang này
+        if (this._targetNormalizedUrl === normalized) return;
+        this._targetNormalizedUrl = normalized;
+
         await this._navigateInternal(url, true);
     }
 
-    /**
-     * Internal navigation handler.
-     * @param {string} url
-     * @param {boolean} pushState - Có pushState vào history không?
-     */
     async _navigateInternal(url, pushState) {
-        if (this._navigating) return;
-        this._navigating = true;
+        this._navigationId++;
+        const currentNavId = this._navigationId;
+
+        // Dọn dẹp các tàn dư của bootstrap modal (tránh bị kẹt lớp phủ backdrop che màn hình)
+        if (window.bootstrap) {
+            document.querySelectorAll('.modal.show').forEach(el => {
+                try {
+                    const modal = window.bootstrap.Modal.getInstance(el) || window.bootstrap.Modal.getOrCreateInstance(el);
+                    if (modal) {
+                        modal.hide();
+                    }
+                } catch (e) {
+                    console.warn('[SPA Router] Failed to hide modal:', e);
+                }
+            });
+        }
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+
+        // Hủy bỏ lệnh tải trang cũ đang chạy (nếu có)
+        if (this._abortController) {
+            this._abortController.abort();
+        }
+        this._abortController = new AbortController();
+        const signal = this._abortController.signal;
 
         const normalized = this._normalizeUrl(url);
 
         try {
+            // Chụp lại trạng thái giao diện đã dựng (có dữ liệu) của trang hiện tại trước khi rời đi
+            this._cacheCurrentPage();
+
             // --- 1. Hiện loading indicator ---
             this._showLoading();
 
@@ -143,13 +187,16 @@ class AdminSpaRouter {
             if (cached) {
                 // Cache hit → swap ngay lập tức
                 console.log(`[SPA Router] Cache HIT: ${normalized}`);
+                if (signal.aborted) return;
                 await this._applyPage(cached, url, pushState);
             } else {
                 // Cache miss → fetch từ server
                 console.log(`[SPA Router] Cache MISS: ${normalized} → fetching...`);
-                const pageData = await this._fetchPage(url);
+                const pageData = await this._fetchPage(url, signal);
+                if (signal.aborted) return;
                 if (pageData) {
                     this._cache.set(normalized, { ...pageData, ts: Date.now() });
+                    if (signal.aborted) return;
                     await this._applyPage(pageData, url, pushState);
                 } else {
                     // Fetch thất bại → fallback full reload
@@ -158,12 +205,20 @@ class AdminSpaRouter {
                 }
             }
         } catch (err) {
+            if (err.name === 'AbortError') {
+                console.log('[SPA Router] Navigation aborted.');
+                return;
+            }
             console.error('[SPA Router] Navigation error:', err);
             // Fallback: full reload
             window.location.href = url;
         } finally {
-            this._navigating = false;
-            this._hideLoading();
+            if (this._navigationId === currentNavId) {
+                this._abortController = null;
+                this._navigating = false;
+                this._targetNormalizedUrl = null;
+                this._hideLoading();
+            }
         }
     }
 
@@ -185,14 +240,15 @@ class AdminSpaRouter {
      * @param {string} url
      * @returns {Promise<{html, scripts, styleHrefs, title}|null>}
      */
-    async _fetchPage(url) {
+    async _fetchPage(url, signal) {
         try {
             const resp = await fetch(url, {
                 headers: {
                     'X-Requested-With': 'spa-fetch',
                     'X-SPA-Nav': '1'
                 },
-                credentials: 'same-origin'
+                credentials: 'same-origin',
+                signal: signal
             });
 
             if (!resp.ok) return null;
@@ -401,20 +457,12 @@ class AdminSpaRouter {
     _executeInlineScript(code) {
         try {
             // Thay thế các dạng document.addEventListener('DOMContentLoaded', ...) 
-            // thành IIFE vì DOM đã ready khi SPA swap
+            // thành IIFE vì DOM đã ready khi SPA swap (hỗ trợ cả async và arrow functions)
             let transformedCode = code
-                // Pattern: document.addEventListener('DOMContentLoaded', function() {
                 .replace(
-                    /document\.addEventListener\s*\(\s*['"]DOMContentLoaded['"]\s*,\s*function\s*\(\s*\)\s*\{/g,
-                    '(function() {'
+                    /document\.addEventListener\s*\(\s*['"]DOMContentLoaded['"]\s*,\s*(async\s+)?(?:function\s*)?\(\s*\)\s*(?:=>\s*)?\{/g,
+                    '($1function() {'
                 )
-                // Pattern: document.addEventListener("DOMContentLoaded", () => {
-                .replace(
-                    /document\.addEventListener\s*\(\s*['"]DOMContentLoaded['"]\s*,\s*\(\s*\)\s*=>\s*\{/g,
-                    '(()=> {'
-                )
-                // Pattern: document.addEventListener('DOMContentLoaded', () => {
-                // (với trailing content ở cuối: });  )
                 .replace(
                     /\}\s*\)\s*;?\s*$/, // Đóng ngoặc cho IIFE
                     '})();'

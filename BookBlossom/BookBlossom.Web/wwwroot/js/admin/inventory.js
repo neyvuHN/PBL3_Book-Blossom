@@ -3,6 +3,7 @@ function initInventorySetup() {
     const addBookModalElement = document.getElementById('addBookModal');
     const addBookForm = document.getElementById('addBookForm');
     const addBookModalLabel = document.getElementById('addBookModalLabel');
+    const searchBooksInput = document.getElementById('searchBooksInput');
     let bookModal = null;
     if (addBookModalElement) {
         bookModal = new bootstrap.Modal(addBookModalElement);
@@ -371,12 +372,269 @@ function initInventorySetup() {
             }
         }, 150);
     }
+
+    // Bind Submit Event Listeners to fresh DOM elements
+    const confirmBtnElem = document.getElementById('deleteConfirmBtn');
+    if (confirmBtnElem) {
+        confirmBtnElem.addEventListener('click', async function (e) {
+            e.preventDefault();
+            const url = this.dataset.targetUrl;
+            if (!url) return;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    const modal = getSafeModal(document.getElementById('deleteConfirmModal'));
+                    if (modal) modal.hide();
+                    loadInventoryBooks();
+                    loadInventoryCategories();
+
+                    if (window.apiClient) {
+                        window.apiClient.showToast("Status updated successfully!", "success");
+                    }
+                } else {
+                    alert("Server error: " + (result.message || "Failed to complete action."));
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Error connecting or processing request.");
+            }
+        });
+    }
+
+    const restockForm = document.getElementById('restockBookForm');
+    if (restockForm) {
+        restockForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const bookId = parseInt(document.getElementById('restockBookId').value);
+            const supplierName = document.getElementById('restockSupplierName').value.trim();
+            const shipAddress = document.getElementById('restockShipAddress').value.trim();
+            const quantity = parseInt(document.getElementById('restockQuantity').value);
+            const unitPrice = parseFloat(document.getElementById('restockUnitPrice').value);
+
+            if (!supplierName) {
+                alert("Please enter the supplier name.");
+                return;
+            }
+
+            const submitBtn = document.querySelector(`button[form="restockBookForm"]`);
+            let originalText = "Restock";
+            if (submitBtn) {
+                originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+                submitBtn.disabled = true;
+            }
+
+            try {
+                const response = await fetch('/api/inventory/importings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({
+                        SupplierName: supplierName,
+                        ShipAddress: shipAddress || null,
+                        RequiredDate: null,
+                        ShipDate: null,
+                        Details: [
+                            {
+                                BookID: bookId,
+                                UnitPrice: unitPrice,
+                                Quantity: quantity
+                            }
+                        ]
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const modal = getSafeModal(document.getElementById('restockBookModal'));
+                    if (modal) modal.hide();
+                    loadInventoryBooks();
+
+                    if (window.apiClient) {
+                        window.apiClient.showToast("Import receipt and book restock created successfully!", "success");
+                    } else {
+                        alert("Restocked successfully!");
+                    }
+                } else {
+                    alert("Error: " + (result.message || "Failed to restock book. Please check again."));
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Error connecting to server.");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+    }
+
+    if (addBookForm) {
+        addBookForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const fileInput = document.querySelector('input[name="SampleFile"]');
+            if (fileInput && fileInput.files.length > 0) {
+                if (fileInput.files[0].size > 10 * 1024 * 1024) {
+                    alert("Error: Sample PDF file size cannot exceed 10MB!");
+                    return;
+                }
+            }
+
+            const priceVal = parseFloat(document.getElementById('bookPrice').value);
+            if (priceVal <= 0) {
+                alert("Error: Book price must be greater than 0!");
+                return;
+            }
+
+            const formData = new FormData(this);
+            const mode = this.dataset.mode || 'add';
+            const bookId = this.dataset.bookId;
+            const url = mode === 'edit' ? `/api/realbook/${bookId}` : '/api/realbook';
+            const method = mode === 'edit' ? 'PUT' : 'POST';
+
+            const submitBtn = document.querySelector(`button[form="addBookForm"]`);
+            let originalBtnText = "Save Book";
+            if (submitBtn) {
+                originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+                submitBtn.disabled = true;
+            }
+
+            let response;
+            try {
+                response = await fetch(url, {
+                    method: method,
+                    body: formData,
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+            } catch (error) {
+                console.error("Network Fetch Error:", error);
+                alert("Network error or server did not respond: " + error.message);
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                }
+                return;
+            }
+
+            try {
+                const result = await response.json();
+
+                if (response.ok) {
+                    const modal = getSafeModal(addBookModalElement);
+                    if (modal) modal.hide();
+                    loadInventoryBooks();
+                    loadInventoryCategories();
+
+                    if (window.apiClient) {
+                        window.apiClient.showToast("Saved book details successfully!", "success");
+                    }
+                } else {
+                    if (result.message) alert("Error: " + result.message);
+                    else if (result.errors) {
+                        let errorMsg = "Invalid data:\n";
+                        for (const key in result.errors) errorMsg += `- ${result.errors[key].join(', ')}\n`;
+                        alert(errorMsg);
+                    }
+                }
+            } catch (error) {
+                console.error("Response processing error:", error);
+                alert("Error processing response from server: " + error.message);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+    }
+
+    const addCategoryFormElement = document.getElementById('addCategoryForm');
+    if (addCategoryFormElement) {
+        addCategoryFormElement.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const catName = document.getElementById('categoryNameInput').value.trim();
+            const catDesc = document.getElementById('categoryDescInput').value.trim();
+            const catStatusText = document.getElementById('categoryStatusInput').value;
+            const catStatus = catStatusText === 'Active' ? 1 : 0;
+
+            if (!catName) {
+                alert("Please enter a category name.");
+                return;
+            }
+
+            const mode = this.dataset.mode || 'add';
+            const catId = this.dataset.catId;
+
+            const url = mode === 'edit' ? `/api/category/${catId}` : '/api/category';
+            const method = mode === 'edit' ? 'PUT' : 'POST';
+
+            const submitBtn = document.querySelector(`button[form="addCategoryForm"]`);
+            let originalText = "Save Category";
+            if (submitBtn) {
+                originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+                submitBtn.disabled = true;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({
+                        CategoryName: catName,
+                        Description: catDesc,
+                        Status: catStatus
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const modal = getSafeModal(document.getElementById('addCategoryModal'));
+                    if (modal) modal.hide();
+                    loadInventoryCategories();
+                    loadInventoryBooks();
+
+                    if (window.apiClient) {
+                        window.apiClient.showToast("Saved category successfully!", "success");
+                    }
+                } else {
+                    alert("Error: " + (result.message || "Failed to execute action."));
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Error connecting to server.");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+    }
 }
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initInventorySetup);
-} else {
-    initInventorySetup();
-}
+
 
 // Helper function to get or create bootstrap Modal instance safely
 function getSafeModal(element) {
@@ -390,22 +648,17 @@ function getSafeModal(element) {
 
 function initInventoryData() {
     // Tải dữ liệu ban đầu
-    loadInventoryBooks();
-    loadInventoryCategories();
+    loadInventoryBooks(true);
+    loadInventoryCategories(true);
 
     // Lắng nghe sự kiện thay đổi trên các ô Search và Filter của Sách
     const searchInput = document.getElementById('searchBooksInput');
     const categoryFilter = document.getElementById('filterCategory');
     const statusFilter = document.getElementById('filterBookStatus');
 
-    if (searchInput) searchInput.addEventListener('input', debounce(loadInventoryBooks, 500));
-    if (categoryFilter) categoryFilter.addEventListener('change', loadInventoryBooks);
-    if (statusFilter) statusFilter.addEventListener('change', loadInventoryBooks);
-}
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initInventoryData);
-} else {
-    initInventoryData();
+    if (searchInput) searchInput.addEventListener('input', debounce(() => loadInventoryBooks(false), 500));
+    if (categoryFilter) categoryFilter.addEventListener('change', () => loadInventoryBooks(false));
+    if (statusFilter) statusFilter.addEventListener('change', () => loadInventoryBooks(false));
 }
 
 // Hàm hỗ trợ delay việc gọi API khi đang gõ chữ
@@ -418,7 +671,7 @@ function debounce(func, delay) {
 }
 
 // 1. TẢI DANH SÁCH SÁCH TỪ API THẬT
-async function loadInventoryBooks() {
+async function loadInventoryBooks(isInitial = false) {
     const tbody = document.getElementById('booksTableBody');
     if (!tbody) return;
 
@@ -426,12 +679,16 @@ async function loadInventoryBooks() {
     const category = document.getElementById('filterCategory')?.value || '';
     const filterStatus = document.getElementById('filterBookStatus')?.value || '';
 
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading book inventory data from API...</div></td></tr>';
+    // Check if we already have rows from SWR cache
+    const hasExistingData = tbody.children.length > 0 && !tbody.querySelector('.spinner-border') && !tbody.querySelector('.text-muted');
+    if (!isInitial || !hasExistingData) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading book inventory data from API...</div></td></tr>';
+    }
 
     try {
         // Calling API including discontinued books (includeDiscontinued=true)
         const url = `/api/realbook?searchTerm=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&includeDiscontinued=true`;
-        
+
         const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -546,11 +803,15 @@ async function loadInventoryBooks() {
 }
 
 // 2. LOAD CATEGORIES LIST FROM REAL API
-async function loadInventoryCategories() {
+async function loadInventoryCategories(isInitial = false) {
     const tbody = document.getElementById('categoriesTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border" style="color: #E3597D;" role="status"></div><div class="text-muted small mt-2">Loading categories from API...</div></td></tr>';
+    // Check if we already have rows from SWR cache
+    const hasExistingData = tbody.children.length > 0 && !tbody.querySelector('.spinner-border');
+    if (!isInitial || !hasExistingData) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border" style="color: #E3597D;" role="status"></div><div class="text-muted small mt-2">Loading categories from API...</div></td></tr>';
+    }
 
     try {
         const response = await fetch('/api/category');
@@ -668,7 +929,7 @@ document.addEventListener('click', function (e) {
         const currentBookCoverImg = document.getElementById('currentBookCoverImg');
         if (currentBookCoverContainer && currentBookCoverImg) {
             currentBookCoverImg.src = editBtn.dataset.mainimage;
-            currentBookCoverImg.onerror = function() {
+            currentBookCoverImg.onerror = function () {
                 this.onerror = null;
                 this.src = `/images/Book/book${(editBtn.dataset.bookId % 6) + 1}.jpg`;
             };
@@ -726,291 +987,4 @@ document.addEventListener('click', function (e) {
     }
 });
 
-// ==========================================
-// 4. XỬ LÝ GỬI DỮ LIỆU CỦA CÁC FORM LÊN API THẬT
-// ==========================================
-
-// XỬ LÝ SUBMIT XÓA PHẦN TỬ (SÁCH & THỂ LOẠI)
-const confirmBtnElem = document.getElementById('deleteConfirmBtn');
-if (confirmBtnElem) {
-    confirmBtnElem.addEventListener('click', async function (e) {
-        e.preventDefault();
-        const url = this.dataset.targetUrl;
-        if (!url) return;
-
-        try {
-            const response = await fetch(url, { 
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                }
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                const modal = getSafeModal(document.getElementById('deleteConfirmModal'));
-                if (modal) modal.hide();
-                loadInventoryBooks();
-                loadInventoryCategories();
-                
-                if (window.apiClient) {
-                    window.apiClient.showToast("Status updated successfully!", "success");
-                }
-            } else {
-                alert("Server error: " + (result.message || "Failed to complete action."));
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Error connecting or processing request.");
-        }
-    });
-}
-
-// XỬ LÝ SUBMIT FORM NHẬP KHO (RESTOCK/IMPORTING)
-const restockBookForm = document.getElementById('restockBookForm');
-if (restockBookForm) {
-    restockBookForm.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const bookId = parseInt(document.getElementById('restockBookId').value);
-        const supplierName = document.getElementById('restockSupplierName').value.trim();
-        const shipAddress = document.getElementById('restockShipAddress').value.trim();
-        const quantity = parseInt(document.getElementById('restockQuantity').value);
-        const unitPrice = parseFloat(document.getElementById('restockUnitPrice').value);
-
-        if (!supplierName) {
-            alert("Please enter the supplier name.");
-            return;
-        }
-
-        const submitBtn = document.querySelector(`button[form="restockBookForm"]`);
-        let originalText = "Restock";
-        if (submitBtn) {
-            originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
-            submitBtn.disabled = true;
-        }
-
-        try {
-            const response = await fetch('/api/inventory/importings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                },
-                body: JSON.stringify({
-                    SupplierName: supplierName,
-                    ShipAddress: shipAddress || null,
-                    RequiredDate: null,
-                    ShipDate: null,
-                    Details: [
-                        {
-                            BookID: bookId,
-                            UnitPrice: unitPrice,
-                            Quantity: quantity
-                        }
-                    ]
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                const modal = getSafeModal(document.getElementById('restockBookModal'));
-                if (modal) modal.hide();
-                loadInventoryBooks();
-                
-                if (window.apiClient) {
-                    window.apiClient.showToast("Import receipt and book restock created successfully!", "success");
-                } else {
-                    alert("Restocked successfully!");
-                }
-            } else {
-                alert("Error: " + (result.message || "Failed to restock book. Please check again."));
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Error connecting to server.");
-        } finally {
-            if (submitBtn) {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
-        }
-    });
-}
-
-// XỬ LÝ SUBMIT FORM THÊM/SỬA SÁCH REALBOOK
-if (addBookForm) {
-    addBookForm.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        // Validate file đọc thử PDF < 10MB
-        const fileInput = document.querySelector('input[name="SampleFile"]');
-        if (fileInput && fileInput.files.length > 0) {
-            if (fileInput.files[0].size > 10 * 1024 * 1024) {
-                alert("Error: Sample PDF file size cannot exceed 10MB!");
-                return;
-            }
-        }
-
-        const priceVal = parseFloat(document.getElementById('bookPrice').value);
-        if (priceVal <= 0) {
-            alert("Error: Book price must be greater than 0!");
-            return;
-        }
-
-        const formData = new FormData(this);
-        const mode = this.dataset.mode || 'add';
-        const bookId = this.dataset.bookId;
-        const url = mode === 'edit' ? `/api/realbook/${bookId}` : '/api/realbook';
-        const method = mode === 'edit' ? 'PUT' : 'POST';
-
-        const submitBtn = document.querySelector(`button[form="addBookForm"]`);
-        let originalBtnText = "Save Book";
-        if (submitBtn) {
-            originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
-            submitBtn.disabled = true;
-        }
-
-        let response;
-        try {
-            response = await fetch(url, { 
-                method: method, 
-                body: formData,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                }
-            });
-        } catch (error) {
-            console.error("Network Fetch Error:", error);
-            alert("Network error or server did not respond: " + error.message);
-            if (submitBtn) {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-            }
-            return;
-        }
-
-        try {
-            const result = await response.json();
-
-            if (response.ok) {
-                const modal = getSafeModal(addBookModalElement);
-                if (modal) modal.hide();
-                loadInventoryBooks();
-                loadInventoryCategories(); // Reload book counts in categories
-                
-                if (window.apiClient) {
-                    window.apiClient.showToast("Saved book details successfully!", "success");
-                }
-            } else {
-                if (result.message) alert("Error: " + result.message);
-                else if (result.errors) {
-                    let errorMsg = "Invalid data:\n";
-                    for (const key in result.errors) errorMsg += `- ${result.errors[key].join(', ')}\n`;
-                    alert(errorMsg);
-                }
-            }
-        } catch (error) {
-            console.error("Response processing error:", error);
-            alert("Error processing response from server: " + error.message);
-        } finally {
-            if (submitBtn) {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-            }
-        }
-    });
-}
-
-// XỬ LÝ SUBMIT FORM THÊM/SỬA THỂ LOẠI (CATEGORY)
-const addCategoryFormElement = document.getElementById('addCategoryForm');
-if (addCategoryFormElement) {
-    addCategoryFormElement.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const catName = document.getElementById('categoryNameInput').value.trim();
-        const catDesc = document.getElementById('categoryDescInput').value.trim();
-        const catStatusText = document.getElementById('categoryStatusInput').value;
-        const catStatus = catStatusText === 'Active' ? 1 : 0; // Active = 1, Inactive = 0
-
-        if (!catName) {
-            alert("Please enter a category name.");
-            return;
-        }
-
-        const mode = this.dataset.mode || 'add';
-        const catId = this.dataset.catId;
-
-        const url = mode === 'edit' ? `/api/category/${catId}` : '/api/category';
-        const method = mode === 'edit' ? 'PUT' : 'POST';
-
-        const submitBtn = document.querySelector(`button[form="addCategoryForm"]`);
-        let originalText = "Save Category";
-        if (submitBtn) {
-            originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
-            submitBtn.disabled = true;
-        }
-
-        try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                },
-                body: JSON.stringify({
-                    CategoryName: catName,
-                    Description: catDesc,
-                    Status: catStatus
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                const modal = getSafeModal(document.getElementById('addCategoryModal'));
-                if (modal) modal.hide();
-                loadInventoryCategories();
-                loadInventoryBooks(); // Reload books to update categories
-                
-                if (window.apiClient) {
-                    window.apiClient.showToast("Saved category successfully!", "success");
-                }
-            } else {
-                alert("Error: " + (result.message || "Failed to execute action."));
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Error connecting to server.");
-        } finally {
-            if (submitBtn) {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
-        }
-    });
-}
-
-// Duplicate submit listener removed. Managed by blind-date-controller.js
-
-// ==========================================
-// SPA ROUTER: Tải lại dữ liệu khi điều hướng đến trang Inventory
-// ==========================================
-window.addEventListener('spa:page-ready', function (e) {
-    const url = (e.detail && e.detail.url) ? e.detail.url.toLowerCase() : window.location.pathname.toLowerCase();
-    if (url.includes('/admin/inventory')) {
-        // Chờ DOM ổn định rồi tải dữ liệu
-        setTimeout(function () {
-            if (document.getElementById('booksTableBody')) {
-                loadInventoryBooks();
-            }
-            if (document.getElementById('categoriesTableBody')) {
-                loadInventoryCategories();
-            }
-        }, 50);
-    }
-});
+// Global Event Delegation and helpers are kept. Event listeners are bound on setup.

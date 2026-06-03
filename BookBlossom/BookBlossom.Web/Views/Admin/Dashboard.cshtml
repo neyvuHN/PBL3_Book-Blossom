@@ -8,6 +8,11 @@
         <h2>Admin Dashboard</h2>
     </div>
 
+    <!-- Hộp log gỡ lỗi trực tiếp trên giao diện -->
+    <div id="dashboard-debug-log" style="color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin-bottom: 20px; border-radius: 4px; display: none; font-family: monospace; font-size: 14px; white-space: pre-wrap; z-index: 9999;">
+        <strong>[DEBUG LOG] Có lỗi xảy ra trong JavaScript:</strong><br/>
+    </div>
+
     <div class="dashboard-filter-section">
         <span class="filter-label">FILTER:</span>
         <div class="filter-group">
@@ -41,179 +46,235 @@
 
 @section Scripts {
     <script>
-        let growthChartInstance = null;
-        let pieChartInstance = null;
+        (() => {
+            // Ghi log ra console của trình duyệt
+            function logDebug(message) {
+                console.log("[Dashboard Debug]", message);
+            }
 
-        async function loadDashboardData() {
-            const dateInputs = document.querySelectorAll('.custom-date-input');
-            const fromDate = dateInputs[0].value;
-            const toDate = dateInputs[1].value;
-            const selectedModel = document.getElementById('modelFilter')?.value || 'All';
+            // Hiển thị lỗi nghiêm trọng lên hộp thoại giao diện để quản trị viên dễ phát hiện
+            function showError(message) {
+                console.error("[Dashboard Error]", message);
+                const el = document.getElementById('dashboard-debug-log');
+                if (el) {
+                    el.style.display = 'block';
+                    const div = document.createElement('div');
+                    div.textContent = message;
+                    el.appendChild(div);
+                }
+            }
 
-            try {
-                // Sử dụng apiClient đã được tích hợp ở _AdminLayout.cshtml
-                const data = await apiClient.apiGet(`/api/Statistics/dashboard-overview?from=${fromDate}&to=${toDate}&model=${selectedModel}`);
+            window.addEventListener('error', function(e) {
+                showError("GLOBAL RUNTIME ERROR: " + e.message + " at " + e.filename + ":" + e.lineno);
+            });
+
+            let growthChartInstance = null;
+            let pieChartInstance = null;
+
+            async function loadDashboardData() {
+                const dateInputs = document.querySelectorAll('.custom-date-input');
+                if (dateInputs.length < 2) {
+                    showError("Không tìm thấy đủ 2 ô nhập ngày! length = " + dateInputs.length);
+                    return;
+                }
+                const fromDate = dateInputs[0].value;
+                const toDate = dateInputs[1].value;
+                const selectedModel = document.getElementById('modelFilter')?.value || 'All';
+
+                try {
+                    logDebug("Bắt đầu gọi API /api/Statistics/dashboard-overview...");
+                    const data = await apiClient.apiGet(`/api/Statistics/dashboard-overview?from=${fromDate}&to=${toDate}&model=${selectedModel}`);
+                    logDebug("API trả về thành công.");
+
+                    try {
+                        updateKpis(data.kpis);
+                    } catch (eKpi) {
+                        showError("Lỗi trong updateKpis: " + eKpi.message);
+                    }
+
+                    // Trì hoãn vẽ biểu đồ 150ms để CSS transition của trang SPA hoàn tất (tránh lỗi canvas 0x0)
+                    setTimeout(() => {
+                        try {
+                            updateCharts(data.revenueChart, data.orderChart, selectedModel);
+                        } catch (eCharts) {
+                            showError("Lỗi trong updateCharts: " + eCharts.message);
+                        }
+                    }, 150);
+
+                    try {
+                        updateTrendingBooks(data.topBooks);
+                    } catch (eBooks) {
+                        showError("Lỗi trong updateTrendingBooks: " + eBooks.message);
+                    }
+
+                } catch (error) {
+                    showError("Lỗi gọi API hoặc xử lý tổng quát: " + error.message);
+                }
+            }
+
+            function formatCurrency(amount) {
+                if(amount >= 1000000) {
+                    return (amount / 1000000).toFixed(1) + 'M';
+                } else if(amount >= 1000) {
+                    return (amount / 1000).toFixed(1) + 'K';
+                }
+                return amount.toString();
+            }
+
+            function updateKpis(kpis) {
+                document.querySelector('.stat-card.total-revenue .value').innerHTML = `${formatCurrency(kpis.totalRevenue)} <span>VND</span>`;
+                document.querySelector('.stat-card.total-orders .value').innerHTML = `${kpis.totalOrders} <span>Orders</span>`;
+                document.querySelector('.stat-card.return-rate .value').innerHTML = `${kpis.returnRate} <span>%</span>`;
+            }
+
+            function updateCharts(revenueChart, orderChart, selectedModel) {
+                const labels = revenueChart.map(x => x.dateLabel);
+                const realBookData = revenueChart.map(x => x.realBookRevenue);
+                const blindBookData = revenueChart.map(x => x.blindBookRevenue);
+
+                const canvasGrowth = document.getElementById('growthChart');
+                if (!canvasGrowth) {
+                    logDebug("Không tìm thấy thẻ canvas #growthChart");
+                    return;
+                }
+                const ctxGrowth = canvasGrowth.getContext('2d');
                 
-                updateKpis(data.kpis);
-                updateCharts(data.revenueChart, data.orderChart, selectedModel);
-                updateTrendingBooks(data.topBooks);
-            } catch (error) {
-                console.error("Lỗi khi tải dữ liệu dashboard:", error);
-            }
-        }
+                if (growthChartInstance) {
+                    growthChartInstance.destroy();
+                }
 
-        function formatCurrency(amount) {
-            if(amount >= 1000000) {
-                return (amount / 1000000).toFixed(1) + 'M';
-            } else if(amount >= 1000) {
-                return (amount / 1000).toFixed(1) + 'K';
-            }
-            return amount.toString();
-        }
+                const datasets = [];
+                if (selectedModel === 'All' || selectedModel === 'RealBook') {
+                    datasets.push({
+                        label: 'Real Book Revenue',
+                        data: realBookData,
+                        borderColor: '#27AE60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    });
+                }
+                if (selectedModel === 'All' || selectedModel === 'BlindDate') {
+                    datasets.push({
+                        label: 'Blind Date Book Revenue',
+                        data: blindBookData,
+                        borderColor: '#E3597D',
+                        backgroundColor: 'rgba(227, 89, 125, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    });
+                }
 
-        function updateKpis(kpis) {
-            document.querySelector('.stat-card.total-revenue .value').innerHTML = `${formatCurrency(kpis.totalRevenue)} <span>VND</span>`;
-            document.querySelector('.stat-card.total-orders .value').innerHTML = `${kpis.totalOrders} <span>Orders</span>`;
-            document.querySelector('.stat-card.return-rate .value').innerHTML = `${kpis.returnRate} <span>%</span>`;
-        }
+                growthChartInstance = new Chart(ctxGrowth, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
 
-        function updateCharts(revenueChart, orderChart, selectedModel) {
-            // Cập nhật Growth Chart (Line Chart)
-            const labels = revenueChart.map(x => x.dateLabel);
-            const realBookData = revenueChart.map(x => x.realBookRevenue);
-            const blindBookData = revenueChart.map(x => x.blindBookRevenue);
+                const canvasPie = document.getElementById('pieChart');
+                if (!canvasPie) {
+                    logDebug("Không tìm thấy thẻ canvas #pieChart");
+                    return;
+                }
+                const ctxPie = canvasPie.getContext('2d');
+                
+                if (pieChartInstance) {
+                    pieChartInstance.destroy();
+                }
 
-            const ctxGrowth = document.getElementById('growthChart').getContext('2d');
-            
-            if (growthChartInstance) {
-                growthChartInstance.destroy();
-            }
-
-            const datasets = [];
-            if (selectedModel === 'All' || selectedModel === 'RealBook') {
-                datasets.push({
-                    label: 'Real Book Revenue',
-                    data: realBookData,
-                    borderColor: '#27AE60',
-                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
+                pieChartInstance = new Chart(ctxPie, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pending', 'To Ship', 'In Transit', 'Delivering', 'Completed', 'Cancelled', 'Returning'],
+                        datasets: [{
+                            data: [
+                                orderChart.pendingCount, 
+                                orderChart.awaitingPickupCount, 
+                                orderChart.shippingCount, 
+                                orderChart.deliveringCount,
+                                orderChart.completedCount, 
+                                orderChart.cancelledCount, 
+                                orderChart.returningCount
+                            ],
+                            backgroundColor: [
+                                '#F2C94C', '#9B51E0', '#2F80ED', '#56CCF2', '#27AE60', '#EB5757', '#F2994A'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 12 } }
+                        }
+                    }
                 });
             }
-            if (selectedModel === 'All' || selectedModel === 'BlindDate') {
-                datasets.push({
-                    label: 'Blind Date Book Revenue',
-                    data: blindBookData,
-                    borderColor: '#E3597D',
-                    backgroundColor: 'rgba(227, 89, 125, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                });
-            }
 
-            growthChartInstance = new Chart(ctxGrowth, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true }
+            function updateTrendingBooks(books) {
+                const tbody = document.querySelector('.trending-table tbody');
+                if (!tbody) {
+                    logDebug("Không tìm thấy phần thân bảng .trending-table tbody");
+                    return;
+                }
+                tbody.innerHTML = '';
+                
+                books.forEach(book => {
+                    const typeClass = book.productType === 'Blind Book' ? 'badge-pink' : 'badge-classic';
+                    // Đọc bookID hoặc bookId tương thích JSON camelCase
+                    const bookId = book.bookID !== undefined ? book.bookID : book.bookId;
+                    let coverImgUrl = '';
+                    if (book.productType === 'Blind Book') {
+                        coverImgUrl = '/images/BlindDateBook/BlindBook.jpg';
+                    } else {
+                        coverImgUrl = `/images/Book/cover_${bookId}.jpg`;
                     }
-                }
-            });
 
-            // Cập nhật Pie Chart
-            const ctxPie = document.getElementById('pieChart').getContext('2d');
-            
-            if (pieChartInstance) {
-                pieChartInstance.destroy();
-            }
-
-            pieChartInstance = new Chart(ctxPie, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Pending', 'To Ship', 'In Transit', 'Delivering', 'Completed', 'Cancelled', 'Returning'],
-                    datasets: [{
-                        data: [
-                            orderChart.pendingCount, 
-                            orderChart.awaitingPickupCount, 
-                            orderChart.shippingCount, 
-                            orderChart.deliveringCount,
-                            orderChart.completedCount, 
-                            orderChart.cancelledCount, 
-                            orderChart.returningCount
-                        ],
-                        backgroundColor: [
-                            '#F2C94C', '#9B51E0', '#2F80ED', '#56CCF2', '#27AE60', '#EB5757', '#F2994A'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12 } }
-                    }
-                }
-            });
-        }
-
-        function updateTrendingBooks(books) {
-            const tbody = document.querySelector('.trending-table tbody');
-            tbody.innerHTML = '';
-            
-            books.forEach(book => {
-                const typeClass = book.productType === 'Blind Book' ? 'badge-pink' : 'badge-classic';
-                let coverImgUrl = '';
-                if (book.productType === 'Blind Book') {
-                    coverImgUrl = '/images/BlindDateBook/BlindBook.jpg';
-                } else {
-                    coverImgUrl = `/images/Book/cover_${book.bookID}.jpg`;
-                }
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><span class="rank rank-${book.rank <= 3 ? book.rank : ''}">${book.rank}</span></td>
-                    <td>
-                        <div class="book-info">
-                            <img class="book-cover" src="${coverImgUrl}" onerror="this.src='/images/Book/book1.jpg'" style="object-fit: cover;" alt="Cover" />
-                            <div class="book-details">
-                                <h4>${book.bookName}</h4>
-                                <span>Stock: ${book.stockCount}</span>
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="rank rank-${book.rank <= 3 ? book.rank : ''}">${book.rank}</span></td>
+                        <td>
+                            <div class="book-info">
+                                <img class="book-cover" src="${coverImgUrl}" onerror="this.src='/images/Book/book1.jpg'" style="object-fit: cover;" alt="Cover" />
+                                <div class="book-details">
+                                    <h4>${book.bookName}</h4>
+                                    <span>Stock: ${book.stockCount}</span>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td><span class="badge ${typeClass}">${book.productType}</span></td>
-                    <td>${book.soldCount}</td>
-                    <td>${formatCurrency(book.totalRevenue)} VND</td>
-                    <td class="trend-flat">-</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+                        </td>
+                        <td><span class="badge ${typeClass}">${book.productType}</span></td>
+                        <td>${book.soldCount}</td>
+                        <td>${formatCurrency(book.totalRevenue)} VND</td>
+                        <td class="trend-flat">-</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
 
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const dateInputs = document.querySelectorAll('.custom-date-input');
-
-            // Tải dữ liệu lần đầu
+            // Khởi chạy tải dữ liệu
             loadDashboardData();
 
-            // Lắng nghe sự kiện đổi ngày
+            // Đăng ký sự kiện thay đổi ngày lọc
+            const dateInputs = document.querySelectorAll('.custom-date-input');
             dateInputs.forEach(input => {
                 input.addEventListener('change', () => {
                     loadDashboardData();
                 });
             });
 
-            // Lắng nghe bộ lọc mô hình sản phẩm
+            // Đăng ký bộ lọc mô hình
             const modelFilter = document.getElementById('modelFilter');
             if (modelFilter) {
                 modelFilter.addEventListener('change', function() {
@@ -231,7 +292,7 @@
                     window.location.href = `/api/Statistics/export-pdf?from=${fromDate}&to=${toDate}&model=${selectedModel}`;
                 });
             }
-        });
+        })();
     </script>
 }
 

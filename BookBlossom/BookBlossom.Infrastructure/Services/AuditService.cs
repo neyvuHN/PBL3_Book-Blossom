@@ -27,7 +27,7 @@ namespace BookBlossom.Infrastructure.Services
                 OldData = oldData,
                 NewData = newData,
                 IPAddress = ipAddress,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
             };
 
             _context.AuditLogs.Add(log);

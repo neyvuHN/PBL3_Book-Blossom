@@ -294,7 +294,7 @@
     <script src="~/js/admin/orders/orders-controller.js" asp-append-version="true"></script>
     
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        (() => {
             // Retrieve and parse backend data passed dynamically from ASP.NET MVC ViewModel
             const initialData = @Html.Raw(Json.Serialize(Model));
             
@@ -305,6 +305,6 @@
             
             // Start listening and managing the DOM
             controller.init();
-        });
+        })();
     </script>
 }

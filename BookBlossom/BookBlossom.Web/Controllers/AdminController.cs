@@ -31,7 +31,17 @@ namespace BookBlossom.Web.Controllers
             _auditService = auditService;
         }
 
-        public async Task<IActionResult> SystemLogs()
+        public IActionResult SystemLogs()
+        {
+            var model = new ViewModels.Admin.SystemLogsViewModel
+            {
+                Logs = new List<ViewModels.Admin.AuditLogItemViewModel>()
+            };
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSystemLogsData()
         {
             var logs = await _context.AuditLogs.ToListAsync();
 
@@ -58,12 +68,12 @@ namespace BookBlossom.Web.Controllers
                     OldData = l.OldData,
                     NewData = l.NewData,
                     IPAddress = l.IPAddress,
-                    CreatedAt = l.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")
+                    CreatedAt = l.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")
                 })
                 .OrderByDescending(x => x.LogID)
                 .ToList()
             };
-            return View(model);
+            return Json(model);
         }
 
         public IActionResult Dashboard()
@@ -71,7 +81,20 @@ namespace BookBlossom.Web.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Users()
+        public IActionResult Users()
+        {
+            var model = new ViewModels.Admin.UserManagementViewModel
+            {
+                Buyers = new List<ViewModels.Admin.AdminUserItemViewModel>(),
+                Staff = new List<ViewModels.Admin.AdminUserItemViewModel>(),
+                Banned = new List<ViewModels.Admin.AdminUserItemViewModel>()
+            };
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUsersData()
         {
             // --- Auto database adjustments (distribute Free packages and balance resources) ---
 
@@ -317,7 +340,7 @@ namespace BookBlossom.Web.Controllers
                 Banned = bannedList
             };
 
-            return View(model);
+            return Json(model);
         }
 
         [HttpPost]

@@ -100,12 +100,12 @@
     <script src="~/js/admin/content-reports/content-reports-controller.js" asp-append-version="true"></script>
     
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        (() => {
             // Initialize MVC
             const model = new ContentReportsModel();
             const view = new ContentReportsView();
             const controller = new ContentReportsController(model, view);
             controller.init();
-        });
+        })();
     </script>
 }

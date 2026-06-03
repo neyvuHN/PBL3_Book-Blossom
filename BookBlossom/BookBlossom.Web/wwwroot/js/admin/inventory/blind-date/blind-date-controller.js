@@ -7,154 +7,160 @@ class BlindDateController {
     }
 
     async init() {
-        // Load initial data from server
-        await this.loadDataFromServer();
+        // Load initial data from server (isInitial = true to leverage SWR cache)
+        await this.loadDataFromServer(true);
 
-        // Attach click event listeners via delegation
-        document.addEventListener('click', async (e) => {
-            // 1. Click "Tạo gói Blind Date" from books inventory tab
-            const createBtn = e.target.closest('.btn-create-blind-date');
-            if (createBtn) {
-                e.preventDefault();
-                const bookData = {
-                    id: parseInt(createBtn.dataset.bookId, 10),
-                    title: createBtn.dataset.title,
-                    price: parseFloat(createBtn.dataset.price),
-                    stock: parseInt(createBtn.dataset.stock, 10),
-                    image: createBtn.dataset.mainimage,
-                    categoryName: createBtn.dataset.categoryName
-                };
-                this.view.showModal(bookData, false);
-                return;
-            }
-
-            // 2. Click "Sửa" blind date details
-            const editBtn = e.target.closest('.btn-edit-blind-date');
-            if (editBtn) {
-                e.preventDefault();
-                const id = parseInt(editBtn.dataset.id, 10);
-                const packageData = this.model.getBlindDate(id);
-                if (packageData) {
-                    this.view.showModal(packageData, true);
+        // Attach click event listeners via delegation to specific elements instead of global document
+        const booksTableBody = document.getElementById('booksTableBody');
+        if (booksTableBody) {
+            booksTableBody.addEventListener('click', async (e) => {
+                // 1. Click "Tạo gói Blind Date" from books inventory tab
+                const createBtn = e.target.closest('.btn-create-blind-date');
+                if (createBtn) {
+                    e.preventDefault();
+                    const bookData = {
+                        id: parseInt(createBtn.dataset.bookId, 10),
+                        title: createBtn.dataset.title,
+                        price: parseFloat(createBtn.dataset.price),
+                        stock: parseInt(createBtn.dataset.stock, 10),
+                        image: createBtn.dataset.mainimage,
+                        categoryName: createBtn.dataset.categoryName
+                    };
+                    this.view.showModal(bookData, false);
                 }
-                return;
-            }
+            });
+        }
 
-            // 3. Click "Duyệt" (approve request)
-            const approveBtn = e.target.closest('.btn-approve-blind-date');
-            if (approveBtn) {
-                e.preventDefault();
-                const id = parseInt(approveBtn.dataset.id, 10);
-                if (confirm(`Are you sure you want to approve selling Blind Date package #${id}?`)) {
-                    try {
-                        await this.model.approveBlindDate(id);
-                        await this.loadDataFromServer();
-                        window.showPremiumAlert('Success', `Approved and launched Blind Date package #${id}!`, 'success');
-                    } catch (err) {
-                        window.showPremiumAlert('Error', err.message, 'danger');
+        if (this.view.tableBody) {
+            this.view.tableBody.addEventListener('click', async (e) => {
+                // 2. Click "Sửa" blind date details
+                const editBtn = e.target.closest('.btn-edit-blind-date');
+                if (editBtn) {
+                    e.preventDefault();
+                    const id = parseInt(editBtn.dataset.id, 10);
+                    const packageData = this.model.getBlindDate(id);
+                    if (packageData) {
+                        this.view.showModal(packageData, true);
                     }
-                }
-                return;
-            }
-
-            // 4. Click "Từ chối" (reject request)
-            const rejectBtn = e.target.closest('.btn-reject-blind-date');
-            if (rejectBtn) {
-                e.preventDefault();
-                const id = parseInt(rejectBtn.dataset.id, 10);
-                const reason = prompt('Enter the reason for rejecting this request:');
-                if (reason !== null) {
-                    if (!reason.trim()) {
-                        alert('Please enter a rejection reason.');
-                        return;
-                    }
-                    try {
-                        await this.model.rejectBlindDate(id, reason.trim());
-                        await this.loadDataFromServer();
-                        window.showPremiumAlert('Success', `Rejected selling request for Blind Date package #${id}.`, 'success');
-                    } catch (err) {
-                        window.showPremiumAlert('Error', err.message, 'danger');
-                    }
-                }
-                return;
-            }
-
-            // 5. Click "Restock" (Marketing requests restocking)
-            const restockBtn = e.target.closest('.btn-restock-blind-date');
-            if (restockBtn) {
-                e.preventDefault();
-                const id = parseInt(restockBtn.dataset.id, 10);
-                const quantityStr = prompt('Enter the quantity of books to restock:');
-                if (quantityStr !== null) {
-                    const quantity = parseInt(quantityStr, 10);
-                    if (isNaN(quantity) || quantity <= 0) {
-                        alert('Invalid quantity.');
-                        return;
-                    }
-                    try {
-                        await this.model.restockBlindDate(id, quantity);
-                        await this.loadDataFromServer();
-                        window.showPremiumAlert('Success', `Restock request (+${quantity}) sent for review!`, 'success');
-                    } catch (err) {
-                        window.showPremiumAlert('Error', err.message, 'danger');
-                    }
-                }
-                return;
-            }
-
-            // 6. Click "Duyệt Restock" (Store manager confirms restocking)
-            const approveRestockBtn = e.target.closest('.btn-approve-restock-blind-date');
-            if (approveRestockBtn) {
-                e.preventDefault();
-                const id = parseInt(approveRestockBtn.dataset.id, 10);
-                const defaultQty = parseInt(approveRestockBtn.dataset.quantity, 10) || 0;
-                const quantityStr = prompt(`Confirm quantity to restock in inventory:`, defaultQty);
-                if (quantityStr !== null) {
-                    const quantity = parseInt(quantityStr, 10);
-                    if (isNaN(quantity) || quantity <= 0) {
-                        alert('Invalid quantity.');
-                        return;
-                    }
-                    try {
-                        await this.model.approveRestock(id, quantity);
-                        await this.loadDataFromServer();
-                        window.showPremiumAlert('Success', `Approved restocking of +${quantity} books successfully!`, 'success');
-                    } catch (err) {
-                        window.showPremiumAlert('Error', err.message, 'danger');
-                    }
-                }
-                return;
-            }
-
-            // 7. Click "Khóa/Mở khóa"
-            const lockBtn = e.target.closest('.btn-lock-blind-date');
-            if (lockBtn) {
-                e.preventDefault();
-                const id = parseInt(lockBtn.dataset.id, 10);
-                try {
-                    await this.model.toggleLock(id);
-                    await this.loadDataFromServer();
-                    window.showPremiumAlert('Success', `Updated status of Blind Date package #${id}!`, 'success');
-                } catch (err) {
-                    window.showPremiumAlert('Error', err.message, 'danger');
-                }
-                return;
-            }
-
-            // 8. Click "In" (Barcode printing)
-            const printBtn = e.target.closest('.btn-print-barcode');
-            if (printBtn) {
-                e.preventDefault();
-                const id = parseInt(printBtn.dataset.id, 10);
-                const barcode = printBtn.dataset.barcode;
-                if (!barcode || barcode === 'Awaiting Approval') {
-                    alert('Cannot print barcode for unapproved packages.');
                     return;
                 }
-                this.printBarcode(id, barcode);
-                return;
-            }
-        });
+
+                // 3. Click "Duyệt" (approve request)
+                const approveBtn = e.target.closest('.btn-approve-blind-date');
+                if (approveBtn) {
+                    e.preventDefault();
+                    const id = parseInt(approveBtn.dataset.id, 10);
+                    if (confirm(`Are you sure you want to approve selling Blind Date package #${id}?`)) {
+                        try {
+                            await this.model.approveBlindDate(id);
+                            await this.loadDataFromServer();
+                            window.showPremiumAlert('Success', `Approved and launched Blind Date package #${id}!`, 'success');
+                        } catch (err) {
+                            window.showPremiumAlert('Error', err.message, 'danger');
+                        }
+                    }
+                    return;
+                }
+
+                // 4. Click "Từ chối" (reject request)
+                const rejectBtn = e.target.closest('.btn-reject-blind-date');
+                if (rejectBtn) {
+                    e.preventDefault();
+                    const id = parseInt(rejectBtn.dataset.id, 10);
+                    const reason = prompt('Enter the reason for rejecting this request:');
+                    if (reason !== null) {
+                        if (!reason.trim()) {
+                            alert('Please enter a rejection reason.');
+                            return;
+                        }
+                        try {
+                            await this.model.rejectBlindDate(id, reason.trim());
+                            await this.loadDataFromServer();
+                            window.showPremiumAlert('Success', `Rejected selling request for Blind Date package #${id}.`, 'success');
+                        } catch (err) {
+                            window.showPremiumAlert('Error', err.message, 'danger');
+                        }
+                    }
+                    return;
+                }
+
+                // 5. Click "Restock" (Marketing requests restocking)
+                const restockBtn = e.target.closest('.btn-restock-blind-date');
+                if (restockBtn) {
+                    e.preventDefault();
+                    const id = parseInt(restockBtn.dataset.id, 10);
+                    const quantityStr = prompt('Enter the quantity of books to restock:');
+                    if (quantityStr !== null) {
+                        const quantity = parseInt(quantityStr, 10);
+                        if (isNaN(quantity) || quantity <= 0) {
+                            alert('Invalid quantity.');
+                            return;
+                        }
+                        try {
+                            await this.model.restockBlindDate(id, quantity);
+                            await this.loadDataFromServer();
+                            window.showPremiumAlert('Success', `Restock request (+${quantity}) sent for review!`, 'success');
+                        } catch (err) {
+                            window.showPremiumAlert('Error', err.message, 'danger');
+                        }
+                    }
+                    return;
+                }
+
+                // 6. Click "Duyệt Restock" (Store manager confirms restocking)
+                const approveRestockBtn = e.target.closest('.btn-approve-restock-blind-date');
+                if (approveRestockBtn) {
+                    e.preventDefault();
+                    const id = parseInt(approveRestockBtn.dataset.id, 10);
+                    const defaultQty = parseInt(approveRestockBtn.dataset.quantity, 10) || 0;
+                    const quantityStr = prompt(`Confirm quantity to restock in inventory:`, defaultQty);
+                    if (quantityStr !== null) {
+                        const quantity = parseInt(quantityStr, 10);
+                        if (isNaN(quantity) || quantity <= 0) {
+                            alert('Invalid quantity.');
+                            return;
+                        }
+                        try {
+                            await this.model.approveRestock(id, quantity);
+                            await this.loadDataFromServer();
+                            window.showPremiumAlert('Success', `Approved restocking of +${quantity} books successfully!`, 'success');
+                        } catch (err) {
+                            window.showPremiumAlert('Error', err.message, 'danger');
+                        }
+                    }
+                    return;
+                }
+
+                // 7. Click "Khóa/Mở khóa"
+                const lockBtn = e.target.closest('.btn-lock-blind-date');
+                if (lockBtn) {
+                    e.preventDefault();
+                    const id = parseInt(lockBtn.dataset.id, 10);
+                    try {
+                        await this.model.toggleLock(id);
+                        await this.loadDataFromServer();
+                        window.showPremiumAlert('Success', `Updated status of Blind Date package #${id}!`, 'success');
+                    } catch (err) {
+                        window.showPremiumAlert('Error', err.message, 'danger');
+                    }
+                    return;
+                }
+
+                // 8. Click "In" (Barcode printing)
+                const printBtn = e.target.closest('.btn-print-barcode');
+                if (printBtn) {
+                    e.preventDefault();
+                    const id = parseInt(printBtn.dataset.id, 10);
+                    const barcode = printBtn.dataset.barcode;
+                    if (!barcode || barcode === 'Awaiting Approval') {
+                        alert('Cannot print barcode for unapproved packages.');
+                        return;
+                    }
+                    this.printBarcode(id, barcode);
+                    return;
+                }
+            });
+        }
 
         // Handle Form Submission for creating/updating Blind Date
         const form = document.getElementById('createBlindDateForm');
@@ -245,9 +251,10 @@ class BlindDateController {
         this.renderFilteredData = renderFilteredData;
     }
 
-    async loadDataFromServer() {
+    async loadDataFromServer(isInitial = false) {
         const tbody = this.view.tableBody;
-        if (tbody && this.model.getBlindDates().length === 0) {
+        const hasExistingData = tbody && tbody.children.length > 0 && !tbody.querySelector('.spinner-border');
+        if (tbody && (!isInitial || !hasExistingData)) {
             tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading Blind Date list from server...</div></td></tr>';
         }
 
@@ -349,33 +356,4 @@ function initBlindDateMVC() {
         });
     }
 }
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initBlindDateMVC);
-} else {
-    initBlindDateMVC();
-}
-
-// ==========================================
-// SPA ROUTER: Khởi tạo lại khi điều hướng đến trang Inventory
-// ==========================================
-window.addEventListener('spa:page-ready', function (e) {
-    const url = (e.detail && e.detail.url) ? e.detail.url.toLowerCase() : window.location.pathname.toLowerCase();
-    if (url.includes('/admin/inventory')) {
-        setTimeout(function () {
-            const tbody = document.getElementById('blindDateTableBody');
-            if (!tbody) return;
-
-            const blindDateModel = new BlindDateModel();
-            const blindDateView = new BlindDateView();
-            const blindDateController = new BlindDateController(blindDateModel, blindDateView);
-
-            // Gắn lại sự kiện tab Blind Date
-            const blindDateTabBtn = document.getElementById('blinddate-tab');
-            if (blindDateTabBtn) {
-                blindDateTabBtn.addEventListener('click', () => {
-                    blindDateController.loadDataFromServer();
-                });
-            }
-        }, 100);
-    }
-});
+// MVC initialization function made available globally. Initialized by View.

@@ -1,3 +1,17 @@
+function formatCompactVND(val) {
+    if (!val || val === 0) return '0';
+    if (val >= 1e9) {
+        return (val / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+    }
+    if (val >= 1e6) {
+        return (val / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (val >= 1e3) {
+        return (val / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return val.toString();
+}
+
 class VouchersModel {
     constructor() {
         this.vouchers = [];
@@ -69,7 +83,7 @@ class VouchersModel {
                     stackable: v.isStackable,
                     autoRestore: v.isAutoRefundable,
                     status: invStatusMap[v.statusVoucher] || 'Draft',
-                    roi: stats.roi > 0 ? `${stats.roi}x` : '0x',
+                    roi: formatCompactVND(stats.totalRevenueGenerated || 0),
                     selectedCategories: v.applicableCategoryIDs || [],
                     selectedBooks: [],
                     stats: stats

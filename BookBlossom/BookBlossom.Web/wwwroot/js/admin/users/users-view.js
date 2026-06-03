@@ -36,6 +36,27 @@ class UsersView {
     }
 
     /**
+     * Show loading spinners in both table bodies
+     */
+    showLoading() {
+        const loadingHtml = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #888;">
+                    <div class="users-loading-spinner"></div>
+                    <div style="font-weight: 500; font-size: 0.9rem;">Đang tải danh sách người dùng...</div>
+                </td>
+            </tr>
+        `;
+        this.bodies.buyers.innerHTML = loadingHtml;
+        this.bodies.banned.innerHTML = loadingHtml;
+    }
+
+    hasData() {
+        return this.bodies.buyers.querySelector('tr[data-user-id]') !== null || 
+               this.bodies.banned.querySelector('tr[data-user-id]') !== null;
+    }
+
+    /**
      * Toggles active classes on tabs and reveals the appropriate table pane.
      */
     showTab(tabName) {

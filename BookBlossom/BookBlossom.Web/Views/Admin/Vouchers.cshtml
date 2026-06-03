@@ -484,10 +484,10 @@
     <script src="~/js/admin/vouchers/vouchers-view.js"></script>
     <script src="~/js/admin/vouchers/vouchers-controller.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        (() => {
             const model = new VouchersModel();
             const view = new VouchersView();
             const controller = new VouchersController(model, view);
-        });
+        })();
     </script>
 }

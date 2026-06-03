@@ -4,8 +4,9 @@
  */
 class UsersModel {
     constructor(initialData) {
-        this.buyers = initialData.buyers || [];
-        this.banned = initialData.banned || [];
+        const data = initialData || {};
+        this.buyers = data.buyers || [];
+        this.banned = data.banned || [];
         
         // Active Filter States
         this.activeTab = 'buyers'; // 'buyers', 'banned'
@@ -16,6 +17,40 @@ class UsersModel {
         // Popover Selected State
         this.selectedUserId = null;
         this.selectedUserRole = '';
+    }
+
+    /**
+     * Helper to get common fetch headers containing the Bearer JWT token.
+     */
+    _getHeaders() {
+        const token = localStorage.getItem('accessToken');
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        return headers;
+    }
+
+    /**
+     * Fetches live users list from backend API.
+     */
+    async fetchAllDataFromApi() {
+        const headers = this._getHeaders();
+        const response = await fetch('/Admin/GetUsersData', {
+            method: 'GET',
+            headers: headers
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to load users: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        this.buyers = data.buyers || [];
+        this.banned = data.banned || [];
+        return true;
     }
 
     /**

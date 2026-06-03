@@ -70,8 +70,50 @@ namespace BookBlossom.Web.Controllers
 
         [HttpGet("/Auth/Logout")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult LogoutView()
+        public async Task<IActionResult> LogoutView()
         {
+            try
+            {
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+                var ipAddress = GetClientIpAddress();
+
+                if (string.IsNullOrEmpty(userIdClaim) && Request.Cookies.TryGetValue("AuthToken", out var cookieToken) && !string.IsNullOrEmpty(cookieToken))
+                {
+                    try
+                    {
+                        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                        if (handler.CanReadToken(cookieToken))
+                        {
+                            var jwtToken = handler.ReadJwtToken(cookieToken);
+                            userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "nameid")?.Value;
+                            roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value;
+                        }
+                    }
+                    catch { /* Ignore token parsing errors */ }
+                }
+
+                if (!string.IsNullOrEmpty(userIdClaim) && long.TryParse(userIdClaim, out long currentAdminId))
+                {
+                    if (Enum.TryParse(roleClaim, out UserRole roleEnum) && roleEnum == UserRole.Admin)
+                    {
+                        await _auditService.LogActionAsync(
+                            currentAdminId,
+                            null,
+                            ActionType.ADMIN_LOGOUT,
+                            "Users",
+                            null,
+                            "Quản trị viên đăng xuất khỏi hệ thống.",
+                            ipAddress
+                        );
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Prevent logout failures due to database or logging issues
+            }
+
             Response.Cookies.Delete("AuthToken");
             return Redirect("/Auth/Login?logout=true");
         }

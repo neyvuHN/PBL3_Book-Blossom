@@ -6,6 +6,20 @@
 
 @section Styles {
     <style>
+        @@keyframes logsSpin {
+            to { transform: rotate(360deg); }
+        }
+        .users-loading-spinner {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(227, 89, 125, 0.15);
+            border-radius: 50%;
+            border-top-color: #E3597D;
+            animation: logsSpin 0.8s linear infinite;
+            margin-bottom: 8px;
+        }
+
         .systemlogs-container {
             padding: 24px;
             height: 100%;
@@ -174,13 +188,12 @@
             <input type="text" id="searchInput" placeholder="Search by Admin or Table..." />
             <select id="actionFilter">
                 <option value="all">All Actions</option>
-                <option value="LOGIN">Login & Authentication</option>
-                <option value="STAFF">Staff Account Management</option>
-                <option value="LOCK">Account Locking</option>
+                <option value="ADMIN_LOGIN">Admin Login</option>
+                <option value="LOGIN_FAILED">Login Failed</option>
+                <option value="ADMIN_LOGOUT">Admin Logout</option>
+                <option value="LOCK_ACCOUNT">Lock Account</option>
+                <option value="UNLOCK_ACCOUNT">Unlock Account</option>
                 <option value="EXPORT">Data Export</option>
-                <option value="CREATE">Create Resource</option>
-                <option value="UPDATE">Update Resource</option>
-                <option value="DELETE">Delete Resource</option>
             </select>
             <input type="date" id="dateFilter" />
         </div>
@@ -199,93 +212,31 @@
                         <th>Timestamp</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @if (Model.Logs != null && Model.Logs.Any())
-                    {
-                        foreach (var log in Model.Logs)
-                        {
-                            var badgeClass = "badge-other";
-                            var icon = "ph-activity";
-                            if (log.ActionTypeName.Contains("CREATE_STAFF") || log.ActionTypeName.Contains("UPDATE_STAFF") || log.ActionTypeName.Contains("DELETE_STAFF")) { badgeClass = "badge-staff"; icon = "ph-identification-badge"; }
-                            else if (log.ActionTypeName == "CREATE") { badgeClass = "badge-create"; icon = "ph-plus-circle"; }
-                            else if (log.ActionTypeName == "UPDATE") { badgeClass = "badge-update"; icon = "ph-pencil-simple"; }
-                            else if (log.ActionTypeName == "DELETE") { badgeClass = "badge-delete"; icon = "ph-trash"; }
-                            else if (log.ActionTypeName == "USER_LOGIN") { badgeClass = "badge-login"; icon = "ph-sign-in"; }
-                            else if (log.ActionTypeName == "LOGIN_FAILED") { badgeClass = "badge-failed"; icon = "ph-warning"; }
-                            else if (log.ActionTypeName == "USER_LOGOUT") { badgeClass = "badge-logout"; icon = "ph-sign-out"; }
-                            else if (log.ActionTypeName == "LOCK_ACCOUNT") { badgeClass = "badge-lock"; icon = "ph-lock-key"; }
-                            else if (log.ActionTypeName == "UNLOCK_ACCOUNT") { badgeClass = "badge-unlock"; icon = "ph-lock-key-open"; }
-                            else if (log.ActionTypeName == "EXPORT") { badgeClass = "badge-export"; icon = "ph-export"; }
-
-                            <tr class="log-row" data-action="@log.ActionTypeName" data-date="@log.CreatedAt" data-search="@log.AdminUsername.ToLower() @log.TableName?.ToLower()">
-                                <td style="font-weight: 500; color: var(--bb-primary);">#@log.LogID</td>
-                                <td>
-                                    <div class="admin-info">
-                                        <div class="admin-avatar">@log.AdminUsername.Substring(0, 1).ToUpper()</div>
-                                        <div>
-                                            <div style="font-weight: 600;">@log.AdminUsername</div>
-                                            <div style="font-size: 0.8rem; color: #64748b;">ID: @log.SystemAdminID</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="action-badge @badgeClass">
-                                        <i class="ph @icon"></i> @log.ActionTypeName
-                                    </span>
-                                </td>
-                                <td style="font-weight: 500;">@log.TableName</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(log.OldData))
-                                    {
-                                        <div class="json-data">@log.OldData</div>
-                                    }
-                                    else
-                                    {
-                                        <span style="color: #94a3b8; font-style: italic;">N/A</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(log.NewData))
-                                    {
-                                        <div class="json-data">@log.NewData</div>
-                                    }
-                                    else
-                                    {
-                                        <span style="color: #94a3b8; font-style: italic;">N/A</span>
-                                    }
-                                </td>
-                                <td><span style="font-family: monospace; color: #475569;">@log.IPAddress</span></td>
-                                <td>@log.CreatedAt</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 40px; color: #64748b;">
-                                <i class="ph ph-list-magnifying-glass" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
-                                <div>No audit logs found.</div>
-                            </td>
-                        </tr>
-                    }
+                <tbody id="logsTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #64748b;">
+                            <div class="users-loading-spinner"></div>
+                            <div class="text-muted small">Đang tải nhật ký hệ thống...</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        (async () => {
             const searchInput = document.getElementById('searchInput');
             const actionFilter = document.getElementById('actionFilter');
             const dateFilter = document.getElementById('dateFilter');
-            const rows = document.querySelectorAll('.log-row');
+            const tableBody = document.getElementById('logsTableBody');
 
             function filterTable() {
                 const searchVal = searchInput.value.toLowerCase();
                 const actionVal = actionFilter.value;
                 const dateVal = dateFilter.value;
+                const rows = tableBody.querySelectorAll('.log-row');
 
                 rows.forEach(row => {
                     const searchStr = row.getAttribute('data-search');
@@ -308,9 +259,93 @@
                 });
             }
 
-            searchInput.addEventListener('input', filterTable);
-            actionFilter.addEventListener('change', filterTable);
-            dateFilter.addEventListener('change', filterTable);
-        });
+            if (searchInput) searchInput.addEventListener('input', filterTable);
+            if (actionFilter) actionFilter.addEventListener('change', filterTable);
+            if (dateFilter) dateFilter.addEventListener('change', filterTable);
+
+            // Fetch logs asynchronously
+            try {
+                const token = localStorage.getItem('accessToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const response = await fetch('/Admin/GetSystemLogsData', {
+                    method: 'GET',
+                    headers: headers
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to load audit logs");
+                }
+
+                const data = await response.json();
+                const logs = data.logs || [];
+
+                let html = '';
+                if (logs.length > 0) {
+                    logs.forEach(log => {
+                        let badgeClass = "badge-other";
+                        let icon = "ph-activity";
+                        const action = log.actionTypeName;
+                        if (action === "ADMIN_LOGIN") { badgeClass = "badge-login"; icon = "ph-sign-in"; }
+                        else if (action === "LOGIN_FAILED") { badgeClass = "badge-failed"; icon = "ph-warning"; }
+                        else if (action === "ADMIN_LOGOUT") { badgeClass = "badge-logout"; icon = "ph-sign-out"; }
+                        else if (action === "LOCK_ACCOUNT") { badgeClass = "badge-lock"; icon = "ph-lock-key"; }
+                        else if (action === "UNLOCK_ACCOUNT") { badgeClass = "badge-unlock"; icon = "ph-lock-key-open"; }
+                        else if (action === "EXPORT") { badgeClass = "badge-export"; icon = "ph-export"; }
+
+                        const oldDataHtml = log.oldData ? `<div class="json-data">${log.oldData}</div>` : `<span style="color: #94a3b8; font-style: italic;">N/A</span>`;
+                        const newDataHtml = log.newData ? `<div class="json-data">${log.newData}</div>` : `<span style="color: #94a3b8; font-style: italic;">N/A</span>`;
+
+                        html += `
+                            <tr class="log-row" data-action="${action}" data-date="${log.createdAt}" data-search="${log.adminUsername.toLowerCase()} ${(log.tableName || '').toLowerCase()}">
+                                <td style="font-weight: 500; color: var(--bb-primary);">#${log.logID}</td>
+                                <td>
+                                    <div class="admin-info">
+                                        <div class="admin-avatar">${log.adminUsername.substring(0, 1).toUpperCase()}</div>
+                                        <div>
+                                            <div style="font-weight: 600;">${log.adminUsername}</div>
+                                            <div style="font-size: 0.8rem; color: #64748b;">ID: ${log.systemAdminID}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="action-badge ${badgeClass}">
+                                        <i class="ph ${icon}"></i> ${action}
+                                    </span>
+                                </td>
+                                <td style="font-weight: 500;">${log.tableName || ''}</td>
+                                <td>${oldDataHtml}</td>
+                                <td>${newDataHtml}</td>
+                                <td><span style="font-family: monospace; color: #475569;">${log.ipAddress}</span></td>
+                                <td>${log.createdAt}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html = `
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: #64748b;">
+                                <i class="ph ph-list-magnifying-glass" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
+                                <div>No audit logs found.</div>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                tableBody.innerHTML = html;
+                filterTable(); // Run filter in case user typed search term while loading
+            } catch (err) {
+                console.error("Error loading system logs:", err);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #dc2626; font-weight: 600;">
+                            <i class="ph ph-warning" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                            <div>Failed to load system audit logs.</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        })();
     </script>
 }

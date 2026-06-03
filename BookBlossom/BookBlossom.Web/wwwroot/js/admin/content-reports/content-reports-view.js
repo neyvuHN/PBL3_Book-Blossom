@@ -89,10 +89,15 @@ class ContentReportsView {
             });
         }
 
-        // Window resize listener to handle dynamic screen resize/zoom
-        window.addEventListener('resize', () => {
+        // Window resize listener to handle dynamic screen resize/zoom (self-cleaning khi chuyển tab tránh rò rỉ bộ nhớ)
+        const resizeHandler = () => {
+            if (this.tabs && this.tabs.length > 0 && !document.body.contains(this.tabs[0])) {
+                window.removeEventListener('resize', resizeHandler);
+                return;
+            }
             this.adjustReadMoreButtonsVisibility();
-        });
+        };
+        window.addEventListener('resize', resizeHandler);
 
         // Report filter select listener
         const filterSelect = document.getElementById('filterReportStatus');

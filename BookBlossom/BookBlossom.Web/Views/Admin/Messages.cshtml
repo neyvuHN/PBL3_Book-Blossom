@@ -49,4 +49,9 @@
 
 @section Scripts {
     <script src="~/js/admin/admin-messages.js" asp-append-version="true"></script>
+    <script>
+        if (typeof initAdminMessages === 'function') {
+            initAdminMessages();
+        }
+    </script>
 }

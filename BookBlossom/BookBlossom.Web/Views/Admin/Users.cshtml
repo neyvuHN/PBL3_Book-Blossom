@@ -6,6 +6,21 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/admin/users.css" asp-append-version="true" />
+    <style>
+        @@keyframes usersSpin {
+            to { transform: rotate(360deg); }
+        }
+        .users-loading-spinner {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(227, 89, 125, 0.15);
+            border-radius: 50%;
+            border-top-color: #E3597D;
+            animation: usersSpin 0.8s linear infinite;
+            margin-bottom: 8px;
+        }
+    </style>
 }
 
 <div class="users-management-container">
@@ -77,7 +92,7 @@
     <script src="~/js/admin/users/users-controller.js" asp-append-version="true"></script>
     
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        (() => {
             // Retrieve and parse backend data passed dynamically from ASP.NET MVC ViewModel
             const initialData = @Html.Raw(Json.Serialize(Model));
             
@@ -88,6 +103,6 @@
             
             // Start listening and managing the DOM
             controller.init();
-        });
+        })();
     </script>
 }

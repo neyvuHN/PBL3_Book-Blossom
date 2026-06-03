@@ -16,7 +16,7 @@ class UsersController {
     /**
      * Entry point to wire event listeners and render the initial page view.
      */
-    init() {
+    async init() {
         this.registerTabEvents();
         this.registerFilterEvents();
         this.registerTableEvents();
@@ -26,8 +26,28 @@ class UsersController {
         // Initialize dynamic filters for default tab ('buyers')
         this.view.updateFiltersForTab(this.model.activeTab);
 
-        // Initial paint
-        this.redrawActiveTable();
+        // Show loading spinner only if the table is currently empty
+        if (!this.view.hasData()) {
+            this.view.showLoading();
+        }
+
+        // Fetch dynamic data
+        await this.loadAllData();
+    }
+
+    /**
+     * Helper to load all dynamic user data from database APIs.
+     */
+    async loadAllData() {
+        try {
+            await this.model.fetchAllDataFromApi();
+            this.redrawActiveTable();
+        } catch (err) {
+            console.error("Failed to load users:", err);
+            if (window.apiClient && window.apiClient.showToast) {
+                window.apiClient.showToast("Failed to load users: " + (err.message || err), "error");
+            }
+        }
     }
 
     /**
@@ -165,12 +185,17 @@ class UsersController {
         this.view.btnCloseBuyerNoteModal.addEventListener('click', closeNoteModal);
         this.view.btnCancelBuyerNote.addEventListener('click', closeNoteModal);
 
-        // Escape key press to dismiss
-        document.addEventListener('keydown', (e) => {
+        // Escape key press to dismiss (cơ chế tự giải phóng khi chuyển tab tránh rò rỉ bộ nhớ)
+        const escHandler = (e) => {
+            if (!document.body.contains(this.view.buyerNoteModal)) {
+                document.removeEventListener('keydown', escHandler);
+                return;
+            }
             if (e.key === 'Escape' && this.view.buyerNoteModal.classList.contains('active')) {
                 closeNoteModal();
             }
-        });
+        };
+        document.addEventListener('keydown', escHandler);
 
         // Click outside the card to close
         this.view.buyerNoteModal.addEventListener('click', (e) => {
