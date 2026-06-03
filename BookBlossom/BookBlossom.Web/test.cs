@@ -1,0 +1,1 @@
+using System; using System.Text.Json; class P { public long ConversationID { get; set; } static void Main() { Console.WriteLine(JsonSerializer.Serialize(new P { ConversationID = 1 }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })); } }
