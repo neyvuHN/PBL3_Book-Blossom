@@ -1,8 +1,108 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/apiClient.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
+
+            // ---- API INTEGRATION: Fetch Messages on Load ----
+            let activeConversationId = null;
+            function loadMessages() {
+                if (window.apiClient) {
+                    window.apiClient.apiGet('/api/MessagesAPI/conversations').then(res => {
+                        if (res && res.data && res.data.length > 0) {
+                            activeConversationId = res.data[0].conversationID;
+                            return window.apiClient.apiGet('/api/MessagesAPI/conversations/' + activeConversationId);
+                        } else {
+                            $('#chat-stream').empty().append('<div class="msg-bubble-group incoming"><div class="msg-bubble-content"><div class="msg-text-bubble">Chào mừng đến với BookBlossom! Hãy gửi tin nhắn để bắt đầu trò chuyện.</div></div></div>');
+                        }
+                    }).then(res => {
+                        if (res && res.data) {
+                            renderMessages(res.data);
+                        }
+                    }).catch(err => {
+                        console.error("Failed to load messages", err);
+                    });
+                }
+            }
+
+            function getCookie(name) {
+                let matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\/\+^])/g, '\\$1') + "=([^;]*)"));
+                return matches ? decodeURIComponent(matches[1]) : undefined;
+            }
+
+            function isGuest() {
+                return !getCookie("AuthToken");
+            }
+
+            function renderMessages(messages) {
+                $('#chat-stream').empty();
+                messages.forEach(msg => {
+                    let bubble = '';
+                    let time = new Date(msg.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    
+                    let booksHtml = "";
+                    if (msg.attachedBookID) {
+                        booksHtml = `
+                            <div style="display: flex; gap: 12px; align-items: start; background: #fff; padding: 12px; border-radius: 12px; border: 1.5px solid rgba(194, 24, 91, 0.1); margin-top: 10px;">
+                                <img src="${msg.attachedBookImage || '/images/Book/book1.jpg'}" style="width: 45px; height: 62px; object-fit: cover; border-radius: 4px;">
+                                <div style="flex: 1; min-width: 0; text-align: left;">
+                                    <h4 style="font-size: 0.85rem; font-weight: 700; color: #111; margin: 0 0 2px 0;">${msg.attachedBookTitle}</h4>
+                                    <p style="font-size: 0.72rem; color: #666; margin: 0;">${msg.attachedBookAuthor || 'Unknown'}</p>
+                                    <a href="/Explore#book-details-${encodeURIComponent(msg.attachedBookTitle)}" style="font-size: 0.72rem; font-weight: 700; color: #C2185B; text-decoration: none; display: inline-block; margin-top: 6px;" target="_blank"><i class="fas fa-external-link-alt"></i> View Book</a>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    let mediaHtml = "";
+                    if (msg.attachmentUrl) {
+                        if (msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+                            mediaHtml = `<div class="chat-lightbox-trigger" data-src="${msg.attachmentUrl}" style="cursor: zoom-in; width: 100%; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; margin-top:10px;"><img src="${msg.attachmentUrl}" style="width: 100%; height: auto; max-height: 200px; object-fit: cover;"></div>`;
+                        } else {
+                            mediaHtml = `<div style="width: 100%; border-radius: 8px; overflow: hidden; border: 1.5px solid #EEC7C9; margin-top:10px;"><video src="${msg.attachmentUrl}" controls style="width: 100%; max-height: 200px; background: #000;"></video></div>`;
+                        }
+                    }
+
+                    if (msg.senderAvatar && msg.senderAvatar.includes('admin')) {
+                        // Incoming
+                        bubble = `
+                            <div class="msg-bubble-group incoming" id="chat-msg-${msg.messageID}">
+                                <img src="${msg.senderAvatar}" alt="${msg.senderName}" class="msg-avatar">
+                                <div class="msg-bubble-content">
+                                    <div class="msg-text-bubble">
+                                        ${msg.content ? `<div>${msg.content}</div>` : ''}
+                                        ${booksHtml}
+                                        ${mediaHtml}
+                                    </div>
+                                    <div class="msg-meta">${time} • ${msg.senderName}</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Outgoing
+                        bubble = `
+                            <div class="msg-bubble-group outgoing" id="chat-msg-${msg.messageID}">
+                                <div class="msg-bubble-content">
+                                    <div class="msg-text-bubble" style="background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333;">
+                                        ${msg.content ? `<div style="font-weight: 500;">${msg.content}</div>` : ''}
+                                        ${booksHtml}
+                                        ${mediaHtml}
+                                    </div>
+                                    <div class="msg-meta">${time} • Sent <i class="fas fa-check-double" style="color: #C2185B; margin-left: 2px;"></i></div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    $('#chat-stream').append(bubble);
+                });
+                scrollToBottom();
+            }
+
+            if (!isGuest()) {
+                loadMessages();
+            }
+            // -------------------------------------------------
             // Dynamic Active Product Context Parser from URL query params (Index detail redirect support)
             const urlParams = new URLSearchParams(window.location.search);
             const paramTitle = urlParams.get('title');
@@ -849,6 +949,68 @@
             });
 
             // Tag Book Modal Triggers
+            let tagBooksLoaded = false;
+            function loadTagBooks() {
+                if (tagBooksLoaded || !window.apiClient) return;
+                tagBooksLoaded = true;
+                
+                // Fetch Recent (Real Books)
+                window.apiClient.apiGet('/api/RealBook?pageSize=5').then(res => {
+                    if (res && res.data && res.data.items) {
+                        $('#recent-books-list').empty();
+                        res.data.items.slice(0, 5).forEach(book => {
+                            let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
+                            let item = `
+                                <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                                    <img src="${imgUrl}" alt="Book">
+                                    <div>
+                                        <h4>${book.title}</h4>
+                                        <p>${book.author || 'Unknown'} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                                    </div>
+                                </div>
+                            `;
+                            $('#recent-books-list').append(item);
+                        });
+                        if (res.data.items.length === 0) {
+                            $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
+                        }
+                    }
+                }).catch(() => {
+                    $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load books.</div>');
+                });
+                
+                // Fetch Wishlist
+                if (!isGuest()) {
+                    window.apiClient.apiGet('/api/Wishlist').then(res => {
+                        if (res && res.data) {
+                            $('#wishlist-books-list').empty();
+                            res.data.slice(0, 5).forEach(item => {
+                                let book = item.realBook;
+                                if (!book) return;
+                                let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
+                                let html = `
+                                    <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                                        <img src="${imgUrl}" alt="Book">
+                                        <div>
+                                            <h4>${book.title}</h4>
+                                            <p>${book.author || 'Unknown'} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                                        </div>
+                                    </div>
+                                `;
+                                $('#wishlist-books-list').append(html);
+                            });
+                            if (res.data.length === 0) {
+                                $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Your wishlist is empty.</div>');
+                            }
+                        }
+                    }).catch(() => {
+                        $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load wishlist.</div>');
+                    });
+                } else {
+                    $('#wishlist-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">Please login to view wishlist.</div>');
+                }
+            }
+
             $('#btn-tag-book-trigger').on('click', function(e) {
                 e.preventDefault();
                 $('#tag-book-modal').fadeIn(200).addClass('active').css('display', 'flex');
@@ -856,6 +1018,8 @@
                 $('#tag-book-link').val('');
                 $('#link-error').hide();
                 $('#tag-book-modal .book-select-item').removeClass('selected');
+                
+                loadTagBooks();
             });
 
             // Call Center / Support Request Modal triggers
@@ -1006,8 +1170,8 @@
                 $('#' + target).fadeIn(150).addClass('active');
             });
 
-            // Select Book inside lists
-            $('#tag-book-modal .book-select-item').on('click', function() {
+            // Select Book inside lists (Delegated)
+            $('#tag-book-modal').on('click', '.book-select-item', function() {
                 $('#tag-book-modal .book-select-item').removeClass('selected');
                 $(this).addClass('selected');
             });
