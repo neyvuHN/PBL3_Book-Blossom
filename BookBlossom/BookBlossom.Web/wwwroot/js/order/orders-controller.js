@@ -234,10 +234,16 @@ class OrdersController {
     }
 
     // [NEW] Handle clicking Reveal Real Book
-    handleRevealRealBook(orderId) {
+    async handleRevealRealBook(orderId, blindBookId) {
         const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
-        if (order) {
-            this.view.showRevealRealBookModal(order);
+        if (!order) return;
+
+        // Optionally update the button state to indicate loading
+        const realBook = await this.model.revealRealBookApi(order.id, blindBookId);
+        if (realBook) {
+            this.view.showRevealRealBookModal(realBook);
+        } else {
+            alert("This Blind Date book cannot be revealed yet. Ensure the order is completed.");
         }
     }
 

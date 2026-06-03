@@ -24,5 +24,8 @@ namespace BookBlossom.Core.Interfaces
         Task<bool> ProcessPaymentSuccessAsync(long orderId);
         Task<byte[]> GenerateInvoicePdfAsync(long orderId);
         Task<byte[]> GenerateInvoicesPdfAsync(List<long> orderIds);
+        
+        // --- TÍNH NĂNG ĐẶC BIỆT ---
+        Task<BookBlossom.Core.DTOs.Book.RealBookDTO?> RevealBlindBookAsync(long customerId, long orderId, long blindBookId);
     }
 }

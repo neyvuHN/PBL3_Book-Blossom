@@ -78,6 +78,27 @@ class OrdersModel {
         }
     }
 
+    async revealRealBookApi(orderId, blindBookId) {
+        try {
+            const response = await fetch(`/api/Order/customer/my-orders/${orderId}/reveal-real-book/${blindBookId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                }
+            });
+            if (response.ok) {
+                return await response.json();
+            } else {
+                const errData = await response.json();
+                console.error("Error revealing real book:", errData);
+            }
+        } catch (error) {
+            console.error("Error revealing real book:", error);
+        }
+        return null;
+    }
+
     getToken() {
         return localStorage.getItem('token') || sessionStorage.getItem('token') || '';
     }
@@ -98,25 +119,15 @@ class OrdersModel {
                 const isBlind = i.blindBookID != null;
                 const completed = o.orderStatus === 4; // 4: Completed
                 
-                let realBook = null;
-                if (isBlind && completed && i.realBookTitle) {
-                    realBook = {
-                        title: i.realBookTitle,
-                        author: i.publisher || 'BookBlossom Edition',
-                        image: i.sampleFilePath || '/images/placeholder.jpg',
-                        description: `Cuốn sách tuyệt vời ẩn sau gói Sách Mù thuộc thể loại "${i.title.replace("[Sách Mù] ", "")}". Chúc bạn có những giờ phút đọc sách thật thú vị!`
-                    };
-                }
-                
                 return {
                     id: i.bookID || i.blindBookID,
+                    blindBookId: i.blindBookID,
                     title: i.title,
                     author: i.publisher || 'N/A', // Simple fallback
                     price: i.unitPrice,
                     quantity: i.quantity,
                     image: i.sampleFilePath || (isBlind ? '/images/BlindDateBook/BlindBook1.jpg' : '/images/placeholder.jpg'),
                     isBlind: isBlind,
-                    realBook: realBook,
                     isRated: i.isRated
                 };
             }) : [];

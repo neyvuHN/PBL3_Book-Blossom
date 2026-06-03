@@ -100,6 +100,10 @@ class OrdersView {
                 } else {
                     rateActionHtml = `<button class="btn btn-outline-secondary btn-sm ms-3" data-action="view-review" data-id="${order.id}" data-book-id="${item.id}" data-book-title="${item.title}" data-blind="${item.isBlind || false}">View Review</button>`;
                 }
+                
+                if (item.isBlind) {
+                    rateActionHtml += ` <button class="btn btn-outline-info btn-sm ms-2" data-action="reveal-real-book" data-id="${order.id}" data-book-id="${item.blindBookId}">Reveal <i class="fas fa-magic"></i></button>`;
+                }
             }
 
             return `
@@ -148,11 +152,9 @@ class OrdersView {
                 break;
             case 'completed':
                 statusText = 'Completed';
-                const hasBlindBook = order.items.some(item => item.isBlind && item.realBook);
                 // [UPDATED] Buy Again opens the Secure Checkout popup
                 actionsHtml = `
                     <button class="btn btn-primary" data-action="buy-again" data-id="${order.id}">Buy Again</button>
-                    ${hasBlindBook ? `<button class="btn btn-outline-info" data-action="reveal-real-book" data-id="${order.id}">Reveal Real Book <i class="fas fa-magic"></i></button>` : ''}
                 `;
                 break;
             case 'cancelled':
@@ -326,29 +328,26 @@ class OrdersView {
             const btn = e.target.closest('[data-action="reveal-real-book"]');
             if (btn) {
                 const orderId = btn.getAttribute('data-id');
-                handler(orderId);
+                const bookId = btn.getAttribute('data-book-id');
+                handler(orderId, bookId);
             }
         });
     }
 
-    showRevealRealBookModal(order) {
-        // Find the blind book item that has a realBook mapping
-        const blindItem = order.items.find(item => item.isBlind && item.realBook);
-        if (!blindItem) return;
+    showRevealRealBookModal(realBook) {
+        if (!realBook) return;
 
-        const realBook = blindItem.realBook;
-
-        document.getElementById('reveal-real-book-title').textContent = realBook.title;
-        document.getElementById('reveal-real-book-author').textContent = realBook.author;
-        document.getElementById('reveal-real-book-image').src = realBook.image;
-        document.getElementById('reveal-real-book-desc').textContent = realBook.description;
+        document.getElementById('reveal-real-book-title').textContent = realBook.title || 'Unknown Title';
+        document.getElementById('reveal-real-book-author').textContent = realBook.publisher || 'Unknown Author';
+        document.getElementById('reveal-real-book-image').src = realBook.sampleFilePath || '/images/placeholder.jpg';
+        document.getElementById('reveal-real-book-desc').textContent = realBook.description || 'No description available.';
 
         // Attach click event on the entire card to redirect to detail page
         const cardEl = document.getElementById('reveal-book-card-container');
         if (cardEl) {
             cardEl.onclick = () => {
                 $('#revealRealBookModal').modal('hide');
-                window.location.href = `/Explore#book-details-${encodeURIComponent(realBook.title)}`;
+                window.location.href = `/Explore#book-details-${realBook.bookID || encodeURIComponent(realBook.title)}`;
             };
         }
 

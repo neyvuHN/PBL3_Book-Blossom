@@ -1060,6 +1060,47 @@ namespace BookBlossom.Infrastructure.Services
             var document = new InvoicesDocument(models);
             return document.GeneratePdf();
         }
+
+        // --- TÍNH NĂNG ĐẶC BIỆT ---
+        public async Task<BookBlossom.Core.DTOs.Book.RealBookDTO?> RevealBlindBookAsync(long customerId, long orderId, long blindBookId)
+        {
+            var order = await _context.Set<Order>()
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
+
+            if (order == null || (order.OrderStatus != OrderStatus.Completed && order.OrderStatus != (OrderStatus)1)) 
+                return null; // Chỉ đơn hàng đã hoàn thành mới được xem
+
+            var detail = order.OrderDetails.FirstOrDefault(od => od.BlindBookID == blindBookId);
+            if (detail == null) 
+                return null;
+            
+            var blindBook = await _context.Set<BlindBook>()
+                .Include(b => b.RealBook)
+                .ThenInclude(rb => rb.Category)
+                .FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
+                
+            if (blindBook?.RealBook == null) 
+                return null;
+            
+            return new BookBlossom.Core.DTOs.Book.RealBookDTO
+            {
+                BookID = blindBook.RealBook.BookID,
+                CategoryID = blindBook.RealBook.CategoryID,
+                CategoryName = blindBook.RealBook.Category?.CategoryName ?? "",
+                Title = blindBook.RealBook.Title,
+                Publisher = blindBook.RealBook.Publisher ?? "BookBlossom",
+                Description = blindBook.RealBook.Description,
+                Price = blindBook.RealBook.Price,
+                SampleFilePath = blindBook.RealBook.SampleFilePath,
+                ISBN = blindBook.RealBook.ISBN ?? "",
+                PublishYear = blindBook.RealBook.PublishYear,
+                Weight = blindBook.RealBook.Weight,
+                UnitsInStock = blindBook.RealBook.UnitsInStock,
+                ReservedQuantity = blindBook.RealBook.ReservedQuantity,
+                IsContinued = blindBook.RealBook.IsContinued
+            };
+        }
     }
 
     // --- CÁC LỚP ĐỊNH NGHĨA FILE HÓA ĐƠN PDF DÙNG QUESTPDF ---

@@ -152,7 +152,30 @@ namespace BookBlossom.Web.Controllers
             }
         }
 
-        // API 1.3: Hủy đơn hàng của Customer
+        // API 1.3: Reveal Sách Thật (Sách Mù) trong đơn hàng đã hoàn thành
+        [HttpGet("customer/my-orders/{orderId}/reveal-real-book/{blindBookId}")]
+        [Authorize(Policy = "CustomerOnly")]
+        public async Task<IActionResult> RevealRealBook(long orderId, long blindBookId)
+        {
+            var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(customerIdStr) || !long.TryParse(customerIdStr, out long customerId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ. Vui lòng đăng nhập lại!" });
+            }
+
+            try
+            {
+                var result = await _service.RevealBlindBookAsync(customerId, orderId, blindBookId);
+                if (result == null) return BadRequest(new { message = "Đơn hàng này chưa hoàn thành hoặc không có Sách Mù nào cần Reveal." });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi hệ thống khi Reveal sách thật.", detail = ex.Message });
+            }
+        }
+
+        // API 1.4: Hủy đơn hàng của Customer
         [HttpPut("customer/my-orders/{orderId}/cancel")]
         [Authorize(Policy = "CustomerOnly")]
         public async Task<IActionResult> CancelMyOrder(long orderId, [FromBody] CancelOrderRequestDTO dto)
