@@ -4,7 +4,7 @@
 
 @{
     string currentUsername = User.Identity?.Name ?? "Jane Doe";
-    string currentAvatar = "/images/Avatar/default.jpg";
+    string currentAvatar = "https://i.pinimg.com/736x/fa/7e/a6/fa7ea6ce4e90b794eef88dde93522dd6.jpg";
 
     if (User.Identity != null && User.Identity.IsAuthenticated)
     {
@@ -15,7 +15,7 @@
             if (currentUser != null)
             {
                 currentUsername = currentUser.UserName ?? currentUsername;
-                currentAvatar = string.IsNullOrEmpty(currentUser.Avatar) ? "/images/Avatar/default.jpg" : currentUser.Avatar;
+                currentAvatar = string.IsNullOrEmpty(currentUser.Avatar) ? "https://i.pinimg.com/736x/fa/7e/a6/fa7ea6ce4e90b794eef88dde93522dd6.jpg" : currentUser.Avatar;
             }
         }
     }

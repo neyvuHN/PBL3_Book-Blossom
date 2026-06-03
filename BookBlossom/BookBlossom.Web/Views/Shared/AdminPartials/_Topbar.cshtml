@@ -11,7 +11,7 @@
         {
             adminName = $"{currentAdmin.LastName} {currentAdmin.FirstName}".Trim();
             if (string.IsNullOrEmpty(adminName)) adminName = currentAdmin.UserName;
-            adminAvatar = string.IsNullOrEmpty(currentAdmin.Avatar) ? "/images/Avatar/default.jpg" : currentAdmin.Avatar;
+            adminAvatar = string.IsNullOrEmpty(currentAdmin.Avatar) ? "https://i.pinimg.com/736x/fa/7e/a6/fa7ea6ce4e90b794eef88dde93522dd6.jpg" : currentAdmin.Avatar;
         }
     }
 }
