@@ -43,7 +43,7 @@ function initAdminMessages() {
                     const $list = $('#support-requests-tab .request-list');
                     $list.empty();
                     res.data.forEach(req => {
-                        let statusClass = req.status === 0 ? "status-pending" : (req.status === 1 ? "status-resolved" : "status-closed");
+                        let statusClass = req.status === 0 ? "status-pending" : (req.status === 1 ? "status-inprogress" : "status-resolved");
                         let item = `
                             <div class="request-item" data-req-id="${req.requestID}" data-buyer-name="${req.customerName}">
                                 <div class="req-header">
@@ -140,7 +140,7 @@ function initAdminMessages() {
                             mediaHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">`;
                             msg.attachmentUrls.forEach(url => {
                                 if (url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-                                    mediaHtml += `<img src="${url}" style="width: calc(50% - 4px); min-width: 100px; height: 120px; object-fit: cover; border-radius: 8px;">`;
+                                    mediaHtml += `<img src="${url}" style="width: calc(50% - 4px); min-width: 100px; height: 120px; object-fit: cover; border-radius: 8px; cursor: pointer;" class="chat-media-click">`;
                                 } else {
                                     mediaHtml += `<video src="${url}" controls style="width: 100%; max-height: 200px; background: #000; border-radius: 8px;"></video>`;
                                 }
@@ -197,14 +197,14 @@ function initAdminMessages() {
 
 
     // 3. Handle Support Request Selection
-    $('.request-item').on('click', function() {
+    $(document).on('click', '.request-item', function() {
         const reqId = $(this).data('req-id');
         $('#admin-req-detail-area').data('active-req-id', reqId);
 
         // Extract Data from clicked item
         const reqCategory = $(this).find('.req-type').text().trim();
         const reqBuyer = $(this).find('.req-buyer').text().trim();
-        const reqPreview = $(this).find('.req-preview').text().trim();
+        const reqNote = $(this).find('.req-preview').text().trim();
         const reqStatusClass = $(this).find('.req-status').attr('class');
         const reqStatusText = $(this).find('.req-status').text();
 
@@ -214,7 +214,7 @@ function initAdminMessages() {
         // Update Detail View
         $('#detail-req-buyer').text(reqBuyer);
         $('#detail-req-category').text(reqCategory);
-        $('#detail-req-note').text(reqPreview);
+        $('#detail-req-note').text(reqNote);
         $('#detail-req-phone').text(reqPhone);
         $('#detail-req-status').removeClass().addClass(reqStatusClass).text(reqStatusText);
 
@@ -231,8 +231,17 @@ function initAdminMessages() {
 
     // 5. Message Buyer from Support Request Detail
     $('#btn-sr-chat').on('click', function() {
+        const reqId = $('#admin-req-detail-area').data('active-req-id');
         const buyerName = $('#detail-req-buyer').text().trim();
         
+        if (reqId && window.apiClient) {
+            window.apiClient.apiPut(`/api/MessagesAPI/call-requests/${reqId}/in-progress`, {}).then(() => {
+                loadAdminSupportRequests();
+            }).catch(err => {
+                console.error("Failed to set request to In Progress:", err);
+            });
+        }
+
         // Switch back to chat
         $('#admin-req-detail-area').hide();
         $('#admin-chat-main-area').fadeIn(200);
@@ -287,7 +296,7 @@ function initAdminMessages() {
                 items.slice(0, 5).forEach(book => {
                     let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : '/images/Book/book1.jpg';
                     let item = `
-                        <div class="book-select-item" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                        <div class="book-select-item" data-id="${book.bookID || book.bookId || ''}" data-title="${book.title}" data-author="${book.author || 'Unknown'}" data-img="${imgUrl}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
                             <img src="${imgUrl}" alt="Book">
                             <div>
                                 <h4>${book.title}</h4>
@@ -314,7 +323,7 @@ function initAdminMessages() {
                     let imgUrl = item.imageUrl || '/images/Book/book1.jpg';
                     let link = item.blindBookID ? `/Explore#blind-details-${encodeURIComponent(item.title)}` : `/Explore#book-details-${encodeURIComponent(item.title)}`;
                     let html = `
-                        <div class="book-select-item" data-title="${item.title}" data-author="BookBlossom" data-img="${imgUrl}" data-link="${link}">
+                        <div class="book-select-item" data-id="${item.bookID || item.bookId || ''}" data-title="${item.title}" data-author="BookBlossom" data-img="${imgUrl}" data-link="${link}">
                             <img src="${imgUrl}" alt="Book">
                             <div>
                                 <h4>${item.title}</h4>
@@ -454,11 +463,11 @@ function initAdminMessages() {
         $(this).addClass('selected');
     });
 
-    $('#btn-confirm-tag-book').on('click', function() {
+    $('#btn-confirm-tag-book').on('click', async function() {
         if ($('#admin-tagged-books-preview').length === 0) return; // Only run on admin page
 
         const activeTab = $('#tag-book-modal .btn-modal-tab.active').data('target');
-        let bookTitle = "", bookAuthor = "", bookImg = "", bookLink = "";
+        let bookId = "", bookTitle = "", bookAuthor = "", bookImg = "", bookLink = "";
 
         if (activeTab === 'tab-link') {
             const linkVal = $('#tag-book-link').val().trim();
@@ -473,14 +482,67 @@ function initAdminMessages() {
             
             if (linkVal.includes('#blind-details-')) {
                 const hashPart = linkVal.split('#blind-details-')[1];
-                bookTitle = "Mystery Blind Book (" + decodeURIComponent(hashPart) + ")";
+                bookId = decodeURIComponent(hashPart);
+                bookTitle = "Mystery Blind Book (" + bookId + ")";
                 bookAuthor = "BookBlossom Curated";
                 bookImg = "/images/Book/book1.jpg";
-            } else if (linkVal.includes('#book-details-')) {
-                const hashPart = linkVal.split('#book-details-')[1];
-                bookTitle = decodeURIComponent(hashPart);
-                bookAuthor = "BookBlossom Curated";
-                bookImg = "/images/Book/book1.jpg";
+            } else if (linkVal.includes('#book-details-') || linkVal.includes('/book/') || linkVal.includes('/Explore')) {
+                let searchTerm = '';
+                if (linkVal.includes('#book-details-')) {
+                    searchTerm = decodeURIComponent(linkVal.split('#book-details-')[1]);
+                } else if (linkVal.includes('/book/')) {
+                    searchTerm = decodeURIComponent(linkVal.split('/book/')[1]);
+                } else {
+                    const lastSeg = linkVal.split('/').pop();
+                    searchTerm = decodeURIComponent(lastSeg);
+                }
+
+                let numericId = parseInt(searchTerm);
+                if (!isNaN(numericId) && numericId.toString() === searchTerm.trim()) {
+                    try {
+                        const $originalBtn = $('#btn-confirm-tag-book');
+                        $originalBtn.prop('disabled', true).text('Loading...');
+                        const res = await window.apiClient.apiGet('/api/RealBook/' + numericId);
+                        $originalBtn.prop('disabled', false).text('Tag Book');
+                        
+                        if (res && res.title) {
+                            bookId = res.bookID || res.bookId || numericId;
+                            bookTitle = res.title;
+                            bookAuthor = res.author || res.authors || "BookBlossom Curated";
+                            bookImg = res.sampleFilePath && res.sampleFilePath.includes('.') ? res.sampleFilePath : "/images/Book/book1.jpg";
+                        } else {
+                            $('#link-error').text("Cannot find the book from this link. Please check again.").show();
+                            return;
+                        }
+                    } catch(e) {
+                        $('#btn-confirm-tag-book').prop('disabled', false).text('Tag Book');
+                        $('#link-error').text("Cannot find the book from this link. Please check again.").show();
+                        return;
+                    }
+                } else {
+                    try {
+                        const $originalBtn = $('#btn-confirm-tag-book');
+                        $originalBtn.prop('disabled', true).text('Loading...');
+                        const books = await window.apiClient.apiGet('/api/RealBook?searchTerm=' + encodeURIComponent(searchTerm));
+                        $originalBtn.prop('disabled', false).text('Tag Book');
+                        
+                        const matchedBook = (books && books.length > 0) ? books[0] : null;
+                        if (!matchedBook) {
+                            $('#link-error').text("Cannot find the book from this link. Please check again.").show();
+                            return;
+                        }
+                        
+                        bookId = matchedBook.bookID || matchedBook.bookId || "";
+                        bookTitle = matchedBook.title;
+                        bookAuthor = matchedBook.author || matchedBook.authors || "BookBlossom Curated";
+                        bookImg = matchedBook.sampleFilePath && matchedBook.sampleFilePath.includes('.') ? matchedBook.sampleFilePath : "/images/Book/book1.jpg";
+                    } catch (err) {
+                        $('#btn-confirm-tag-book').prop('disabled', false).text('Tag Book');
+                        console.error(err);
+                        $('#link-error').text("Error searching book from link.").show();
+                        return;
+                    }
+                }
             } else {
                 bookTitle = "BookBlossom Shared Book";
                 bookAuthor = "Community Curator";
@@ -493,6 +555,7 @@ function initAdminMessages() {
                 alert("Please select a book first!");
                 return;
             }
+            bookId = $selectedItem.data('id') || "";
             bookTitle = $selectedItem.data('title');
             bookAuthor = $selectedItem.data('author');
             bookImg = $selectedItem.data('img');
@@ -500,7 +563,7 @@ function initAdminMessages() {
         }
 
         const previewChip = `
-            <div class="tagged-book-preview-chip" data-title="${bookTitle}" data-author="${bookAuthor}" data-img="${bookImg}" data-link="${bookLink}" style="display: inline-flex; align-items: center; gap: 8px; background: #F4E1E2; border: 1.5px solid #EEC7C9; padding: 6px 12px; border-radius: 20px; font-size: 0.82rem; color: #C2185B; font-weight: 600; margin: 2px;">
+            <div class="tagged-book-preview-chip" data-id="${bookId}" data-title="${bookTitle}" data-author="${bookAuthor}" data-img="${bookImg}" data-link="${bookLink}" style="display: inline-flex; align-items: center; gap: 8px; background: #F4E1E2; border: 1.5px solid #EEC7C9; padding: 6px 12px; border-radius: 20px; font-size: 0.82rem; color: #C2185B; font-weight: 600; margin: 2px;">
                 <img src="${bookImg}" style="width: 18px; height: 26px; object-fit: cover; border-radius: 3px;">
                 <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${bookTitle}</span>
                 <button type="button" class="btn-remove-tagged-book" style="background: none; border: none; color: #C2185B; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; outline: none;"><i class="fas fa-times-circle"></i></button>
@@ -835,72 +898,110 @@ function initAdminMessages() {
 
         if (text === '' && !hasMedia && !hasBooks) return;
 
-        const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-        
+        if (!activeConversationId) {
+            alert("Please select a conversation first!");
+            return;
+        }
+
         // Extract Media content
-        let mediaHtml = '';
+        const attachmentUrls = [];
         $('#admin-media-attachment-preview .admin-media-preview-chip').each(function() {
-            const type = $(this).data('type');
-            const src = $(this).data('src');
-            if (type === 'image') {
-                mediaHtml += `
-                    <div style="margin-top: 8px; max-width: 250px; border-radius: 12px; overflow: hidden; border: 1px solid #EEC7C9;">
-                        <img src="${src}" style="width: 100%; max-height: 200px; object-fit: cover; cursor: pointer;" class="chat-media-click">
-                    </div>
-                `;
-            } else {
-                mediaHtml += `
-                    <div style="margin-top: 8px; max-width: 250px; border-radius: 12px; overflow: hidden; border: 1px solid #EEC7C9;">
-                        <video src="${src}" controls style="width: 100%; max-height: 200px; object-fit: cover;"></video>
-                    </div>
-                `;
-            }
+            attachmentUrls.push($(this).data('src'));
         });
 
         // Extract Book content
-        let booksHtml = '';
+        let attachedBookID = null;
         $('#admin-tagged-books-preview .tagged-book-preview-chip').each(function() {
-            const title = $(this).data('title');
-            const author = $(this).data('author');
-            const img = $(this).data('img');
-            const link = $(this).data('link');
-            booksHtml += `
-                <div style="display: flex; gap: 12px; align-items: center; background: #fff; border: 1.5px solid #EEC7C9; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-top: 8px; max-width: 250px; text-align: left;">
-                    <img src="${img}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
-                    <div style="flex: 1; min-width: 0;">
-                        <h4 style="font-size: 0.85rem; font-weight: 700; color: #111; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</h4>
-                        <p style="font-size: 0.72rem; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${author}</p>
-                    </div>
-                    <a href="${link}" target="_blank" style="font-size: 0.75rem; font-weight: 700; color: #C2185B; padding: 5px; text-decoration: none;">
-                        <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-            `;
+            const idVal = $(this).data('id');
+            if (idVal) {
+                attachedBookID = parseInt(idVal);
+            }
         });
 
-        const adminBubble = `
-            <div class="msg-bubble-group outgoing">
-                <div class="msg-bubble-content">
-                    <div class="msg-text-bubble">
-                        ${text ? `<div>${text}</div>` : ''}
-                        ${mediaHtml}
-                        ${booksHtml}
-                    </div>
-                    <div class="msg-meta">${time} • Sent <i class="fas fa-check-double" style="color: #C2185B; margin-left: 2px;"></i></div>
-                </div>
-            </div>
-        `;
+        const dto = {
+            conversationID: activeConversationId,
+            content: text,
+            attachmentUrls: attachmentUrls,
+            attachedBookID: attachedBookID
+        };
 
-        $('#admin-chat-stream').append(adminBubble);
-        $('#admin-message-input').val('');
-        
-        // Reset previews
-        $('#admin-tagged-books-preview').empty().hide();
-        $('#admin-media-attachment-preview').empty().hide();
-        $('#admin-media-attachment-input').val('');
+        if (window.apiClient) {
+            window.apiClient.apiPost('/api/MessagesAPI', dto).then(res => {
+                if (res && res.success && res.data) {
+                    const msg = res.data;
+                    let time = new Date(msg.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    
+                    let booksHtml = "";
+                    if (msg.attachedBookID) {
+                        booksHtml = `
+                            <div style="display: flex; gap: 12px; align-items: center; background: #fff; border: 1.5px solid #EEC7C9; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-top: 8px; max-width: 250px; text-align: left;">
+                                <img src="${msg.attachedBookImage || '/images/Book/book1.jpg'}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h4 style="font-size: 0.85rem; font-weight: 700; color: #111; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${msg.attachedBookTitle}</h4>
+                                    <p style="font-size: 0.72rem; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${msg.attachedBookAuthor || 'BookBlossom'}</p>
+                                </div>
+                                <a href="/Explore#book-details-${encodeURIComponent(msg.attachedBookTitle)}" target="_blank" style="font-size: 0.75rem; font-weight: 700; color: #C2185B; padding: 5px; text-decoration: none;">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                        `;
+                    }
 
-        const stream = document.getElementById('admin-chat-stream');
-        stream.scrollTop = stream.scrollHeight;
+                    let mediaHtml = "";
+                    if (msg.attachmentUrls && msg.attachmentUrls.length > 0) {
+                        mediaHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">`;
+                        msg.attachmentUrls.forEach(url => {
+                            if (url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+                                mediaHtml += `
+                                    <div style="margin-top: 8px; max-width: 250px; border-radius: 12px; overflow: hidden; border: 1px solid #EEC7C9;">
+                                        <img src="${url}" style="width: 100%; max-height: 200px; object-fit: cover; cursor: pointer;" class="chat-media-click">
+                                    </div>
+                                `;
+                            } else {
+                                mediaHtml += `
+                                    <div style="margin-top: 8px; max-width: 250px; border-radius: 12px; overflow: hidden; border: 1px solid #EEC7C9;">
+                                        <video src="${url}" controls style="width: 100%; max-height: 200px; object-fit: cover;"></video>
+                                    </div>
+                                `;
+                            }
+                        });
+                        mediaHtml += `</div>`;
+                    }
+
+                    const adminBubble = `
+                        <div class="msg-bubble-group outgoing">
+                            <div class="msg-bubble-content">
+                                <div class="msg-text-bubble" style="background: #fff5f6; border: 1.5px solid #EEC7C9; color: #333;">
+                                    ${msg.content ? `<div>${msg.content}</div>` : ''}
+                                    ${mediaHtml}
+                                    ${booksHtml}
+                                </div>
+                                <div class="msg-meta">${time} • Sent <i class="fas fa-check-double" style="color: #C2185B; margin-left: 2px;"></i></div>
+                            </div>
+                        </div>
+                    `;
+
+                    $('#admin-chat-stream').append(adminBubble);
+                    $('#admin-message-input').val('');
+                    
+                    // Reset previews
+                    $('#admin-tagged-books-preview').empty().hide();
+                    $('#admin-media-attachment-preview').empty().hide();
+                    $('#admin-media-attachment-input').val('');
+
+                    const stream = document.getElementById('admin-chat-stream');
+                    if (stream) stream.scrollTop = stream.scrollHeight;
+
+                    // Reload conversations list on the left to reflect the new state (last message snippet, updatedAt)
+                    loadAdminConversations();
+                } else {
+                    alert("Failed to send message: " + (res.message || "Unknown error"));
+                }
+            }).catch(err => {
+                console.error(err);
+                alert("Failed to send message: " + (err.message || err));
+            });
+        }
     }
 
     // ==========================================
@@ -964,20 +1065,24 @@ function initAdminMessages() {
         e.preventDefault();
         const activeReqId = $('#admin-req-detail-area').data('active-req-id');
         
-        if (activeReqId) {
-            // Find support request list item in sidebar and update its status badge
-            const $reqItem = $(`.request-item[data-req-id="${activeReqId}"]`);
-            if ($reqItem.length > 0) {
-                const $badge = $reqItem.find('.req-status');
-                $badge.removeClass('status-pending').addClass('status-resolved').text('Resolved');
-            }
-
-            // Update details view status badge
-            $('#detail-req-status').removeClass('status-pending').addClass('status-resolved').text('Resolved');
+        if (activeReqId && window.apiClient) {
+            window.apiClient.apiPut(`/api/MessagesAPI/call-requests/${activeReqId}/resolve`, {}).then(() => {
+                // Update details view status badge
+                $('#detail-req-status').removeClass().addClass('status-resolved').text('Resolved');
+                
+                // Reload requests list
+                loadAdminSupportRequests();
+                
+                // Hide Modal
+                $('#admin-confirm-resolve-modal').fadeOut(200).removeClass('active');
+            }).catch(err => {
+                console.error("Failed to resolve call request:", err);
+                alert("Failed to resolve call request: " + (err.message || err));
+                $('#admin-confirm-resolve-modal').fadeOut(200).removeClass('active');
+            });
+        } else {
+            $('#admin-confirm-resolve-modal').fadeOut(200).removeClass('active');
         }
-        
-        // Hide Modal
-        $('#admin-confirm-resolve-modal').fadeOut(200).removeClass('active');
     });
 
     // ==========================================
@@ -1062,13 +1167,4 @@ function initAdminMessages() {
 
 
 
-    $('#btn-resolve-req').on('click', function() {
-        const reqId = $('#admin-req-detail-area').data('active-req-id');
-        if (window.apiClient && reqId) {
-            window.apiClient.apiPut(`/api/MessagesAPI/call-requests/${reqId}/resolve`, {}).then(() => {
-                $('#detail-req-status').removeClass().addClass('status-resolved').text('Resolved');
-                loadAdminSupportRequests();
-                alert("Request marked as resolved successfully!");
-            });
-        }
-    });
+

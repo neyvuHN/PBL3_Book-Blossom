@@ -56,14 +56,13 @@
 .tab-content {
     display: none;
     flex-direction: column;
-    height: 100%;
     overflow: hidden;
     flex: 1;
     min-height: 0;
 }
 
 .tab-content.active {
-    display: flex;
+    display: flex !important;
 }
 
 /* Chat Main Area */
@@ -95,16 +94,31 @@
 }
 
 /* Custom Scrollbars for Admin Messages */
+.admin-buyer-sidebar,
+.request-list,
+.conversation-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(194, 24, 91, 0.3) transparent;
+}
+
 .admin-buyer-sidebar::-webkit-scrollbar,
 .request-list::-webkit-scrollbar,
 .conversation-list::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
 }
+
 .admin-buyer-sidebar::-webkit-scrollbar-thumb,
 .request-list::-webkit-scrollbar-thumb,
 .conversation-list::-webkit-scrollbar-thumb {
-    background: rgba(194, 24, 91, 0.15);
-    border-radius: 2px;
+    background: rgba(194, 24, 91, 0.25);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.admin-buyer-sidebar::-webkit-scrollbar-thumb:hover,
+.request-list::-webkit-scrollbar-thumb:hover,
+.conversation-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(194, 24, 91, 0.5);
 }
 
 .buyer-profile-card, .buyer-info-card {
@@ -275,6 +289,7 @@
 }
 
 .status-pending { background: #fff3cd; color: #856404; }
+.status-inprogress { background: #d1ecf1; color: #0c5460; }
 .status-resolved { background: #d4edda; color: #155724; }
 
 /* Support Request Detail View */

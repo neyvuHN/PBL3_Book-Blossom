@@ -10,5 +10,6 @@ namespace BookBlossom.Core.Interfaces.Services
         Task<List<CallRequestDto>> GetCustomerCallRequestsAsync(long customerId);
         Task<CallRequestDto> CreateCallRequestAsync(long customerId, CreateCallRequestDto dto);
         Task ResolveCallRequestAsync(long requestId);
+        Task SetCallRequestInProgressAsync(long requestId);
     }
 }

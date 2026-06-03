@@ -2,9 +2,10 @@ using System;
 
 namespace BookBlossom.Core.Enums
 {
-    public enum CallRequestStatus
+    public enum CallRequestStatus : byte
     {
-        Pending = 1,
+        Pending = 0,
+        InProgress = 1,
         Resolved = 2
     }
 }

@@ -2,13 +2,14 @@ using System;
 
 namespace BookBlossom.Core.Enums
 {
-    public enum CallRequestCategory
+    [Flags]
+    public enum CallRequestCategory : byte
     {
-        Product = 1,
-        Order = 2,
-        Payment = 3,
-        Delivery = 4,
-        Refund = 5,
-        Other = 6
+        ProductOrBook = 1 << 0,     // 1
+        Order = 1 << 1,             // 2
+        Payment = 1 << 2,           // 4
+        Shipping = 1 << 3,          // 8
+        ComplaintOrRefund = 1 << 4, // 16
+        Other = 1 << 5              // 32
     }
 }

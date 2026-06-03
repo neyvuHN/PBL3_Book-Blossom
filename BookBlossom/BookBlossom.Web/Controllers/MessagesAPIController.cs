@@ -149,5 +149,20 @@ namespace BookBlossom.Web.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        [Authorize(Roles = "Admin, Staff")]
+        [HttpPut("call-requests/{id}/in-progress")]
+        public async Task<IActionResult> SetCallRequestInProgress(long id)
+        {
+            try
+            {
+                await _callRequestService.SetCallRequestInProgressAsync(id);
+                return Ok(new { success = true, message = "Status updated to In Progress successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 }
