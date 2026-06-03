@@ -236,18 +236,43 @@ class MessagesController {
             attachedBookID: attachedBookId
         };
 
-        // Clear previews
+        // Clear previews and input instantly
         $('#tagged-books-preview').empty().hide();
         $('#media-attachment-preview').empty().hide();
+        this.view.$chatInput.val('');
+        this.view.resizeTextarea();
+
+        // Optimistic UI update (Temporary Bubble)
+        const tempId = "temp-" + Date.now();
+        const tempMsg = {
+            messageID: tempId,
+            conversationID: this.model.activeConversationId,
+            senderName: this.model.currentUser.name || "You",
+            senderAvatar: this.model.currentUser.avatar || "/images/Avatar/default.png",
+            content: text,
+            sentAt: new Date().toISOString(),
+            attachmentUrls: attachmentUrls,
+            attachedBookID: attachedBookId,
+            attachedBookTitle: bookTitlesList.length > 0 ? bookTitlesList[0] : null,
+            attachedBookImage: $chips.length > 0 ? $chips.first().data('img') : null,
+            isTemp: true
+        };
+        
+        this.view.renderMessages([tempMsg], true);
+        const $tempBubble = this.view.$chatStream.find(`[data-msg-id="${tempId}"]`);
+        $tempBubble.css('opacity', '0.6');
+        $tempBubble.find('.msg-meta').text('Sending...');
 
         // Post to server
         this.model.sendMessage(dto).then(res => {
             console.log("Message sent to DB", res);
+            $tempBubble.remove();
             if (res && (res.messageID || res.messageId)) {
                 this.view.renderMessages([res], true);
             }
         }).catch(err => {
             console.error("Failed to save message", err);
+            $tempBubble.find('.msg-meta').text('Failed').css('color', 'red');
         });
 
         // Update convo item preview on left pane

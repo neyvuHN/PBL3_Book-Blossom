@@ -470,6 +470,8 @@ class AdminMessagesController {
             const textContent = this.view.$messageInput.val().trim();
             const mediaUrls = this.attachedFiles.map(f => f.data);
             const bookId = this.selectedBook ? this.selectedBook.id : null;
+            const bookTitle = this.selectedBook ? this.selectedBook.title : null;
+            const bookImg = this.selectedBook ? this.selectedBook.img : null;
 
             if (!textContent && mediaUrls.length === 0 && !bookId) return;
 
@@ -480,22 +482,44 @@ class AdminMessagesController {
                 attachedBookID: bookId
             };
 
+            // 1. Clear inputs immediately for instant feedback
+            this.view.clearInput();
+            this.attachedFiles = [];
+            this.selectedBook = null;
+
+            // 2. Optimistic UI update (Temporary Bubble)
+            const tempId = "temp-" + Date.now();
+            const tempMsg = {
+                messageID: tempId,
+                conversationID: this.model.activeConversationId,
+                senderName: "BookBlossom Shop",
+                senderAvatar: "/images/Avatar/admin.png",
+                content: textContent,
+                sentAt: new Date().toISOString(),
+                attachmentUrls: mediaUrls,
+                attachedBookID: bookId,
+                attachedBookTitle: bookTitle,
+                attachedBookImage: bookImg
+            };
+            
+            this.view.renderMessages([tempMsg], true);
+            const $tempBubble = this.view.$chatStream.find(`[data-msg-id="${tempId}"]`);
+            $tempBubble.css('opacity', '0.6');
+            $tempBubble.find('.msg-meta').text('Sending...');
+
+            // 3. Post to API
             try {
                 const newMsg = await this.model.sendMessage(dto);
                 if (newMsg) {
-                    // Re-fetch all messages to update chat stream
-                    const messages = await this.model.fetchMessages(this.model.activeConversationId);
-                    this.view.renderMessages(messages);
-                    
-                    // Clear inputs & local attachments state
-                    this.view.clearInput();
-                    this.attachedFiles = [];
-                    this.selectedBook = null;
-                    
-                    await this.loadConversations();
+                    // Remove temporary bubble
+                    $tempBubble.remove();
+                    // Render real message
+                    this.view.renderMessages([newMsg], true);
+                    this.loadConversations();
                 }
             } catch (err) {
-                alert("Failed to send message: " + (err.message || err));
+                console.error("Failed to send message:", err);
+                $tempBubble.find('.msg-meta').text('Failed').css('color', 'red');
             }
         };
 
