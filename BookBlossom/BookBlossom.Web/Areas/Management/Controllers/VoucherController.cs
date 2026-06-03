@@ -6,6 +6,8 @@ using BookBlossom.Core.DTOs;
 using BookBlossom.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BookBlossom.Core.Enums;
+using System.Text.Json;
 
 namespace BookBlossom.Web.Areas.Management.Controllers
 {
@@ -15,10 +17,12 @@ namespace BookBlossom.Web.Areas.Management.Controllers
     public class VoucherController : ControllerBase
     {
         private readonly IVoucherService _voucherService;
+        private readonly IAuditService _auditService;
 
-        public VoucherController(IVoucherService voucherService)
+        public VoucherController(IVoucherService voucherService, IAuditService auditService)
         {
             _voucherService = voucherService;
+            _auditService = auditService;
         }
 
         // ─── ADMIN / MARKETING: CRUD ─────────────────────────────────────────
@@ -52,6 +56,22 @@ namespace BookBlossom.Web.Areas.Management.Controllers
             try
             {
                 var created = await _voucherService.CreateVoucherAsync(dto);
+
+                var adminIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (long.TryParse(adminIdStr, out long adminId))
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                    await _auditService.LogActionAsync(
+                        adminId,
+                        null,
+                        ActionType.ADD_VOUCHER,
+                        "Vouchers",
+                        null,
+                        JsonSerializer.Serialize(new { ID = created.VoucherID, Code = created.VoucherCode, Discount = created.DiscountValue }),
+                        ipAddress
+                    );
+                }
+
                 return CreatedAtAction(nameof(GetById), new { id = created.VoucherID }, created);
             }
             catch (InvalidOperationException ex)

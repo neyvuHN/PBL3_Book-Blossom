@@ -8,6 +8,9 @@ namespace BookBlossom.Core.Enums
         ADMIN_LOGOUT = 2,
         LOCK_ACCOUNT = 3,
         UNLOCK_ACCOUNT = 4,
-        EXPORT = 5
+        EXPORT = 5,
+        ADD_BOOK = 6,
+        ADD_CATEGORY = 7,
+        ADD_VOUCHER = 8
     }
 }
