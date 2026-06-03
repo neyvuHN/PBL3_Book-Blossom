@@ -240,6 +240,7 @@ namespace BookBlossom.Web.Controllers
                 return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ." });
             }
 
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var address = await _context.Set<DeliveryAddress>()
@@ -250,14 +251,33 @@ namespace BookBlossom.Web.Controllers
                     return NotFound(new { message = "Địa chỉ không tồn tại hoặc bạn không có quyền xóa địa chỉ này." });
                 }
 
+                // Hủy liên kết địa chỉ trong các đơn hàng cũ (Snapshot text địa chỉ đã lưu trong đơn hàng vẫn được giữ nguyên)
+                var referencingOrders = await _context.Set<Order>()
+                    .Where(o => o.AddressID == addressId)
+                    .ToListAsync();
+
+                if (referencingOrders.Any())
+                {
+                    foreach (var order in referencingOrders)
+                    {
+                        order.AddressID = null;
+                    }
+                    // Lưu thay đổi để cập nhật bảng Orders trước, xóa bỏ ràng buộc khóa ngoại trong DB
+                    await _context.SaveChangesAsync();
+                }
+
                 _context.Set<DeliveryAddress>().Remove(address);
                 await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
 
                 return Ok(new { message = "Xóa địa chỉ nhận hàng thành công." });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Đã xảy ra lỗi khi xóa địa chỉ.", detail = ex.Message });
+                await transaction.RollbackAsync();
+                var innerMsg = ex.InnerException != null ? $" -> {ex.InnerException.Message}" : "";
+                return BadRequest(new { message = $"Đã xảy ra lỗi khi xóa địa chỉ: {ex.Message}{innerMsg}" });
             }
         }
 
