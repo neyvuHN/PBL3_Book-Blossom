@@ -236,6 +236,11 @@ namespace BookBlossom.Infrastructure.Services
                 book.SampleFilePath = await HandleUploadFileAsync(request.SampleFile);
             }
 
+            if (request.UnitsInStock < book.ReservedQuantity)
+            {
+                throw new Exception($"Số lượng tồn kho mới ({request.UnitsInStock}) không thể nhỏ hơn số lượng đang giữ chỗ (Đang giữ chỗ: {book.ReservedQuantity}).");
+            }
+
             book.CategoryID = request.CategoryID;
             book.Title = request.Title;
             book.Publisher = request.Publisher ?? string.Empty;

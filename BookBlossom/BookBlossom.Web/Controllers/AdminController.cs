@@ -1022,6 +1022,12 @@ namespace BookBlossom.Web.Controllers
             var book = await _context.RealBooks.FindAsync(id);
             if (book != null)
             {
+                if (bookInput.UnitsInStock < book.ReservedQuantity)
+                {
+                    TempData["ErrorMessage"] = $"Số lượng tồn kho mới ({bookInput.UnitsInStock}) không thể nhỏ hơn số lượng đang giữ chỗ (Đang giữ chỗ: {book.ReservedQuantity}).";
+                    return RedirectToAction("Inventory");
+                }
+
                 book.CategoryID = bookInput.CategoryID;
                 book.Title = bookInput.Title;
                 book.Publisher = bookInput.Publisher ?? string.Empty;

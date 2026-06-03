@@ -421,48 +421,6 @@
     </div>
 </div>
 
-<!-- Restock Book Modal -->
-<div class="modal fade" id="restockBookModal" tabindex="-1" aria-labelledby="restockBookModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold" id="restockBookModalLabel" style="font-family: 'Lora', serif;">Restock Book (Inventory Receipt)</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="restockBookForm">
-                    <input type="hidden" id="restockBookId" />
-                    <div class="mb-3">
-                        <label class="form-label">Book Title</label>
-                        <input type="text" id="restockBookTitle" class="form-control" readonly disabled />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Supplier <span class="text-danger">*</span></label>
-                        <input type="text" id="restockSupplierName" class="form-control" required placeholder="e.g., Fahasa, Phuong Nam Bookstore..." />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Delivery Address (Optional)</label>
-                        <input type="text" id="restockShipAddress" class="form-control" placeholder="e.g., District 5, HCMC..." />
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <label class="form-label">Restock Quantity <span class="text-danger">*</span></label>
-                            <input type="number" id="restockQuantity" class="form-control" min="1" required value="10" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Unit Price (VND) <span class="text-danger">*</span></label>
-                            <input type="number" id="restockUnitPrice" class="form-control" min="1" required placeholder="e.g. 50000" />
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="restockBookForm" class="btn btn-primary" style="background-color: #E3597D; border: none;">Restock</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 @section Scripts {
     <script src="~/js/admin/inventory.js" asp-append-version="true"></script>
@@ -472,10 +430,23 @@
     
     <script>
         // Khởi tạo các sự kiện và dữ liệu kho hàng (Real Books & Categories)
-        initInventorySetup();
-        initInventoryData();
+        try {
+            initInventorySetup();
+        } catch (e) {
+            console.error("Error initializing inventory setup:", e);
+        }
+
+        try {
+            initInventoryData();
+        } catch (e) {
+            console.error("Error initializing inventory data:", e);
+        }
 
         // Khởi tạo MVC cho tính năng Blind Date
-        initBlindDateMVC();
+        try {
+            initBlindDateMVC();
+        } catch (e) {
+            console.error("Error initializing Blind Date MVC:", e);
+        }
     </script>
 }

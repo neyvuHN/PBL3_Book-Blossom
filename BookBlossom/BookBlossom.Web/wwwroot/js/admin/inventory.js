@@ -75,6 +75,9 @@ function initInventorySetup() {
             if (currentBookCoverContainer) currentBookCoverContainer.style.display = 'none';
 
             addBookForm.action = "/Admin/AddBook";
+            addBookForm.dataset.mode = 'add';
+            delete addBookForm.dataset.bookId;
+            addBookForm.dataset.reserved = '0';
             addBookModalLabel.innerText = "Add New Book";
             if (bookImagesInput) bookImagesInput.required = true; // Required for new book
             bookModal.show();
@@ -122,6 +125,9 @@ function initInventorySetup() {
 
             // Update form action and modal header
             addBookForm.action = `/Admin/EditBook?id=${this.dataset.bookId}`;
+            addBookForm.dataset.mode = 'edit';
+            addBookForm.dataset.bookId = this.dataset.bookId;
+            addBookForm.dataset.reserved = this.dataset.reserved || '0';
             addBookModalLabel.innerText = "Edit Book";
 
             bookModal.show();
@@ -382,105 +388,23 @@ function initInventorySetup() {
             if (!url) return;
 
             try {
-                const response = await fetch(url, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                    }
-                });
+                const result = await window.apiClient.apiDelete(url);
+                const modal = getSafeModal(document.getElementById('deleteConfirmModal'));
+                if (modal) modal.hide();
+                loadInventoryBooks();
+                loadInventoryCategories();
 
-                const result = await response.json();
-                if (response.ok) {
-                    const modal = getSafeModal(document.getElementById('deleteConfirmModal'));
-                    if (modal) modal.hide();
-                    loadInventoryBooks();
-                    loadInventoryCategories();
-
-                    if (window.apiClient) {
-                        window.apiClient.showToast("Status updated successfully!", "success");
-                    }
-                } else {
-                    alert("Server error: " + (result.message || "Failed to complete action."));
+                if (window.apiClient) {
+                    window.apiClient.showToast("Status updated successfully!", "success");
                 }
             } catch (error) {
                 console.error(error);
-                alert("Error connecting or processing request.");
+                alert("Error: " + error.message);
             }
         });
     }
 
-    const restockForm = document.getElementById('restockBookForm');
-    if (restockForm) {
-        restockForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const bookId = parseInt(document.getElementById('restockBookId').value);
-            const supplierName = document.getElementById('restockSupplierName').value.trim();
-            const shipAddress = document.getElementById('restockShipAddress').value.trim();
-            const quantity = parseInt(document.getElementById('restockQuantity').value);
-            const unitPrice = parseFloat(document.getElementById('restockUnitPrice').value);
-
-            if (!supplierName) {
-                alert("Please enter the supplier name.");
-                return;
-            }
-
-            const submitBtn = document.querySelector(`button[form="restockBookForm"]`);
-            let originalText = "Restock";
-            if (submitBtn) {
-                originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
-                submitBtn.disabled = true;
-            }
-
-            try {
-                const response = await fetch('/api/inventory/importings', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                    },
-                    body: JSON.stringify({
-                        SupplierName: supplierName,
-                        ShipAddress: shipAddress || null,
-                        RequiredDate: null,
-                        ShipDate: null,
-                        Details: [
-                            {
-                                BookID: bookId,
-                                UnitPrice: unitPrice,
-                                Quantity: quantity
-                            }
-                        ]
-                    })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    const modal = getSafeModal(document.getElementById('restockBookModal'));
-                    if (modal) modal.hide();
-                    loadInventoryBooks();
-
-                    if (window.apiClient) {
-                        window.apiClient.showToast("Import receipt and book restock created successfully!", "success");
-                    } else {
-                        alert("Restocked successfully!");
-                    }
-                } else {
-                    alert("Error: " + (result.message || "Failed to restock book. Please check again."));
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Error connecting to server.");
-            } finally {
-                if (submitBtn) {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                }
-            }
-        });
-    }
+    // Real book restock workflow removed
 
     if (addBookForm) {
         addBookForm.addEventListener('submit', async function (e) {
@@ -500,8 +424,16 @@ function initInventorySetup() {
                 return;
             }
 
-            const formData = new FormData(this);
+            const stockVal = parseInt(document.getElementById('bookStock').value);
+            const reservedVal = parseInt(this.dataset.reserved || '0');
             const mode = this.dataset.mode || 'add';
+
+            if (mode === 'edit' && stockVal < reservedVal) {
+                alert(`Error: New stock quantity (${stockVal}) cannot be less than the reserved quantity (${reservedVal})!`);
+                return;
+            }
+
+            const formData = new FormData(this);
             const bookId = this.dataset.bookId;
             const url = mode === 'edit' ? `/api/realbook/${bookId}` : '/api/realbook';
             const method = mode === 'edit' ? 'PUT' : 'POST';
@@ -514,48 +446,19 @@ function initInventorySetup() {
                 submitBtn.disabled = true;
             }
 
-            let response;
             try {
-                response = await fetch(url, {
-                    method: method,
-                    body: formData,
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                    }
-                });
-            } catch (error) {
-                console.error("Network Fetch Error:", error);
-                alert("Network error or server did not respond: " + error.message);
-                if (submitBtn) {
-                    submitBtn.innerHTML = originalBtnText;
-                    submitBtn.disabled = false;
-                }
-                return;
-            }
+                const result = await window.apiClient.apiUpload(url, formData, method);
+                const modal = getSafeModal(addBookModalElement);
+                if (modal) modal.hide();
+                loadInventoryBooks();
+                loadInventoryCategories();
 
-            try {
-                const result = await response.json();
-
-                if (response.ok) {
-                    const modal = getSafeModal(addBookModalElement);
-                    if (modal) modal.hide();
-                    loadInventoryBooks();
-                    loadInventoryCategories();
-
-                    if (window.apiClient) {
-                        window.apiClient.showToast("Saved book details successfully!", "success");
-                    }
-                } else {
-                    if (result.message) alert("Error: " + result.message);
-                    else if (result.errors) {
-                        let errorMsg = "Invalid data:\n";
-                        for (const key in result.errors) errorMsg += `- ${result.errors[key].join(', ')}\n`;
-                        alert(errorMsg);
-                    }
+                if (window.apiClient) {
+                    window.apiClient.showToast("Saved book details successfully!", "success");
                 }
             } catch (error) {
-                console.error("Response processing error:", error);
-                alert("Error processing response from server: " + error.message);
+                console.error("Save Book Error:", error);
+                alert("Error: " + error.message);
             } finally {
                 if (submitBtn) {
                     submitBtn.innerHTML = originalBtnText;
@@ -595,36 +498,24 @@ function initInventorySetup() {
             }
 
             try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                    },
-                    body: JSON.stringify({
-                        CategoryName: catName,
-                        Description: catDesc,
-                        Status: catStatus
-                    })
-                });
+                const payload = {
+                    CategoryName: catName,
+                    Description: catDesc,
+                    Status: catStatus
+                };
+                const result = method === 'PUT' ? await window.apiClient.apiPut(url, payload) : await window.apiClient.apiPost(url, payload);
 
-                const result = await response.json();
+                const modal = getSafeModal(document.getElementById('addCategoryModal'));
+                if (modal) modal.hide();
+                loadInventoryCategories();
+                loadInventoryBooks();
 
-                if (response.ok) {
-                    const modal = getSafeModal(document.getElementById('addCategoryModal'));
-                    if (modal) modal.hide();
-                    loadInventoryCategories();
-                    loadInventoryBooks();
-
-                    if (window.apiClient) {
-                        window.apiClient.showToast("Saved category successfully!", "success");
-                    }
-                } else {
-                    alert("Error: " + (result.message || "Failed to execute action."));
+                if (window.apiClient) {
+                    window.apiClient.showToast("Saved category successfully!", "success");
                 }
             } catch (error) {
-                console.error(error);
-                alert("Error connecting to server.");
+                console.error("Save Category Error:", error);
+                alert("Error: " + error.message);
             } finally {
                 if (submitBtn) {
                     submitBtn.innerHTML = originalText;
@@ -689,14 +580,7 @@ async function loadInventoryBooks(isInitial = false) {
         // Calling API including discontinued books (includeDiscontinued=true)
         const url = `/api/realbook?searchTerm=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&includeDiscontinued=true`;
 
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-            }
-        });
-
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        let books = await response.json();
+        let books = await window.apiClient.apiGet(url);
 
         // Client-side filtering by status
         if (filterStatus) {
@@ -761,12 +645,6 @@ async function loadInventoryBooks(isInitial = false) {
                                 title="Create Blind Date Package">
                             <i class="ph ph-heart"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-success btn-action-sm btn-restock-book me-1" 
-                                data-book-id="${book.bookID}"
-                                data-title="${book.title.replace(/"/g, '&quot;')}"
-                                title="Restock Book">
-                            <i class="ph ph-cube"></i>
-                        </button>
                         <button class="btn btn-sm btn-outline-primary btn-action-sm btn-edit-book me-1" 
                                 data-book-id="${book.bookID}"
                                 data-title="${book.title.replace(/"/g, '&quot;')}"
@@ -777,16 +655,19 @@ async function loadInventoryBooks(isInitial = false) {
                                 data-price="${book.price}"
                                 data-weight="${book.weight}"
                                 data-stock="${book.unitsInStock}"
+                                data-reserved="${book.reservedQuantity}"
                                 data-description="${book.description || ''}"
                                 data-iscontinued="${book.isContinued}"
                                 data-authors="${(book.authors || '').replace(/"/g, '&quot;')}"
-                                data-mainimage="${imgUrl}">
+                                data-mainimage="${imgUrl}"
+                                title="Edit Book">
                             <i class="ph ph-pencil-simple"></i>
                         </button>
                         <button class="btn btn-sm ${book.isContinued ? 'btn-outline-danger' : 'btn-outline-success'} btn-action-sm btn-delete-item" 
                                 data-url="/api/realbook/${book.bookID}" 
                                 data-title="${book.isContinued ? 'Discontinue selling book?' : 'Resume selling book?'}" 
-                                data-message="Are you sure you want to ${book.isContinued ? 'discontinue' : 'resume'} selling this book?">
+                                data-message="Are you sure you want to ${book.isContinued ? 'discontinue' : 'resume'} selling this book?"
+                                title="${book.isContinued ? 'Discontinue Selling' : 'Resume Selling'}">
                             <i class="ph ${book.isContinued ? 'ph-minus-circle' : 'ph-check-circle'}"></i>
                         </button>
                     </td>
@@ -814,9 +695,7 @@ async function loadInventoryCategories(isInitial = false) {
     }
 
     try {
-        const response = await fetch('/api/category');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const categories = await response.json();
+        const categories = await window.apiClient.apiGet('/api/category');
 
         // Synchronize category dropdowns across the page
         updateCategoryDropdowns(categories);
@@ -844,13 +723,15 @@ async function loadInventoryCategories(isInitial = false) {
                                 data-cat-id="${cat.categoryID}"
                                 data-name="${cat.categoryName.replace(/"/g, '&quot;')}"
                                 data-desc="${(cat.description || '').replace(/"/g, '&quot;')}"
-                                data-status="${statusText}">
+                                data-status="${statusText}"
+                                title="Edit Category">
                             <i class="ph ph-pencil-simple"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-danger btn-action-sm btn-delete-item" 
                                 data-url="/api/category/${cat.categoryID}" 
                                 data-title="Delete category?" 
-                                data-message="Are you sure you want to delete category &quot;${cat.categoryName}&quot;? This action will set the category to Inactive if valid.">
+                                data-message="Are you sure you want to delete category &quot;${cat.categoryName}&quot;? This action will set the category to Inactive if valid."
+                                title="Delete Category">
                             <i class="ph ph-trash"></i>
                         </button>
                     </td>
@@ -924,6 +805,7 @@ document.addEventListener('click', function (e) {
         const form = document.getElementById('addBookForm');
         form.dataset.mode = 'edit';
         form.dataset.bookId = editBtn.dataset.bookId;
+        form.dataset.reserved = editBtn.dataset.reserved || '0';
 
         const currentBookCoverContainer = document.getElementById('currentBookCoverContainer');
         const currentBookCoverImg = document.getElementById('currentBookCoverImg');
@@ -957,22 +839,7 @@ document.addEventListener('click', function (e) {
         if (modal) modal.show();
     }
 
-    // Bắt sự kiện bấm nút Nhập kho (Restock) sách
-    const restockBtn = e.target.closest('.btn-restock-book');
-    if (restockBtn) {
-        const bookId = restockBtn.dataset.bookId;
-        const bookTitle = restockBtn.dataset.title;
 
-        document.getElementById('restockBookId').value = bookId;
-        document.getElementById('restockBookTitle').value = bookTitle;
-        document.getElementById('restockSupplierName').value = '';
-        document.getElementById('restockShipAddress').value = '';
-        document.getElementById('restockQuantity').value = 10;
-        document.getElementById('restockUnitPrice').value = '';
-
-        const modal = getSafeModal(document.getElementById('restockBookModal'));
-        if (modal) modal.show();
-    }
 
     // Bắt sự kiện bấm nút Delete (dùng chung cho cả Sách và Thể Loại)
     const deleteBtn = e.target.closest('.btn-delete-item');
