@@ -111,6 +111,65 @@
         }
     }
 
+    async function showProductByTitle(title, push = true) {
+        try {
+            const books = await apiClient.apiGet(`/api/realbook?searchTerm=${encodeURIComponent(title)}`);
+            if (books && books.length > 0) {
+                const exactMatch = books.find(b => b.title.toLowerCase() === title.toLowerCase());
+                const bookData = exactMatch || books[0];
+                showProductDetails(bookData, push, true);
+                if (!push) {
+                    history.replaceState(
+                        {
+                            view: 'product-details',
+                            bookData: bookData,
+                            isRealData: true
+                        },
+                        '',
+                        `/Explore#book-details-${encodeURIComponent(title)}`
+                    );
+                }
+            } else {
+                const mockBook = {
+                    title: title,
+                    author: getMockAuthor(title),
+                    imgSrc: '/images/Book/book1.jpg'
+                };
+                showProductDetails(mockBook, push, false);
+                if (!push) {
+                    history.replaceState(
+                        {
+                            view: 'product-details',
+                            bookData: mockBook,
+                            isRealData: false
+                        },
+                        '',
+                        `/Explore#book-details-${encodeURIComponent(title)}`
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load book by title, falling back to mock', error);
+            const mockBook = {
+                title: title,
+                author: getMockAuthor(title),
+                imgSrc: '/images/Book/book1.jpg'
+            };
+            showProductDetails(mockBook, push, false);
+            if (!push) {
+                history.replaceState(
+                    {
+                        view: 'product-details',
+                        bookData: mockBook,
+                        isRealData: false
+                    },
+                    '',
+                    `/Explore#book-details-${encodeURIComponent(title)}`
+                );
+            }
+        }
+    }
+
     function showProductDetails(bookData, push = true, isRealData = false) {
         if (!bookData) return;
 
@@ -140,7 +199,7 @@
         $('#detail-title').text(bookData.title);
         $('#breadcrumb-title').text(bookData.title);
         
-        const authorDisplay = isRealData ? (bookData.publisher || 'Unknown') : (bookData.author || 'Unknown Author');
+        const authorDisplay = isRealData ? (bookData.authors || bookData.publisher || 'Unknown') : (bookData.author || 'Unknown Author');
         $('#detail-author').text(authorDisplay);
 
         currentDetailImageIndex = 0;
@@ -181,25 +240,44 @@
 
         $('#detail-reviews-count').text(`... Reviews`);
         $('#detail-tab-rev-count').text(`...`);
-        // Load real reviews in the background
+        
         const bookId = bookData.bookID || bookData.id;
         if (bookId) {
             fetchProductReviews(bookId);
         }
 
-        const soldCount = (hash % 1800) + 140;
+        const soldCount = isRealData ? (bookData.soldCount || 0) : ((hash % 1800) + 140);
         $('#detail-sold-count').html(`<i class="fas fa-shopping-bag"></i> ${soldCount.toLocaleString()} Sold`);
 
         if (isRealData) {
+            const discountPercent = 20; 
+            const originalPrice = Math.round(bookData.price / (1 - (discountPercent / 100)));
             $('#detail-price').text(bookData.price.toLocaleString('vi-VN') + ' VND');
-            $('#detail-original-price').text(Math.round(bookData.price * 1.2).toLocaleString('vi-VN') + ' VND');
-            $('#detail-discount').text(`-20%`);
+            $('#detail-original-price').text(originalPrice.toLocaleString('vi-VN') + ' VND');
+            $('#detail-discount').text(`-${discountPercent}%`);
             $('#breadcrumb-genre').text(bookData.categoryName || 'General');
+            $('#detail-footer-category').text(bookData.categoryName || 'General');
             $('#spec-publisher').text(bookData.publisher || 'Unknown');
             $('#meta-publisher').text(bookData.publisher || 'Unknown');
             $('#meta-supplier').text(bookData.publisher || 'Unknown');
             $('#meta-author').text(authorDisplay);
             $('#spec-isbn').text(bookData.isbn || 'N/A');
+            $('#meta-isbn').text(bookData.isbn || 'N/A');
+
+            const coverFormats = ['Paperback', 'Hardcover', 'Deluxe Edition', 'Leatherbound'];
+            $('#meta-format').text(coverFormats[hash % coverFormats.length]);
+            $('#spec-format').text(coverFormats[hash % coverFormats.length]);
+            
+            const pageCount = 200 + (hash % 15) * 30;
+            $('#spec-pages').text(pageCount + ' pages');
+            
+            const pubYear = bookData.publishYear || (2020 + (hash % 6));
+            $('#spec-pub-date').text('Năm ' + pubYear);
+            
+            let weightVal = bookData.weight || 0.4;
+            if (weightVal > 0 && weightVal < 10) weightVal = Math.round(weightVal * 1000);
+            $('#spec-weight').text(weightVal ? weightVal + 'g' : '400g');
+
             $('#detail-desc-text').text(bookData.description || 'No description available.');
             $('#btn-detail-add-cart').data('book-id', bookData.bookID);
             $('#btn-detail-add-cart').data('book-price', bookData.price);
@@ -224,6 +302,7 @@
             const categories = ['Fiction', 'Psychology', 'Self-Help', 'Economics', 'History'];
             const selectedGenre = categories[hash % categories.length];
             $('#breadcrumb-genre').text(selectedGenre);
+            $('#detail-footer-category').text(selectedGenre);
 
             const publishers = ['Ace Books', 'NXB Trẻ', 'NXB Kim Đồng', 'Penguin Books', 'HarperCollins'];
             const selectedPublisher = publishers[hash % publishers.length];
@@ -235,11 +314,20 @@
 
             const coverFormats = ['Paperback', 'Hardcover', 'Deluxe Edition', 'Leatherbound'];
             $('#meta-format').text(coverFormats[hash % coverFormats.length]);
+            $('#spec-format').text(coverFormats[hash % coverFormats.length]);
+            
+            const pageCount = 200 + (hash % 15) * 30;
+            $('#spec-pages').text(pageCount + ' pages');
+            
+            const pubYear = 2020 + (hash % 6);
+            $('#spec-pub-date').text('Năm ' + pubYear);
+            
+            $('#spec-weight').text('400g');
 
             const isbnSeed = 9780000000000 + (hash * 1337);
-            $('#spec-isbn').text(
-                isbnSeed.toString().replace(/(\d{3})(\d{1})(\d{6})(\d{3})/, '$1-$2-$3-$4')
-            );
+            const isbnStr = isbnSeed.toString().replace(/(\d{3})(\d{1})(\d{6})(\d{3})/, '$1-$2-$3-$4');
+            $('#spec-isbn').text(isbnStr);
+            $('#meta-isbn').text(isbnStr);
 
             const sampleTexts = [
                 'A timeless masterpiece exploring power, legacy, and human struggle. Richly characterized and highly praised by the BookBlossom community for its depth and emotional resonance.',
@@ -248,6 +336,11 @@
                 'A brilliant analytical overview of society, economics, and human behavior. Highly informative and detailed, it challenges conventional wisdom and provides fresh, modern perspectives.'
             ];
             $('#detail-desc-text').text(sampleTexts[hash % sampleTexts.length]);
+
+            $('#btn-detail-add-cart').data('book-id', 999);
+            $('#btn-detail-add-cart').data('book-price', discountedPrice);
+            $('#btn-toggle-wishlist').data('book-id', 999);
+            $('.btn-read-preview').hide();
         }
 
         const estDate = new Date();
@@ -358,30 +451,13 @@
                 showProductById(idStr, false);
             } else {
                 bookTitleDecoded = decodeURIComponent(hashStr);
-                const mockBook = {
-                    title: bookTitleDecoded,
-                    author: getMockAuthor(bookTitleDecoded),
-                    imgSrc: '/images/Book/book1.jpg'
-                };
-                showProductDetails(mockBook, false);
+                showProductByTitle(bookTitleDecoded, false);
             }
             
             if (targetTab === 'tab-rev') {
                 setTimeout(() => {
                     $('[data-tab="tab-rev"]').trigger('click');
                 }, 100);
-            }
-
-            if (!isNumericId) {
-                history.replaceState(
-                    {
-                        view: 'product-details',
-                        bookData: { title: bookTitleDecoded, author: getMockAuthor(bookTitleDecoded), imgSrc: '/images/Book/book1.jpg' },
-                        isRealData: false
-                    },
-                    '',
-                    `/Explore#book-details-${encodeURIComponent(bookTitleDecoded)}`
-                );
             }
         } else {
             $('#explore-section').show();
@@ -426,11 +502,7 @@
                 if (!isNaN(idOrTitle) && idOrTitle.trim() !== '') {
                     showProductById(idOrTitle, false);
                 } else {
-                    showProductDetails({
-                        title: idOrTitle,
-                        author: getMockAuthor(idOrTitle),
-                        imgSrc: '/images/Book/book1.jpg'
-                    }, false, false);
+                    showProductByTitle(idOrTitle, false);
                 }
             } else {
                 $('#product-details-section').hide();
@@ -1264,7 +1336,8 @@
 
     window.BookBlossomProductDetails = {
         show: showProductDetails,
-        showProductById: showProductById
+        showProductById: showProductById,
+        showProductByTitle: showProductByTitle
     };
 
     async function fetchProductReviews(bookId) {

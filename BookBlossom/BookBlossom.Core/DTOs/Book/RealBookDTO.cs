@@ -29,5 +29,6 @@ namespace BookBlossom.Core.DTOs.Book
         public bool IsContinued { get; set; }       // Trạng thái kinh doanh (Xóa mềm)
 
         public string? Authors { get; set; }
+        public int SoldCount { get; set; }
     }
 }
