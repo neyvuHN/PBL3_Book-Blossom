@@ -48,10 +48,8 @@
 @await Html.PartialAsync("~/Views/Messages/Partials/_MessagesToast.cshtml")
 
 @section Scripts {
-    <script src="~/js/admin/admin-messages.js" asp-append-version="true"></script>
-    <script>
-        if (typeof initAdminMessages === 'function') {
-            initAdminMessages();
-        }
-    </script>
+    <script src="~/js/admin/messages/messages-model.js" asp-append-version="true"></script>
+    <script src="~/js/admin/messages/messages-view.js" asp-append-version="true"></script>
+    <script src="~/js/admin/messages/messages-controller.js" asp-append-version="true"></script>
+    <script src="~/js/admin/messages/messages.js" asp-append-version="true"></script>
 }

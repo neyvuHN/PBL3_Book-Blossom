@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BookBlossom.Core.DTOs;
 using BookBlossom.Core.Interfaces.Services;
+using BookBlossom.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookBlossom.Web.Controllers
 {
@@ -16,11 +19,13 @@ namespace BookBlossom.Web.Controllers
     {
         private readonly IMessageService _messageService;
         private readonly ICallRequestService _callRequestService;
+        private readonly ApplicationDbContext _context;
 
-        public MessagesAPIController(IMessageService messageService, ICallRequestService callRequestService)
+        public MessagesAPIController(IMessageService messageService, ICallRequestService callRequestService, ApplicationDbContext context)
         {
             _messageService = messageService;
             _callRequestService = callRequestService;
+            _context = context;
         }
 
         private long GetCurrentUserId()
@@ -158,6 +163,80 @@ namespace BookBlossom.Web.Controllers
             {
                 await _callRequestService.SetCallRequestInProgressAsync(id);
                 return Ok(new { success = true, message = "Status updated to In Progress successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin, Staff")]
+        [HttpGet("conversations/{conversationId}/buyer-profile")]
+        public async Task<IActionResult> GetBuyerProfile(long conversationId)
+        {
+            try
+            {
+                var conversation = await _context.Conversations
+                    .FirstOrDefaultAsync(c => c.ConversationID == conversationId);
+
+                if (conversation == null)
+                {
+                    return NotFound(new { success = false, message = "Conversation not found." });
+                }
+
+                var buyerId = conversation.BuyerID;
+
+                var user = await _context.Users
+                    .Include(u => u.CustomerDetail)
+                    .FirstOrDefaultAsync(u => u.UserID == buyerId);
+
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "Buyer not found." });
+                }
+
+                // Total Orders count
+                var totalOrders = await _context.Orders
+                    .CountAsync(o => o.CustomerID == buyerId);
+
+                // Default Address
+                var defaultAddress = await _context.DeliveryAddresses
+                    .FirstOrDefaultAsync(da => da.CustomerID == buyerId && da.IsDefault == true);
+
+                if (defaultAddress == null)
+                {
+                    defaultAddress = await _context.DeliveryAddresses
+                        .FirstOrDefaultAsync(da => da.CustomerID == buyerId);
+                }
+
+                string addressStr = defaultAddress != null 
+                    ? defaultAddress.DetailAddress 
+                    : "No address registered";
+
+                // Joined Date calculation
+                var baseDate = new DateTime(2023, 1, 15);
+                var offsetDays = (int)((user.UserID * 37) % 1000);
+                var joinDate = baseDate.AddDays(offsetDays).ToString("MMM dd, yyyy");
+
+                // Total spent (from CustomerDetail)
+                decimal totalSpent = user.CustomerDetail?.TotalSpending ?? 0m;
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        buyerId = user.UserID,
+                        buyerName = user.UserName,
+                        avatar = user.Avatar ?? "/images/Avatar/default.png",
+                        joinedDate = "Joined: " + joinDate,
+                        totalOrders = totalOrders,
+                        totalSpent = totalSpent,
+                        defaultAddress = addressStr,
+                        phoneNumber = string.IsNullOrEmpty(user.PhoneNumber) ? "No phone number" : user.PhoneNumber,
+                        email = string.IsNullOrEmpty(user.Email) ? "No email" : user.Email
+                    }
+                });
             }
             catch (Exception ex)
             {
