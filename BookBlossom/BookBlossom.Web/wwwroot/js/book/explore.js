@@ -60,13 +60,15 @@
         const $container = $('.category-tags');
         $container.empty();
         
-        $container.append('<span class="tag active" data-name="All">All</span>');
+        console.log("Rendering category tags. Categories from API:", categories);
         
-        if (categories && categories.length > 0) {
-            categories.forEach(c => {
-                $container.append(`<span class="tag" data-name="${c.categoryName}">${c.categoryName}</span>`);
-            });
-        }
+        // Ensure "All" is always the first item
+        const allCategories = [{ categoryName: 'All' }].concat(categories || []);
+        
+        allCategories.forEach((c, index) => {
+            const isActive = (c.categoryName === 'All') ? 'active' : '';
+            $container.append(`<span class="tag ${isActive}" data-name="${c.categoryName}" style="display: inline-block !important; visibility: visible !important;">${c.categoryName}</span>`);
+        });
 
         $container.find('.tag').off('click.explore').on('click.explore', function () {
             $container.find('.tag').removeClass('active');
@@ -77,6 +79,8 @@
             
             loadBooks();
         });
+
+        $(document).trigger('categoriesRendered.carousel');
     }
 
     function initExploreSearch() {

@@ -16,13 +16,19 @@
                 </div>
                 
                 <!-- Categories / Tags (Centered) -->
-                <div class="category-tags">
-                    <span class="tag active">All</span>
-                    <span class="tag">Fiction</span>
-                    <span class="tag">Skills</span>
-                    <span class="tag">Economics</span>
-                    <span class="tag">Psychology</span>
-                    <span class="tag">History</span>
+                <div class="category-carousel-wrapper" style="position: relative; max-width: 100%; width: 100%; overflow: hidden;">
+                    <button class="category-scroll-btn left" id="btn-scroll-left" style="display: none; position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 2; background: #fff; border: 1px solid #f0e8e8; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: center; align-items: center; color: #555;"><i class="fas fa-chevron-left"></i></button>
+                    
+                    <div class="category-tags" id="category-tags-container" style="display: flex; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scroll-behavior: smooth; -ms-overflow-style: none; scrollbar-width: none; gap: 10px; padding: 5px 40px; margin: 0; width: 100%; box-sizing: border-box;">
+                        <span class="tag active">All</span>
+                        <span class="tag">Fiction</span>
+                        <span class="tag">Skills</span>
+                        <span class="tag">Economics</span>
+                        <span class="tag">Psychology</span>
+                        <span class="tag">History</span>
+                    </div>
+
+                    <button class="category-scroll-btn right" id="btn-scroll-right" style="display: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%); z-index: 2; background: #fff; border: 1px solid #f0e8e8; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: center; align-items: center; color: #555;"><i class="fas fa-chevron-right"></i></button>
                 </div>
                 
                 <div class="right-action" style="visibility: hidden;">
