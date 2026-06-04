@@ -91,6 +91,12 @@ class NotificationController {
         this.view.toggleDropdown();
 
         if (isOpening) {
+            // Close the user-dropdown if it is open
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.classList.remove('active');
+            }
+
             if (!this.model.isInitialized) {
                 await this.refreshDropdown();
             } else {

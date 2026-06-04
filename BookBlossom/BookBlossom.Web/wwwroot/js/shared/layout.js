@@ -18,6 +18,9 @@
         $userDropdown.off('click.bookblossomLayout').on('click.bookblossomLayout', function (e) {
             e.stopPropagation();
             $(this).toggleClass('active');
+            // Always hide notification dropdown when user dropdown is clicked
+            $('#notification-dropdown').removeClass('active');
+            $('#notification-bell').removeClass('active');
         });
 
         $(document).off('click.bookblossomLayoutDropdown').on('click.bookblossomLayoutDropdown', function (e) {
