@@ -1,41 +1,64 @@
 @{
-    ViewData["Title"] = "Kết Quả Thanh Toán";
+    ViewData["Title"] = "Payment Result";
     var status = ViewBag.Status as string;
     var message = ViewBag.Message as string;
     var orderId = ViewBag.OrderId;
 }
 
-<div class="container mt-5 pt-5 text-center" style="min-height: 60vh;">
+<div style="min-height: 75vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fdf6f6 0%, #faf5ff 100%); padding: 40px 20px; font-family: 'Inter', sans-serif;">
     @if (status == "success")
     {
-        <div class="card shadow border-0 mx-auto" style="max-width: 500px; border-radius: 12px; background: #f8fafc;">
-            <div class="card-body p-5">
-                <i class="fas fa-check-circle text-success" style="font-size: 80px; color: #38a169;"></i>
-                <h3 class="mt-4 mb-3 fw-bold" style="color: #2d3748;">Thanh Toán Thành Công!</h3>
-                <p class="text-muted mb-4">Đơn hàng <strong>#@orderId</strong> của bạn đã được thanh toán và đang chờ xử lý.</p>
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="/" class="btn btn-outline-primary" style="border-radius: 8px;">Tiếp tục mua sắm</a>
-                    <a href="/Profile?tab=orders" class="btn btn-primary" style="background-color: #C2185B; border: none; border-radius: 8px;">Xem đơn hàng</a>
+        <div style="background: #fff; border-radius: 24px; width: 100%; max-width: 500px; padding: 45px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.08); animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div style="width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 8px 20px rgba(22, 101, 52, 0.15);">
+                <i class="fas fa-check" style="font-size: 2.5rem; color: #166534;"></i>
+            </div>
+            <h2 style="font-family: 'Lora', serif; color: #111; margin-bottom: 20px; font-weight: 700; font-size: 1.8rem;">Payment successful!</h2>
+            
+            <div style="background: #f8fafc; border-radius: 16px; padding: 20px; text-align: left; margin-bottom: 35px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: #64748b; font-size: 0.95rem;">Order ID:</span>
+                    <strong style="color: #0f172a; font-size: 0.95rem;">#@orderId</strong>
                 </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b; font-size: 0.95rem;">Status:</span>
+                    <strong style="color: #166534; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 8px; height: 8px; background: #166534; border-radius: 50%; display: inline-block;"></span>
+                        Paid, waiting for confirmation
+                    </strong>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-direction: column;">
+                <a href="/Profile?tab=orders" style="background: #111; color: #fff; border: none; padding: 14px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; text-decoration: none; display: block; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='none';">View Order</a>
+                <a href="/" style="background: #fff; color: #111; border: 1.5px solid #111; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; text-decoration: none; display: block; transition: all 0.2s;" onmouseover="this.style.background='#fafafa';" onmouseout="this.style.background='#fff';">Continue Shopping</a>
             </div>
         </div>
     }
     else
     {
-        <div class="card shadow border-0 mx-auto" style="max-width: 500px; border-radius: 12px; background: #f8fafc;">
-            <div class="card-body p-5">
-                <i class="fas fa-times-circle text-danger" style="font-size: 80px; color: #e53e3e;"></i>
-                <h3 class="mt-4 mb-3 fw-bold" style="color: #2d3748;">Thanh Toán Thất Bại</h3>
-                <p class="text-muted mb-2">Rất tiếc, giao dịch cho đơn hàng <strong>#@orderId</strong> không thành công.</p>
-                @if (!string.IsNullOrEmpty(message))
-                {
-                    <p class="text-danger small mb-4">Lỗi: @message</p>
-                }
-                <div class="d-flex justify-content-center gap-3 mt-4">
-                    <a href="/" class="btn btn-outline-primary" style="border-radius: 8px;">Về trang chủ</a>
-                    <a href="/Profile?tab=orders" class="btn btn-primary" style="background-color: #C2185B; border: none; border-radius: 8px;">Kiểm tra đơn hàng</a>
+        <div style="background: #fff; border-radius: 24px; width: 100%; max-width: 500px; padding: 45px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.08); animation: shake 0.6s ease-in-out;">
+            <div style="width: 80px; height: 80px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 8px 20px rgba(153, 27, 27, 0.15);">
+                <i class="fas fa-times" style="font-size: 2.5rem; color: #991b1b;"></i>
+            </div>
+            <h2 style="font-family: 'Lora', serif; color: #111; margin-bottom: 15px; font-weight: 700; font-size: 1.8rem;">Payment failed</h2>
+            <p style="color: #64748b; margin-bottom: 25px; line-height: 1.6; font-size: 0.95rem;">The transaction for order <strong>#@orderId</strong> was not successful. Please check your payment method and try again.</p>
+            
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div style="background: #fff8f8; border-radius: 12px; padding: 12px 16px; border-left: 4px solid #dc2626; color: #b91c1c; font-size: 0.88rem; text-align: left; margin-bottom: 30px;">
+                    <strong>Error details:</strong> @message
                 </div>
+            }
+
+            <div style="display: flex; gap: 12px; flex-direction: column;">
+                <a href="/Profile?tab=orders" style="background: #C2185B; color: #fff; border: none; padding: 14px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; text-decoration: none; display: block; transition: all 0.2s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='none';">Check Order</a>
+                <a href="/" style="background: #fff; color: #111; border: 1.5px solid #111; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 1.05rem; cursor: pointer; text-decoration: none; display: block; transition: all 0.2s;" onmouseover="this.style.background='#fafafa';" onmouseout="this.style.background='#fff';">Back to Home</a>
             </div>
         </div>
     }
 </div>
+
+<style>
+    @@keyframes bounce-in { 0% { transform: scale(0.8); opacity: 0; } 80% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+    @@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+</style>

@@ -5,9 +5,9 @@
 
 
 @{
-    string defaultName = "John Doe";
-    string defaultPhone = "0987654321";
-    string defaultAddress = "Phường Bến Nghé, Quận 1, Hồ Chí Minh";
+    string defaultName = "";
+    string defaultPhone = "";
+    string defaultAddress = "";
 
     if (User.Identity != null && User.Identity.IsAuthenticated)
     {
@@ -38,28 +38,33 @@
     }
 }
 
-<!-- Shipping Address Editor Modal -->
-    <div id="address-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+     <!-- Add/Edit Shipping Address Modal -->
+    <div id="address-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 10010; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div id="address-modal-content" style="background: #fff; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
             <!-- Header -->
             <div style="padding: 20px 25px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 700; color: #111;">Change Shipping Address</h3>
+                <h3 id="checkout-address-form-title" style="margin: 0; font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 700; color: #111;">Add New Shipping Address</h3>
                 <button id="btn-close-address" style="background: none; border: none; font-size: 1.3rem; color: #888; cursor: pointer; transition: color 0.2s;"><i class="fas fa-times"></i></button>
             </div>
             
             <!-- Body -->
             <div style="padding: 25px; display: flex; flex-direction: column; gap: 20px;">
-                <div class="form-group">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
-                    <textarea id="address-input-text" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full shipping address...">@defaultAddress</textarea>
-                </div>
+                <input type="hidden" id="address-input-id" value="">
                 <div class="form-group">
                     <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Receiver Name</label>
-                    <input type="text" id="address-input-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultName">
+                    <input type="text" id="address-input-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" placeholder="Receiver's name...">
                 </div>
                 <div class="form-group">
                     <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number</label>
-                    <input type="tel" id="address-input-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultPhone">
+                    <input type="tel" id="address-input-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" placeholder="Phone number...">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
+                    <textarea id="address-input-text" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Street, Ward, District, City..."></textarea>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="address-input-default" style="width: 16px; height: 16px; accent-color: #C2185B; cursor: pointer;">
+                    <label for="address-input-default" style="margin: 0; font-size: 0.9rem; font-weight: 600; color: #444; cursor: pointer;">Set as default address</label>
                 </div>
             </div>
 
@@ -68,11 +73,12 @@
                 <button id="btn-cancel-address" style="background: transparent; color: #555; border: 1.5px solid #ddd; padding: 10px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
                     Cancel
                 </button>
-                <button id="btn-save-address" style="background: linear-gradient(135deg, #C2185B 0%, #f07c7c 100%); color: #fff; border: none; padding: 10px 25px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);">
-                    Save Changes
+                <button id="btn-save-address" style="background: linear-gradient(135deg, #C2185B 0%, #f07c7c 100%); color: #fff; border: none; padding: 10px 25px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(194, 24, 91, 0.25);">
+                    Save Address
                 </button>
             </div>
         </div>
+    </div>
     </div>
 
 
@@ -101,19 +107,32 @@
                     </div>
                 </div>
 
-                <!-- Shipping Details -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</label>
-                        <textarea id="checkout-address" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px; transition: border-color 0.2s;" placeholder="Enter your full address...">@defaultAddress</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Receiver Name</label>
-                        <input type="text" id="checkout-name" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultName">
-                    </div>
-                    <div class="form-group">
-                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number <span style="color: #999; font-size: 0.75rem; text-transform: none;">(Editable for shipper)</span></label>
-                        <input type="tel" id="checkout-phone" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.2s;" value="@defaultPhone">
+                <!-- Selected Shipping Address Card -->
+                <div id="checkout-selected-address-card" style="background: #fafaf9; border: 1.5px solid #f2ede4; border-radius: 12px; padding: 20px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                        <div style="display: flex; gap: 12px; text-align: left;">
+                            <i class="fas fa-map-marker-alt" style="color: #C2185B; font-size: 1.3rem; margin-top: 3px;"></i>
+                            <div>
+                                <h4 style="margin: 0 0 6px 0; font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 700; color: #111;">Delivery Address</h4>
+                                <div id="checkout-active-address-details" style="display: none;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                        <span id="checkout-active-name" style="font-weight: 700; color: #222; font-size: 0.95rem;"></span>
+                                        <span id="checkout-active-default-badge" style="display: none; background: #C2185B; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Default</span>
+                                    </div>
+                                    <div id="checkout-active-phone" style="color: #666; font-size: 0.88rem; margin-bottom: 2px;"></div>
+                                    <div id="checkout-active-address-text" style="color: #555; font-size: 0.88rem; line-height: 1.4;"></div>
+                                </div>
+                                <div id="checkout-active-address-empty" style="color: #888; font-size: 0.9rem; font-style: italic; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; margin-top: 5px;">
+                                    <span>No shipping address selected. Please add or select an address to proceed.</span>
+                                    <button id="btn-add-checkout-addr-first" type="button" style="background: linear-gradient(135deg, #C2185B 0%, #f07c7c 100%); color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-plus"></i> Add New Address
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="btn-change-checkout-addr" type="button" style="display: none; background: transparent; border: 1.5px solid #C2185B; color: #C2185B; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                            Change
+                        </button>
                     </div>
                 </div>
 
@@ -262,4 +281,30 @@
             @@keyframes bounce-in { 0% { transform: scale(0.8); opacity: 0; } 80% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
             @@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
         </style>
+    </div>
+
+    <!-- 6. Address Selection Modal (Secondary checkout modal) -->
+    <div id="checkout-address-list-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.7); z-index: 10005; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div id="checkout-address-list-content" style="background: #fff; border-radius: 20px; width: 90%; max-width: 520px; max-height: 80vh; display: flex; flex-direction: column; transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.25);">
+            <!-- Header -->
+            <div style="padding: 20px 25px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; background: #fff; position: sticky; top: 0; z-index: 5;">
+                <h3 style="margin: 0; font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 700; color: #111;">My Shipping Addresses</h3>
+                <button id="btn-close-address-list" style="background: none; border: none; font-size: 1.3rem; color: #888; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- Address List Body -->
+            <div id="checkout-address-list-container" style="padding: 20px 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #fdfdfd; flex-grow: 1;">
+                <!-- Render list dynamically via JS -->
+            </div>
+
+            <!-- Footer Actions -->
+            <div style="padding: 20px 25px; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; background: #fafafa; border-radius: 0 0 20px 20px; position: sticky; bottom: 0; z-index: 5;">
+                <button id="btn-add-new-checkout-addr" style="background: transparent; color: #C2185B; border: 1.5px solid #C2185B; padding: 8px 18px; border-radius: 20px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <i class="fas fa-plus"></i> Add New Address
+                </button>
+                <button id="btn-confirm-address-selection" style="background: linear-gradient(135deg, #C2185B 0%, #f07c7c 100%); color: #fff; border: none; padding: 9px 22px; border-radius: 20px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    Select Address
+                </button>
+            </div>
+        </div>
     </div>
