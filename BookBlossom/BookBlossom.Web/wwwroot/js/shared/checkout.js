@@ -281,11 +281,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    const addressModal = document.getElementById('address-modal-overlay');
-    const addressContent = document.getElementById('address-modal-content');
-    const btnCloseAddress = document.getElementById('btn-close-address');
-    const btnCancelAddress = document.getElementById('btn-cancel-address');
-    const btnSaveAddress = document.getElementById('btn-save-address');
+    const addressModal = document.getElementById('checkout-address-modal-overlay');
+    const addressContent = document.getElementById('checkout-address-modal-content');
+    const btnCloseAddress = document.getElementById('btn-close-checkout-address');
+    const btnCancelAddress = document.getElementById('btn-cancel-checkout-address');
+    const btnSaveAddress = document.getElementById('btn-save-checkout-address');
     const btnChangeBlindAddr = document.getElementById('btn-change-blind-shipping');
 
     const addressListOverlay = document.getElementById('checkout-address-list-overlay');
@@ -463,26 +463,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openAddressFormModal(addressId = null) {
-        const inputId = document.getElementById('address-input-id');
+        const inputId = document.getElementById('checkout-address-input-id');
         if (inputId) inputId.value = addressId || '';
         
         const titleSpan = document.getElementById('checkout-address-form-title');
-        const defaultCheckbox = document.getElementById('address-input-default');
+        const defaultCheckbox = document.getElementById('checkout-address-input-default');
         
         if (addressId) {
             if (titleSpan) titleSpan.innerText = "Edit Shipping Address";
             const addr = window.userAddresses.find(a => (a.addressID || a.AddressID || a.addressId) === addressId);
             if (addr) {
-                document.getElementById('address-input-name').value = addr.receiverName || addr.ReceiverName || '';
-                document.getElementById('address-input-phone').value = addr.phoneNumber || addr.PhoneNumber || '';
-                document.getElementById('address-input-text').value = addr.detailAddress || addr.DetailAddress || '';
+                document.getElementById('checkout-address-input-name').value = addr.receiverName || addr.ReceiverName || '';
+                document.getElementById('checkout-address-input-phone').value = addr.phoneNumber || addr.PhoneNumber || '';
+                document.getElementById('checkout-address-input-text').value = addr.detailAddress || addr.DetailAddress || '';
                 if (defaultCheckbox) defaultCheckbox.checked = addr.isDefault || addr.IsDefault || false;
             }
         } else {
             if (titleSpan) titleSpan.innerText = "Add New Shipping Address";
-            document.getElementById('address-input-name').value = '';
-            document.getElementById('address-input-phone').value = '';
-            document.getElementById('address-input-text').value = '';
+            document.getElementById('checkout-address-input-name').value = '';
+            document.getElementById('checkout-address-input-phone').value = '';
+            document.getElementById('checkout-address-input-text').value = '';
             if (defaultCheckbox) defaultCheckbox.checked = window.userAddresses.length === 0;
         }
         
@@ -568,11 +568,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnSaveAddress) {
         btnSaveAddress.addEventListener('click', async function () {
-            const addressIdVal = document.getElementById('address-input-id').value;
-            const receiverName = document.getElementById('address-input-name').value.trim();
-            const phoneNumber = document.getElementById('address-input-phone').value.trim();
-            const detailAddress = document.getElementById('address-input-text').value.trim();
-            const defaultCheckbox = document.getElementById('address-input-default');
+            const addressIdVal = document.getElementById('checkout-address-input-id').value;
+            const receiverName = document.getElementById('checkout-address-input-name').value.trim();
+            const phoneNumber = document.getElementById('checkout-address-input-phone').value.trim();
+            const detailAddress = document.getElementById('checkout-address-input-text').value.trim();
+            const defaultCheckbox = document.getElementById('checkout-address-input-default');
             const isDefault = defaultCheckbox ? defaultCheckbox.checked : false;
             
             if (!receiverName || !phoneNumber || !detailAddress) {

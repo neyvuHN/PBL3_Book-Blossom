@@ -183,8 +183,8 @@
                                     </div>
 
                                     <div class="price-action-box d-flex flex-column align-items-end gap-2" style="min-width: 120px;">
-                                        <!-- [UPDATED] Row total converted to VND only -->
-                                        <span style="font-size: 1.15rem; font-weight: 800; color: #111;">${formatVnd(getItemPriceVnd(item) * item.qty)}</span>
+                                        <!-- [UPDATED] Unit price remains constant in VND -->
+                                        <span style="font-size: 1.15rem; font-weight: 800; color: #111;">${formatVnd(getItemPriceVnd(item))}</span>
                                         <button class="btn-delete-item" data-id="${item.id}" title="Remove item" style="background: none; border: none; color: #bbb; transition: all 0.2s; cursor: pointer; padding: 3px;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='#bbb'">
                                             <i class="far fa-trash-alt"></i>
                                         </button>
