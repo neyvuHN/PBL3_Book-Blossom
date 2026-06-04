@@ -251,7 +251,17 @@
                     
                     let matchDate = true;
                     if (dateVal) {
-                        matchDate = rowDateStr && rowDateStr.startsWith(dateVal);
+                        if (rowDateStr) {
+                            const parts = rowDateStr.split(' ')[0].split('/');
+                            if (parts.length === 3) {
+                                const formattedRowDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                matchDate = formattedRowDate === dateVal;
+                            } else {
+                                matchDate = false;
+                            }
+                        } else {
+                            matchDate = false;
+                        }
                     }
 
                     if (matchSearch && matchAction && matchDate) {
