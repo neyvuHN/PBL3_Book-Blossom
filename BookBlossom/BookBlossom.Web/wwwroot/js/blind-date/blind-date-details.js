@@ -899,7 +899,8 @@
                         blindBookID: blindId,
                         qty: item.qty
                     },
-                    orderNote: ''
+                    orderNote: '',
+                    appliedVouchers: voucherResult.appliedVoucherLines
                 };
 
                 renderCheckoutVoucherBadges(voucherResult.appliedVoucherLines);
@@ -972,47 +973,28 @@
 
     function calculateBlindVoucherDiscount(subtotalVnd) {
         let discountVnd = 0;
-        let shippingFeeVnd = subtotalVnd > 0 ? 60000 : 0;
+        let shippingFeeVnd = subtotalVnd > 0 ? 30000 : 0;
         const appliedVoucherLines = [];
 
         selectedBlindVouchers.forEach(function (code) {
-            if (code === 'MYSTERY15') {
-                if (subtotalVnd >= 150000) {
-                    discountVnd += 15000;
-                    appliedVoucherLines.push({ code, text: 'MYSTERY15 (-15,000 VND)' });
+            const voucher = (window.VOUCHERS_DATA || []).find(v => v.code === code);
+            
+            if (voucher) {
+                if (subtotalVnd >= voucher.minOrder) {
+                    let d = voucher.type === 'percent' ? (subtotalVnd * voucher.discount) : voucher.discount;
+                    if (voucher.type === 'percent' && voucher.maxDiscount) {
+                        d = Math.min(d, voucher.maxDiscount);
+                    }
+                    
+                    if (voucher.type === 'freeship') {
+                        shippingFeeVnd = 0;
+                        appliedVoucherLines.push({ code: code, text: `${voucher.code} (Free Shipping)` });
+                    } else {
+                        discountVnd += d;
+                        appliedVoucherLines.push({ code: code, text: `${voucher.code} (-${new Intl.NumberFormat('vi-VN').format(d)} VND)` });
+                    }
                 } else {
-                    showToast('MYSTERY15 requires minimum order 150,000 VND.');
-                }
-            } else if (code === 'BLOSSOM70') {
-                if (subtotalVnd >= 500000) {
-                    discountVnd += 70000;
-                    appliedVoucherLines.push({ code, text: 'BLOSSOM70 (-70,000 VND)' });
-                } else {
-                    showToast('BLOSSOM70 requires minimum order 500,000 VND.');
-                }
-            } else if (code === 'READMORE30') {
-                discountVnd += 30000;
-                appliedVoucherLines.push({ code, text: 'READMORE30 (-30,000 VND)' });
-            } else if (code === 'SECRET50') {
-                if (subtotalVnd >= 350000) {
-                    discountVnd += 50000;
-                    appliedVoucherLines.push({ code, text: 'SECRET50 (-50,000 VND)' });
-                } else {
-                    showToast('SECRET50 requires minimum order 350,000 VND.');
-                }
-            } else if (code === 'UNBOX20') {
-                if (subtotalVnd >= 200000) {
-                    discountVnd += 20000;
-                    appliedVoucherLines.push({ code, text: 'UNBOX20 (-20,000 VND)' });
-                } else {
-                    showToast('UNBOX20 requires minimum order 200,000 VND.');
-                }
-            } else if (code === 'VIPMYSTERY') {
-                if (subtotalVnd >= 800000) {
-                    discountVnd += 100000;
-                    appliedVoucherLines.push({ code, text: 'VIPMYSTERY (-100,000 VND)' });
-                } else {
-                    showToast('VIPMYSTERY requires minimum order 800,000 VND.');
+                    showToast(`${voucher.code} requires minimum order ${new Intl.NumberFormat('vi-VN').format(voucher.minOrder)} VND.`);
                 }
             }
         });

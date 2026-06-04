@@ -33,9 +33,18 @@ class OrdersController {
         this.view.bindReturnRefundSubmit(this.handleReturnRefundSubmit.bind(this));
     }
 
-    handleViewDetails(orderId) {
-        const order = this.model.orders.find(o => o.id.toString() === orderId.toString());
+    async handleViewDetails(orderId) {
+        let order = this.model.orders.find(o => o.id.toString() === orderId.toString());
         if (order) {
+            const details = await this.model.fetchOrderDetails(orderId);
+            if (details) {
+                const mappedDetails = { ...details };
+                if (mappedDetails.paymentMethod !== undefined) {
+                    mappedDetails.paymentMethod = this.model.mapPaymentMethod(mappedDetails.paymentMethod);
+                }
+                // Don't overwrite discount if backend returns 0 but we might have it (though we probably don't, backend is source of truth, but we need to display something if 0)
+                order = { ...order, ...mappedDetails };
+            }
             this.view.showOrderDetailsModal(order);
         }
     }

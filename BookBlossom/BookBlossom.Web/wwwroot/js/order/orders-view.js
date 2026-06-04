@@ -447,9 +447,17 @@ class OrdersView {
         `).join('');
 
         // Summary amounts
+        // Summary amounts
+        const shipping = (order.shippingFee !== undefined && order.shippingFee !== null) ? order.shippingFee : 30000;
+        const discountVal = (order.discountAmount !== undefined && order.discountAmount !== null) ? order.discountAmount : (order.discountValue || 0);
+        const discountType = order.voucherCode ? `Voucher (${order.voucherCode})` : (order.discountType || 'None');
+
         document.getElementById('detail-subtotal').textContent = (order.subTotal || order.totalPrice).toLocaleString('vi-VN') + 'đ';
-        document.getElementById('detail-shipping-fee').textContent = (order.shippingFee || 0).toLocaleString('vi-VN') + 'đ';
-        document.getElementById('detail-discount-val').textContent = (order.discountAmount || 0).toLocaleString('vi-VN') + 'đ';
+        document.getElementById('detail-shipping-fee').textContent = shipping.toLocaleString('vi-VN') + 'đ';
+        if (document.getElementById('detail-discount-type')) {
+            document.getElementById('detail-discount-type').textContent = discountType;
+        }
+        document.getElementById('detail-discount-val').textContent = discountVal.toLocaleString('vi-VN') + 'đ';
         document.getElementById('detail-total').textContent = order.totalPrice.toLocaleString('vi-VN') + 'đ';
 
         // Timeline

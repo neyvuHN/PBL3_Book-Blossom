@@ -407,7 +407,7 @@
                 appliedVouchers = validVouchers;
 
                 // [UPDATED] Shipping fee calculation & display in VND only
-                let shippingFeeVnd = subtotalVnd > 0 ? 60000 : 0;
+                let shippingFeeVnd = subtotalVnd > 0 ? 30000 : 0;
                 if (hasFreeShipVoucher && subtotalVnd >= 150000) {
                     shippingFeeVnd = 0;
                     $('#cart-shipping').html('<span style="text-decoration: line-through; color: #888; margin-right: 8px;">30,000 VND</span><span style="color: #2e7d32; font-weight: 700;">Free</span>');
@@ -726,7 +726,7 @@
                     });
                 }
 
-                let shippingFeeVnd = subtotalVnd > 0 ? 60000 : 0;
+                let shippingFeeVnd = subtotalVnd > 0 ? 30000 : 0;
                 if (hasFreeShip && subtotalVnd >= 150000) {
                     shippingFeeVnd = 0;
                 }

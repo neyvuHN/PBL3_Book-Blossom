@@ -277,14 +277,14 @@ namespace BookBlossom.Infrastructure.Services
 
             if (voucher == null)
             {
-                invalid.ErrorMessage = "Mã voucher không tồn tại.";
+                invalid.ErrorMessage = "Voucher does not exist.";
                 return invalid;
             }
 
             // 2. Kiểm tra trạng thái và thời hạn
             if (voucher.StatusVoucher != VoucherStatus.Active)
             {
-                invalid.ErrorMessage = "Voucher chưa được kích hoạt hoặc đã kết thúc.";
+                invalid.ErrorMessage = "Voucher not active or ended.";
                 return invalid;
             }
 

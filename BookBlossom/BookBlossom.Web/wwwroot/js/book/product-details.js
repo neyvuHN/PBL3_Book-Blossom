@@ -8,81 +8,7 @@
     let currentDetailImageIndex = 0;
     let selectedVouchers = new Set();
 
-    const VOUCHERS_DATA = [
-        {
-            code: 'BLOSSOM70',
-            title: 'Save 70k VND',
-            desc: 'Min order 500k',
-            discount: 70000,
-            type: 'fixed',
-            minOrder: 500000,
-            textColor: '#f07c7c',
-            tagBg: '#ffebee',
-            borderColor: '#f07c7c',
-            bg: '#fffdfb'
-        },
-        {
-            code: 'READMORE30',
-            title: 'Save 30k VND',
-            desc: 'First book purchase',
-            discount: 30000,
-            type: 'fixed',
-            minOrder: 0,
-            textColor: '#f07c7c',
-            tagBg: '#ffebee',
-            borderColor: '#f07c7c',
-            bg: '#fffdfb'
-        },
-        {
-            code: 'ZALOPAY50',
-            title: 'ZaloPay Extra 50k',
-            desc: 'Pay via ZaloPay app',
-            discount: 50000,
-            type: 'fixed',
-            minOrder: 0,
-            textColor: '#2b6cb0',
-            tagBg: '#eef7fc',
-            borderColor: '#2b6cb0',
-            bg: '#fdfcff'
-        },
-        {
-            code: 'MOMO12',
-            title: 'Momo: Get 12k',
-            desc: 'Cashback on Momo',
-            discount: 12000,
-            type: 'fixed',
-            minOrder: 0,
-            textColor: '#d53f8c',
-            tagBg: '#fdf2f8',
-            borderColor: '#d53f8c',
-            bg: '#fffafc'
-        },
-        {
-            code: 'SUMMER20',
-            title: '20% OFF Summer',
-            desc: 'Max discount 50k',
-            discount: 0.2,
-            maxDiscount: 50000,
-            type: 'percent',
-            minOrder: 0,
-            textColor: '#dd6b20',
-            tagBg: '#feebc8',
-            borderColor: '#dd6b20',
-            bg: '#fffaf0'
-        },
-        {
-            code: 'FREESHIP',
-            title: 'Free Shipping',
-            desc: 'Min order 150k',
-            discount: 0,
-            type: 'freeship',
-            minOrder: 150000,
-            textColor: '#319795',
-            tagBg: '#e6fffa',
-            borderColor: '#319795',
-            bg: '#f0fdf4'
-        }
-    ];
+    let VOUCHERS_DATA = window.VOUCHERS_DATA || [];
 
     $(document).ready(function () {
         initFromHash();
@@ -95,7 +21,17 @@
         initQuantity();
         initAddToCart();
         initBuyNow();
-        initVoucherSystem();
+        
+        if (window.VOUCHERS_DATA && window.VOUCHERS_DATA.length > 0) {
+            VOUCHERS_DATA = window.VOUCHERS_DATA;
+            initVoucherSystem();
+        } else {
+            $(document).on('vouchersLoaded', function() {
+                VOUCHERS_DATA = window.VOUCHERS_DATA || [];
+                initVoucherSystem();
+            });
+        }
+        
         initPreviewButton();
     });
 
@@ -1060,7 +996,8 @@
                     blindBookID: null,
                     qty: qty,
                     isBlind: false
-                }
+                },
+                appliedVouchers: voucherResult.appliedVoucherLines
             };
 
             renderCheckoutVoucherBadges(voucherResult.appliedVoucherLines);
@@ -1083,7 +1020,7 @@
 
     function calculateBuyNowVoucherDiscount(subtotalVnd) {
         let discountVnd = 0;
-        let shippingFeeVnd = subtotalVnd > 0 ? 60000 : 0;
+        let shippingFeeVnd = subtotalVnd > 0 ? 30000 : 0;
         const appliedVoucherLines = [];
 
         selectedVouchers.forEach(function (code) {
