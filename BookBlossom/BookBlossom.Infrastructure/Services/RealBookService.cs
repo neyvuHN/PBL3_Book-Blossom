@@ -155,7 +155,14 @@ namespace BookBlossom.Infrastructure.Services
             else query = query.OrderByDescending(b => b.Price);
 
             var books = await query.ToListAsync();
-            return books.Select(MapToDTO).ToList();
+            var bookIds = books.Select(b => b.BookID).ToList();
+            var soldCounts = await _context.OrderDetails
+                .Where(od => bookIds.Contains(od.BookID) && od.Order.OrderStatus != OrderStatus.Cancelled)
+                .GroupBy(od => od.BookID)
+                .Select(g => new { BookID = g.Key, Count = g.Sum(od => od.Quantity) })
+                .ToDictionaryAsync(x => x.BookID, x => x.Count);
+
+            return books.Select(b => MapToDTO(b, soldCounts.TryGetValue(b.BookID, out var count) ? count : 0)).ToList();
         }
 
         // 3. HÀM LẤY SÁCH THEO CATEGORY ID (GET BY CATEGORY)
@@ -170,7 +177,14 @@ namespace BookBlossom.Infrastructure.Services
             else query = query.OrderByDescending(b => b.Price);
 
             var books = await query.ToListAsync();
-            return books.Select(MapToDTO).ToList();
+            var bookIds = books.Select(b => b.BookID).ToList();
+            var soldCounts = await _context.OrderDetails
+                .Where(od => bookIds.Contains(od.BookID) && od.Order.OrderStatus != OrderStatus.Cancelled)
+                .GroupBy(od => od.BookID)
+                .Select(g => new { BookID = g.Key, Count = g.Sum(od => od.Quantity) })
+                .ToDictionaryAsync(x => x.BookID, x => x.Count);
+
+            return books.Select(b => MapToDTO(b, soldCounts.TryGetValue(b.BookID, out var count) ? count : 0)).ToList();
         }
 
         // 4. HÀM LẤY CHI TIẾT MỘT CUỐN SÁCH (GET BY ID)
@@ -182,7 +196,10 @@ namespace BookBlossom.Infrastructure.Services
                 .FirstOrDefaultAsync(b => b.BookID == id && b.IsContinued);
 
             if (book == null) return null;
-            return MapToDTO(book);
+            var soldCount = await _context.OrderDetails
+                .Where(od => od.BookID == id && od.Order.OrderStatus != OrderStatus.Cancelled)
+                .SumAsync(od => od.Quantity);
+            return MapToDTO(book, soldCount);
         }
 
         // 5. HÀM CẬP NHẬT THÔNG TIN SÁCH (UPDATE)
@@ -312,7 +329,7 @@ namespace BookBlossom.Infrastructure.Services
         }
 
         // Hàm Map nội bộ từ Entity sang DTO để tránh lặp code mapping nhiều nơi
-        private static RealBookDTO MapToDTO(RealBook b)
+        private static RealBookDTO MapToDTO(RealBook b, int soldCount = 0)
         {
             return new RealBookDTO
             {
@@ -332,7 +349,8 @@ namespace BookBlossom.Infrastructure.Services
                 IsContinued = b.IsContinued,
                 Authors = b.BookAuthors != null && b.BookAuthors.Any()
                     ? string.Join(", ", b.BookAuthors.Select(ba => ba.Author != null ? ba.Author.AuthorName : string.Empty).Where(name => !string.IsNullOrEmpty(name)))
-                    : string.Empty
+                    : string.Empty,
+                SoldCount = soldCount
             };
         }
 

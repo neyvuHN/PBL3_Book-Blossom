@@ -93,8 +93,7 @@
     function populateBlindDateDetails(blindBookData) {
         $('#blind-detail-main-img').attr('src', blindBookData.imgSrc || '/images/BlindDateBook/BlindBook.jpg');
 
-        $('#blind-clue-hook').text(blindBookData.desc || 'A mystery book selected by BookBlossom.');
-        $('#blind-clue-quote').text(blindBookData.firstLine || 'The story begins with a secret...');
+        $('#blind-clue-quote').text(blindBookData.quotes || 'The story begins with a secret...');
         $('#blind-detail-price').text(blindBookData.price || '120.000 VNĐ');
 
         const numPrice = parsePriceToVnd(blindBookData.price || '120.000 VNĐ');
@@ -111,7 +110,7 @@
         $('#blind-clue-keywords').text(blindBookData.keywords || 'Intriguing, suspenseful, cozy mystery');
 
         renderHashtags(blindBookData.hashtags || '#Mystery #BlindDate');
-        renderGalleryImages(blindBookData.imgSrc || '/images/BlindDateBook/BlindBook.jpg');
+        renderGalleryImages(blindBookData.allImages || blindBookData.imgSrc || '/images/BlindDateBook/BlindBook.jpg');
 
         const title = getBlindTitle();
         const activeHash = `/BlindDate#blind-details-${encodeURIComponent(getBlindHashKey(blindBookData))}`;
@@ -189,18 +188,26 @@
         });
     }
 
-    function renderGalleryImages(mainImage) {
-        const demoBlindImages = [
-            '/images/BlindDateBook/BlindBook1.jpg',
-            '/images/BlindDateBook/BlindBook2.jpg',
-            '/images/BlindDateBook/BlindBook3.jpg',
-            '/images/BlindDateBook/BlindBook4.jpg',
-            '/images/BlindDateBook/BlindBook5.jpg',
-            '/images/BlindDateBook/BlindBook.jpg'
-        ];
+    function renderGalleryImages(imagesInput) {
+        let blindImagesArray;
 
-        const otherImages = demoBlindImages.filter(img => img !== mainImage);
-        const blindImagesArray = [mainImage, ...otherImages.slice(0, 2)];
+        if (Array.isArray(imagesInput) && imagesInput.length > 0) {
+            // Real images from database — use directly (up to 3 thumbnails)
+            blindImagesArray = imagesInput.slice(0, 3);
+        } else {
+            // Fallback: single string passed → pad with demo images
+            const mainImage = typeof imagesInput === 'string' ? imagesInput : '/images/BlindDateBook/BlindBook.jpg';
+            const demoBlindImages = [
+                '/images/BlindDateBook/BlindBook1.jpg',
+                '/images/BlindDateBook/BlindBook2.jpg',
+                '/images/BlindDateBook/BlindBook3.jpg',
+                '/images/BlindDateBook/BlindBook4.jpg',
+                '/images/BlindDateBook/BlindBook5.jpg',
+                '/images/BlindDateBook/BlindBook.jpg'
+            ];
+            const otherImages = demoBlindImages.filter(img => img !== mainImage);
+            blindImagesArray = [mainImage, ...otherImages.slice(0, 2)];
+        }
 
         $('.blind-thumb-wrapper img').each(function (index) {
             if (index < blindImagesArray.length) {
@@ -214,12 +221,75 @@
         $('#blind-detail-main-img').attr('src', blindImagesArray[0]);
     }
 
-    function initBlindDateDetailsFromHash() {
+    function getMappedBlindBookData(book) {
+        const bookId = book.blindBookID || book.blindBookId || book.id || 0;
+        const imgId = (bookId % 5) + 1;
+        const fallbackImg = `/images/BlindDateBook/BlindBook${imgId}.jpg`;
+
+        // Prefer real images from DB (imagePaths field from API)
+        const realImages = (book.imagePaths && book.imagePaths.length > 0) ? book.imagePaths : null;
+        const imgSrc = realImages ? realImages[0] : fallbackImg;
+        const allImages = realImages || [fallbackImg];
+
+        const hashtags = book.hashtags || book.Hashtags || '#Mystery #BlindDate';
+        const quotes = book.quotes || book.Quotes || 'An intriguing mystery waiting to be solved...';
+        const priceNum = book.price !== undefined ? book.price : (book.Price || 0);
+        const price = Number(priceNum).toLocaleString('vi-VN') + ' VNĐ';
+
+        const conditionsList = ['Pristine - Like new', 'Gift-ready', 'Well Loved - Has character', 'Gently read'];
+        const condition = conditionsList[bookId % conditionsList.length];
+
+        const rating = '4.2';
+        const ratingRange = '4.0 - 4.2';
+        const year = '1994';
+        const category = book.category || book.Category || 'Mystery & Thriller';
+        const keywords = book.keywords || book.Keywords || 'Suspenseful, intriguing, dark secrets';
+
+        return {
+            blindBookID: bookId,
+            imgSrc: imgSrc,
+            allImages: allImages,
+            hashtags: hashtags,
+            quotes: quotes,
+            price: price,
+            condition: condition,
+            rating: rating,
+            ratingRange: ratingRange,
+            year: year,
+            category: category,
+            keywords: keywords
+        };
+    }
+
+    async function initBlindDateDetailsFromHash() {
         const hash = window.location.hash || '';
 
         if (!hash.startsWith('#blind-details-')) return;
 
         const tagKey = decodeURIComponent(hash.substring('#blind-details-'.length));
+        const parsedId = parseInt(tagKey, 10);
+
+        if (!isNaN(parsedId) && parsedId > 0) {
+            try {
+                const response = await fetch(`/api/blindbook/${parsedId}`);
+                if (response.ok) {
+                    const realBookData = await response.json();
+                    const mappedData = getMappedBlindBookData(realBookData);
+                    showBlindDateDetails(mappedData, false);
+                    history.replaceState(
+                        {
+                            view: 'blind-date-details',
+                            blindBookData: mappedData
+                        },
+                        '',
+                        `/BlindDate#blind-details-${parsedId}`
+                    );
+                    return;
+                }
+            } catch (err) {
+                console.error("Error fetching real blind book details from hash:", err);
+            }
+        }
 
         const mockData = buildMockBlindBookFromHash(tagKey);
 
@@ -266,7 +336,7 @@
             desc,
             price,
             condition,
-            firstLine: tagKey.toLowerCase().includes('space')
+            quotes: tagKey.toLowerCase().includes('space')
                 ? 'The stars did not welcome us; they watched us in silence.'
                 : tagKey.toLowerCase().includes('literary')
                     ? "Grandmother's cedar chest smelled of lavender and unspoken truths."
@@ -293,11 +363,25 @@
             window.scrollTo(0, 0);
         });
 
-        window.addEventListener('popstate', function () {
+        window.addEventListener('popstate', async function () {
             const hash = window.location.hash || '';
 
             if (hash.startsWith('#blind-details-')) {
                 const tagKey = decodeURIComponent(hash.substring('#blind-details-'.length));
+                const parsedId = parseInt(tagKey, 10);
+                if (!isNaN(parsedId) && parsedId > 0) {
+                    try {
+                        const response = await fetch(`/api/blindbook/${parsedId}`);
+                        if (response.ok) {
+                            const realBookData = await response.json();
+                            const mappedData = getMappedBlindBookData(realBookData);
+                            showBlindDateDetails(mappedData, false);
+                            return;
+                        }
+                    } catch (err) {
+                        console.error("Error fetching real blind book in popstate:", err);
+                    }
+                }
                 showBlindDateDetails(buildMockBlindBookFromHash(tagKey), false);
             } else {
                 $('#blind-date-details-section').hide();
@@ -1058,6 +1142,7 @@
     }
 
     window.BookBlossomBlindDateDetails = {
-        show: showBlindDateDetails
+        show: showBlindDateDetails,
+        mapBookData: getMappedBlindBookData
     };
 })(window, document, window.jQuery);

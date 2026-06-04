@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using BookBlossom.Core.Enums; 
@@ -54,5 +55,7 @@ namespace BookBlossom.Core.Entities
 
         [ForeignKey("RealBookID")]
         public virtual RealBook? RealBook { get; set; }
+
+        public virtual ICollection<BlindBookImage> Images { get; set; } = new List<BlindBookImage>();
     }
 }
