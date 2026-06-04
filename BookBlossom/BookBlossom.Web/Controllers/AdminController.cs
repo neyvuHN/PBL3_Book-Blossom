@@ -465,17 +465,6 @@ namespace BookBlossom.Web.Controllers
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
-            await _auditService.LogActionAsync(
-                adminId,
-                user.UserID,
-                ActionType.LOCK_ACCOUNT,
-                "Users",
-                JsonSerializer.Serialize(new { Role = oldRole }),
-                JsonSerializer.Serialize(new { Role = user.RoleID.ToString() }),
-                ipAddress
-            );
-
             return Json(new { success = true, role = (targetRole == UserRole.Admin) ? "Admin" : "User" });
         }
 
@@ -533,17 +522,6 @@ namespace BookBlossom.Web.Controllers
 
             _context.StaffDetails.Add(staff);
             await _context.SaveChangesAsync();
-
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
-            await _auditService.LogActionAsync(
-                adminId,
-                user.UserID,
-                ActionType.LOCK_ACCOUNT,
-                "Users",
-                null,
-                JsonSerializer.Serialize(new { Action = "AddAdmin", Username = user.UserName }),
-                ipAddress
-            );
 
             var item = new ViewModels.Admin.AdminUserItemViewModel
             {
@@ -615,17 +593,6 @@ namespace BookBlossom.Web.Controllers
             _context.Users.Update(user);
             _context.StaffDetails.Update(staff);
             await _context.SaveChangesAsync();
-
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
-            await _auditService.LogActionAsync(
-                adminId,
-                user.UserID,
-                ActionType.LOCK_ACCOUNT,
-                "Users",
-                oldData,
-                JsonSerializer.Serialize(new { user.UserName, user.Email, user.PhoneNumber, user.FirstName, user.LastName }),
-                ipAddress
-            );
 
             var item = new ViewModels.Admin.AdminUserItemViewModel
             {
