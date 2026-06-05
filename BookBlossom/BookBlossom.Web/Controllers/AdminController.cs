@@ -43,7 +43,10 @@ namespace BookBlossom.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSystemLogsData()
         {
-            var logs = await _context.AuditLogs.ToListAsync();
+            var logs = await _context.AuditLogs
+                .OrderByDescending(l => l.LogID)
+                .Take(1000)
+                .ToListAsync();
 
             var adminIds = logs.Select(l => l.SystemAdminID).Distinct().ToList();
             var userIds = logs.Where(l => l.UserID.HasValue).Select(l => l.UserID.Value).Distinct().ToList();
@@ -70,7 +73,6 @@ namespace BookBlossom.Web.Controllers
                     IPAddress = l.IPAddress,
                     CreatedAt = l.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")
                 })
-                .OrderByDescending(x => x.LogID)
                 .ToList()
             };
             return Json(model);
@@ -96,184 +98,8 @@ namespace BookBlossom.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsersData()
         {
-            // --- Auto database adjustments (distribute Free packages and balance resources) ---
-
-            // 2. Clear non-standard packages, update standard package constraints/pricing in DB, and distribute subscriptions among Free, Basic, Pro
-            try
-            {
-                var freePkg = await _context.ServicePackages.FirstOrDefaultAsync(p => p.PackageName == "Free");
-                var basicPkg = await _context.ServicePackages.FirstOrDefaultAsync(p => p.PackageName == "Basic");
-                var proPkg = await _context.ServicePackages.FirstOrDefaultAsync(p => p.PackageName == "Pro");
-
-                if (freePkg != null && basicPkg != null && proPkg != null)
-                {
-                    // Update prices and constraints in DB according to requirements
-                    freePkg.Price = 0m;
-                    freePkg.DurationDay = 0;
-                    freePkg.ThreadLimit = 3;
-                    freePkg.UndoLimit = 2;
-                    freePkg.Description = "Gói miễn phí: 3 thread/tháng, 2 undo Tindbook.";
-                    _context.ServicePackages.Update(freePkg);
-
-                    basicPkg.Price = 50000m; // Adjusted to 50,000đ
-                    basicPkg.DurationDay = 30;
-                    basicPkg.ThreadLimit = 20;
-                    basicPkg.UndoLimit = 5;
-                    basicPkg.Description = "Gói Cơ bản: 20 thread/tháng, 5 undo Tindbook.";
-                    _context.ServicePackages.Update(basicPkg);
-
-                    proPkg.Price = 200000m; // Adjusted to 200,000đ
-                    proPkg.DurationDay = 30;
-                    proPkg.ThreadLimit = 999999;
-                    proPkg.UndoLimit = 999999;
-                    proPkg.Description = "Gói Chuyên nghiệp: Không giới hạn thread và undo.";
-                    _context.ServicePackages.Update(proPkg);
-
-                    await _context.SaveChangesAsync();
-
-                    var standardPkgIds = new List<long> { freePkg.PackageID, basicPkg.PackageID, proPkg.PackageID };
-
-                    // Update any CustomerService that points to non-standard packages to standard ones first
-                    var nonStandardServices = await _context.CustomerServices
-                        .Where(cs => !standardPkgIds.Contains(cs.CurrentPackageID))
-                        .ToListAsync();
-
-                    foreach (var ns in nonStandardServices)
-                    {
-                        ns.CurrentPackageID = freePkg.PackageID; // Default to Free
-                        _context.CustomerServices.Update(ns);
-                    }
-                    await _context.SaveChangesAsync();
-
-                    // Delete non-standard packages
-                    var nonStandardPackages = await _context.ServicePackages
-                        .Where(p => !standardPkgIds.Contains(p.PackageID))
-                        .ToListAsync();
-
-                    if (nonStandardPackages.Any())
-                    {
-                        _context.ServicePackages.RemoveRange(nonStandardPackages);
-                        await _context.SaveChangesAsync();
-                    }
-
-                    // Distribute all Customer users evenly across Free, Basic, Pro
-                    var customers = await _context.Users
-                        .Include(u => u.CustomerService)
-                        .Include(u => u.CustomerDetail)
-                        .Where(u => u.RoleID == UserRole.Customer)
-                        .ToListAsync();
-
-                    // Step 1: Ensure all customers have a CustomerDetail record in DB first to satisfy foreign key constraints
-                    bool anyNewDetails = false;
-                    foreach (var cust in customers)
-                    {
-                        if (cust.CustomerDetail == null)
-                        {
-                            cust.CustomerDetail = new CustomerDetail
-                            {
-                                CustomerID = cust.UserID,
-                                IsOnboardingCompleted = true,
-                                TotalSpending = 0,
-                                DailyUndoCount = 0,
-                                CurrentMonthThreadCount = 0,
-                                CurrentOrderStreak = 0
-                            };
-                            _context.CustomerDetails.Add(cust.CustomerDetail);
-                            anyNewDetails = true;
-                        }
-                    }
-                    if (anyNewDetails)
-                    {
-                        await _context.SaveChangesAsync();
-                    }
-
-                    var targetPackages = new[] { freePkg, basicPkg, proPkg };
-                    int index = 0;
-                    var rand = new Random();
-                    foreach (var cust in customers)
-                    {
-                        var selectedPkg = targetPackages[index % 3];
-                        index++;
-
-                        if (cust.CustomerService == null)
-                        {
-                            var newCustService = new CustomerService
-                            {
-                                CustomerID = cust.UserID,
-                                CurrentPackageID = selectedPkg.PackageID,
-                                StartDate = DateTime.UtcNow,
-                                EndDate = DateTime.UtcNow.AddDays(selectedPkg.DurationDay > 0 ? selectedPkg.DurationDay : 30)
-                            };
-                            _context.CustomerServices.Add(newCustService);
-                        }
-                        else
-                        {
-                            cust.CustomerService.CurrentPackageID = selectedPkg.PackageID;
-                            cust.CustomerService.StartDate = DateTime.UtcNow;
-                            cust.CustomerService.EndDate = DateTime.UtcNow.AddDays(selectedPkg.DurationDay > 0 ? selectedPkg.DurationDay : 30);
-                            _context.CustomerServices.Update(cust.CustomerService);
-                        }
-
-                        // Maintain constraints in CustomerDetail
-                        if (selectedPkg.PackageName == "Free")
-                        {
-                            // Free limits: Thread <= 3, Undo <= 2
-                            cust.CustomerDetail.CurrentMonthThreadCount = rand.Next(0, 4); // 0 to 3
-                            cust.CustomerDetail.DailyUndoCount = rand.Next(0, 3); // 0 to 2
-                        }
-                        else if (selectedPkg.PackageName == "Basic")
-                        {
-                            // Basic limits: Thread <= 20, Undo <= 5
-                            cust.CustomerDetail.CurrentMonthThreadCount = rand.Next(0, 21); // 0 to 20
-                            cust.CustomerDetail.DailyUndoCount = rand.Next(0, 6); // 0 to 5
-                        }
-                        else if (selectedPkg.PackageName == "Pro")
-                        {
-                            // Pro: Unlimited
-                            cust.CustomerDetail.CurrentMonthThreadCount = rand.Next(0, 50); // Just a realistic number
-                            cust.CustomerDetail.DailyUndoCount = rand.Next(0, 25);
-                        }
-                        _context.CustomerDetails.Update(cust.CustomerDetail);
-                    }
-                    await _context.SaveChangesAsync();
-
-                    // Adjust Reputation Scores for diversity
-                    var scores = new[] { 120, 75, 55, 105, 25, 135, 78, 45, 110, 95 };
-                    int scoreIndex = 0;
-                    foreach (var cust in customers)
-                    {
-                        var targetScore = scores[scoreIndex % scores.Length];
-                        scoreIndex++;
-
-                        var reputation = await _context.CustomerReputations.FindAsync(cust.UserID);
-                        if (reputation == null)
-                        {
-                            var newRep = new CustomerReputation
-                            {
-                                CustomerID = cust.UserID,
-                                ReputationPoint = targetScore,
-                                RankID = null
-                            };
-                            _context.CustomerReputations.Add(newRep);
-                        }
-                        else
-                        {
-                            reputation.ReputationPoint = targetScore;
-                            _context.CustomerReputations.Update(reputation);
-                        }
-                    }
-                    await _context.SaveChangesAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                try
-                {
-                    System.IO.File.WriteAllText("D:\\Hoc_ky_2_nam_2\\PBL3\\src\\BookBlossom\\distribute_packages_error.txt", ex.ToString());
-                }
-                catch {}
-            }
-            // -------------------------------------------------------------------------------
+            // Removed Auto database adjustments (distribute Free packages and balance resources) from here.
+            // This logic should be moved to a one-time seeding script or user registration flow to avoid performance issues on GET requests.
 
             var allUsers = await _context.Users
                 .Include(u => u.CustomerDetail)
@@ -629,7 +455,8 @@ namespace BookBlossom.Web.Controllers
 
         public async Task<IActionResult> Orders()
         {
-            await EnsureReturnRequestsSeededAsync();
+            // Removed heavy seeding from GET method to optimize load time.
+            // await EnsureReturnRequestsSeededAsync();
 
             var model = new ViewModels.Admin.OrderManagementViewModel
             {
@@ -854,10 +681,6 @@ namespace BookBlossom.Web.Controllers
                 .Include(c => c.RealBooks)
                 .ToListAsync();
 
-            var dbBooksList = await _context.RealBooks
-                .Include(b => b.Category)
-                .ToListAsync();
-
             var dbCategories = dbCategoriesList
                 .Select(c => new ViewModels.Admin.InventoryCategoryViewModel
                 {
@@ -869,32 +692,10 @@ namespace BookBlossom.Web.Controllers
                 })
                 .ToList();
 
-            var dbBooks = dbBooksList
-                .Select(b => new ViewModels.Admin.InventoryBookItemViewModel
-                {
-                    BookID = b.BookID,
-                    CategoryID = b.CategoryID,
-                    CategoryName = b.Category != null ? b.Category.CategoryName : "Unknown",
-                    Title = b.Title,
-                    Publisher = b.Publisher,
-                    ISBN = b.ISBN,
-                    Description = b.Description ?? string.Empty,
-                    Price = b.Price,
-                    SampleFilePath = b.SampleFilePath,
-                    Weight = (double)b.Weight,
-                    UnitsInStock = b.UnitsInStock,
-                    ReservedQuantity = b.ReservedQuantity,
-                    IsContinued = b.IsContinued,
-                    PublishYear = b.PublishYear,
-                    Authors = "N/A",
-                    MainImageUrl = $"/images/Book/cover_{b.BookID}.jpg"
-                })
-                .ToList();
-
             var model = new ViewModels.Admin.InventoryManagementViewModel
             {
                 Categories = dbCategories,
-                Books = dbBooks
+                Books = new List<ViewModels.Admin.InventoryBookItemViewModel>()
             };
 
             return View(model);
