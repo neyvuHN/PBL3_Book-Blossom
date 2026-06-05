@@ -77,7 +77,7 @@ namespace BookBlossom.Tests.Services
                 RealBookID = 11,
                 Keywords = "mystery, horror",
                 Quotes = "Some quote",
-                Category = "Horror",
+
                 Hashtags = "#horror",
                 Price = 75000,
                 StockQuantity = 3,
@@ -94,7 +94,7 @@ namespace BookBlossom.Tests.Services
                 RealBookID = 12,
                 Keywords = "mystery",
                 Quotes = "Quote",
-                Category = "Mystery",
+
                 Hashtags = "#mystery",
                 Price = 80000,
                 StockQuantity = 0,

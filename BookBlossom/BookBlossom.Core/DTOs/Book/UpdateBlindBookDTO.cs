@@ -4,7 +4,7 @@ namespace BookBlossom.DTOs.BlindBook
     {
         public string Keywords { get; set; } = string.Empty;
         public string Quotes { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
+
         public string Hashtags { get; set; } = string.Empty;
         public decimal Price { get; set; }
     }

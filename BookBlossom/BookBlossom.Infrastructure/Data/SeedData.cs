@@ -280,7 +280,7 @@ namespace BookBlossom.Infrastructure.Data
                         RealBookID = b.BookID,
                         Keywords = "Bí ẩn, Trí tuệ, Thú vị",
                         Quotes = "Một cuốn sách sẽ làm thay đổi tư duy của bạn.",
-                        Category = "Bí Ẩn",
+
                         Hashtags = "#blindbook #bookblossom",
                         Price = b.Price + 20000,
                         StockQuantity = 15,

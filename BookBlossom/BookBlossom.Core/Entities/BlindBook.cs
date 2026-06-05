@@ -25,9 +25,6 @@ namespace BookBlossom.Core.Entities
         [StringLength(1000)] 
         public string Quotes { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(255)]
-        public string Category { get; set; } = string.Empty;
 
         [StringLength(255)]
         public string? Hashtags { get; set; }

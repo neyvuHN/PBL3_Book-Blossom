@@ -17,7 +17,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
 
             builder.Property(bb => bb.Keywords).IsRequired().HasMaxLength(500);
             builder.Property(bb => bb.Quotes).IsRequired().HasMaxLength(1000);
-            builder.Property(bb => bb.Category).IsRequired().HasMaxLength(100);
+
             builder.Property(bb => bb.Hashtags).HasMaxLength(200);
 
             builder.Property(bb => bb.Price)

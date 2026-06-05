@@ -24,6 +24,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             return await _context.BlindBooks
                 .Include(b => b.RealBook)
+                    .ThenInclude(r => r.Category)
                 .Include(b => b.Images)
                 .ToListAsync();
         }
@@ -32,6 +33,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             return await _context.BlindBooks
                 .Include(b => b.RealBook)
+                    .ThenInclude(r => r.Category)
                 .Include(b => b.Images)
                 .FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
         }
@@ -57,7 +59,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<BlindBook>> GetMarketingRequestsAsync()
         {
-            return await _context.BlindBooks.Include(b => b.RealBook).ToListAsync();
+            return await _context.BlindBooks.Include(b => b.RealBook).ThenInclude(r => r.Category).ToListAsync();
         }
 
         public async Task<bool> CreateRestockRequestAsync(long blindBookId, int quantity, string marketingId)
@@ -85,6 +87,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             return await _context.BlindBooks
                 .Include(b => b.RealBook)
+                    .ThenInclude(r => r.Category)
                 .Where(b => b.BlindBookRequestStatus == BlindBookRequestStatus.Pending)
                 .ToListAsync();
         }
@@ -165,7 +168,7 @@ namespace BookBlossom.Infrastructure.Services
 
             book.Keywords = dto.Keywords;
             book.Quotes = dto.Quotes;
-            book.Category = dto.Category;
+
             book.Hashtags = dto.Hashtags;
             book.Price = dto.Price;
 

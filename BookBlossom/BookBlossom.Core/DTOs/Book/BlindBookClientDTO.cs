@@ -8,7 +8,8 @@ namespace BookBlossom.DTOs.BlindBook
         public long BlindBookID { get; set; } 
         public string Keywords { get; set; } = string.Empty; 
         public string Quotes { get; set; } = string.Empty; 
-        public string Category { get; set; } = string.Empty; 
+        public long CategoryID { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
         public string Hashtags { get; set; } = string.Empty;
         public decimal Price { get; set; } 
         public int StockQuantity { get; set; }

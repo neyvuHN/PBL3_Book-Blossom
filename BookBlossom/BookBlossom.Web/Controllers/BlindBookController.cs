@@ -43,7 +43,8 @@ namespace BookBlossom.Web.Controllers
             // 2. Bộ lọc tìm kiếm theo thể loại
             if (!string.IsNullOrWhiteSpace(category))
             {
-                query = query.Where(b => b.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(b => b.RealBook != null && b.RealBook.Category != null && 
+                                         b.RealBook.Category.CategoryName.Equals(category, StringComparison.OrdinalIgnoreCase));
             }
 
             // TẦNG LỌC PHÂN QUYỀN VÀ TRẢ VỀ DATA
@@ -66,7 +67,8 @@ namespace BookBlossom.Web.Controllers
                     RealBookTitle = b.RealBook?.Title, 
                     Keywords = b.Keywords,
                     Quotes = b.Quotes,
-                    Category = b.Category,
+                    CategoryID = b.RealBook?.CategoryID ?? 0,
+                    CategoryName = b.RealBook?.Category?.CategoryName ?? "Unknown",
                     Hashtags = b.Hashtags,
                     Price = b.Price,
                     RequestQuantity = b.RequestQuantity,
@@ -92,7 +94,8 @@ namespace BookBlossom.Web.Controllers
                 BlindBookID = b.BlindBookID,
                 Keywords = b.Keywords,
                 Quotes = b.Quotes,
-                Category = b.Category,
+                CategoryID = b.RealBook?.CategoryID ?? 0,
+                CategoryName = b.RealBook?.Category?.CategoryName ?? "Unknown",
                 Hashtags = b.Hashtags ?? string.Empty,
                 Price = b.Price,
                 StockQuantity = b.StockQuantity,
@@ -117,7 +120,8 @@ namespace BookBlossom.Web.Controllers
                 BlindBookID = book.BlindBookID,
                 Keywords = book.Keywords,
                 Quotes = book.Quotes,
-                Category = book.Category,
+                CategoryID = book.RealBook?.CategoryID ?? 0,
+                CategoryName = book.RealBook?.Category?.CategoryName ?? "Unknown",
                 Hashtags = book.Hashtags ?? string.Empty,
                 Price = book.Price,
                 StockQuantity = book.StockQuantity,
@@ -143,7 +147,6 @@ namespace BookBlossom.Web.Controllers
                 RealBookID = dto.RealBookID,
                 Keywords = dto.Keywords,
                 Quotes = dto.Quotes,
-                Category = dto.Category,
                 Hashtags = dto.Hashtags,
                 Price = dto.Price,
                 RequestQuantity = dto.RequestQuantity,

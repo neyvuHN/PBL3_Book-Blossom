@@ -244,7 +244,8 @@
         const rating = '4.2';
         const ratingRange = '4.0 - 4.2';
         const year = '1994';
-        const category = book.category || book.Category || 'Mystery & Thriller';
+        const category = book.categoryName || book.CategoryName || book.category || book.Category || 'Mystery & Thriller';
+        const categoryId = book.categoryId || book.CategoryID || null;
         const keywords = book.keywords || book.Keywords || 'Suspenseful, intriguing, dark secrets';
 
         return {
@@ -257,8 +258,10 @@
             condition: condition,
             rating: rating,
             ratingRange: ratingRange,
+            ratingRange: ratingRange,
             year: year,
             category: category,
+            categoryId: categoryId,
             keywords: keywords
         };
     }
@@ -631,8 +634,8 @@
             return; // Vouchers haven't loaded yet
         }
 
-        let currentCategoryId = null;
-        if (window.currentBlindBookData && window.currentBlindBookData.category) {
+        let currentCategoryId = window.currentBlindBookData?.categoryId || null;
+        if (!currentCategoryId && window.currentBlindBookData && window.currentBlindBookData.category) {
             const catName = window.currentBlindBookData.category.toLowerCase();
             try {
                 if (!window.cachedCategories) {

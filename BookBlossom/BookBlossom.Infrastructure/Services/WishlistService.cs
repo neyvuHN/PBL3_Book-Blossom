@@ -22,7 +22,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<WishlistItemDTO>> GetWishlistItemsAsync(long? userId, Guid? guestId)
         {
-            var query = _context.Wishlists.Include(w => w.Book).Include(w => w.BlindBook).AsQueryable();
+            var query = _context.Wishlists.Include(w => w.Book).Include(w => w.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category).AsQueryable();
 
             if (userId.HasValue)
             {
@@ -46,7 +46,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = w.BlindBookID,
                 Title = w.BookID.HasValue 
                     ? (w.Book?.Title ?? "Unknown Book") 
-                    : (w.BlindBook != null ? $"Blind Book ({w.BlindBook.Category})" : "Unknown Blind Book"),
+                    : (w.BlindBook != null ? $"Blind Book ({w.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
                 Author = w.BookID.HasValue 
                     ? string.Join(", ", w.Book.BookAuthors.Select(ba => ba.Author.AuthorName))
                     : "Unknown",
@@ -109,7 +109,7 @@ namespace BookBlossom.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             var addedBook = request.BookID.HasValue ? await _context.RealBooks.FindAsync(request.BookID.Value) : null;
-            var addedBlindBook = request.BlindBookID.HasValue ? await _context.BlindBooks.FindAsync(request.BlindBookID.Value) : null;
+            var addedBlindBook = request.BlindBookID.HasValue ? await _context.BlindBooks.Include(b => b.RealBook).ThenInclude(r => r.Category).FirstOrDefaultAsync(b => b.BlindBookID == request.BlindBookID.Value) : null;
 
             return new WishlistItemDTO
             {
@@ -118,7 +118,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = wishlistItem.BlindBookID,
                 Title = request.BookID.HasValue 
                     ? (addedBook?.Title ?? "Unknown Book") 
-                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.Category})" : "Unknown Blind Book"),
+                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
                 Price = request.BookID.HasValue 
                     ? (addedBook?.Price ?? 0) 
                     : (addedBlindBook?.Price ?? 0),

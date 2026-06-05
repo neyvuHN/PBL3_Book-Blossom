@@ -22,7 +22,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<CartItemDTO>> GetCartItemsAsync(long? userId, Guid? guestId)
         {
-            var query = _context.Carts.Include(c => c.Book).Include(c => c.BlindBook).AsQueryable();
+            var query = _context.Carts.Include(c => c.Book).Include(c => c.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category).AsQueryable();
 
             if (userId.HasValue)
             {
@@ -46,7 +46,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = c.BlindBookID,
                 Title = c.BookID.HasValue 
                     ? (c.Book?.Title ?? "Unknown Book") 
-                    : (c.BlindBook != null ? $"Blind Book ({c.BlindBook.Category})" : "Unknown Blind Book"),
+                    : (c.BlindBook != null ? $"Blind Book ({c.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
                 Price = c.BookID.HasValue 
                     ? (c.Book?.Price ?? 0) 
                     : (c.BlindBook?.Price ?? 0),
@@ -139,7 +139,9 @@ namespace BookBlossom.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             var addedBook = request.BookID.HasValue ? await _context.RealBooks.FindAsync(request.BookID.Value) : null;
-            var addedBlindBook = request.BlindBookID.HasValue ? await _context.BlindBooks.FindAsync(request.BlindBookID.Value) : null;
+            var addedBlindBook = request.BlindBookID.HasValue 
+                ? await _context.BlindBooks.Include(b => b.RealBook).ThenInclude(r => r.Category).FirstOrDefaultAsync(b => b.BlindBookID == request.BlindBookID.Value) 
+                : null;
 
             return new CartItemDTO
             {
@@ -148,7 +150,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = existingCartItem.BlindBookID,
                 Title = request.BookID.HasValue 
                     ? (addedBook?.Title ?? "Unknown Book") 
-                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.Category})" : "Unknown Blind Book"),
+                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
                 Price = request.BookID.HasValue 
                     ? (addedBook?.Price ?? 0) 
                     : (addedBlindBook?.Price ?? 0),
@@ -162,7 +164,10 @@ namespace BookBlossom.Infrastructure.Services
             if (quantity <= 0)
                 throw new InvalidOperationException("Số lượng phải lớn hơn 0.");
 
-            var cartItem = await _context.Carts.Include(c => c.Book).Include(c => c.BlindBook).FirstOrDefaultAsync(c => c.CartID == cartId);
+            var cartItem = await _context.Carts
+                .Include(c => c.Book)
+                .Include(c => c.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
+                .FirstOrDefaultAsync(c => c.CartID == cartId);
             if (cartItem == null)
                 throw new KeyNotFoundException("Không tìm thấy mục trong giỏ hàng.");
 
@@ -193,7 +198,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = cartItem.BlindBookID,
                 Title = cartItem.BookID.HasValue 
                     ? (cartItem.Book?.Title ?? "Unknown Book") 
-                    : (cartItem.BlindBook != null ? $"Blind Book ({cartItem.BlindBook.Category})" : "Unknown Blind Book"),
+                    : (cartItem.BlindBook != null ? $"Blind Book ({cartItem.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
                 Price = cartItem.BookID.HasValue 
                     ? (cartItem.Book?.Price ?? 0) 
                     : (cartItem.BlindBook?.Price ?? 0),

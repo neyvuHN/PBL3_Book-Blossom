@@ -277,7 +277,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.BlindBook)
+                    .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .Include(o => o.Reviews)
                 .Where(o => o.CustomerID == customerId);
 
@@ -335,7 +335,7 @@ namespace BookBlossom.Infrastructure.Services
                             (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
                             (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                         Title = od.BlindBookID.HasValue && od.BlindBook != null
-                            ? $"[Sách Mù] {od.BlindBook.Category}"
+                            ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
                             : od.RealBook?.Title ?? "Sách không xác định",
                         UnitPrice = od.UnitPrice,
                         Quantity = od.Quantity,
@@ -355,7 +355,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.BlindBook)
+                    .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .Include(o => o.Reviews)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
 
@@ -403,7 +403,7 @@ namespace BookBlossom.Infrastructure.Services
                         (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
                         (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
-                        ? $"[Sách Mù] {od.BlindBook.Category}"
+                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     RealBookTitle = order.OrderStatus == OrderStatus.Completed
                         ? (od.RealBook?.Title ?? string.Empty)
@@ -576,7 +576,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.BlindBook)
+                    .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .AsQueryable();
 
             if (status.HasValue)
@@ -621,7 +621,7 @@ namespace BookBlossom.Infrastructure.Services
                     BookID = od.BookID,
                     BlindBookID = od.BlindBookID,
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
-                        ? $"[Sách Mù] {od.BlindBook.Category}"
+                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     UnitPrice = od.UnitPrice,
                     Quantity = od.Quantity,
@@ -640,7 +640,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.RealBook)
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.BlindBook)
+                    .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId);
 
             if (order == null) return null;
@@ -674,7 +674,7 @@ namespace BookBlossom.Infrastructure.Services
                     BookID = od.BookID,
                     BlindBookID = od.BlindBookID,
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
-                        ? $"[Sách Mù] {od.BlindBook.Category}"
+                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     RealBookTitle = od.RealBook?.Title ?? "Sách không xác định",
                     UnitPrice = od.UnitPrice,
