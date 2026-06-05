@@ -159,8 +159,7 @@ class OrdersModel {
     mapPaymentMethod(method) {
         switch (method) {
             case 0: return 'Cash on Delivery (COD)';
-            case 1: return 'Momo E-Wallet';
-            case 2: return 'VNPay';
+            case 1: return 'VNPay';
             default: return 'Khác';
         }
     }

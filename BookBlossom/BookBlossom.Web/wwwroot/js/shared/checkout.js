@@ -187,10 +187,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.style.background = '#fffafb';
             } else {
                 checkmark.style.display = 'none';
-                this.style.border = this.dataset.code === 'ZALOPAY50' ? '1.5px dashed #2b6cb0' :
-                    (this.dataset.code === 'MOMO12' ? '1.5px dashed #d53f8c' : '1.5px dashed #f07c7c');
-                this.style.background = this.dataset.code === 'ZALOPAY50' ? '#fdfcff' :
-                    (this.dataset.code === 'MOMO12' ? '#fffafc' : '#fffdfb');
+                this.style.border = '1.5px dashed #f07c7c';
+                this.style.background = '#fffdfb';
             }
         });
     });

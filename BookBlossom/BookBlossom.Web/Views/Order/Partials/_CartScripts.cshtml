@@ -224,23 +224,6 @@
             function getVoucherDiscount(v, subtotalVnd, isMystery) {
                 const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === v.code) : null;
                 if (!detail) {
-                    // Fallback to legacy hardcoded rules if not found in wallet cache
-                    const code = v.code;
-                    if (isMystery) {
-                        if (code === 'MYSTERY15') return 15000;
-                        if (code === 'BLOSSOM70') return 70000;
-                        if (code === 'READMORE30') return 30000;
-                        if (code === 'SECRET50') return 50000;
-                        if (code === 'UNBOX20') return 20000;
-                        if (code === 'VIPMYSTERY') return 100000;
-                    } else {
-                        if (code === 'BLOSSOM70') return 70000;
-                        if (code === 'READMORE30') return 30000;
-                        if (code === 'ZALOPAY50') return 50000;
-                        if (code === 'MOMO12') return 12000;
-                        if (code === 'SUMMER20') return Math.min(Math.round(subtotalVnd * 0.20), 50000);
-                        if (code === 'FREESHIP') return 0;
-                    }
                     return 0;
                 }
 
