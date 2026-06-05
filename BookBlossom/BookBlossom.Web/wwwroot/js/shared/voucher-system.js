@@ -45,7 +45,12 @@ window.GlobalVouchers = {
                         borderColor: c.borderColor,
                         bg: c.bg,
                         applicableCategories: v.applicableCategoryIDs || [],
-                        applicableBooks: v.applicableBookIDs || []
+                        applicableBooks: v.applicableBookIDs || [],
+                        isStackable: v.isStackable,
+                        isAutoRefundable: v.isAutoRefundable,
+                        minPlan: v.minPlan,
+                        minReputation: v.minReputationRequired,
+                        minRank: v.membershipRankRequired
                     };
                 });
                 
@@ -95,6 +100,13 @@ window.GlobalVouchers = {
                 <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
                     <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">${v.title}</h4>
                     <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">${v.desc}</p>
+                    <div style="font-size: 0.7rem; color: #777; margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
+                        <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">${v.isStackable ? 'Stackable' : 'Non-stackable'}</span>
+                        <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">${v.isAutoRefundable ? 'Refundable' : 'Non-refundable'}</span>
+                        ${v.minPlan > 0 ? `<span style="background: #e6f7ff; padding: 2px 6px; border-radius: 4px;">Min Plan: ${window.getPlanName(v.minPlan)}</span>` : ''}
+                        ${v.minReputation > 0 ? `<span style="background: #fff0f6; padding: 2px 6px; border-radius: 4px;">Min Score: ${v.minReputation}</span>` : ''}
+                        ${v.minRank > 0 ? `<span style="background: #f6ffed; padding: 2px 6px; border-radius: 4px;">Min Rank: ${window.getRankName(v.minRank)}</span>` : ''}
+                    </div>
                     <span style="font-size: 0.7rem; color: #aaa;">Expiry: ${v.expiry}</span>
                 </div>
                 <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
@@ -119,6 +131,13 @@ window.GlobalVouchers = {
                 <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
                     <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">${v.title}</h4>
                     <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">${v.desc}</p>
+                    <div style="font-size: 0.7rem; color: #777; margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
+                        <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">${v.isStackable ? 'Stackable' : 'Non-stackable'}</span>
+                        <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">${v.isAutoRefundable ? 'Refundable' : 'Non-refundable'}</span>
+                        ${v.minPlan > 0 ? `<span style="background: #e6f7ff; padding: 2px 6px; border-radius: 4px;">Min Plan: ${window.getPlanName(v.minPlan)}</span>` : ''}
+                        ${v.minReputation > 0 ? `<span style="background: #fff0f6; padding: 2px 6px; border-radius: 4px;">Min Score: ${v.minReputation}</span>` : ''}
+                        ${v.minRank > 0 ? `<span style="background: #f6ffed; padding: 2px 6px; border-radius: 4px;">Min Rank: ${window.getRankName(v.minRank)}</span>` : ''}
+                    </div>
                     <span style="font-size: 0.7rem; color: #aaa;">Expiry: ${v.expiry}</span>
                 </div>
                 <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
@@ -129,6 +148,39 @@ window.GlobalVouchers = {
     }
 };
 
+window.getPlanName = function(planId) {
+    const plans = {0: 'Free', 1: 'Basic', 2: 'Pro', 3: 'Premium'};
+    return plans[planId] || 'Basic';
+};
+
+window.getRankName = function(rankId) {
+    const ranks = {0: 'None', 1: 'Bronze', 2: 'Silver', 3: 'Gold', 4: 'Platinum', 5: 'Diamond'};
+    return ranks[rankId] || 'Bronze';
+};
+
 $(document).ready(function() {
     window.GlobalVouchers.init();
 });
+
+window.showVoucherError = function(message) {
+    $('#voucher-error-modal').remove();
+
+    const modalHtml = `
+        <div id="voucher-error-modal" style="display:flex; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:12px; width:90%; max-width:400px; padding:24px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2); transform:scale(0.9); opacity:0; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <div style="width:60px; height:60px; border-radius:50%; background:#ffebee; color:#dc3545; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 16px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="margin:0 0 10px; font-size:1.25rem; color:#333; font-weight:700;">Condition Not Met</h3>
+                <p style="margin:0 0 24px; color:#666; font-size:0.95rem; line-height:1.5;">${message}</p>
+                <button onclick="$('#voucher-error-modal').fadeOut(200, function(){ $(this).remove(); })" style="background:#C2185B; color:#fff; border:none; padding:10px 24px; border-radius:24px; font-weight:700; cursor:pointer; width:100%; font-size:1rem; transition:background 0.2s;">Got it</button>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHtml);
+    
+    setTimeout(() => {
+        $('#voucher-error-modal > div').css({ transform: 'scale(1)', opacity: '1' });
+    }, 10);
+};

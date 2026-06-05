@@ -1116,17 +1116,59 @@
 
         $(document).off('click.productCoupon').on('click.productCoupon', '.coupon-card', function () {
             const code = $(this).attr('data-code') || $(this).find('div').first().text().trim();
+            handleVoucherSelection(code);
+        });
 
+        function handleVoucherSelection(code) {
             if (selectedVouchers.has(code)) {
                 selectedVouchers.delete(code);
                 updateVoucherSync(code, false);
                 showToast(`Voucher "${code}" removed.`);
             } else {
+                const voucher = VOUCHERS_DATA.find(v => v.code === code);
+                if (!voucher) return;
+
+                if (voucher.isStackable === false && selectedVouchers.size > 0) {
+                    window.showVoucherError(`Voucher <b>${code}</b> cannot be used in conjunction with other vouchers.`);
+                    return;
+                }
+
+                let hasNonStackable = false;
+                let nonStackableCode = '';
+                selectedVouchers.forEach(sc => {
+                    const sv = VOUCHERS_DATA.find(v => v.code === sc);
+                    if (sv && sv.isStackable === false) {
+                        hasNonStackable = true;
+                        nonStackableCode = sc;
+                    }
+                });
+
+                if (hasNonStackable) {
+                    window.showVoucherError(`Voucher <b>${nonStackableCode}</b> cannot be used in conjunction with other vouchers. Please remove it first.`);
+                    return;
+                }
+
+                // Add checks for other conditions if window.currentUser is defined
+                if (window.currentUser) {
+                    if (voucher.minPlan > (window.currentUser.plan || 0)) {
+                        window.showVoucherError(`Voucher <b>${code}</b> requires a minimum subscription plan of <b>${getPlanName(voucher.minPlan)}</b>.`);
+                        return;
+                    }
+                    if (voucher.minReputation > (window.currentUser.reputation || 0)) {
+                        window.showVoucherError(`Voucher <b>${code}</b> requires a minimum reputation score of <b>${voucher.minReputation}</b>.`);
+                        return;
+                    }
+                    if (voucher.minRank > (window.currentUser.rank || 0)) {
+                        window.showVoucherError(`Voucher <b>${code}</b> requires a minimum membership rank of <b>${getRankName(voucher.minRank)}</b>.`);
+                        return;
+                    }
+                }
+
                 selectedVouchers.add(code);
                 updateVoucherSync(code, true);
                 showToast(`Voucher "${code}" applied successfully!`);
             }
-        });
+        }
 
         $(document)
             .off('click.productSeeAllVouchers')
@@ -1194,16 +1236,7 @@
             .off('click.productModalVoucher')
             .on('click.productModalVoucher', '.modal-voucher-item', function () {
                 const code = $(this).attr('data-code');
-
-                if (selectedVouchers.has(code)) {
-                    selectedVouchers.delete(code);
-                    updateVoucherSync(code, false);
-                    showToast(`Voucher "${code}" removed.`);
-                } else {
-                    selectedVouchers.add(code);
-                    updateVoucherSync(code, true);
-                    showToast(`Voucher "${code}" applied!`);
-                }
+                handleVoucherSelection(code);
             });
 
         $(document)

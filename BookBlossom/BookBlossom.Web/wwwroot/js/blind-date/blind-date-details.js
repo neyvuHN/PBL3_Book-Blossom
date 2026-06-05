@@ -700,6 +700,43 @@
             selectedBlindVouchers.delete(code);
             showToast(`Mystery Voucher "${code}" removed.`);
         } else {
+            const voucher = window.VOUCHERS_DATA ? window.VOUCHERS_DATA.find(v => v.code === code) : null;
+            if (voucher && voucher.isStackable === false && selectedBlindVouchers.size > 0) {
+                window.showVoucherError(`Voucher <b>${code}</b> cannot be used in conjunction with other vouchers.`);
+                return;
+            }
+
+            let hasNonStackable = false;
+            let nonStackableCode = '';
+            selectedBlindVouchers.forEach(sc => {
+                const sv = window.VOUCHERS_DATA ? window.VOUCHERS_DATA.find(v => v.code === sc) : null;
+                if (sv && sv.isStackable === false) {
+                    hasNonStackable = true;
+                    nonStackableCode = sc;
+                }
+            });
+
+            if (hasNonStackable) {
+                window.showVoucherError(`Voucher <b>${nonStackableCode}</b> cannot be used in conjunction with other vouchers.`);
+                return;
+            }
+
+            // Add checks for other conditions if window.currentUser is defined
+            if (voucher && window.currentUser) {
+                if (voucher.minPlan > (window.currentUser.plan || 0)) {
+                    window.showVoucherError(`Voucher <b>${code}</b> requires a minimum subscription plan of <b>${window.getPlanName(voucher.minPlan)}</b>.`);
+                    return;
+                }
+                if (voucher.minReputation > (window.currentUser.reputation || 0)) {
+                    window.showVoucherError(`Voucher <b>${code}</b> requires a minimum reputation score of <b>${voucher.minReputation}</b>.`);
+                    return;
+                }
+                if (voucher.minRank > (window.currentUser.rank || 0)) {
+                    window.showVoucherError(`Voucher <b>${code}</b> requires a minimum membership rank of <b>${window.getRankName(voucher.minRank)}</b>.`);
+                    return;
+                }
+            }
+
             selectedBlindVouchers.add(code);
             showToast(`Mystery Voucher "${code}" applied!`);
         }
