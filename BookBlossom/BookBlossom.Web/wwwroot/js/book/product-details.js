@@ -7,6 +7,7 @@
     let detailImagesArray = [];
     let currentDetailImageIndex = 0;
     let selectedVouchers = new Set();
+    let currentDetailBook = null;
 
     let VOUCHERS_DATA = window.VOUCHERS_DATA || [];
 
@@ -108,12 +109,16 @@
 
     function showProductDetails(bookData, push = true, isRealData = false) {
         if (!bookData) return;
+        currentDetailBook = bookData;
 
         $('#explore-section').hide();
         $('#product-details-section').show();
 
         populateProductDetails(bookData, isRealData);
         resetProductDetailsUi(bookData, isRealData);
+        
+        // Re-render vouchers to filter by the current book
+        renderMainPageVouchers();
 
         window.scrollTo(0, 0);
 
@@ -1128,8 +1133,38 @@
             .on('click.productSeeAllVouchers', '.btn-see-all-vouchers', function (e) {
                 e.preventDefault();
 
-                $('.modal-voucher-item').each(function () {
+                const validCodes = new Set();
+                if (currentDetailBook) {
+                    const bookId = currentDetailBook.bookID || currentDetailBook.id;
+                    const categoryId = currentDetailBook.categoryID;
+                    
+                    VOUCHERS_DATA.forEach(v => {
+                        const hasBookConstraint = v.applicableBooks && v.applicableBooks.length > 0;
+                        const hasCategoryConstraint = v.applicableCategories && v.applicableCategories.length > 0;
+                        
+                        let isValid = true;
+                        if (hasBookConstraint || hasCategoryConstraint) {
+                            let bookMatch = hasBookConstraint && bookId && v.applicableBooks.includes(bookId);
+                            let categoryMatch = hasCategoryConstraint && categoryId && v.applicableCategories.includes(categoryId);
+                            isValid = bookMatch || categoryMatch;
+                        }
+                        
+                        if (isValid) validCodes.add(v.code);
+                    });
+                } else {
+                    VOUCHERS_DATA.forEach(v => validCodes.add(v.code));
+                }
+
+                $('#vouchers-modal .modal-voucher-item').each(function () {
                     const code = $(this).attr('data-code');
+                    
+                    if (!validCodes.has(code)) {
+                        $(this).hide();
+                        return;
+                    } else {
+                        $(this).show();
+                    }
+
                     const isSelected = selectedVouchers.has(code);
 
                     if (isSelected) {
@@ -1186,7 +1221,26 @@
 
         $slider.empty();
 
-        const sortedVouchers = [...VOUCHERS_DATA].sort((a, b) => {
+        let filteredVouchers = VOUCHERS_DATA;
+        
+        if (currentDetailBook) {
+            const bookId = currentDetailBook.bookID || currentDetailBook.id;
+            const categoryId = currentDetailBook.categoryID;
+            
+            filteredVouchers = VOUCHERS_DATA.filter(v => {
+                const hasBookConstraint = v.applicableBooks && v.applicableBooks.length > 0;
+                const hasCategoryConstraint = v.applicableCategories && v.applicableCategories.length > 0;
+                
+                if (!hasBookConstraint && !hasCategoryConstraint) return true;
+                
+                let bookMatch = hasBookConstraint && bookId && v.applicableBooks.includes(bookId);
+                let categoryMatch = hasCategoryConstraint && categoryId && v.applicableCategories.includes(categoryId);
+                
+                return bookMatch || categoryMatch;
+            });
+        }
+
+        const sortedVouchers = [...filteredVouchers].sort((a, b) => {
             const aSelected = selectedVouchers.has(a.code) ? 1 : 0;
             const bSelected = selectedVouchers.has(b.code) ? 1 : 0;
 

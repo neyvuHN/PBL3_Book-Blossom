@@ -43,7 +43,9 @@ window.GlobalVouchers = {
                         textColor: c.textColor,
                         tagBg: c.tagBg,
                         borderColor: c.borderColor,
-                        bg: c.bg
+                        bg: c.bg,
+                        applicableCategories: v.applicableCategoryIDs || [],
+                        applicableBooks: v.applicableBookIDs || []
                     };
                 });
                 
