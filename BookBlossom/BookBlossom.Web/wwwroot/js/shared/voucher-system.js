@@ -145,6 +145,20 @@ window.GlobalVouchers = {
                 </div>
             </div>
         `;
+    },
+
+    getBlindVoucherCardHtml(v) {
+        const blindVal = v.type === 'percent' ? v.maxDiscount : v.discount;
+        const saveText = v.type === 'percent' ? `Save ${v.discount}%` : `Save ${(v.discount / 1000).toLocaleString('vi-VN')}k VND`;
+        
+        return `
+            <div class="blind-coupon-card" data-code="${v.code}" data-discount="${blindVal}" style="flex: 0 0 170px; background: #faf8fc; border: 1.5px dashed #a291b5; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.01); transition: all 0.2s; cursor: pointer; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#6a4f8c';" onmouseout="this.style.transform='none'; this.style.borderColor='#a291b5';">
+                <div class="checkmark-badge-blind" style="display: none; position: absolute; top: -6px; right: -6px; background: #6a4f8c; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-check"></i></div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #6a4f8c; background: #e8e3f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px;">${v.code}</div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: #333; margin-bottom: 4px;">${saveText}</div>
+                <div style="font-size: 0.72rem; color: #888;">Min order ${(v.minOrder / 1000).toLocaleString('vi-VN')}k</div>
+            </div>
+        `;
     }
 };
 

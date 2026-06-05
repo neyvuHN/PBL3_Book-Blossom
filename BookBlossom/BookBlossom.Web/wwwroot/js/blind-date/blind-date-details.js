@@ -73,6 +73,8 @@
 
         populateBlindDateDetails(blindBookData);
         resetBlindDateUi();
+        
+        renderBlindVouchers(); // Dynamic voucher rendering
 
         window.scrollTo(0, 0);
 
@@ -617,6 +619,75 @@
                 $(this).val(1);
             } else if (val > 99) {
                 $(this).val(99);
+            }
+        });
+    }
+
+    async function renderBlindVouchers() {
+        const $container = $('.blind-coupons-container');
+        $container.empty();
+
+        if (!window.VOUCHERS_DATA) {
+            return; // Vouchers haven't loaded yet
+        }
+
+        let currentCategoryId = null;
+        if (window.currentBlindBookData && window.currentBlindBookData.category) {
+            const catName = window.currentBlindBookData.category.toLowerCase();
+            try {
+                if (!window.cachedCategories) {
+                    const response = await fetch('/api/category?status=Active');
+                    if (response.ok) {
+                        window.cachedCategories = await response.json();
+                    }
+                }
+                if (window.cachedCategories) {
+                    const catObj = window.cachedCategories.find(c => c.categoryName.toLowerCase() === catName);
+                    if (catObj) currentCategoryId = catObj.categoryId;
+                }
+            } catch (e) {
+                console.error("Failed to fetch categories", e);
+            }
+        }
+
+        let applicableVouchers = window.VOUCHERS_DATA.filter(v => {
+            const isForAllBooks = !v.applicableBooks || v.applicableBooks.length === 0;
+            if (!isForAllBooks) return false; 
+            
+            const isForAllCategories = !v.applicableCategories || v.applicableCategories.length === 0;
+            const isForCategory = currentCategoryId && v.applicableCategories && v.applicableCategories.includes(currentCategoryId);
+
+            return isForAllCategories || isForCategory;
+        });
+
+        if (applicableVouchers.length === 0) {
+            $container.append('<p style="padding: 15px; color: #888;">No mystery vouchers available for this book.</p>');
+        } else {
+            applicableVouchers.forEach(v => {
+                if (window.GlobalVouchers && window.GlobalVouchers.getBlindVoucherCardHtml) {
+                    const html = window.GlobalVouchers.getBlindVoucherCardHtml(v);
+                    $container.append(html);
+                }
+            });
+        }
+        
+        renderBlindModalVouchers(applicableVouchers);
+        syncBlindVoucherUI();
+    }
+
+    function renderBlindModalVouchers(vouchers) {
+        const $modalContainer = $('#blind-vouchers-container');
+        $modalContainer.empty();
+        
+        if (vouchers.length === 0) {
+            $modalContainer.append('<p style="text-align:center; color:#888; margin-top:20px;">No mystery vouchers available for this book.</p>');
+            return;
+        }
+        
+        vouchers.forEach(v => {
+            if (window.GlobalVouchers && window.GlobalVouchers.getBlindVoucherHtml) {
+                const html = window.GlobalVouchers.getBlindVoucherHtml(v);
+                $modalContainer.append(html);
             }
         });
     }
