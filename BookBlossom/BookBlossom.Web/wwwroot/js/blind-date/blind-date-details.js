@@ -132,14 +132,14 @@
 
         const $wishlist = $('#btn-toggle-blind-wishlist');
 
-        const title = getBlindTitle();
-        const category = $('#blind-clue-category').text().trim() || 'Mystery';
-        const id = 'blind-' + getBlindHashKey({ title: title, category: category });
+        const blindBookData = window.currentBlindBookData;
+        const blindBookID = blindBookData ? (blindBookData.blindBookID || blindBookData.blindBookId || blindBookData.id) : null;
+        const id = blindBookID ? blindBookID : 'unknown';
         
         let isInWishlist = false;
-        if (window.BookBlossomWishlist) {
+        if (window.BookBlossomWishlist && blindBookID) {
             const items = await window.BookBlossomWishlist.getWishlistItems();
-            isInWishlist = items.some(item => String(item.id) === String(id) || String(item.blindBookID) === String(id));
+            isInWishlist = items.some(item => String(item.blindBookID || item.blindBookId || item.id) === String(blindBookID));
         }
 
         if (isInWishlist) {
@@ -296,64 +296,10 @@
             }
         }
 
-        const mockData = buildMockBlindBookFromHash(tagKey);
-
-        showBlindDateDetails(mockData, false);
-
-        history.replaceState(
-            {
-                view: 'blind-date-details',
-                blindBookData: mockData
-            },
-            '',
-            `/BlindDate#blind-details-${encodeURIComponent(tagKey)}`
-        );
-    }
-
-    function buildMockBlindBookFromHash(tagKey) {
-        let hashtags = '#SlowBurn #EnemiesToLovers #Paris';
-        let desc = 'A baker and a grumpy food critic clash in the City of Light...';
-        let imgSrc = '/images/BlindDateBook/BlindBook1.jpg';
-        let price = '120.000 VNĐ';
-        let condition = 'Well Loved - Has character';
-
-        const parsedId = parseInt(tagKey, 10);
-        const blindBookID = isNaN(parsedId) ? null : parsedId;
-
-        if (tagKey.toLowerCase().includes('space') || tagKey.toLowerCase().includes('ai')) {
-            hashtags = '#SpaceOpera #AI #FirstContact';
-            desc = 'A pilot discovers an ancient alien artifact on a distant moon...';
-            imgSrc = '/images/BlindDateBook/BlindBook3.jpg';
-            price = '150.000 VNĐ';
-            condition = 'Gift-ready';
-        } else if (tagKey.toLowerCase().includes('literary') || tagKey.toLowerCase().includes('family')) {
-            hashtags = '#Literary #FamilySaga #ComingOfAge';
-            desc = 'Three generations of women navigate secrets in a small town...';
-            imgSrc = '/images/BlindDateBook/BlindBook2.jpg';
-            price = '100.000 VNĐ';
-            condition = 'Well Loved';
-        }
-
-        return {
-            blindBookID: blindBookID,
-            imgSrc,
-            hashtags,
-            desc,
-            price,
-            condition,
-            quotes: tagKey.toLowerCase().includes('space')
-                ? 'The stars did not welcome us; they watched us in silence.'
-                : tagKey.toLowerCase().includes('literary')
-                    ? "Grandmother's cedar chest smelled of lavender and unspoken truths."
-                    : 'The dough was cold, but their glances were fiery.',
-            rating: tagKey.toLowerCase().includes('space') ? '4.6' : '4.3',
-            ratingRange: tagKey.toLowerCase().includes('space') ? '4.4 - 4.7' : '4.1 - 4.4',
-            year: tagKey.toLowerCase().includes('space') ? '2021' : '2018',
-            category: tagKey.toLowerCase().includes('space') ? 'Science Fiction' : 'Romantic Fiction',
-            keywords: tagKey.toLowerCase().includes('space')
-                ? 'Deep space expedition, alien technology, emotional AI companion, space opera epic'
-                : 'Sweet, slow-burn romance, culinary baking, enemies-to-lovers, Parisian vibe'
-        };
+        // Lỗi hoặc không tìm thấy sách thật -> Trở về danh sách
+        window.location.hash = '';
+        $('#blind-date-details-section').hide();
+        $('#blind-date-section').show();
     }
 
     function initBackButton() {
@@ -387,7 +333,10 @@
                         console.error("Error fetching real blind book in popstate:", err);
                     }
                 }
-                showBlindDateDetails(buildMockBlindBookFromHash(tagKey), false);
+                // Lỗi hoặc không tìm thấy sách thật -> Trở về danh sách
+                window.location.hash = '';
+                $('#blind-date-details-section').hide();
+                $('#blind-date-section').show();
             } else {
                 $('#blind-date-details-section').hide();
                 $('#blind-date-section').show();
@@ -547,8 +496,15 @@
             const $btn = $(this);
             const $icon = $btn.find('i');
             
+            const blindBookData = window.currentBlindBookData;
+            const blindId = blindBookData ? (blindBookData.blindBookID || blindBookData.blindBookId || blindBookData.id) : null;
+            if (!blindId) {
+                showToast('Cannot add this book to wishlist. Invalid ID.', 'error');
+                return;
+            }
+            
             const title = getBlindTitle();
-            const id = 'blind-' + getBlindHashKey({ title: title, category: $('#blind-clue-category').text().trim() });
+            const id = blindId;
             const author = 'Unknown';
             const priceText = $('#blind-detail-price').text() || '0 VNĐ';
             const priceVnd = parsePriceToVnd(priceText);
@@ -1060,8 +1016,10 @@
     }
 
     function getBlindTitle() {
-        const category = $('#blind-clue-category').text().trim() || 'Mystery';
-        return 'Blind Date Mystery - Vibe: ' + category;
+        const category = $('#blind-clue-category').text().trim() || 'Unknown';
+        const rawHashtags = getCurrentHashtags();
+        const hashtags = rawHashtags.map(tag => '#' + tag).join(' ');
+        return `Blind Book (${category}) - ${hashtags}`;
     }
 
     function getCurrentHashtags() {

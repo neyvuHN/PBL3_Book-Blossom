@@ -519,7 +519,12 @@
     function getBlindBookDataFromObject(book) {
         const bookId = book.blindBookID || book.blindBookId || book.id || 0;
         const imgId = (bookId % 5) + 1;
-        const imgSrc = `/images/BlindDateBook/BlindBook${imgId}.jpg`;
+        
+        // Ưu tiên ảnh thật từ DB
+        const realImages = (book.imagePaths && book.imagePaths.length > 0) ? book.imagePaths : null;
+        const imgSrc = realImages ? realImages[0] : `/images/BlindDateBook/BlindBook${imgId}.jpg`;
+        const allImages = realImages || [`/images/BlindDateBook/BlindBook${imgId}.jpg`];
+
         const hashtags = book.hashtags || book.Hashtags || '#Mystery #BlindDate';
         const quotes = book.quotes || book.Quotes || 'An intriguing mystery waiting to be solved...';
         const priceNum = book.price !== undefined ? book.price : (book.Price || 0);
@@ -531,12 +536,15 @@
         const rating = '4.2';
         const ratingRange = '4.0 - 4.2';
         const year = '1994';
-        const category = book.category || book.Category || 'Mystery & Thriller';
+        
+        // Cập nhật lấy categoryName từ API
+        const category = book.categoryName || book.CategoryName || book.category || book.Category || 'Mystery & Thriller';
         const keywords = book.keywords || book.Keywords || 'Suspenseful, intriguing, dark secrets';
 
         return {
             blindBookID: bookId,
             imgSrc: imgSrc,
+            allImages: allImages,
             hashtags: hashtags,
             quotes: quotes,
             price: price,

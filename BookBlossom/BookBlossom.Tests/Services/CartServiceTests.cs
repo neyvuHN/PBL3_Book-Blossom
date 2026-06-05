@@ -181,7 +181,7 @@ namespace BookBlossom.Tests.Services
             Assert.Null(result.BookID);
             Assert.Equal(22, result.BlindBookID);
             Assert.Equal(2, result.Quantity);
-            Assert.Equal("Blind Book (Horror)", result.Title);
+            Assert.Equal("Blind Book (Literature) - #horror", result.Title);
             Assert.Equal(75000, result.Price);
         }
 
@@ -308,7 +308,7 @@ namespace BookBlossom.Tests.Services
             Assert.Equal(50000, realBookItem.Price);
 
             var blindBookItem = items.First(i => i.BlindBookID == 22);
-            Assert.Equal("Blind Book (Horror)", blindBookItem.Title);
+            Assert.Equal("Blind Book (Literature) - #horror", blindBookItem.Title);
             Assert.Equal(75000, blindBookItem.Price);
         }
     }

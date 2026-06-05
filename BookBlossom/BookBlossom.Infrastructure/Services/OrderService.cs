@@ -335,7 +335,7 @@ namespace BookBlossom.Infrastructure.Services
                             (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
                             (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                         Title = od.BlindBookID.HasValue && od.BlindBook != null
-                            ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
+                            ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"} - {od.BlindBook.Hashtags}"
                             : od.RealBook?.Title ?? "Sách không xác định",
                         UnitPrice = od.UnitPrice,
                         Quantity = od.Quantity,
@@ -403,7 +403,7 @@ namespace BookBlossom.Infrastructure.Services
                         (od.BlindBookID.HasValue && r.BlindBookID == od.BlindBookID.Value) || 
                         (!od.BlindBookID.HasValue && r.BookID == od.BookID)),
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
-                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
+                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"} - {od.BlindBook.Hashtags}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     RealBookTitle = order.OrderStatus == OrderStatus.Completed
                         ? (od.RealBook?.Title ?? string.Empty)
@@ -621,7 +621,7 @@ namespace BookBlossom.Infrastructure.Services
                     BookID = od.BookID,
                     BlindBookID = od.BlindBookID,
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
-                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
+                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"} - {od.BlindBook.Hashtags}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     UnitPrice = od.UnitPrice,
                     Quantity = od.Quantity,
@@ -674,7 +674,7 @@ namespace BookBlossom.Infrastructure.Services
                     BookID = od.BookID,
                     BlindBookID = od.BlindBookID,
                     Title = od.BlindBookID.HasValue && od.BlindBook != null
-                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}"
+                        ? $"[Sách Mù] {od.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"} - {od.BlindBook.Hashtags}"
                         : od.RealBook?.Title ?? "Sách không xác định",
                     RealBookTitle = od.RealBook?.Title ?? "Sách không xác định",
                     UnitPrice = od.UnitPrice,

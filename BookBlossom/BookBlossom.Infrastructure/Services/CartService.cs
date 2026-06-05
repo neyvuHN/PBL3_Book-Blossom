@@ -46,7 +46,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = c.BlindBookID,
                 Title = c.BookID.HasValue 
                     ? (c.Book?.Title ?? "Unknown Book") 
-                    : (c.BlindBook != null ? $"Blind Book ({c.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
+                    : (c.BlindBook != null ? $"Blind Book ({c.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}) - {c.BlindBook.Hashtags}" : "Unknown Blind Book"),
                 Price = c.BookID.HasValue 
                     ? (c.Book?.Price ?? 0) 
                     : (c.BlindBook?.Price ?? 0),
@@ -150,7 +150,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = existingCartItem.BlindBookID,
                 Title = request.BookID.HasValue 
                     ? (addedBook?.Title ?? "Unknown Book") 
-                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
+                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}) - {addedBlindBook.Hashtags}" : "Unknown Blind Book"),
                 Price = request.BookID.HasValue 
                     ? (addedBook?.Price ?? 0) 
                     : (addedBlindBook?.Price ?? 0),
@@ -198,7 +198,7 @@ namespace BookBlossom.Infrastructure.Services
                 BlindBookID = cartItem.BlindBookID,
                 Title = cartItem.BookID.HasValue 
                     ? (cartItem.Book?.Title ?? "Unknown Book") 
-                    : (cartItem.BlindBook != null ? $"Blind Book ({cartItem.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"})" : "Unknown Blind Book"),
+                    : (cartItem.BlindBook != null ? $"Blind Book ({cartItem.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}) - {cartItem.BlindBook.Hashtags}" : "Unknown Blind Book"),
                 Price = cartItem.BookID.HasValue 
                     ? (cartItem.Book?.Price ?? 0) 
                     : (cartItem.BlindBook?.Price ?? 0),
