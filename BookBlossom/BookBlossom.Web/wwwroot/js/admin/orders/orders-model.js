@@ -85,24 +85,8 @@ class OrdersModel {
 
             const ordersList = await ordersResponse.json() || [];
 
-            // 2. Load detail song song for all orders to populate items, cover images, customer notes, etc.
-            const detailsList = await Promise.all(ordersList.map(async (o) => {
-                try {
-                    const detailRes = await fetch(`/api/order/store/${o.orderID}`, {
-                        method: 'GET',
-                        headers: headers
-                    });
-                    if (detailRes.ok) {
-                        return await detailRes.json();
-                    }
-                } catch (e) {
-                    console.error(`Error loading detail for order #${o.orderID}:`, e);
-                }
-                return null;
-            }));
-
-            // 3. Map backend details into frontend structures
-            this.orders = detailsList.filter(d => d !== null).map(detail => {
+            // 2. Map backend orders directly into frontend structures without making N+1 API calls
+            this.orders = ordersList.map(detail => {
                 const mapped = this._mapBackendStatus(detail.orderStatus);
                 const isBlindDate = detail.orderItems && detail.orderItems.some(item => item.blindBookID !== null);
                 
