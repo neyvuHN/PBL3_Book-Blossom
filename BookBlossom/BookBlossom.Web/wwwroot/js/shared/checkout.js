@@ -275,9 +275,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 list.appendChild(badge);
             });
             window.checkoutState.discount = totalDiscount;
+            window.checkoutState.appliedVouchers = selected;
         } else {
             container.style.display = 'none';
             window.checkoutState.discount = 0;
+            window.checkoutState.appliedVouchers = [];
         }
     }
 

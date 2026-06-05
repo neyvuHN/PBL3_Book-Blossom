@@ -302,18 +302,6 @@ namespace BookBlossom.Infrastructure.Services
                 return invalid;
             }
 
-            // 4. Kiểm tra ví voucher của customer (phải đã claim và chưa dùng)
-            var customerVoucher = await _context.CustomerVouchers
-                .FirstOrDefaultAsync(cv => cv.CustomerID == customerId
-                                        && cv.VoucherID == voucher.VoucherID
-                                        && !cv.IsUsed);
-
-            if (customerVoucher == null)
-            {
-                invalid.ErrorMessage = "Bạn không có voucher này trong ví hoặc voucher đã được sử dụng.";
-                return invalid;
-            }
-
             // 5. Kiểm tra số lần đã dùng của customer
             int timesUsed = await _context.CustomerVouchers
                 .CountAsync(cv => cv.CustomerID == customerId
@@ -454,7 +442,17 @@ namespace BookBlossom.Infrastructure.Services
                                         && cv.VoucherID == voucherId
                                         && !cv.IsUsed);
 
-            if (customerVoucher == null) return;
+            if (customerVoucher == null)
+            {
+                customerVoucher = new CustomerVoucher
+                {
+                    CustomerID = customerId,
+                    VoucherID = voucherId,
+                    IsUsed = false,
+                    UsedAt = SentinelDate
+                };
+                _context.CustomerVouchers.Add(customerVoucher);
+            }
 
             customerVoucher.IsUsed = true;
             customerVoucher.UsedAt = DateTime.UtcNow;

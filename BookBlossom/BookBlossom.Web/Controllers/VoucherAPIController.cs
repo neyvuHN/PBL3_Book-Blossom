@@ -4,6 +4,7 @@ using BookBlossom.Core.Interfaces.Services;
 using System.Linq;
 using BookBlossom.Core.Enums;
 using System;
+using System.Security.Claims;
 
 namespace BookBlossom.Web.Controllers
 {
@@ -32,6 +33,26 @@ namespace BookBlossom.Web.Controllers
                     v.EndDate >= now &&
                     v.UsedCount < v.TotalLimit
                 ).ToList();
+
+                // Lọc bỏ những voucher mà user đã sử dụng hết số lần tối đa (MaxUsagePerUser)
+                var customerIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (long.TryParse(customerIdStr, out long customerId))
+                {
+                    var myVouchers = await _voucherService.GetMyVouchersAsync(customerId);
+                    var usedCounts = myVouchers
+                        .Where(mv => mv.IsUsed)
+                        .GroupBy(mv => mv.VoucherID)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    activeVouchers = activeVouchers.Where(v =>
+                    {
+                        if (usedCounts.TryGetValue(v.VoucherID, out int count))
+                        {
+                            return count < v.MaxUsagePerUser;
+                        }
+                        return true;
+                    }).ToList();
+                }
 
                 return Ok(new { success = true, data = activeVouchers });
             }
