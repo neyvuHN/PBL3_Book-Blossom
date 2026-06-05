@@ -26,17 +26,22 @@
         `);
 
         try {
-            const response = await fetch('/api/BlindBook');
-            if (response.ok) {
-                allBlindBooks = await response.json();
-                generateDynamicFilters(allBlindBooks);
+            const [booksResponse, categoriesResponse] = await Promise.all([
+                fetch('/api/BlindBook'),
+                fetch('/api/Category')
+            ]);
+            
+            if (booksResponse.ok && categoriesResponse.ok) {
+                allBlindBooks = await booksResponse.json();
+                const allCategories = await categoriesResponse.json();
+                generateDynamicFilters(allBlindBooks, allCategories);
                 renderBlindBooks(allBlindBooks);
                 handleInitialHash();
             } else {
                 grid.html('<p class="text-center w-100" style="grid-column: 1 / -1; color: #ff6b6b; padding: 30px; font-weight: 600;">Failed to load mystery books. Please try again later.</p>');
             }
         } catch (error) {
-            console.error("Error loading blind books:", error);
+            console.error("Error loading data:", error);
             grid.html('<p class="text-center w-100" style="grid-column: 1 / -1; color: #ff6b6b; padding: 30px; font-weight: 600;">Error connecting to server.</p>');
         }
     }
@@ -63,8 +68,6 @@
                 ? book.imagePaths[0]
                 : fallbackImg;
 
-            const conditions = ['Pristine - Like new', 'Gift-ready', 'Well Loved - Has character', 'Gently read'];
-            const condition = conditions[book.blindBookID % conditions.length];
 
             const priceFormatted = Number(book.Price || book.price || 0).toLocaleString('vi-VN') + ' VNĐ';
             const hashtags = book.Hashtags || book.hashtags || '#Mystery #Suspense #MustRead';
@@ -85,7 +88,6 @@
                             <span class="verified-badge"><i class="fas fa-leaf"></i> Verified Shop</span>
                             <span class="card-price">${priceFormatted}</span>
                         </div>
-                        <div class="card-condition">Condition: ${condition}</div>
                     </div>
                 </div>
             `;
@@ -278,9 +280,9 @@
         });
     }
 
-    function generateDynamicFilters(books) {
-        // 1. Gather unique categories (genres)
-        const categories = [...new Set(books.map(b => b.Category || b.category).filter(Boolean))];
+    function generateDynamicFilters(books, allCategoriesData) {
+        // 1. Gather all categories from API
+        const categories = allCategoriesData ? allCategoriesData.map(c => c.categoryName || c.CategoryName).filter(Boolean) : [...new Set(books.map(b => b.Category || b.category).filter(Boolean))];
         
         // 2. Gather unique hashtags
         const tagSet = new Set();
@@ -389,10 +391,6 @@
             return normalizeText($(this).val());
         }).get();
 
-        const checkedConditions = $('#blind-sidebar input[type="checkbox"][id^="cond-"]:checked').map(function () {
-            return normalizeText($(this).val() || $(this).closest('label').text());
-        }).get();
-
         const minPrice = (parseInt($('#blind-price-min').val(), 10) || 0) * 1000;
         const maxPrice = (parseInt($('#blind-price-max').val(), 10) || 1000) * 1000;
 
@@ -432,19 +430,6 @@
                 if (hasInactiveMatch) return false;
             }
 
-            // Condition validation (Inclusive checklist filter)
-            const conditionsList = ['Pristine - Like new', 'Gift-ready', 'Well Loved - Has character', 'Gently read'];
-            const bookId = book.blindBookID || book.blindBookId || book.id || 0;
-            const bookCondition = normalizeText(conditionsList[bookId % conditionsList.length]);
-            const hasCondMatch = checkedConditions.some(cond => {
-                if (cond.includes('new') || cond.includes('pristine')) return bookCondition.includes('new') || bookCondition.includes('pristine');
-                if (cond.includes('gift')) return bookCondition.includes('gift');
-                if (cond.includes('loved') || cond.includes('character')) return bookCondition.includes('loved');
-                if (cond.includes('gently') || cond.includes('read')) return bookCondition.includes('gently') || bookCondition.includes('read');
-                return bookCondition.includes(cond);
-            });
-            if (!hasCondMatch) return false;
-
             return true;
         });
 
@@ -466,7 +451,7 @@
             if ($('#how-it-works-modal').length) {
                 $('#how-it-works-modal').fadeIn(200);
             } else {
-                showToast('Pick a mystery book based on clues, vibe, price, and condition. The exact title is revealed after purchase.');
+                showToast('Pick a mystery book based on clues, vibe, and price. The exact title is revealed after purchase.');
             }
         });
 
@@ -530,9 +515,6 @@
         const priceNum = book.price !== undefined ? book.price : (book.Price || 0);
         const price = Number(priceNum).toLocaleString('vi-VN') + ' VNĐ';
 
-        const conditionsList = ['Pristine - Like new', 'Gift-ready', 'Well Loved - Has character', 'Gently read'];
-        const condition = conditionsList[bookId % conditionsList.length];
-
         const rating = '4.2';
         const ratingRange = '4.0 - 4.2';
         const year = '1994';
@@ -548,7 +530,6 @@
             hashtags: hashtags,
             quotes: quotes,
             price: price,
-            condition: condition,
             rating: rating,
             ratingRange: ratingRange,
             year: year,

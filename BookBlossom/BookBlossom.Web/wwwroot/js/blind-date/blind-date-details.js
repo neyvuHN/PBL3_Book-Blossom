@@ -104,7 +104,7 @@
         $('#blind-detail-original-price').text(formatVndDot(numOriginal));
         $('#blind-detail-discount').text('-33%');
 
-        $('#blind-condition-desc').text('Condition: ' + (blindBookData.condition || 'Well Loved'));
+
         $('#blind-clue-goodreads').text('★ ' + (blindBookData.rating || '4.2') + ' / 5');
         $('#blind-clue-rating-range').text('Community Rating: ★ ' + (blindBookData.ratingRange || '4.0 - 4.2'));
         $('#blind-clue-year').text('Publication Year: ' + (blindBookData.year || '1994'));
@@ -238,9 +238,6 @@
         const priceNum = book.price !== undefined ? book.price : (book.Price || 0);
         const price = Number(priceNum).toLocaleString('vi-VN') + ' VNĐ';
 
-        const conditionsList = ['Pristine - Like new', 'Gift-ready', 'Well Loved - Has character', 'Gently read'];
-        const condition = conditionsList[bookId % conditionsList.length];
-
         const rating = '4.2';
         const ratingRange = '4.0 - 4.2';
         const year = '1994';
@@ -255,7 +252,6 @@
             hashtags: hashtags,
             quotes: quotes,
             price: price,
-            condition: condition,
             rating: rating,
             ratingRange: ratingRange,
             ratingRange: ratingRange,
@@ -1006,7 +1002,6 @@
             price: priceVnd / 20000,
             priceVnd: priceVnd,
             qty: qty,
-            condition: 'New Curated',
             img: img,
             selected: true,
             isBlind: true,
