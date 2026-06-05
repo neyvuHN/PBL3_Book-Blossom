@@ -28,6 +28,7 @@ namespace BookBlossom.Infrastructure.Services
             await AutoUpdateVoucherStatusesAsync();
             var vouchers = await _context.Vouchers
                 .Include(v => v.VoucherCategories)
+                .Include(v => v.VoucherBooks)
                 .OrderByDescending(v => v.VoucherID)
                 .ToListAsync();
 
@@ -39,6 +40,7 @@ namespace BookBlossom.Infrastructure.Services
             await AutoUpdateVoucherStatusesAsync();
             var voucher = await _context.Vouchers
                 .Include(v => v.VoucherCategories)
+                .Include(v => v.VoucherBooks)
                 .FirstOrDefaultAsync(v => v.VoucherID == voucherId);
 
             return voucher == null ? null : MapToDTO(voucher);
@@ -89,10 +91,21 @@ namespace BookBlossom.Infrastructure.Services
                     CategoryID = catId
                 });
             }
+
+            // Thêm các sách áp dụng (nếu có)
+            foreach (var bookId in dto.ApplicableBookIDs)
+            {
+                _context.VoucherBooks.Add(new VoucherBook
+                {
+                    VoucherID = voucher.VoucherID,
+                    BookID = bookId
+                });
+            }
             await _context.SaveChangesAsync();
 
             return MapToDTO(await _context.Vouchers
                 .Include(v => v.VoucherCategories)
+                .Include(v => v.VoucherBooks)
                 .FirstAsync(v => v.VoucherID == voucher.VoucherID));
         }
 
@@ -100,6 +113,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             var voucher = await _context.Vouchers
                 .Include(v => v.VoucherCategories)
+                .Include(v => v.VoucherBooks)
                 .FirstOrDefaultAsync(v => v.VoucherID == voucherId);
 
             if (voucher == null) return null;
@@ -139,6 +153,20 @@ namespace BookBlossom.Infrastructure.Services
                     {
                         VoucherID = voucher.VoucherID,
                         CategoryID = catId
+                    });
+                }
+            }
+
+            // Cập nhật danh sách sách áp dụng
+            if (dto.ApplicableBookIDs != null)
+            {
+                _context.VoucherBooks.RemoveRange(voucher.VoucherBooks);
+                foreach (var bookId in dto.ApplicableBookIDs)
+                {
+                    _context.VoucherBooks.Add(new VoucherBook
+                    {
+                        VoucherID = voucher.VoucherID,
+                        BookID = bookId
                     });
                 }
             }
@@ -265,7 +293,8 @@ namespace BookBlossom.Infrastructure.Services
             long customerId,
             string voucherCode,
             decimal orderSubTotal,
-            List<long> bookCategoryIds)
+            List<long> bookCategoryIds,
+            List<long> bookIds)
         {
             await AutoUpdateVoucherStatusesAsync();
             var invalid = new VoucherValidationResultDTO { IsValid = false };
@@ -273,6 +302,7 @@ namespace BookBlossom.Infrastructure.Services
             // 1. Tìm voucher theo mã
             var voucher = await _context.Vouchers
                 .Include(v => v.VoucherCategories)
+                .Include(v => v.VoucherBooks)
                 .FirstOrDefaultAsync(v => v.VoucherCode == voucherCode);
 
             if (voucher == null)
@@ -401,14 +431,27 @@ namespace BookBlossom.Infrastructure.Services
                 }
             }
 
-            // 11. Kiểm tra scope (Category) — nếu có VoucherCategory thì đơn hàng phải có ít nhất 1 sản phẩm thuộc category đó
+            // 11. Kiểm tra scope (Category/Book)
             var requiredCategoryIds = voucher.VoucherCategories.Select(vc => vc.CategoryID).ToList();
-            if (requiredCategoryIds.Any())
+            var requiredBookIds = voucher.VoucherBooks.Select(vb => vb.BookID).ToList();
+
+            if (requiredCategoryIds.Any() || requiredBookIds.Any())
             {
-                bool scopeMatch = bookCategoryIds.Any(cid => requiredCategoryIds.Contains(cid));
+                bool scopeMatch = false;
+
+                if (requiredCategoryIds.Any())
+                {
+                    scopeMatch = bookCategoryIds.Any(cid => requiredCategoryIds.Contains(cid));
+                }
+                
+                if (!scopeMatch && requiredBookIds.Any())
+                {
+                    scopeMatch = bookIds.Any(bid => requiredBookIds.Contains(bid));
+                }
+
                 if (!scopeMatch)
                 {
-                    invalid.ErrorMessage = "Không có sản phẩm nào trong giỏ hàng thuộc danh mục áp dụng của voucher này.";
+                    invalid.ErrorMessage = "Không có sản phẩm nào trong giỏ hàng thuộc danh mục hoặc sách áp dụng của voucher này.";
                     return invalid;
                 }
             }
@@ -552,7 +595,8 @@ namespace BookBlossom.Infrastructure.Services
             IsStackable = v.IsStackable,
             IsAutoRefundable = v.IsAutoRefundable,
             MaxUsagePerUser = v.MaxUsagePerUser,
-            ApplicableCategoryIDs = v.VoucherCategories?.Select(vc => vc.CategoryID).ToList() ?? new()
+            ApplicableCategoryIDs = v.VoucherCategories?.Select(vc => vc.CategoryID).ToList() ?? new(),
+            ApplicableBookIDs = v.VoucherBooks?.Select(vb => vb.BookID).ToList() ?? new()
         };
     }
 }

@@ -51,6 +51,7 @@ namespace BookBlossom.Core.Entities
         public virtual ICollection<CustomerVoucher> CustomerVouchers { get; set; } = new List<CustomerVoucher>();
         public virtual ICollection<VoucherCategory> VoucherCategories { get; set; } = new List<VoucherCategory>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        public virtual ICollection<VoucherBook> VoucherBooks { get; set; } = new List<VoucherBook>();
     }
 
     // Ánh xạ bảng Voucher.CustomerVoucher — ví voucher của từng khách hàng
@@ -82,5 +83,16 @@ namespace BookBlossom.Core.Entities
         // Navigation Properties
         public virtual Voucher Voucher { get; set; } = null!;
         public virtual Category Category { get; set; } = null!;
+    }
+
+    // Ánh xạ bảng Voucher.VoucherBook — sách áp dụng
+    public class VoucherBook
+    {
+        public long VoucherID { get; set; }
+        public long BookID { get; set; }
+
+        // Navigation Properties
+        public virtual Voucher Voucher { get; set; } = null!;
+        public virtual RealBook Book { get; set; } = null!;
     }
 }

@@ -143,4 +143,28 @@ namespace BookBlossom.Infrastructure.Data.Configurations
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }
+
+    // === CẤU HÌNH BẢNG Voucher.VoucherBook ===
+    public class VoucherBookConfiguration : IEntityTypeConfiguration<VoucherBook>
+    {
+        public void Configure(EntityTypeBuilder<VoucherBook> builder)
+        {
+            builder.ToTable("VoucherBook", "Voucher");
+
+            // Composite PK: {VoucherID, BookID}
+            builder.HasKey(vb => new { vb.VoucherID, vb.BookID });
+
+            // FK: VoucherBook -> Voucher
+            builder.HasOne(vb => vb.Voucher)
+                   .WithMany(v => v.VoucherBooks)
+                   .HasForeignKey(vb => vb.VoucherID)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            // FK: VoucherBook -> RealBook
+            builder.HasOne(vb => vb.Book)
+                   .WithMany()
+                   .HasForeignKey(vb => vb.BookID)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
 }

@@ -80,7 +80,9 @@ class VouchersModel {
                     minRank: invRankMap[v.membershipRankRequired] || 'None',
                     budget: v.totalLimit,
                     used: v.usedCount,
-                    scope: v.applicableCategoryIDs && v.applicableCategoryIDs.length > 0 ? 'SpecificCategory' : 'All',
+                    scope: (v.applicableCategoryIDs?.length > 0 && v.applicableBookIDs?.length > 0) ? 'Both' : 
+                           (v.applicableCategoryIDs?.length > 0 ? 'SpecificCategory' : 
+                           (v.applicableBookIDs?.length > 0 ? 'SpecificBook' : 'All')),
                     startDate: v.startDate ? v.startDate.substring(0, 16) : '',
                     endDate: v.endDate ? v.endDate.substring(0, 16) : '',
                     stackable: v.isStackable,
@@ -88,7 +90,7 @@ class VouchersModel {
                     status: invStatusMap[v.statusVoucher] || 'Draft',
                     roi: stats.roi ? `${stats.roi}x` : '0.00x',
                     selectedCategories: v.applicableCategoryIDs || [],
-                    selectedBooks: [],
+                    selectedBooks: v.applicableBookIDs || [],
                     stats: stats
                 });
             }
@@ -123,14 +125,16 @@ class VouchersModel {
                 minRank: invRankMap[v.membershipRankRequired] || 'None',
                 budget: v.totalLimit,
                 used: v.usedCount,
-                scope: v.applicableCategoryIDs && v.applicableCategoryIDs.length > 0 ? 'SpecificCategory' : 'All',
+                scope: (v.applicableCategoryIDs?.length > 0 && v.applicableBookIDs?.length > 0) ? 'Both' : 
+                       (v.applicableCategoryIDs?.length > 0 ? 'SpecificCategory' : 
+                       (v.applicableBookIDs?.length > 0 ? 'SpecificBook' : 'All')),
                 startDate: v.startDate ? v.startDate.substring(0, 16) : '',
                 endDate: v.endDate ? v.endDate.substring(0, 16) : '',
                 stackable: v.isStackable,
                 autoRestore: v.isAutoRefundable,
                 status: invStatusMap[v.statusVoucher] || 'Draft',
                 selectedCategories: v.applicableCategoryIDs || [],
-                selectedBooks: []
+                selectedBooks: v.applicableBookIDs || []
             };
         } catch (e) {
             console.error("Failed to get voucher by ID", e);
@@ -161,7 +165,8 @@ class VouchersModel {
             isAutoRefundable: !!voucher.autoRestore,
             maxUsagePerUser: 1,
             statusVoucher: statusMap[voucher.status] ?? 0,
-            applicableCategoryIDs: voucher.scope === 'SpecificCategory' || voucher.scope === 'Both' ? voucher.selectedCategories : []
+            applicableCategoryIDs: voucher.scope === 'SpecificCategory' || voucher.scope === 'Both' ? voucher.selectedCategories : [],
+            applicableBookIDs: voucher.scope === 'SpecificBook' || voucher.scope === 'Both' ? voucher.selectedBooks : []
         };
 
         try {
@@ -202,7 +207,8 @@ class VouchersModel {
             isStackable: !!voucher.stackable,
             isAutoRefundable: !!voucher.autoRestore,
             maxUsagePerUser: 1,
-            applicableCategoryIDs: voucher.scope === 'SpecificCategory' || voucher.scope === 'Both' ? voucher.selectedCategories : []
+            applicableCategoryIDs: voucher.scope === 'SpecificCategory' || voucher.scope === 'Both' ? voucher.selectedCategories : [],
+            applicableBookIDs: voucher.scope === 'SpecificBook' || voucher.scope === 'Both' ? voucher.selectedBooks : []
         };
 
         try {

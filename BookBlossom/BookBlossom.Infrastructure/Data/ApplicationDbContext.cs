@@ -56,6 +56,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<CustomerVoucher> CustomerVouchers { get; set; }
         public DbSet<VoucherCategory> VoucherCategories { get; set; }
+        public DbSet<VoucherBook> VoucherBooks { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
         public DbSet<Author> Authors { get; set; }

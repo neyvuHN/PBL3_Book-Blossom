@@ -28,6 +28,7 @@ namespace BookBlossom.Core.DTOs
         public bool IsAutoRefundable { get; set; }
         public int MaxUsagePerUser { get; set; }
         public List<long> ApplicableCategoryIDs { get; set; } = new();
+        public List<long> ApplicableBookIDs { get; set; } = new();
     }
 
     // DTO tạo mới voucher (Marketing/Admin)
@@ -53,6 +54,7 @@ namespace BookBlossom.Core.DTOs
         public VoucherStatus StatusVoucher { get; set; } = VoucherStatus.Draft;
         // Nếu rỗng = áp dụng toàn sàn
         public List<long> ApplicableCategoryIDs { get; set; } = new();
+        public List<long> ApplicableBookIDs { get; set; } = new();
     }
 
     // DTO cập nhật voucher
@@ -76,6 +78,7 @@ namespace BookBlossom.Core.DTOs
         public bool? IsAutoRefundable { get; set; }
         public int? MaxUsagePerUser { get; set; }
         public List<long>? ApplicableCategoryIDs { get; set; }
+        public List<long>? ApplicableBookIDs { get; set; }
     }
 
     // Kết quả sau khi validate và áp voucher tại checkout

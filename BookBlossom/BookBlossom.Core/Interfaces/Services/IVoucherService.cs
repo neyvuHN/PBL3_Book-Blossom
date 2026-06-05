@@ -28,7 +28,8 @@ namespace BookBlossom.Core.Interfaces.Services
             long customerId,
             string voucherCode,
             decimal orderSubTotal,
-            List<long> bookCategoryIds);
+            List<long> bookCategoryIds,
+            List<long> bookIds);
 
         // Đánh dấu đã dùng sau khi tạo đơn thành công
         Task MarkVoucherAsUsedAsync(long customerId, long voucherId, long orderId);

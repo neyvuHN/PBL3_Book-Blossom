@@ -206,7 +206,8 @@ namespace BookBlossom.Infrastructure.Services
                         customerId,
                         request.VoucherCode,
                         subTotal,
-                        bookCategoryIds);
+                        bookCategoryIds,
+                        bookIds);
 
                     if (!voucherResult.IsValid)
                         throw new InvalidOperationException($"Voucher không hợp lệ: {voucherResult.ErrorMessage}");
