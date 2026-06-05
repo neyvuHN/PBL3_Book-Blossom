@@ -12,6 +12,7 @@ class AdminMessagesView {
         this.$requestList = $('#support-requests-tab .request-list');
 
         // Central Chat Area
+        this.$emptyStateArea = $('#admin-chat-empty-state');
         this.$chatMainArea = $('#admin-chat-main-area');
         this.$chatStream = $('#admin-chat-stream');
         this.$chatHeaderName = $('#current-chat-name');
@@ -36,6 +37,7 @@ class AdminMessagesView {
         this.$taggedBookPreviewBar = $('#admin-tagged-books-preview');
 
         // Right sidebar (Buyer Profile)
+        this.$buyerSidebarArea = $('#admin-buyer-sidebar-area');
         this.$sidebarAvatar = $('#sidebar-buyer-avatar');
         this.$sidebarName = $('#sidebar-buyer-name');
         this.$sidebarJoined = $('#sidebar-buyer-joined');
@@ -281,8 +283,10 @@ class AdminMessagesView {
         const statusClass = req.status === 0 ? "status-pending" : (req.status === 1 ? "status-inprogress" : "status-resolved");
         this.$detailReqStatus.removeClass().addClass(`req-status ${statusClass}`).text(req.statusName);
 
+        this.$emptyStateArea.hide();
         this.$chatMainArea.hide();
         this.$reqDetailArea.fadeIn(200);
+        this.$buyerSidebarArea.fadeIn(200);
     }
 
     renderTaggedBookPreview(book) {

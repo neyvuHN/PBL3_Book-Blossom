@@ -45,8 +45,17 @@
         </div>
     </div>
 
+    <!-- Empty State Center Area -->
+    <div class="admin-chat-main chat-panel" id="admin-chat-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #faf8f9; color: #888;">
+        <div style="width: 120px; height: 120px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(194, 24, 91, 0.08); border: 1px solid rgba(194, 24, 91, 0.1);">
+            <i class="far fa-comments" style="font-size: 3.5rem; color: #C2185B; opacity: 0.85;"></i>
+        </div>
+        <h3 style="font-family: 'Lora', serif; color: #2C2630; margin-bottom: 12px; font-size: 1.6rem; font-weight: 700;">Your Messages Workspace</h3>
+        <p style="font-size: 0.95rem; max-width: 350px; text-align: center; line-height: 1.6; color: #666;">Select a conversation or a support request from the sidebar to view details and start chatting.</p>
+    </div>
+
     <!-- Center: Main Chat Area -->
-    <div class="admin-chat-main chat-panel" id="admin-chat-main-area">
+    <div class="admin-chat-main chat-panel" id="admin-chat-main-area" style="display: none;">
         <div class="chat-header">
             <div class="chat-header-user">
                 <div class="convo-avatar-wrapper">
@@ -56,7 +65,7 @@
                     <span class="online-dot" id="current-chat-online"></span>
                 </div>
                 <div>
-                    <div class="chat-header-title" id="current-chat-name">Anna Smith</div>
+                    <div class="chat-header-title" id="current-chat-name">Loading...</div>
                     <div class="chat-header-status" id="current-chat-status">
                         <i class="fas fa-circle" style="color: #2e7d32; font-size: 0.6rem;"></i> Active now
                     </div>
@@ -85,22 +94,7 @@
         </div>
 
         <div class="chat-messages-container" id="admin-chat-stream">
-            <div class="chat-date-separator">
-                <span>Today</span>
-            </div>
-
-            <!-- Buyer incoming message -->
-            <div class="msg-bubble-group incoming">
-                <div class="msg-avatar-container">
-                    <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="msg-avatar" onerror="this.src='/images/Avatar/default.png'">
-                </div>
-                <div class="msg-bubble-content">
-                    <div class="msg-text-bubble">
-                        Can you explain how Blind Date Books work?
-                    </div>
-                    <div class="msg-meta">10:45 AM</div>
-                </div>
-            </div>
+            <!-- Messages will be rendered here dynamically -->
         </div>
 
         <div class="chat-input-container">
@@ -116,7 +110,7 @@
                 <button class="btn-input-attachment" id="btn-admin-media-trigger" title="Attach picture/video"><i class="far fa-image"></i></button>
                 <input type="file" id="admin-media-attachment-input" accept="image/*,video/*" multiple style="display: none;">
                 <button class="btn-input-attachment" id="btn-admin-tag-book-trigger" title="Tag a Product"><i class="fas fa-link"></i></button>
-                <input type="text" class="chat-main-input" placeholder="Type a message to Anna Smith..." id="admin-message-input">
+                <input type="text" class="chat-main-input" placeholder="Type a message..." id="admin-message-input">
                 <button class="btn-send-message" id="admin-btn-send"><i class="far fa-paper-plane"></i></button>
             </div>
         </div>
@@ -133,22 +127,22 @@
             
             <div class="sr-field-group">
                 <label>Requested by:</label>
-                <div class="sr-value" id="detail-req-buyer">Anna Smith</div>
+                <div class="sr-value" id="detail-req-buyer">Loading...</div>
             </div>
 
             <div class="sr-field-group">
                 <label>Help Category:</label>
-                <div class="sr-value"><strong id="detail-req-category">Product / Book</strong></div>
+                <div class="sr-value"><strong id="detail-req-category">Loading...</strong></div>
             </div>
 
             <div class="sr-field-group">
                 <label>Phone Number for Callback:</label>
-                <div class="sr-value" id="detail-req-phone">09xxxxxxxx</div>
+                <div class="sr-value" id="detail-req-phone">Loading...</div>
             </div>
 
             <div class="sr-field-group">
                 <label>Additional Notes:</label>
-                <div class="sr-value note-box" id="detail-req-note">I'd like to know more about this Blind Date Book...</div>
+                <div class="sr-value note-box" id="detail-req-note">Loading...</div>
             </div>
 
             <div class="sr-actions">
@@ -159,20 +153,20 @@
     </div>
 
     <!-- Right Sidebar: Buyer Profile Information -->
-    <div class="admin-buyer-sidebar">
+    <div class="admin-buyer-sidebar" id="admin-buyer-sidebar-area" style="display: none;">
         <div class="buyer-profile-card">
-            <img src="/images/Avatar/avatar1.jpg" alt="Buyer" class="buyer-profile-avatar" id="sidebar-buyer-avatar" onerror="this.src='/images/Avatar/default.png'">
-            <div class="buyer-profile-name" id="sidebar-buyer-name">Anna Smith</div>
-            <div class="buyer-profile-joined" id="sidebar-buyer-joined">Joined: 6 months ago</div>
+            <img src="/images/Avatar/default.png" alt="Buyer" class="buyer-profile-avatar" id="sidebar-buyer-avatar" onerror="this.src='/images/Avatar/default.png'">
+            <div class="buyer-profile-name" id="sidebar-buyer-name">Loading...</div>
+            <div class="buyer-profile-joined" id="sidebar-buyer-joined">Loading...</div>
             
             <div class="buyer-metrics-grid">
                 <div class="metric-item">
                     <span class="metric-label">Total Orders</span>
-                    <span class="metric-value" id="sidebar-buyer-orders">12</span>
+                    <span class="metric-value" id="sidebar-buyer-orders">0</span>
                 </div>
                 <div class="metric-item">
                     <span class="metric-label">Total Spent</span>
-                    <span class="metric-value" id="sidebar-buyer-spent" style="color: #C2185B;">1.5M VND</span>
+                    <span class="metric-value" id="sidebar-buyer-spent" style="color: #C2185B;">0 VND</span>
                 </div>
             </div>
         </div>
@@ -180,15 +174,15 @@
         <div class="buyer-info-card">
             <div class="info-section">
                 <div class="info-header"><i class="fas fa-map-marker-alt" style="color: #C2185B;"></i> Default Address</div>
-                <div class="info-content" id="sidebar-buyer-address">123 Book St, District 1, Ho Chi Minh City</div>
+                <div class="info-content" id="sidebar-buyer-address">Loading...</div>
             </div>
             <div class="info-section">
                 <div class="info-header"><i class="fas fa-phone" style="color: #C2185B;"></i> Phone Number</div>
-                <div class="info-content" id="sidebar-buyer-phone">0987 654 321</div>
+                <div class="info-content" id="sidebar-buyer-phone">Loading...</div>
             </div>
             <div class="info-section">
                 <div class="info-header"><i class="fas fa-envelope" style="color: #C2185B;"></i> Email</div>
-                <div class="info-content" id="sidebar-buyer-email">anna.smith@example.com</div>
+                <div class="info-content" id="sidebar-buyer-email">Loading...</div>
             </div>
         </div>
 

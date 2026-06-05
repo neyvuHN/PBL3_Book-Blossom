@@ -90,8 +90,10 @@ class AdminMessagesController {
         }
 
         this.model.activeConversationId = convoId;
+        this.view.$emptyStateArea.hide();
         this.view.$chatMainArea.fadeIn(200);
         this.view.$reqDetailArea.hide();
+        this.view.$buyerSidebarArea.fadeIn(200);
 
         if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
             this.hubConnection.invoke("JoinConversation", convoId)
