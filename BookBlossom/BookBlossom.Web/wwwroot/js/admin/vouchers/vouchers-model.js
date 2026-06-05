@@ -54,15 +54,24 @@ class VouchersModel {
         try {
             const rawVouchers = await window.apiClient.apiGet('/api/management/Voucher');
             
+            let allStats = [];
+            try {
+                allStats = await window.apiClient.apiGet('/api/management/Voucher/stats/all');
+            } catch (err) {
+                console.warn('Could not load all stats array', err);
+            }
+            
+            const statsMap = {};
+            if (Array.isArray(allStats)) {
+                allStats.forEach(s => {
+                    statsMap[s.voucherID] = s;
+                });
+            }
+
             // Map raw vouchers to frontend DTO structure
             const mapped = [];
             for (const v of rawVouchers) {
-                let stats = { roi: 0, usageRate: 0, totalRevenueGenerated: 0, totalDiscountGranted: 0 };
-                try {
-                    stats = await window.apiClient.apiGet(`/api/management/Voucher/${v.voucherID}/stats`);
-                } catch (err) {
-                    console.warn(`Could not load stats for voucher ${v.voucherID}`, err);
-                }
+                let stats = statsMap[v.voucherID] || { roi: 0, usageRate: 0, totalRevenueGenerated: 0, totalDiscountGranted: 0 };
 
                 const invStatusMap = { 0: 'Draft', 1: 'Schedule', 2: 'Active', 3: 'Pause', 4: 'End' };
                 const invRankMap = { 0: 'None', 1: 'Bronze', 2: 'Silver', 3: 'Gold', 4: 'Diamond' };

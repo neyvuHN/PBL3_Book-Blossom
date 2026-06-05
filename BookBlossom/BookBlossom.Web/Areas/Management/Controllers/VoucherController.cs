@@ -112,6 +112,15 @@ namespace BookBlossom.Web.Areas.Management.Controllers
             return Ok(stats);
         }
 
+        /// <summary>Thống kê tất cả voucher</summary>
+        [HttpGet("stats/all")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> GetAllStats()
+        {
+            var stats = await _voucherService.GetAllVoucherStatsAsync();
+            return Ok(stats);
+        }
+
         // ─── CUSTOMER: VÍ VOUCHER ────────────────────────────────────────────
 
         /// <summary>Xem danh sách voucher trong ví (Customer)</summary>

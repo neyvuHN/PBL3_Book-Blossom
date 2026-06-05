@@ -14,6 +14,7 @@ namespace BookBlossom.Core.Interfaces.Services
         Task<VoucherDTO?> UpdateVoucherAsync(long voucherId, UpdateVoucherDTO dto);
         Task<bool> DeleteVoucherAsync(long voucherId);
         Task<VoucherUsageStatsDTO?> GetVoucherStatsAsync(long voucherId);
+        Task<IEnumerable<VoucherUsageStatsDTO>> GetAllVoucherStatsAsync();
 
         // === Ví Voucher (Customer) ===
         // Danh sách voucher trong ví của khách hàng

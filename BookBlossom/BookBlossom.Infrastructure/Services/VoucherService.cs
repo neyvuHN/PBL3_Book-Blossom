@@ -213,6 +213,38 @@ namespace BookBlossom.Infrastructure.Services
             };
         }
 
+        public async Task<IEnumerable<VoucherUsageStatsDTO>> GetAllVoucherStatsAsync()
+        {
+            var stats = await _context.Orders
+                .Where(o => o.VoucherID != null)
+                .GroupBy(o => o.VoucherID)
+                .Select(g => new {
+                    VoucherID = g.Key.Value,
+                    TotalDiscount = g.Sum(x => (decimal?)x.DiscountAmount) ?? 0,
+                    TotalRevenue = g.Sum(x => (decimal?)x.TotalAmount) ?? 0
+                })
+                .ToDictionaryAsync(x => x.VoucherID, x => x);
+
+            var vouchers = await _context.Vouchers.ToListAsync();
+            var result = new List<VoucherUsageStatsDTO>();
+            foreach(var v in vouchers) {
+                var s = stats.ContainsKey(v.VoucherID) ? stats[v.VoucherID] : null;
+                var discount = s?.TotalDiscount ?? 0;
+                var revenue = s?.TotalRevenue ?? 0;
+                result.Add(new VoucherUsageStatsDTO {
+                    VoucherID = v.VoucherID,
+                    VoucherCode = v.VoucherCode,
+                    TotalLimit = v.TotalLimit,
+                    UsedCount = v.UsedCount,
+                    UsageRate = v.TotalLimit > 0 ? (double)v.UsedCount / v.TotalLimit * 100 : 0,
+                    TotalDiscountGranted = discount,
+                    TotalRevenueGenerated = revenue,
+                    ROI = discount > 0 ? Math.Round(revenue / discount, 2) : 0
+                });
+            }
+            return result;
+        }
+
         // ─── VÍ VOUCHER (CUSTOMER) ───────────────────────────────────────────
 
         public async Task<IEnumerable<CustomerVoucherDTO>> GetMyVouchersAsync(long customerId)
@@ -537,38 +569,24 @@ namespace BookBlossom.Infrastructure.Services
         {
             var now = DateTime.UtcNow;
 
-            // 1. Scheduled -> Active: Nếu đã đến StartDate nhưng chưa quá EndDate và đang Scheduled
-            var toActive = await _context.Vouchers
-                .Where(v => v.StatusVoucher == VoucherStatus.Scheduled && v.StartDate <= now && v.EndDate > now)
+            var vouchersToUpdate = await _context.Vouchers
+                .Where(v => 
+                    (v.StatusVoucher == VoucherStatus.Scheduled && v.StartDate <= now && v.EndDate > now) ||
+                    (v.StatusVoucher != VoucherStatus.Ended && v.EndDate <= now) ||
+                    (v.StatusVoucher == VoucherStatus.Active && v.StartDate > now))
                 .ToListAsync();
 
-            foreach (var v in toActive)
+            if (vouchersToUpdate.Any())
             {
-                v.StatusVoucher = VoucherStatus.Active;
-            }
-
-            // 2. Active/Scheduled/Paused/Draft -> Ended: Nếu đã quá EndDate (ngoại trừ các voucher đã kết thúc)
-            var toEnded = await _context.Vouchers
-                .Where(v => v.StatusVoucher != VoucherStatus.Ended && v.EndDate <= now)
-                .ToListAsync();
-
-            foreach (var v in toEnded)
-            {
-                v.StatusVoucher = VoucherStatus.Ended;
-            }
-
-            // 3. Active -> Scheduled: Nếu ngày bắt đầu ở tương lai và đang là Active
-            var toScheduled = await _context.Vouchers
-                .Where(v => v.StatusVoucher == VoucherStatus.Active && v.StartDate > now)
-                .ToListAsync();
-
-            foreach (var v in toScheduled)
-            {
-                v.StatusVoucher = VoucherStatus.Scheduled;
-            }
-
-            if (toActive.Any() || toEnded.Any() || toScheduled.Any())
-            {
+                foreach (var v in vouchersToUpdate)
+                {
+                    if (v.StatusVoucher == VoucherStatus.Scheduled && v.StartDate <= now && v.EndDate > now)
+                        v.StatusVoucher = VoucherStatus.Active;
+                    else if (v.StatusVoucher != VoucherStatus.Ended && v.EndDate <= now)
+                        v.StatusVoucher = VoucherStatus.Ended;
+                    else if (v.StatusVoucher == VoucherStatus.Active && v.StartDate > now)
+                        v.StatusVoucher = VoucherStatus.Scheduled;
+                }
                 await _context.SaveChangesAsync();
             }
         }
