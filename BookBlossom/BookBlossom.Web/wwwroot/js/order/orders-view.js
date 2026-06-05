@@ -384,7 +384,7 @@ class OrdersView {
         // Attach the callback (clone to remove old listeners)
         const freshBtn = actionBtn.cloneNode(true);
         actionBtn.parentNode.replaceChild(freshBtn, actionBtn);
-        freshBtn.addEventListener('click', () => {
+        freshBtn.addEventListener('click', async () => {
             if (showReasonInput) {
                 const reason = reasonInput.value.trim();
                 if (!reason) {
@@ -393,13 +393,27 @@ class OrdersView {
                     reasonInput.focus();
                     return;
                 }
+                const originalText = freshBtn.innerHTML;
+                freshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                freshBtn.setAttribute('disabled', 'true');
+
+                await onConfirm(reason);
+
+                freshBtn.innerHTML = originalText;
+                freshBtn.removeAttribute('disabled');
                 const modalEl = document.getElementById('confirmActionModal');
                 bootstrap.Modal.getInstance(modalEl)?.hide();
-                onConfirm(reason);
             } else {
+                const originalText = freshBtn.innerHTML;
+                freshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                freshBtn.setAttribute('disabled', 'true');
+
+                await onConfirm();
+
+                freshBtn.innerHTML = originalText;
+                freshBtn.removeAttribute('disabled');
                 const modalEl = document.getElementById('confirmActionModal');
                 bootstrap.Modal.getInstance(modalEl)?.hide();
-                onConfirm();
             }
         });
 
