@@ -50,7 +50,18 @@ class MessagesModel {
     async fetchRecentBooks() {
         if (!window.apiClient) return [];
         try {
-            return await window.apiClient.apiGet('/api/RealBook?pageSize=15');
+            const realBooksRes = await window.apiClient.apiGet('/api/RealBook?pageSize=50');
+            const realBooks = Array.isArray(realBooksRes) ? realBooksRes : (realBooksRes?.data?.items || realBooksRes?.data || []);
+            
+            let blindBooks = [];
+            try {
+                const blindBooksRes = await window.apiClient.apiGet('/api/BlindBook?pageSize=50');
+                blindBooks = Array.isArray(blindBooksRes) ? blindBooksRes : (blindBooksRes?.data?.items || blindBooksRes?.data || []);
+            } catch (e) {
+                console.warn("Failed to fetch recent blind books:", e);
+            }
+            
+            return { realBooks, blindBooks };
         } catch (error) {
             console.error("Failed to fetch recent books:", error);
             throw error;

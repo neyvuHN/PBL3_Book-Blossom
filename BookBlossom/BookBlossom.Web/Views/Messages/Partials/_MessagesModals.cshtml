@@ -6,7 +6,7 @@
             
             <div class="modal-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-modal-tab active" data-target="tab-link">By Link</button>
-                <button class="btn-modal-tab" data-target="tab-recent">Recent</button>
+                <button class="btn-modal-tab" data-target="tab-recent">Suggested</button>
                 <button class="btn-modal-tab" data-target="tab-wishlist">Wishlist</button>
             </div>
             
@@ -17,11 +17,11 @@
                 <div id="link-error" style="color: #ff4444; font-size: 0.85rem; display: none; margin-bottom: 10px; text-align: left;">Link must be from BookBlossom domain (contains 'bookblossom.com' or starts with '/').</div>
             </div>
             
-                        <!-- Tab Recent -->
+                        <!-- Tab Suggested -->
             <div id="tab-recent" class="modal-tab-content" style="display: none;">
-                <p>Select a recently viewed book:</p>
+                <p>Here are some books we suggest:</p>
                 <div class="book-select-list" id="recent-books-list" style="max-height: 200px; overflow-y: auto;">
-                    <div style="text-align: center; padding: 20px; color: #888;">Loading recent books...</div>
+                    <div style="text-align: center; padding: 20px; color: #888;">Loading suggested books...</div>
                 </div>
             </div>
             

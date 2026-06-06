@@ -426,28 +426,65 @@ class MessagesController {
         this.model.tagBooksLoaded = true;
 
         try {
-            // Fetch Recent Books
+            // Fetch Recent Books (now acting as Suggested)
             const resRecent = await this.model.fetchRecentBooks();
-            const booksRecent = Array.isArray(resRecent) ? resRecent : (resRecent?.data?.items || resRecent?.data || []);
+            const realBooks = Array.isArray(resRecent.realBooks) ? resRecent.realBooks : [];
+            const blindBooks = Array.isArray(resRecent.blindBooks) ? resRecent.blindBooks : [];
+
+            // Shuffle function (Fisher-Yates)
+            const shuffleArray = (array) => {
+                let shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            };
+
+            // Randomly pick 15 real books and 5 blind date books
+            const selectedRealBooks = shuffleArray(realBooks).slice(0, 15);
+            const selectedBlindBooks = shuffleArray(blindBooks).slice(0, 5);
+
+            // Combine and shuffle the final list so they are mixed in the UI
+            const finalSuggestedBooks = shuffleArray([...selectedRealBooks, ...selectedBlindBooks]);
+
             $('#recent-books-list').empty();
-            booksRecent.slice(0, 15).forEach(book => {
-                let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : `/images/Book/cover_${book.bookID}.jpg`;
+            finalSuggestedBooks.forEach(book => {
+                let isBlind = book.blindBookID || book.BlindBookID;
+                let id = book.bookID || book.BookID || book.blindBookID || book.BlindBookID;
+                if (!id) return;
+
+                let title = book.title || book.Title;
+                let author = book.author || book.Author || 'Unknown';
+                let price = book.price || book.Price || 0;
+                let imgUrl = (book.bookImages && book.bookImages.length > 0) ? book.bookImages[0].imageUrl : `/images/Book/cover_${id}.jpg`;
+                let link = `/Explore#book-details-${encodeURIComponent(title)}`;
+
+                if (isBlind) {
+                    let catName = book.categoryName || book.CategoryName || 'Mystery';
+                    let hashtags = book.hashtags || book.Hashtags || '';
+                    title = `Blind Book (${catName}) - ${hashtags}`;
+                    author = 'Unknown';
+                    imgUrl = (book.imagePaths && book.imagePaths.length > 0) ? book.imagePaths[0] : `/images/Book/book1.jpg`;
+                    link = `/BlindDate#blind-details-${id}`;
+                }
+
                 let item = `
-                    <div class="book-select-item" data-id="${book.bookID}" data-title="${this.view.escapeHtml(book.title)}" data-author="${this.view.escapeHtml(book.author || 'Unknown')}" data-img="${this.view.escapeHtml(imgUrl)}" data-link="/Explore#book-details-${encodeURIComponent(book.title)}">
+                    <div class="book-select-item" data-id="${id}" data-title="${this.view.escapeHtml(title)}" data-author="${this.view.escapeHtml(author)}" data-img="${this.view.escapeHtml(imgUrl)}" data-link="${link}">
                         <img src="${this.view.escapeHtml(imgUrl)}" alt="Book">
                         <div>
-                            <h4>${this.view.escapeHtml(book.title)}</h4>
-                            <p>${this.view.escapeHtml(book.author || 'Unknown')} • ₫${book.price ? book.price.toLocaleString('vi-VN') : '0'}</p>
+                            <h4>${this.view.escapeHtml(title)}</h4>
+                            <p>${this.view.escapeHtml(author)} • ₫${price ? price.toLocaleString('vi-VN') : '0'}</p>
                         </div>
                     </div>
                 `;
                 $('#recent-books-list').append(item);
             });
-            if (booksRecent.length === 0) {
-                $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No recent books found.</div>');
+            if (finalSuggestedBooks.length === 0) {
+                $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #888;">No suggested books found.</div>');
             }
         } catch (e) {
-            $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load books.</div>');
+            $('#recent-books-list').html('<div style="text-align: center; padding: 20px; color: #ff4444;">Failed to load suggested books.</div>');
         }
 
         // Fetch Wishlist
@@ -458,13 +495,21 @@ class MessagesController {
                 $('#wishlist-books-list').empty();
                 wishItems.forEach(item => {
                     const bookId = item.bookID || item.BookID;
-                    if (!bookId) return;
-                    const title = item.title || item.Title || 'Untitled Book';
-                    const author = item.author || item.Author || 'BookBlossom Selection';
+                    const blindBookId = item.blindBookID || item.BlindBookID;
+                    if (!bookId && !blindBookId) return;
+
+                    const id = bookId || blindBookId;
+                    let title = item.title || item.Title || 'Untitled Book';
+                    let author = item.author || item.Author || 'BookBlossom Selection';
                     const price = item.price || item.Price || 0;
-                    const imgUrl = `/images/Book/cover_${bookId}.jpg`;
+                    
+                    const isBlind = !!blindBookId;
+                    const defaultImg = isBlind ? '/images/Book/book1.jpg' : `/images/Book/cover_${id}.jpg`;
+                    const imgUrl = item.imageUrl || item.ImageUrl || defaultImg;
+                    const link = isBlind ? `/BlindDate#blind-details-${id}` : `/Explore#book-details-${encodeURIComponent(title)}`;
+
                     let html = `
-                        <div class="book-select-item" data-id="${bookId}" data-title="${this.view.escapeHtml(title)}" data-author="${this.view.escapeHtml(author)}" data-img="${this.view.escapeHtml(imgUrl)}" data-link="/Explore#book-details-${encodeURIComponent(title)}">
+                        <div class="book-select-item" data-id="${id}" data-title="${this.view.escapeHtml(title)}" data-author="${this.view.escapeHtml(author)}" data-img="${this.view.escapeHtml(imgUrl)}" data-link="${link}">
                             <img src="${this.view.escapeHtml(imgUrl)}" alt="Book">
                             <div>
                                 <h4>${this.view.escapeHtml(title)}</h4>
