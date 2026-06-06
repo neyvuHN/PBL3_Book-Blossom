@@ -236,7 +236,7 @@ class OrdersController {
                     const orderId = btnMarkDelivered.getAttribute('data-id');
                     this.view.showConfirmDialog(
                         'Mark as Delivered?',
-                        `Mark Order #${orderId} as Delivered? This will release escrow funds and finalize payout.`,
+                        `Mark Order #${orderId} as Delivered? The buyer will have 7 days to confirm receipt or request a return.`,
                         'success',
                         async () => {
                             this.view.showToast('Delivering', `Completing delivery for Order #${orderId}...`, 'info');
@@ -244,7 +244,7 @@ class OrdersController {
                                 await this.model.updateOrderStatusInDb(orderId, 'Delivered');
                                 this.view.showToast(
                                     'Order Delivered', 
-                                    `Order #${orderId} marked as Delivered. Escrow payout finalized!`, 
+                                    `Order #${orderId} marked as Delivered. Waiting for buyer confirmation!`, 
                                     'success'
                                 );
                                 await this.loadAllData();
@@ -268,13 +268,13 @@ class OrdersController {
                         // Forward to custom confirm
                         this.view.showConfirmDialog(
                             'Mark as Delivered?',
-                            `Mark Order #${orderId} as Delivered? This will release escrow funds.`,
+                            `Mark Order #${orderId} as Delivered? The buyer will have 7 days to confirm receipt.`,
                             'success',
                             async () => {
                                 this.view.showToast('Delivering', 'Updating status on server...', 'info');
                                 try {
                                     await this.model.updateOrderStatusInDb(orderId, 'Delivered');
-                                    this.view.showToast('Order Delivered', `Order #${orderId} marked as Delivered. Escrow payout finalized!`, 'success');
+                                    this.view.showToast('Order Delivered', `Order #${orderId} marked as Delivered. Waiting for buyer confirmation!`, 'success');
                                     await this.loadAllData();
                                 } catch (err) {
                                     this.view.showToast('Update Failed', err.message, 'error');
@@ -531,13 +531,13 @@ class OrdersController {
                 } else if (activeTab === 'intransit') {
                     this.view.showConfirmDialog(
                         'Batch Mark Delivered?',
-                        `Mark all ${selectedIds.length} selected transit orders as Delivered? This releases escrow funds.`,
+                        `Mark all ${selectedIds.length} selected transit orders as Delivered? Buyers will need to confirm receipt to complete the orders.`,
                         'success',
                         async () => {
                             this.view.showToast('Delivering', `Completing delivery for ${selectedIds.length} orders...`, 'info');
                             try {
                                 const deliveredCount = await this.model.batchUpdateOrderStatusInDb(selectedIds, 'Delivered');
-                                this.view.showToast('Batch Delivered', `Successfully completed delivery and released funds for ${deliveredCount} orders!`, 'success');
+                                this.view.showToast('Batch Delivered', `Successfully completed delivery for ${deliveredCount} orders! Waiting for buyers confirmation.`, 'success');
                                 await this.loadAllData();
                             } catch (err) {
                                 this.view.showToast('Batch Failed', err.message, 'error');

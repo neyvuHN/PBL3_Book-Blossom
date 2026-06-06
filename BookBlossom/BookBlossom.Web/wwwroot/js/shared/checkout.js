@@ -719,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function () {
              cartItemsDto = [];
         }
 
-        const voucherCode = (window.checkoutState.appliedVouchers && window.checkoutState.appliedVouchers.length > 0) ? window.checkoutState.appliedVouchers[0].code : null;
+        const voucherCodes = (window.checkoutState.appliedVouchers && window.checkoutState.appliedVouchers.length > 0) ? window.checkoutState.appliedVouchers.map(v => v.code) : [];
 
         if (selectedMethod === 'vnpay') {
             closeCheckout();
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const checkoutPayload = {
                     addressID: addressId,
                     paymentMethod: 1, // VNPay
-                    voucherCode: voucherCode,
+                    voucherCodes: voucherCodes,
                     note: window.checkoutState.orderNote,
                     cartItems: cartItemsDto
                 };
@@ -769,7 +769,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const checkoutPayload = {
                     addressID: addressId,
                     paymentMethod: 0, // COD
-                    voucherCode: voucherCode,
+                    voucherCodes: voucherCodes,
                     note: window.checkoutState.orderNote,
                     cartItems: cartItemsDto
                 };

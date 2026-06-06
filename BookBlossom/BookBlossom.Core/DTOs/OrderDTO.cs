@@ -24,6 +24,7 @@ namespace BookBlossom.Core.DTOs
         public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
         public bool IsRated { get; set; }
+        public List<string> AppliedVouchers { get; set; } = new List<string>(); // [NEW] Dành cho hiển thị trên UI
     }
 
     public class OrderDetailDTO
@@ -53,6 +54,7 @@ namespace BookBlossom.Core.DTOs
         public ReturnStatus? ReturnStatus { get; set; }
         public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
         public bool IsRated { get; set; }
+        public List<string> AppliedVouchers { get; set; } = new List<string>(); // [NEW] Dành cho hiển thị trên UI
     }
 
     public class OrderItemDTO

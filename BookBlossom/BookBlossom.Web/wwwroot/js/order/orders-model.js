@@ -152,7 +152,8 @@ class OrdersModel {
                 cancelReason: o.cancelReason || '',
                 resolutionType: o.resolutionType,
                 returnStatus: o.returnStatus,
-                isRated: o.isRated
+                isRated: o.isRated,
+                appliedVouchers: o.appliedVouchers || []
             };
         });
     }

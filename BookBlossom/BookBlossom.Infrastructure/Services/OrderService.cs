@@ -256,6 +256,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.Images)
                 .Include(o => o.Reviews)
+                .Include(o => o.OrderVouchers).ThenInclude(ov => ov.Voucher)
                 .Where(o => o.CustomerID == customerId);
 
             // Nếu truyền vào status thì lọc theo trạng thái (Tab UI: Chờ xác nhận, Đang giao, Đã giao...)
@@ -304,6 +305,7 @@ namespace BookBlossom.Infrastructure.Services
                     ReturnReason = retReq?.ReturnReason,
                     ResolutionType = retReq?.ResolutionType,
                     ReturnStatus = retReq?.ReturnStatus,
+                    AppliedVouchers = o.OrderVouchers.Where(ov => ov.Voucher != null).Select(ov => ov.Voucher!.VoucherCode).ToList(),
                     OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
                     {
                         BookID = od.BookID,
@@ -339,6 +341,7 @@ namespace BookBlossom.Infrastructure.Services
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.Images)
                 .Include(o => o.Reviews)
+                .Include(o => o.OrderVouchers).ThenInclude(ov => ov.Voucher)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId && o.CustomerID == customerId);
 
             if (order == null) return null;
@@ -377,6 +380,7 @@ namespace BookBlossom.Infrastructure.Services
                 ReturnReason = returnRequest?.ReturnReason,
                 ResolutionType = returnRequest?.ResolutionType,
                 ReturnStatus = returnRequest?.ReturnStatus,
+                AppliedVouchers = order.OrderVouchers.Where(ov => ov.Voucher != null).Select(ov => ov.Voucher!.VoucherCode).ToList(),
                 OrderItems = order.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,
@@ -564,6 +568,7 @@ namespace BookBlossom.Infrastructure.Services
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.Images)
+                .Include(o => o.OrderVouchers).ThenInclude(ov => ov.Voucher)
                 .AsQueryable();
 
             if (status.HasValue)
@@ -603,6 +608,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShipDetailAddress = o.ShipDetailAddress,
                 Note = o.Note,
                 CancelReason = o.OrderStatus == OrderStatus.Returning ? "Awaiting censorship" : (o.OrderStatus == OrderStatus.Cancelled ? "Cancelled" : null),
+                AppliedVouchers = o.OrderVouchers.Where(ov => ov.Voucher != null).Select(ov => ov.Voucher!.VoucherCode).ToList(),
                 OrderItems = o.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,
@@ -633,6 +639,7 @@ namespace BookBlossom.Infrastructure.Services
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.Images)
+                .Include(o => o.OrderVouchers).ThenInclude(ov => ov.Voucher)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId);
 
             if (order == null) return null;
@@ -661,6 +668,7 @@ namespace BookBlossom.Infrastructure.Services
                 ShipPhoneNumber = order.ShipPhoneNumber,
                 ShipDetailAddress = order.ShipDetailAddress,
                 Note = order.Note,
+                AppliedVouchers = order.OrderVouchers.Where(ov => ov.Voucher != null).Select(ov => ov.Voucher!.VoucherCode).ToList(),
                 OrderItems = order.OrderDetails.Select(od => new OrderItemDTO
                 {
                     BookID = od.BookID,

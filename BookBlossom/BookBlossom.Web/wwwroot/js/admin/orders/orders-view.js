@@ -161,6 +161,10 @@ class OrdersView {
                 fillWidth = '83%';
                 step3Class = 'completed';
                 step4Class = 'active';
+            } else if (order.subStatus === 'Delivered') {
+                fillWidth = '100%';
+                step3Class = 'completed';
+                step4Class = 'completed'; // Trỏ tới Delivered
             }
         } else if (order.status === 'Completed') {
             fillWidth = '100%';
@@ -231,23 +235,31 @@ class OrdersView {
                 </div>
             `;
         } else if (order.status === 'In Transit') {
+            const isDeliveredWaiting = order.subStatus === 'Delivered';
+
             return `
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span style="font-size: 0.78rem; font-weight:600; color: #82758D;">Logistic Status Simulator:</span>
-                    <select class="filter-select select-logistic-mock" data-id="${order.id}" style="padding: 4px 12px; font-size: 0.8rem;">
+                    <select class="filter-select select-logistic-mock" data-id="${order.id}" style="padding: 4px 12px; font-size: 0.8rem;" ${isDeliveredWaiting ? 'disabled' : ''}>
                         <option value="In Transit" ${order.subStatus === 'In Transit' ? 'selected' : ''}>In Transit</option>
                         <option value="Handed to carrier" ${order.subStatus === 'Handed to carrier' ? 'selected' : ''}>Handed to carrier</option>
                         <option value="Delivering" ${order.subStatus === 'Delivering' ? 'selected' : ''}>Delivering</option>
-                        <option value="Delivered">Delivered (Complete)</option>
+                        <option value="Delivered" ${isDeliveredWaiting ? 'selected' : ''}>Delivered (Waiting Buyer)</option>
                     </select>
                 </div>
                 <div class="footer-buttons">
                     <button class="btn-outline-action btn-print-label" data-id="${order.id}">
                         <i class="ph ph-printer"></i> Reprint Label
                     </button>
+                    ${isDeliveredWaiting ? `
+                    <button class="btn-primary-action" disabled style="background-color: #BDC3C7; cursor: not-allowed; color: #fff;">
+                        Waiting for Buyer
+                    </button>
+                    ` : `
                     <button class="btn-primary-action btn-mark-delivered" data-id="${order.id}" style="background-color: #27AE60;">
                         Mark Delivered
                     </button>
+                    `}
                 </div>
             `;
         } else if (order.status === 'Completed') {
