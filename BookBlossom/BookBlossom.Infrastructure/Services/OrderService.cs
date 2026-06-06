@@ -1085,7 +1085,9 @@ namespace BookBlossom.Infrastructure.Services
             
             var blindBook = await _context.Set<BlindBook>()
                 .Include(b => b.RealBook)
-                .ThenInclude(rb => rb.Category)
+                    .ThenInclude(rb => rb.Category)
+                .Include(b => b.RealBook)
+                    .ThenInclude(rb => rb.BookImages)
                 .FirstOrDefaultAsync(b => b.BlindBookID == blindBookId);
                 
             if (blindBook?.RealBook == null) 
@@ -1100,7 +1102,9 @@ namespace BookBlossom.Infrastructure.Services
                 Publisher = blindBook.RealBook.Publisher ?? "BookBlossom",
                 Description = blindBook.RealBook.Description,
                 Price = blindBook.RealBook.Price,
-                SampleFilePath = blindBook.RealBook.SampleFilePath,
+                SampleFilePath = blindBook.RealBook.BookImages?.FirstOrDefault(i => i.IsMain)?.ImagePath 
+                                 ?? blindBook.RealBook.BookImages?.FirstOrDefault()?.ImagePath 
+                                 ?? blindBook.RealBook.SampleFilePath,
                 ISBN = blindBook.RealBook.ISBN ?? "",
                 PublishYear = blindBook.RealBook.PublishYear,
                 Weight = blindBook.RealBook.Weight,
