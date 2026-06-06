@@ -395,7 +395,7 @@
         const maxPrice = (parseInt($('#blind-price-max').val(), 10) || 1000) * 1000;
 
         const filtered = allBlindBooks.filter(book => {
-            const catField = book.Category || book.category || '';
+            const catField = book.categoryName || book.CategoryName || book.Category || book.category || '';
             const tagField = book.Hashtags || book.hashtags || '';
             const keyField = book.Keywords || book.keywords || '';
             
