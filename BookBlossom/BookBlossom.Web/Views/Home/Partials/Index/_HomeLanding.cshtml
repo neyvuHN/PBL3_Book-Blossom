@@ -101,63 +101,36 @@
                 <div class="slider-container" id="thread-slider">
                     <button class="slider-btn prev"><i class="fas fa-chevron-left"></i></button>
                     <div class="slider-track">
-                        <!-- Thread 1 -->
-                        <div class="thread-card">
-                            <div class="thread-header">
-                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                                <div class="user-info">
-                                    <h4>Alex M.</h4>
-                                    <span>2 hours ago</span>
-                                </div>
-                            </div>
-                            <h3>Favorite Books of 2026?</h3>
-                            <p>"What are the best books you've read so far this year? I'm looking for recommendations in the sci-fi genre."</p>
-                            <div class="thread-footer">
-                                <span>#General</span>
-                                <div class="thread-actions">
-                                    <span><i class="far fa-heart"></i> 24</span>
-                                    <span><i class="far fa-comment"></i> 12</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Thread 2 -->
-                        <div class="thread-card">
-                            <div class="thread-header">
-                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                                <div class="user-info">
-                                    <h4>Sarah J.</h4>
-                                    <span>5 hours ago</span>
-                                </div>
-                            </div>
-                            <h3>How to build a reading habit?</h3>
-                            <p>"I want to read more but I can't find time. Any tips on how to build a consistent reading habit?"</p>
-                            <div class="thread-footer">
-                                <span>#Tips</span>
-                                <div class="thread-actions">
-                                    <span><i class="far fa-heart"></i> 45</span>
-                                    <span><i class="far fa-comment"></i> 30</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Thread 3 -->
-                        <div class="thread-card">
-                            <div class="thread-header">
-                                <img src="/images/Avatar/avatar1.jpg" alt="Avatar" class="avatar">
-                                <div class="user-info">
-                                    <h4>Prof. Green</h4>
-                                    <span>1 day ago</span>
-                                </div>
-                            </div>
-                            <h3>Discussions on 'The Alchemist'</h3>
-                            <p>"Let's discuss the symbolism in The Alchemist. What did the desert represent to you?"</p>
-                            <div class="thread-footer">
-                                <span>#BookClub</span>
-                                <div class="thread-actions">
-                                    <span><i class="far fa-heart"></i> 67</span>
-                                    <span><i class="far fa-comment"></i> 45</span>
-                                </div>
-                            </div>
-                        </div>
+                        @if (ViewBag.RandomThreads != null)
+                        {
+                            var randomThreads = ViewBag.RandomThreads as IEnumerable<BookBlossom.Core.DTOs.Thread.ThreadPostDTO>;
+                            if (randomThreads != null)
+                            {
+                                foreach (var thread in randomThreads)
+                                {
+                                    <div class="thread-card" onclick="window.location.href='/Community?postId=@thread.PostID'" style="cursor: pointer;">
+                                        <div class="thread-header">
+                                            <img src="@(string.IsNullOrEmpty(thread.CustomerAvatar) ? "/images/Avatar/default-avatar.png" : thread.CustomerAvatar)" alt="Avatar" class="avatar blurred-content">
+                                            <div class="user-info">
+                                                <h4 class="blurred-content">@thread.CustomerName</h4>
+                                                <span>@thread.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                            </div>
+                                        </div>
+                                        <h3>@thread.Title</h3>
+                                        <p class="blurred-content" style="user-select: none;">
+                                            @(string.IsNullOrEmpty(thread.Content) ? "" : (thread.Content.Length > 100 ? thread.Content.Substring(0, 100) + "..." : thread.Content))
+                                        </p>
+                                        <div class="thread-footer">
+                                            <span class="blurred-content">#@(string.IsNullOrEmpty(thread.Hashtags) ? "General" : thread.Hashtags.Split(',').FirstOrDefault())</span>
+                                            <div class="thread-actions">
+                                                <span><i class="far fa-heart"></i> @thread.LikeCount</span>
+                                                <span><i class="far fa-comment"></i> @thread.CommentsCount</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        }
                     </div>
                     <button class="slider-btn next"><i class="fas fa-chevron-right"></i></button>
                 </div>

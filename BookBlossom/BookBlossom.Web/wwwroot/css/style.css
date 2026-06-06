@@ -2957,3 +2957,6 @@ input:checked+.slider:before {
 .custom-toast.info .toast-timer-fill {
     background: #4285F4;
 }
+/* Blur for Community Threads preview */
+.blurred-content { filter: blur(4px); opacity: 0.7; user-select: none; }
+

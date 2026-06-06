@@ -13,6 +13,7 @@ namespace BookBlossom.Core.Interfaces.Services
         Task<bool> DeletePostAsync(long userId, UserRole role, long postId);
         Task<bool> HidePostAsync(long postId, bool isHidden);
         Task<IEnumerable<ThreadPostDTO>> GetFeedAsync(int page, int pageSize, long? currentCustomerId = null);
+        Task<IEnumerable<ThreadPostDTO>> GetRandomPostsAsync(int count);
         Task<ThreadPostDTO?> GetPostByIdAsync(long postId, long? currentCustomerId = null);
         Task<(bool IsLiked, int LikeCount)> ToggleLikeAsync(long customerId, long postId);
         Task<int> SharePostAsync(long customerId, long postId, ShareThreadPostDTO dto);

@@ -293,6 +293,21 @@ namespace BookBlossom.Infrastructure.Services
             return posts.Select(p => MapToPostDTO(p, likedPostIds.Contains(p.PostID)));
         }
 
+        public async Task<IEnumerable<ThreadPostDTO>> GetRandomPostsAsync(int count)
+        {
+            var randomPosts = await _context.ThreadPosts
+                .Include(p => p.User)
+                .Include(p => p.Images)
+                .Include(p => p.Comments)
+                .Include(p => p.Book).ThenInclude(b => b.BookAuthors).ThenInclude(ba => ba.Author)
+                .Where(p => !p.IsHidden)
+                .OrderBy(r => Guid.NewGuid()) // Random order
+                .Take(count)
+                .ToListAsync();
+
+            return randomPosts.Select(p => MapToPostDTO(p, false));
+        }
+
         public async Task<ThreadPostDTO?> GetPostByIdAsync(long postId, long? currentCustomerId = null)
         {
             var post = await _context.ThreadPosts

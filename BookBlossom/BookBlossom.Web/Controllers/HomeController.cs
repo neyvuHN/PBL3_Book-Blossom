@@ -1,13 +1,24 @@
 using BookBlossom.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using BookBlossom.Core.Interfaces.Services;
+using System.Threading.Tasks;
 
 namespace BookBlossom.Web.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly IThreadService _threadService;
+
+        public HomeController(IThreadService threadService)
         {
+            _threadService = threadService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var randomThreads = await _threadService.GetRandomPostsAsync(5);
+            ViewBag.RandomThreads = randomThreads;
             return View();
         }
 

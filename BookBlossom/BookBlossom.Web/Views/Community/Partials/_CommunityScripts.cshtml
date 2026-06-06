@@ -265,7 +265,6 @@
 
             try {
                 const posts = await window.apiClient.apiGet(`${THREAD_API}/feed?page=${currentPage}&pageSize=${PAGE_SIZE}`);
-                $('#thread-static-demo').hide();
 
                 if (!Array.isArray(posts) || posts.length === 0) {
                     if (currentPage === 1) {
@@ -285,7 +284,6 @@
                 currentPage += 1;
                 $('#load-more-container').toggle(posts.length === PAGE_SIZE && isAuthenticated());
             } catch (error) {
-                $('#thread-static-demo').show();
                 handleApiError(error, 'Khong tai duoc feed cong dong.');
             } finally {
                 isLoading = false;
