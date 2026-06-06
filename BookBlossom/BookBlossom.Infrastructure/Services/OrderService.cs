@@ -591,13 +591,14 @@ namespace BookBlossom.Infrastructure.Services
             var customerIds = orders.Select(o => o.CustomerID).Distinct().ToList();
             var users = await _context.Users
                 .Where(u => customerIds.Contains(u.UserID))
-                .ToDictionaryAsync(u => u.UserID, u => $"{u.LastName} {u.FirstName}".Trim());
+                .ToDictionaryAsync(u => u.UserID, u => new { Name = $"{u.LastName} {u.FirstName}".Trim(), Avatar = u.Avatar });
 
             return orders.Select(o => new OrderListItemDTO
             {
                 OrderID = o.OrderID,
                 CustomerID = o.CustomerID,
-                CustomerName = users.TryGetValue(o.CustomerID, out var name) && !string.IsNullOrWhiteSpace(name) ? name : "Khách hàng ẩn danh",
+                CustomerName = users.TryGetValue(o.CustomerID, out var user) && !string.IsNullOrWhiteSpace(user.Name) ? user.Name : "Khách hàng ẩn danh",
+                CustomerAvatarUrl = users.TryGetValue(o.CustomerID, out var u) ? u.Avatar : null,
                 OrderDate = o.OrderDate ?? DateTime.UtcNow,
                 OrderStatus = o.OrderStatus,
                 PaymentMethod = o.PaymentMethod,
@@ -652,6 +653,7 @@ namespace BookBlossom.Infrastructure.Services
                 OrderID = order.OrderID,
                 CustomerID = order.CustomerID,
                 CustomerName = customerName,
+                CustomerAvatarUrl = user?.Avatar,
                 CustomerEmail = user?.Email ?? string.Empty,
                 CustomerPhoneNumber = user?.PhoneNumber ?? string.Empty,
                 OrderDate = order.OrderDate ?? DateTime.UtcNow,

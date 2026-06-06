@@ -9,6 +9,7 @@ namespace BookBlossom.Core.DTOs
         public long OrderID { get; set; }
         public long CustomerID { get; set; }
         public string CustomerName { get; set; } = string.Empty;
+        public string? CustomerAvatarUrl { get; set; }
         public DateTime OrderDate { get; set; }
         public OrderStatus OrderStatus { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
@@ -32,6 +33,7 @@ namespace BookBlossom.Core.DTOs
         public long OrderID { get; set; }
         public long CustomerID { get; set; }
         public string CustomerName { get; set; } = string.Empty;
+        public string? CustomerAvatarUrl { get; set; }
         public string CustomerEmail { get; set; } = string.Empty;
         public string CustomerPhoneNumber { get; set; } = string.Empty;
         public DateTime OrderDate { get; set; }

@@ -140,7 +140,7 @@ namespace BookBlossom.Web.Controllers
                     InternalScore = score,
                     JoinDate = joinDate,
                     Status = u.AccountStatus.ToString(),
-                    AvatarUrl = u.Avatar ?? "https://i.pravatar.cc/150?img=9",
+                    AvatarUrl = u.Avatar ?? "/images/Avatar/avatar1.jpg",
                     Note = u.Note
                 };
 
@@ -359,7 +359,7 @@ namespace BookBlossom.Web.Controllers
                 InternalScore = 100,
                 JoinDate = staff.HireDate.ToString("MMM dd, yyyy"),
                 Status = "Active",
-                AvatarUrl = user.Avatar ?? "https://i.pravatar.cc/150?img=1"
+                AvatarUrl = user.Avatar ?? "/images/Avatar/avatar1.jpg"
             };
 
             return Json(new { success = true, user = item });
@@ -430,7 +430,7 @@ namespace BookBlossom.Web.Controllers
                 InternalScore = (int)staff.KPIScore,
                 JoinDate = staff.HireDate.ToString("MMM dd, yyyy"),
                 Status = user.AccountStatus.ToString(),
-                AvatarUrl = user.Avatar ?? "https://i.pravatar.cc/150?img=1"
+                AvatarUrl = user.Avatar ?? "/images/Avatar/avatar1.jpg"
             };
 
             return Json(new { success = true, user = item });

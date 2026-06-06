@@ -370,7 +370,7 @@ class OrdersView {
                     <!-- Buyer Info -->
                     <div class="buyer-details-col">
                         <div class="buyer-profile">
-                            <img src="${order.buyerAvatarUrl}" alt="${order.buyerName}" class="buyer-avatar" onerror="this.src='https://i.pravatar.cc/150?img=9'" />
+                            <img src="${order.buyerAvatarUrl}" alt="${order.buyerName}" class="buyer-avatar" onerror="this.src='/images/Avatar/avatar1.jpg'" />
                             <span class="buyer-name">${order.buyerName}</span>
                             <button class="btn-icon-soft btn-chat-buyer" data-id="${order.id}" data-name="${order.buyerName}" data-avatar="${order.buyerAvatarUrl}" title="Chat with Buyer" style="margin-left: auto; width: 28px; height: 28px; font-size: 1rem;"><i class="ph ph-chat-circle-dots"></i></button>
                         </div>

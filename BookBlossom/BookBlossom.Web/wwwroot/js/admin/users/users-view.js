@@ -124,7 +124,7 @@ class UsersView {
             <tr data-user-id="${user.id}">
                 <td>
                     <div class="user-info-cell">
-                        <img src="${user.avatarUrl}" alt="${user.username}" class="user-avatar" onerror="this.src='https://i.pravatar.cc/150?img=9'" />
+                        <img src="${user.avatarUrl}" alt="${user.username}" class="user-avatar" onerror="this.src='/images/Avatar/avatar1.jpg'" />
                         <div class="user-meta-text">
                             <span class="username">${user.username}</span>
                             <span class="email">${user.email}</span>

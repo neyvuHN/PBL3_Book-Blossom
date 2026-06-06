@@ -131,7 +131,7 @@ class OrdersModel {
                     id: detail.orderID.toString(),
                     orderIDRaw: detail.orderID,
                     buyerName: detail.customerName || "Anonymous Customer",
-                    buyerAvatarUrl: `https://i.pravatar.cc/150?img=${(detail.customerID % 70) + 1}`,
+                    buyerAvatarUrl: detail.customerAvatarUrl || "/images/Avatar/avatar1.jpg",
                     customerNote: detail.note || "",
                     totalAmount: detail.totalAmount,
                     fundsStatus: detail.paymentStatus === 1 ? "Released to Shop" : "Held in Escrow",
