@@ -24,8 +24,8 @@ namespace BookBlossom.Web.Controllers
         // API 1: Khách hàng tạo yêu cầu khiếu nại & trả hàng
         [HttpPost("order/{orderId}")]
         [Authorize(Policy = "CustomerOnly")]
-        [RequestSizeLimit(209715200)] // 200 MB
-        [RequestFormLimits(MultipartBodyLengthLimit = 209715200)] // 200 MB
+        [RequestSizeLimit(524288000)] // 500 MB
+        [RequestFormLimits(MultipartBodyLengthLimit = 524288000)] // 500 MB
         public async Task<IActionResult> CreateReturnRequest(
             [FromRoute] long orderId, 
             [FromForm] CreateReturnRequestDTO dto)

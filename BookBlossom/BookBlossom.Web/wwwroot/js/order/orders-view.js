@@ -8,7 +8,6 @@ class OrdersView {
         this.toReceiveBannerContainer = document.getElementById('to-receive-banner-container');
 
         // [NEW] Return/Refund state management
-        this.uploadedImages = [];
         this.uploadedVideo = null;
         this.activeProposal = 'return'; // Default proposal
         this.currentOrderTotal = 0;
@@ -685,7 +684,6 @@ class OrdersView {
                 reason: reasonText,
                 proposal: this.activeProposal,
                 refundAmount: refundAmount,
-                imagesCount: this.uploadedImages.length,
                 hasVideo: !!this.uploadedVideo,
                 videoFile: this.uploadedVideo
             });
@@ -718,7 +716,6 @@ class OrdersView {
         document.getElementById('submit-refund-request-btn').setAttribute('data-order-id', order.id);
 
         // Reset uploads & form fields
-        this.uploadedImages = [];
         this.uploadedVideo = null;
         this.isVideoUploading = false;
         document.getElementById('refund-reason-select').value = "";
@@ -728,8 +725,6 @@ class OrdersView {
         if (customBlock) customBlock.style.display = 'none';
         if (customInput) customInput.value = "";
 
-        // Reset view states
-        this.renderPhotoSlots();
 
         // Reset video panel view states
         document.getElementById('video-upload-initial-state').style.display = 'block';
@@ -759,10 +754,7 @@ class OrdersView {
         const customReasonInput = document.getElementById('custom-reason-input');
 
         // Photo trigger click
-        if (photoTrigger && photoInput) {
-            photoTrigger.addEventListener('click', () => photoInput.click());
-            photoInput.addEventListener('change', (e) => this.handlePhotoUpload(e.target.files));
-        }
+        // Removed photo upload logic
 
         // Video trigger click
         if (videoTrigger && videoInput) {
@@ -869,74 +861,6 @@ class OrdersView {
         if (closePolicyBtn) closePolicyBtn.addEventListener('click', hidePolicy);
     }
 
-    // [NEW] Handle simulated photo file uploads
-    handlePhotoUpload(files) {
-        if (this.uploadedImages.length >= 5) return;
-
-        // Mock upload images simulation
-        for (let i = 0; i < files.length; i++) {
-            if (this.uploadedImages.length >= 5) break;
-
-            const file = files[i];
-            const objectUrl = URL.createObjectURL(file);
-            this.uploadedImages.push({
-                name: file.name,
-                url: objectUrl
-            });
-        }
-
-        this.renderPhotoSlots();
-        this.updateSubmitButtonState();
-
-        // Reset file input value to allow uploading same photo again
-        const photoInput = document.getElementById('refund-images-input');
-        if (photoInput) photoInput.value = "";
-    }
-
-    // [NEW] Renders photo grids including custom uploaded image containers and triggers
-    renderPhotoSlots() {
-        const photoGrid = document.querySelector('.proof-photo-grid');
-        if (!photoGrid) return;
-
-        // Clear all except the first item (which is the trigger)
-        const photoSlots = photoGrid.querySelectorAll('.photo-slot');
-        photoSlots.forEach(slot => slot.remove());
-
-        // Append active uploaded photo containers
-        this.uploadedImages.forEach((imgData, index) => {
-            const slotHtml = `
-                <div class="upload-box-square photo-slot has-image" style="width: 85px; height: 85px;">
-                    <img src="${imgData.url}" alt="Proof Image ${index + 1}">
-                    <button type="button" class="delete-photo-btn" data-index="${index}">&times;</button>
-                </div>
-            `;
-            photoGrid.insertAdjacentHTML('beforeend', slotHtml);
-        });
-
-        // Add back placeholders to pad up to 5 empty boxes
-        const emptySlotsCount = 5 - this.uploadedImages.length;
-        for (let i = 0; i < emptySlotsCount; i++) {
-            const slotHtml = `
-                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
-            `;
-            photoGrid.insertAdjacentHTML('beforeend', slotHtml);
-        }
-
-        // Attach click actions to delete photo buttons
-        const deleteBtns = photoGrid.querySelectorAll('.delete-photo-btn');
-        deleteBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(btn.getAttribute('data-index'));
-
-                // Revoke URL to prevent memory leaks
-                URL.revokeObjectURL(this.uploadedImages[index].url);
-                this.uploadedImages.splice(index, 1);
-
-                this.renderPhotoSlots();
-                this.updateSubmitButtonState();
-            });
-        });
-    }
 
     // [NEW] Handle simulated unboxing video upload progress animation
     handleVideoUpload(file) {
@@ -1019,7 +943,6 @@ class OrdersView {
         }
 
         const hasVideo = this.uploadedVideo !== null;
-        const hasMinPhotos = this.uploadedImages.length >= 2;
 
         let amountIsValid = true;
         if (this.activeProposal === 'keep') {
@@ -1030,8 +953,8 @@ class OrdersView {
             amountIsValid = numericVal > 0 && numericVal <= this.currentOrderTotal;
         }
 
-        // Must upload unboxing video AND at least 2 images AND choose refund reason AND valid amount
-        const canSubmit = reasonSelected && hasVideo && hasMinPhotos && amountIsValid && !this.isVideoUploading;
+        // Must upload unboxing video AND choose refund reason AND valid amount
+        const canSubmit = reasonSelected && hasVideo && amountIsValid && !this.isVideoUploading;
 
         if (canSubmit) {
             submitBtn.removeAttribute('disabled');

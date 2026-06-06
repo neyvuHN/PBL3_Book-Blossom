@@ -51,30 +51,14 @@
                                 <i class="fas fa-exclamation-triangle"></i>
                             </div>
                             <div style="font-size: 0.9rem; font-weight: 500; line-height: 1.4;">
-                                <strong>Requirement:</strong> You must upload at least 2 pictures and an unboxing video for missing item claims.
+                                <strong>Requirement:</strong> You must upload an unboxing video for return/refund claims.
                             </div>
                         </div>
 
                         <!-- 2. Proof Upload Area -->
                         <div class="mb-4">
                             <label class="form-label font-weight-bold mb-2" style="color: #2d3748; font-size: 1.05rem;">Proof Upload Area</label>
-                            
-                            <!-- Photos Upload Grid -->
-                            <div class="proof-photo-grid mb-3 d-flex flex-wrap gap-2 align-items-center">
-                                <!-- Trigger button box -->
-                                <div class="upload-box-square dotted-box-trigger" id="trigger-photo-upload" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; background-color: #f7fafc;">
-                                    <i class="fas fa-plus text-muted" style="font-size: 1.2rem;"></i>
-                                    <input type="file" id="refund-images-input" accept="image/*" multiple style="display: none;">
-                                </div>
-                                
-                                <!-- Empty state slot placeholders (max 5) -->
-                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
-                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
-                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
-                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
-                                <div class="upload-box-square photo-slot empty-slot" style="width: 85px; height: 85px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #edf2f7; opacity: 0.5;"></div>
-                            </div>
-                            
+
                             <!-- Video Upload Panel -->
                             <div class="video-upload-panel dotted-box-trigger p-4 text-center mb-2" id="trigger-video-upload" style="border: 2px dashed #d2e8d8; border-radius: 16px; background-color: #f3faf5; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden;">
                                 <input type="file" id="refund-video-input" accept="video/*" style="display: none;">
@@ -150,7 +134,7 @@
                             </button>
                             
                             <p class="mt-3 mb-0 text-muted" style="font-size: 0.8rem; font-style: italic;">
-                                <i class="far fa-lightbulb text-warning me-1"></i> Top Tip: Clear photos of the packaging label help speed up the process.
+                                <i class="far fa-lightbulb text-warning me-1"></i> Top Tip: A clear unboxing video helps speed up the process.
                             </p>
                         </div>
                     </form>
@@ -187,14 +171,11 @@
                 <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">1. Required Unboxing Video</h6>
                 <p class="mb-3">An unedited, continuous unboxing video is **mandatory** for any returns or refunds claiming missing items, outer packaging damage, or wrong items sent. The video must clearly show the unopened package label before unpacking.</p>
                 
-                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">2. Clear Photo Evidence</h6>
-                <p class="mb-3">At least **2 high-resolution photos** are required. Make sure to capture the overall packaging box with the shipping label visible, and close-up views of any damage or discrepancy on the book cover or pages.</p>
-                
-                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">3. Fair Refund Allocation</h6>
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">2. Fair Refund Allocation</h6>
                 <p class="mb-3">When requesting "Keep Item (Refund Only)", you may negotiate a partial refund. The requested refund amount cannot exceed the **Total price paid** for the order. Refund allocations will be verified by our dispute managers.</p>
                 
-                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">4. Processing Timelines</h6>
-                <p class="mb-0">Once submitted, the seller has **48 hours** to accept the proposal or dispute it. If disputed, BookBlossom Dispute Managers will step in within 24 hours to review your uploaded unboxing video and photo proof to make a final binding decision.</p>
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">3. Processing Timelines</h6>
+                <p class="mb-0">Once submitted, the seller has **48 hours** to accept the proposal or dispute it. If disputed, BookBlossom Dispute Managers will step in within 24 hours to review your uploaded unboxing video proof to make a final binding decision.</p>
             </div>
             
             <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
