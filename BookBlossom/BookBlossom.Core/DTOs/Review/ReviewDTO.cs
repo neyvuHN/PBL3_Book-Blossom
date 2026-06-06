@@ -19,5 +19,7 @@ namespace BookBlossom.Core.DTOs.Review
         public int LikeCount { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsHidden { get; set; }
+        public string? AdminReplyContent { get; set; }
+        public DateTime? AdminReplyCreatedAt { get; set; }
     }
 }

@@ -230,12 +230,21 @@ class ContentReportsView {
                 </div>
                 
                 ${item.isReplied ? `
-                    <div style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem;">
-                        <strong>Your Reply:</strong> ${item.replyContent}
+                    <div style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: flex-start;" id="reply-display-${item.id}">
+                        <div style="flex:1;"><strong>Your Reply:</strong> <span id="reply-text-content-${item.id}">${item.replyContent}</span></div>
+                        <div style="display:flex; gap: 8px; margin-left: 12px;">
+                            <button class="btn-action" data-action="edit-reply" data-id="${item.id}" style="padding: 4px 8px; background: #E5E7EB; color: #374151; border: none; border-radius: 4px; cursor: pointer;"><i class="ph ph-pencil"></i></button>
+                            <button class="btn-action" data-action="delete-reply" data-id="${item.id}" style="padding: 4px 8px; background: #FEE2E2; color: #B91C1C; border: none; border-radius: 4px; cursor: pointer;"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px; display:none; gap: 8px;" id="reply-edit-form-${item.id}">
+                        <input type="text" class="form-control" value="${item.replyContent.replace(/"/g, '&quot;')}" style="font-size:0.9rem; flex: 1;" id="editReplyInput-${item.id}">
+                        <button class="btn-action btn-primary" data-action="save-edit-reply" data-id="${item.id}">Save</button>
+                        <button class="btn-action" data-action="cancel-edit-reply" data-id="${item.id}" style="background:#E5E7EB; color:#374151;">Cancel</button>
                     </div>
                 ` : `
                     <div style="margin-bottom: 12px; display:flex; gap: 8px;">
-                        <input type="text" class="form-control" placeholder="Type your reply here..." style="font-size:0.9rem;" id="replyInput-${item.id}">
+                        <input type="text" class="form-control" placeholder="Type your reply here..." style="font-size:0.9rem; flex: 1;" id="replyInput-${item.id}">
                         <button class="btn-action btn-primary" data-action="reply" data-id="${item.id}">Reply</button>
                     </div>
                 `}
@@ -357,7 +366,17 @@ class ContentReportsView {
                     textElem.classList.toggle('expanded');
                     btn.innerText = textElem.classList.contains('expanded') ? 'Show less' : 'Show more';
                 }
-            } else if(action === 'reply') {
+            } else if (action === 'edit-reply') {
+                document.getElementById(`reply-display-${id}`).style.display = 'none';
+                document.getElementById(`reply-edit-form-${id}`).style.display = 'flex';
+            } else if (action === 'cancel-edit-reply') {
+                document.getElementById(`reply-display-${id}`).style.display = 'flex';
+                document.getElementById(`reply-edit-form-${id}`).style.display = 'none';
+            } else if (action === 'save-edit-reply') {
+                const input = document.getElementById(`editReplyInput-${id}`);
+                const replyText = input ? input.value : '';
+                handler('reply', id, replyText); // Re-use reply handler
+            } else if (action === 'reply') {
                 const input = document.getElementById(`replyInput-${id}`);
                 const replyText = input ? input.value : '';
                 handler(action, id, replyText);

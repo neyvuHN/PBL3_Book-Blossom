@@ -173,6 +173,17 @@ namespace BookBlossom.Infrastructure.Services
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<bool> ReplyReviewAsync(long reviewId, string replyContent)
+        {
+            var review = await _context.Reviews.FindAsync(reviewId);
+            if (review == null) return false;
+
+            review.AdminReplyContent = replyContent;
+            review.AdminReplyCreatedAt = DateTime.UtcNow;
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public async Task<IEnumerable<ReviewDTO>> GetReviewsByBookAsync(long? bookId, long? blindBookId)
         {
             var query = _context.Reviews
@@ -251,7 +262,9 @@ namespace BookBlossom.Infrastructure.Services
                 VideoUrls = videoUrls,
                 LikeCount = r.LikeCount,
                 CreatedAt = r.CreatedAt,
-                IsHidden = r.IsHidden
+                IsHidden = r.IsHidden,
+                AdminReplyContent = r.AdminReplyContent,
+                AdminReplyCreatedAt = r.AdminReplyCreatedAt
             };
         }
     }

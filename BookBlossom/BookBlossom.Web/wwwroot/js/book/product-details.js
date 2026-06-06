@@ -1585,6 +1585,18 @@
             const likeColorStyle = isLiked ? 'color: #C2185B;' : '';
             const dateStr = new Date(r.createdAt).toLocaleDateString();
 
+            let adminReplyHtml = '';
+            try {
+                if (window.ReviewReplyController) {
+                    const replyController = new window.ReviewReplyController();
+                    adminReplyHtml = replyController.getReplyHtml(r);
+                } else {
+                    console.warn("ReviewReplyController is not loaded. Please check _ExploreScripts.cshtml or restart the server.");
+                }
+            } catch (e) {
+                console.error("Error generating admin reply HTML:", e);
+            }
+
             const html = `
                 <div class="prod-review-item" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 20px; background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 15px;" data-id="${r.reviewID}" data-rating="${r.rating}" data-likes="${r.likeCount}">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
@@ -1598,6 +1610,7 @@
                     <p style="font-size: 0.9rem; color: #555; line-height: 1.6; margin: 0 0 4px 0; padding-left: 52px;">"${r.content}"</p>
                     <div style="padding-left: 52px;">
                         ${mediaHtml}
+                        ${adminReplyHtml}
                         <div style="display:flex; gap:15px; margin-top:12px; align-items:center;">
                             <button class="btn btn-link btn-like-detail-review p-0" style="text-decoration:none; font-size:0.85rem; color:#888;">
                                 <i class="${likeIconClass} fa-heart" style="${likeColorStyle}"></i> <span class="like-count">${r.likeCount || 0}</span>

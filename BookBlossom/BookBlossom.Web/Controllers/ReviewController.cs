@@ -137,7 +137,7 @@ namespace BookBlossom.Web.Controllers
         // 4. ẨN/HIỆN REVIEW - Dành riêng cho Ban quản trị (Moderator/Admin)
         // POST /api/Review/{reviewId}/moderation?isHidden=true
         [HttpPost("{reviewId}/moderation")]
-        [Authorize(Policy = "ModeratorOnly")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> ToggleHideReview(long reviewId, [FromQuery] bool isHidden = true)
         {
             try
@@ -159,6 +159,61 @@ namespace BookBlossom.Web.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Lỗi trong quá trình kiểm duyệt nội dung.", detail = ex.Message });
+            }
+        }
+
+        // 5. PHẢN HỒI ĐÁNH GIÁ - Dành riêng cho Ban quản trị (Moderator/Admin)
+        // POST /api/Review/{reviewId}/reply
+        [HttpPost("{reviewId}/reply")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> ReplyReview(long reviewId, [FromBody] string replyContent)
+        {
+            if (string.IsNullOrWhiteSpace(replyContent))
+            {
+                return BadRequest(new { message = "Nội dung phản hồi không được để trống." });
+            }
+
+            try
+            {
+                var success = await _service.ReplyReviewAsync(reviewId, replyContent);
+
+                if (!success)
+                {
+                    return NotFound(new { message = "Không tìm thấy dữ liệu bài đánh giá yêu cầu." });
+                }
+
+                return Ok(new
+                {
+                    message = "Đã phản hồi bài đánh giá thành công."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Lỗi trong quá trình phản hồi đánh giá.", detail = ex.Message });
+            }
+        }
+        // DELETE /api/Review/{reviewId}/reply
+        [HttpDelete("{reviewId}/reply")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> DeleteReply(long reviewId)
+        {
+            try
+            {
+                var success = await _service.ReplyReviewAsync(reviewId, null);
+
+                if (!success)
+                {
+                    return NotFound(new { message = "Không tìm thấy dữ liệu bài đánh giá yêu cầu." });
+                }
+
+                return Ok(new
+                {
+                    message = "Đã xóa phản hồi bài đánh giá thành công."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Lỗi trong quá trình xóa phản hồi đánh giá.", detail = ex.Message });
             }
         }
     }

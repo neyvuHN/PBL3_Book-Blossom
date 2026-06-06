@@ -23,6 +23,9 @@ namespace BookBlossom.Core.Entities
         [StringLength(2000)]
         public string? ImageVideoPath { get; set; }
 
+        public string? AdminReplyContent { get; set; }
+        public DateTime? AdminReplyCreatedAt { get; set; }
+
         public int LikeCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsHidden { get; set; } = false;

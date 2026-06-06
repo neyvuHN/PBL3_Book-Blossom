@@ -56,17 +56,17 @@ class ContentReportsModel {
             const data = await window.apiClient.apiGet('/api/Review');
             if (Array.isArray(data)) {
                 this.feedbackItems = data.map(rev => {
-                    const localReply = localStorage.getItem(`review_reply_${rev.reviewID}`);
+                    const rid = rev.reviewID || rev.reviewId || rev.id;
                     return {
-                        id: rev.reviewID,
+                        id: rid,
                         type: rev.blindBookID ? 'community_review' : 'product_review',
                         bookTitle: rev.blindBookID ? `Mystery Book #${rev.blindBookID}` : `Book #${rev.bookID}`,
                         rating: rev.rating,
                         content: rev.content,
                         author: rev.customerName || 'Anonymous',
                         date: rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : 'N/A',
-                        isReplied: !!localReply,
-                        replyContent: localReply || ''
+                        isReplied: !!rev.adminReplyContent,
+                        replyContent: rev.adminReplyContent || ''
                     };
                 });
             }
@@ -112,8 +112,11 @@ class ContentReportsModel {
     }
 
     async replyFeedback(reviewId, replyText) {
-        localStorage.setItem(`review_reply_${reviewId}`, replyText);
-        return { success: true };
+        return await window.apiClient.apiPost(`/api/Review/${reviewId}/reply`, `"${replyText}"`);
+    }
+
+    async deleteFeedbackReply(reviewId) {
+        return await window.apiClient.apiDelete(`/api/Review/${reviewId}/reply`);
     }
 
     async reviewReturnClaim(requestId, isApproved, rejectReason = '') {

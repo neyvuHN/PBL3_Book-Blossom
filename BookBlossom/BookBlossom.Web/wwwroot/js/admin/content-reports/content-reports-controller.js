@@ -89,8 +89,19 @@ class ContentReportsController {
                     return;
                 }
                 await this.model.replyFeedback(id, replyText);
-                showPremiumAlert('Reply Submitted', 'Reply submitted successfully.', 'success');
-                this.renderAll();
+                showPremiumAlert('Reply Saved', 'Reply updated successfully.', 'success');
+                await this.loadAndRender();
+            } else if (action === 'delete-reply') {
+                if(confirm('Are you sure you want to delete this reply?')) {
+                    try {
+                        await this.model.deleteFeedbackReply(id);
+                        showPremiumAlert('Reply Deleted', 'The reply has been removed.', 'success');
+                        await this.loadAndRender();
+                    } catch (err) {
+                        console.error(err);
+                        showPremiumAlert('Action Failed', err.message || 'Failed to delete reply.', 'danger');
+                    }
+                }
             } else if (action === 'transfer') {
                 const payload = {
                     BuyerName: item.author,
