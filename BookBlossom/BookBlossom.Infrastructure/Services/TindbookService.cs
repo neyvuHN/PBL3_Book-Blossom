@@ -156,7 +156,7 @@ namespace BookBlossom.Infrastructure.Services
             });
 
             // 6. Luồng 2: Lấy BlindBooks
-            var blindBooksQuery = _context.BlindBooks.Include(b => b.RealBook).ThenInclude(rb => rb!.Category)
+            var blindBooksQuery = _context.BlindBooks.Include(b => b.RealBook).ThenInclude(rb => rb!.Category).Include(b => b.Images)
                 .Where(b => !swipedBlindBookIds.Contains(b.BlindBookID) 
                          && b.BlindBookRequestStatus == BlindBookRequestStatus.Approved
                          && (b.RealBook == null || !blockedCategoryIds.Contains(b.RealBook.CategoryID)));
@@ -175,7 +175,7 @@ namespace BookBlossom.Infrastructure.Services
                 Publisher = "Nhà xuất bản Bí Ẩn",
                 Price = b.Price,
                 Description = (string?)("💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\""),
-                ImageUrl = (string?)null,
+                ImageUrl = b.Images.FirstOrDefault() != null ? b.Images.FirstOrDefault().ImagePath : null,
                 Priority = (b.RealBook != null && userPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
             });
 
@@ -503,7 +503,7 @@ namespace BookBlossom.Infrastructure.Services
             });
 
             // 6. Luồng BlindBooks cho Guest
-            var blindBooksQuery = _context.BlindBooks.Include(b => b.RealBook).ThenInclude(rb => rb!.Category)
+            var blindBooksQuery = _context.BlindBooks.Include(b => b.RealBook).ThenInclude(rb => rb!.Category).Include(b => b.Images)
                 .Where(b => !swipedBlindBookIds.Contains(b.BlindBookID) 
                          && b.BlindBookRequestStatus == BlindBookRequestStatus.Approved
                          && (b.RealBook == null || !blockedCategoryIds.Contains(b.RealBook.CategoryID)));
@@ -522,7 +522,7 @@ namespace BookBlossom.Infrastructure.Services
                 Publisher = "Nhà xuất bản Bí Ẩn",
                 Price = b.Price,
                 Description = (string?)("💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\""),
-                ImageUrl = (string?)null,
+                ImageUrl = b.Images.FirstOrDefault() != null ? b.Images.FirstOrDefault().ImagePath : null,
                 Priority = (b.RealBook != null && guestPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
             });
 

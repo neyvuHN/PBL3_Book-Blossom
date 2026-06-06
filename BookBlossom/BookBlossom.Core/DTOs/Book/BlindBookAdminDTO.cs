@@ -16,6 +16,8 @@ namespace BookBlossom.DTOs.BlindBook
         public int RealBookUnitsInStock { get; set; }
         public int RealBookReservedQuantity { get; set; }
 
+        public List<string> ImageUrls { get; set; } = new List<string>();
+
         public BlindBookRequestStatus Status { get; set; } 
     }
 }

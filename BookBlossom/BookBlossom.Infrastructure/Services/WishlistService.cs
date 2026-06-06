@@ -22,7 +22,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<WishlistItemDTO>> GetWishlistItemsAsync(long? userId, Guid? guestId)
         {
-            var query = _context.Wishlists.Include(w => w.Book).ThenInclude(b => b.BookImages).Include(w => w.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category).AsQueryable();
+            var query = _context.Wishlists.Include(w => w.Book).ThenInclude(b => b.BookImages).Include(w => w.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category).Include(w => w.BlindBook).ThenInclude(b => b.Images).AsQueryable();
 
             if (userId.HasValue)
             {
@@ -55,7 +55,7 @@ namespace BookBlossom.Infrastructure.Services
                     : (w.BlindBook?.Price ?? 0),
                 ImageUrl = w.BookID.HasValue 
                     ? (w.Book?.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? w.Book?.BookImages.FirstOrDefault()?.ImagePath) 
-                    : null,
+                    : (w.BlindBookID.HasValue ? w.BlindBook?.Images.FirstOrDefault()?.ImagePath : null),
                 AddedAt = w.AddedAt
             });
         }
@@ -111,22 +111,18 @@ namespace BookBlossom.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             var addedBook = request.BookID.HasValue ? await _context.RealBooks.Include(b => b.BookImages).FirstOrDefaultAsync(b => b.BookID == request.BookID.Value) : null;
-            var addedBlindBook = request.BlindBookID.HasValue ? await _context.BlindBooks.Include(b => b.RealBook).ThenInclude(r => r.Category).FirstOrDefaultAsync(b => b.BlindBookID == request.BlindBookID.Value) : null;
+            var addedBlindBook = request.BlindBookID.HasValue ? await _context.BlindBooks.Include(b => b.RealBook).ThenInclude(r => r.Category).Include(b => b.Images).FirstOrDefaultAsync(b => b.BlindBookID == request.BlindBookID.Value) : null;
 
             return new WishlistItemDTO
             {
                 WishlistID = wishlistItem.WishlistID,
                 BookID = wishlistItem.BookID,
                 BlindBookID = wishlistItem.BlindBookID,
-                Title = request.BookID.HasValue 
-                    ? (addedBook?.Title ?? "Unknown Book") 
-                    : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}) - {addedBlindBook.Hashtags}" : "Unknown Blind Book"),
-                Price = request.BookID.HasValue 
-                    ? (addedBook?.Price ?? 0) 
-                    : (addedBlindBook?.Price ?? 0),
+                Title = wishlistItem.BookID.HasValue ? (addedBook?.Title ?? "Unknown") : ($"[Sách Mù] {addedBlindBook?.RealBook?.Category?.CategoryName ?? "Unknown"} - {addedBlindBook?.Hashtags}"),
+                Price = wishlistItem.BookID.HasValue ? (addedBook?.Price ?? 0) : (addedBlindBook?.Price ?? 0),
                 ImageUrl = request.BookID.HasValue 
                     ? (addedBook?.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? addedBook?.BookImages.FirstOrDefault()?.ImagePath) 
-                    : null,
+                    : (request.BlindBookID.HasValue ? addedBlindBook?.Images.FirstOrDefault()?.ImagePath : null),
                 AddedAt = wishlistItem.AddedAt
             };
         }

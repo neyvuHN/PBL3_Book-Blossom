@@ -30,7 +30,7 @@ class BlindDateModel {
             keywords: item.keywords,
             quotes: item.quotes,
             hashtags: item.hashtags,
-            images: [],
+            images: item.imageUrls || [],
             stockInfo: `Current stock: ${item.stockQuantity}`,
             barcode: item.barcode || 'Awaiting Approval',
             realBookCategoryName: item.category,
@@ -52,23 +52,28 @@ class BlindDateModel {
     }
 
     async addBlindDate(data) {
-        const payload = {
-            realBookID: parseInt(data.realBookId, 10),
-            keywords: data.keywords,
-            quotes: data.quotes,
-            category: data.realBookCategoryName,
-            hashtags: data.hashtags,
-            price: parseFloat(data.price),
-            requestQuantity: parseInt(data.quantity, 10)
-        };
+        const formData = new FormData();
+        formData.append('RealBookID', parseInt(data.realBookId, 10));
+        formData.append('Keywords', data.keywords || '');
+        formData.append('Quotes', data.quotes || '');
+        formData.append('Hashtags', data.hashtags || '');
+        formData.append('Price', parseFloat(data.price));
+        formData.append('RequestQuantity', parseInt(data.quantity, 10));
+        
+        if (data.images && data.images.length > 0) {
+            data.images.forEach(file => {
+                if (file instanceof File) {
+                    formData.append('Images', file);
+                }
+            });
+        }
 
         const response = await fetch('/api/blindbook', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
             },
-            body: JSON.stringify(payload)
+            body: formData
         });
 
         if (!response.ok) {
@@ -80,21 +85,26 @@ class BlindDateModel {
     }
 
     async updateBlindDate(id, data) {
-        const payload = {
-            keywords: data.keywords,
-            quotes: data.quotes,
-            category: data.realBookCategoryName,
-            hashtags: data.hashtags,
-            price: parseFloat(data.price)
-        };
+        const formData = new FormData();
+        formData.append('Keywords', data.keywords || '');
+        formData.append('Quotes', data.quotes || '');
+        formData.append('Hashtags', data.hashtags || '');
+        formData.append('Price', parseFloat(data.price));
+        
+        if (data.images && data.images.length > 0) {
+            data.images.forEach(file => {
+                if (file instanceof File) {
+                    formData.append('Images', file);
+                }
+            });
+        }
 
         const response = await fetch(`/api/blindbook/${id}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
             },
-            body: JSON.stringify(payload)
+            body: formData
         });
 
         if (!response.ok) {

@@ -12,7 +12,7 @@ namespace BookBlossom.Core.Interfaces
         Task<BlindBook?> GetByIdAsync(long blindBookId);
 
         // --- Dành cho Marketing Manager ---
-        Task<BlindBook> CreateRequestAsync(BlindBook blindBook, string marketingId);
+        Task<BlindBook> CreateRequestAsync(BlindBook blindBook, string marketingId, List<Microsoft.AspNetCore.Http.IFormFile>? images = null);
         Task<IEnumerable<BlindBook>> GetMarketingRequestsAsync(); 
         Task<bool> CreateRestockRequestAsync(long blindBookId, int quantity, string marketingId);
 

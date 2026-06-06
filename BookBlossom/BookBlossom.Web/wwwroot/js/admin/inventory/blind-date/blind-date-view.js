@@ -256,11 +256,16 @@ class BlindDateView {
         dataList.forEach(item => {
             const tr = document.createElement('tr');
             
-            let packageImageHtml = `
+            let packageImageHtml = '';
+            if (item.images && item.images.length > 0) {
+                packageImageHtml = `<img src="${item.images[0]}" class="rounded shadow-sm" style="width: 48px; height: 60px; object-fit: cover;" onerror="this.onerror=null; this.outerHTML='<div class=\\'d-flex align-items-center justify-content-center rounded inventory-icon-box\\' style=\\'width: 48px; height: 60px; background-color: #fce7f3; border: 1px dashed #f472b6;\\'><i class=\\'bi bi-box2-heart fs-4 inventory-icon\\' style=\\'color: #e83e8c;\\'></i></div>';" />`;
+            } else {
+                packageImageHtml = `
                 <div class="d-flex align-items-center justify-content-center rounded inventory-icon-box" style="width: 48px; height: 60px; background-color: #fce7f3; border: 1px dashed #f472b6;">
                     <i class="bi bi-box2-heart fs-4 inventory-icon" style="color: #e83e8c;"></i>
                 </div>
-            `;
+                `;
+            }
             
             // Render Status badge
             let statusBadge = '';

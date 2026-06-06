@@ -130,6 +130,21 @@ namespace BookBlossom.Infrastructure.Services
                     dto.AttachedBookTitle = bookAttachment.FileName;
                     dto.AttachedBookAuthor = bookAttachment.FileType;
                     dto.AttachedBookImage = bookAttachment.FileUrl;
+
+                    if (dto.AttachedBookID.HasValue && dto.AttachedBookID.Value > 0 && dto.AttachedBookTitle != null && !dto.AttachedBookTitle.Contains("Blind Book") && !dto.AttachedBookTitle.Contains("Sách Mù"))
+                    {
+                        var realBook = await _context.RealBooks.Include(b => b.BookAuthors).ThenInclude(ba => ba.Author).Include(b => b.BookImages).FirstOrDefaultAsync(b => b.BookID == dto.AttachedBookID.Value);
+                        if (realBook != null)
+                        {
+                            dto.AttachedBookTitle = realBook.Title;
+                            var authorNames = string.Join(", ", realBook.BookAuthors.Select(ba => ba.Author.AuthorName));
+                            if (!string.IsNullOrEmpty(authorNames))
+                            {
+                                dto.AttachedBookAuthor = authorNames;
+                            }
+                            dto.AttachedBookImage = realBook.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? realBook.BookImages.FirstOrDefault()?.ImagePath ?? dto.AttachedBookImage;
+                        }
+                    }
                 }
 
                 var mediaAttachments = m.Attachments.Where(a => a.AttachmentType == 1).ToList();
@@ -256,13 +271,13 @@ namespace BookBlossom.Infrastructure.Services
                 }
                 else
                 {
-                    var book = await _context.RealBooks.Include(b => b.BookAuthors).ThenInclude(ba => ba.Author).FirstOrDefaultAsync(b => b.BookID == dto.AttachedBookID.Value);
+                    var book = await _context.RealBooks.Include(b => b.BookAuthors).ThenInclude(ba => ba.Author).Include(b => b.BookImages).FirstOrDefaultAsync(b => b.BookID == dto.AttachedBookID.Value);
                     if (book != null)
                     {
                         _context.MessageAttachments.Add(new MessageAttachment
                         {
                             MessageID = message.MessageID,
-                            FileUrl = "/images/Book/book1.jpg", // Hardcoded as original or could be fetched separately
+                            FileUrl = book.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? book.BookImages.FirstOrDefault()?.ImagePath ?? "/images/Book/book1.jpg",
                             FileName = book.Title,
                             FileType = string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)),
                             FileSize = book.BookID,

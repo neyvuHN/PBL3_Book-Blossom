@@ -22,7 +22,7 @@ namespace BookBlossom.Infrastructure.Services
 
         public async Task<IEnumerable<CartItemDTO>> GetCartItemsAsync(long? userId, Guid? guestId)
         {
-            var query = _context.Carts.Include(c => c.Book).ThenInclude(b => b.BookImages).Include(c => c.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category).AsQueryable();
+            var query = _context.Carts.Include(c => c.Book).ThenInclude(b => b.BookImages).Include(c => c.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category).Include(c => c.BlindBook).ThenInclude(b => b.Images).AsQueryable();
 
             if (userId.HasValue)
             {
@@ -55,7 +55,7 @@ namespace BookBlossom.Infrastructure.Services
                 AddedAt = c.CreatedAt,
                 ImageUrl = c.BookID.HasValue 
                     ? (c.Book?.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? c.Book?.BookImages.FirstOrDefault()?.ImagePath) 
-                    : null
+                    : (c.BlindBookID.HasValue ? c.BlindBook?.Images.FirstOrDefault()?.ImagePath : null)
             });
         }
 
@@ -144,7 +144,7 @@ namespace BookBlossom.Infrastructure.Services
 
             var addedBook = request.BookID.HasValue ? await _context.RealBooks.Include(b => b.BookImages).FirstOrDefaultAsync(b => b.BookID == request.BookID.Value) : null;
             var addedBlindBook = request.BlindBookID.HasValue 
-                ? await _context.BlindBooks.Include(b => b.RealBook).ThenInclude(r => r.Category).FirstOrDefaultAsync(b => b.BlindBookID == request.BlindBookID.Value) 
+                ? await _context.BlindBooks.Include(b => b.RealBook).ThenInclude(r => r.Category).Include(b => b.Images).FirstOrDefaultAsync(b => b.BlindBookID == request.BlindBookID.Value) 
                 : null;
 
             return new CartItemDTO
@@ -163,7 +163,7 @@ namespace BookBlossom.Infrastructure.Services
                 AddedAt = existingCartItem.CreatedAt,
                 ImageUrl = request.BookID.HasValue 
                     ? (addedBook?.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? addedBook?.BookImages.FirstOrDefault()?.ImagePath) 
-                    : null
+                    : (request.BlindBookID.HasValue ? addedBlindBook?.Images.FirstOrDefault()?.ImagePath : null)
             };
         }
 
@@ -215,7 +215,7 @@ namespace BookBlossom.Infrastructure.Services
                 AddedAt = cartItem.CreatedAt,
                 ImageUrl = cartItem.BookID.HasValue 
                     ? (cartItem.Book?.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? cartItem.Book?.BookImages.FirstOrDefault()?.ImagePath) 
-                    : null
+                    : (cartItem.BlindBookID.HasValue ? cartItem.BlindBook?.Images.FirstOrDefault()?.ImagePath : null)
             };
         }
 

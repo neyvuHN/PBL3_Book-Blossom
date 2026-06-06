@@ -5,6 +5,7 @@ using BookBlossom.Infrastructure.Data;
 using BookBlossom.DTOs.BlindBook;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ namespace BookBlossom.Infrastructure.Services
         }
 
         // --- Marketing Manager ---
-        public async Task<BlindBook> CreateRequestAsync(BlindBook blindBook, string marketingId)
+        public async Task<BlindBook> CreateRequestAsync(BlindBook blindBook, string marketingId, List<Microsoft.AspNetCore.Http.IFormFile>? images = null)
         {
             // Nghiệp vụ 1: Kiểm tra RealBookID có tồn tại không
             var realBookExists = await _context.RealBooks.AnyAsync(r => r.BookID == blindBook.RealBookID);
@@ -54,6 +55,39 @@ namespace BookBlossom.Infrastructure.Services
             
             _context.BlindBooks.Add(blindBook);
             await _context.SaveChangesAsync();
+
+            if (images != null && images.Any())
+            {
+                var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "BlindDateBook");
+                if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
+
+                int index = 0;
+                foreach (var file in images)
+                {
+                    if (file.Length > 0)
+                    {
+                        string fileName = index == 0 ? $"cover_{blindBook.BlindBookID}.jpg" : $"cover_{blindBook.BlindBookID}_{index}.jpg";
+                        var filePath = Path.Combine(bookImagesFolder, fileName);
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                        
+                        _context.Set<BlindBookImage>().Add(new BlindBookImage
+                        {
+                            BlindBookID = blindBook.BlindBookID,
+                            ImagePath = $"/images/BlindDateBook/{fileName}",
+                            IsMain = index == 0,
+                            SortOrder = index,
+                            CreatedAt = DateTime.Now
+                        });
+                        
+                        index++;
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
+
             return blindBook;
         }
 
@@ -171,6 +205,52 @@ namespace BookBlossom.Infrastructure.Services
 
             book.Hashtags = dto.Hashtags;
             book.Price = dto.Price;
+
+            if (dto.Images != null && dto.Images.Any())
+            {
+                var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "BlindDateBook");
+                if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
+
+                var oldMainImage = Path.Combine(bookImagesFolder, $"cover_{id}.jpg");
+                if (File.Exists(oldMainImage)) File.Delete(oldMainImage);
+
+                var oldSubImages = Directory.GetFiles(bookImagesFolder, $"cover_{id}_*.jpg");
+                foreach (var oldFile in oldSubImages)
+                {
+                    File.Delete(oldFile);
+                }
+
+                var oldDbImages = await _context.Set<BlindBookImage>().Where(i => i.BlindBookID == id).ToListAsync();
+                if (oldDbImages.Any())
+                {
+                    _context.Set<BlindBookImage>().RemoveRange(oldDbImages);
+                }
+
+                int index = 0;
+                foreach (var file in dto.Images)
+                {
+                    if (file.Length > 0)
+                    {
+                        string fileName = index == 0 ? $"cover_{id}.jpg" : $"cover_{id}_{index}.jpg";
+                        var filePath = Path.Combine(bookImagesFolder, fileName);
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                        
+                        _context.Set<BlindBookImage>().Add(new BlindBookImage
+                        {
+                            BlindBookID = id,
+                            ImagePath = $"/images/BlindDateBook/{fileName}",
+                            IsMain = index == 0,
+                            SortOrder = index,
+                            CreatedAt = DateTime.Now
+                        });
+                        
+                        index++;
+                    }
+                }
+            }
 
             return await _context.SaveChangesAsync() > 0;
         }

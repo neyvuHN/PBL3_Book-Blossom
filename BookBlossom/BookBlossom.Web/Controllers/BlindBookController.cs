@@ -79,7 +79,8 @@ namespace BookBlossom.Web.Controllers
                     IsLocked = b.IsLocked,
                     HasOrders = idsWithOrders.Contains(b.BlindBookID),
                     RealBookUnitsInStock = b.RealBook?.UnitsInStock ?? 0,
-                    RealBookReservedQuantity = b.RealBook?.ReservedQuantity ?? 0
+                    RealBookReservedQuantity = b.RealBook?.ReservedQuantity ?? 0,
+                    ImageUrls = b.Images?.OrderBy(i => i.SortOrder).Select(i => i.ImagePath).ToList() ?? new List<string>()
                 });
 
                 return Ok(staffResult);
@@ -137,7 +138,7 @@ namespace BookBlossom.Web.Controllers
         // API 3: Marketing tạo yêu cầu
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] CreateBlindBookDTO dto)
+        public async Task<IActionResult> Create([FromForm] CreateBlindBookDTO dto)
         {
             if (dto == null) return BadRequest("Dữ liệu truyền lên trống.");
 
@@ -157,7 +158,7 @@ namespace BookBlossom.Web.Controllers
 
             try
             {
-                var result = await _service.CreateRequestAsync(newBlindBook, marketingId);
+                var result = await _service.CreateRequestAsync(newBlindBook, marketingId, dto.Images);
                 return StatusCode(201, new { message = "Gửi yêu cầu đóng gói thành công!", id = result.BlindBookID });
             }
             catch (Exception ex)
@@ -264,7 +265,7 @@ namespace BookBlossom.Web.Controllers
         // API 9: Sửa thông tin BlindBook
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(long id, [FromBody] UpdateBlindBookDTO dto)
+        public async Task<IActionResult> Update(long id, [FromForm] UpdateBlindBookDTO dto)
         {
             if (dto == null) return BadRequest("Dữ liệu truyền lên trống.");
             try
