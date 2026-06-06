@@ -223,9 +223,20 @@ class MessagesController {
         }
 
         let attachedBookId = null;
+        let isBlindDate = false;
+        let attachedBookTitle = null;
+        let attachedBookImage = null;
+        let attachedBookAuthor = null;
+        
         if ($chips.length > 0) {
             let did = $chips.first().data('id');
+            let dlink = $chips.first().data('link') || '';
             if (did) attachedBookId = parseInt(did);
+            if (dlink.includes('BlindDate')) isBlindDate = true;
+            
+            attachedBookTitle = bookTitlesList.length > 0 ? bookTitlesList[0] : null;
+            attachedBookImage = $chips.first().data('img');
+            attachedBookAuthor = $chips.first().data('author') || "BookBlossom Curated";
         }
 
         let attachmentUrls = [];
@@ -240,7 +251,11 @@ class MessagesController {
             receiverID: 1,
             content: text,
             attachmentUrls: attachmentUrls,
-            attachedBookID: attachedBookId
+            attachedBookID: attachedBookId,
+            isBlindDate: isBlindDate,
+            attachedBookTitle: attachedBookTitle,
+            attachedBookImage: attachedBookImage,
+            attachedBookAuthor: attachedBookAuthor
         };
 
         // Clear previews instantly
@@ -1017,14 +1032,20 @@ class MessagesController {
             if (!href) return;
 
             let title = "";
+            let isBlind = false;
             if (href.includes('#book-details-')) {
                 title = href.split('#book-details-')[1];
             } else if (href.includes('#blind-details-')) {
                 title = href.split('#blind-details-')[1];
+                isBlind = true;
             }
 
             title = decodeURIComponent(title);
-            window.location.href = `/Explore#book-details-${encodeURIComponent(title)}`;
+            if (isBlind) {
+                window.location.href = `/BlindDate#blind-details-${encodeURIComponent(title)}`;
+            } else {
+                window.location.href = `/Explore#book-details-${encodeURIComponent(title)}`;
+            }
         });
 
         // Make the entire book card clickable in the chat stream
@@ -1033,9 +1054,24 @@ class MessagesController {
             if ($card.css('border-style') === 'solid' || $card.find('a[href*="#book-details-"], a[href*="#blind-details-"]').length > 0) {
                 const $link = $card.find('a[href*="#book-details-"], a[href*="#blind-details-"]');
                 if ($link.length > 0) {
-                    if ($(e.target).closest('a').length > 0) return;
-                    e.preventDefault();
-                    $link.first().click();
+                    if (!$(e.target).is('a') && !$(e.target).closest('a').length) {
+                        e.preventDefault();
+                        const href = $link.attr('href');
+                        let title = "";
+                        let isBlind = false;
+                        if (href.includes('#book-details-')) {
+                            title = href.split('#book-details-')[1];
+                        } else if (href.includes('#blind-details-')) {
+                            title = href.split('#blind-details-')[1];
+                            isBlind = true;
+                        }
+                        title = decodeURIComponent(title);
+                        if (isBlind) {
+                            window.location.href = `/BlindDate#blind-details-${encodeURIComponent(title)}`;
+                        } else {
+                            window.location.href = `/Explore#book-details-${encodeURIComponent(title)}`;
+                        }
+                    }
                 }
             }
         });

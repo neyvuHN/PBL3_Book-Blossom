@@ -104,13 +104,18 @@ class MessagesView {
             let booksHtml = "";
             const attachedBookId = msg.attachedBookID || msg.attachedBookId;
             if (attachedBookId) {
+                let bookLink = `/Explore#book-details-${encodeURIComponent(msg.attachedBookTitle)}`;
+                if (msg.attachedBookTitle && msg.attachedBookTitle.includes('Blind Book')) {
+                    bookLink = `/BlindDate#blind-details-${attachedBookId}`;
+                }
+
                 booksHtml = `
                     <div style="display: flex; gap: 12px; align-items: start; background: #fff; padding: 12px; border-radius: 12px; border: 1.5px solid rgba(194, 24, 91, 0.1); margin-top: 10px;">
                         <img src="${msg.attachedBookImage || '/images/Book/book1.jpg'}" style="width: 45px; height: 62px; object-fit: cover; border-radius: 4px;">
                         <div style="flex: 1; min-width: 0; text-align: left;">
                             <h4 style="font-size: 0.85rem; font-weight: 700; color: #111; margin: 0 0 2px 0;">${msg.attachedBookTitle}</h4>
                             <p style="font-size: 0.72rem; color: #666; margin: 0;">${msg.attachedBookAuthor || 'Unknown'}</p>
-                            <a href="/Explore#book-details-${encodeURIComponent(msg.attachedBookTitle)}" style="font-size: 0.72rem; font-weight: 700; color: #C2185B; text-decoration: none; display: inline-block; margin-top: 6px;" target="_blank"><i class="fas fa-external-link-alt"></i> View Book</a>
+                            <a href="${bookLink}" style="font-size: 0.72rem; font-weight: 700; color: #C2185B; text-decoration: none; display: inline-block; margin-top: 6px;" target="_blank"><i class="fas fa-external-link-alt"></i> View Book</a>
                         </div>
                     </div>
                 `;

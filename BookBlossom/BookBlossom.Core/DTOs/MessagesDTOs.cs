@@ -39,6 +39,10 @@ namespace BookBlossom.Core.DTOs
         public string Content { get; set; } = string.Empty;
         public List<string>? AttachmentUrls { get; set; } = new List<string>();
         public long? AttachedBookID { get; set; }
+        public bool IsBlindDate { get; set; } = false;
+        public string? AttachedBookTitle { get; set; }
+        public string? AttachedBookImage { get; set; }
+        public string? AttachedBookAuthor { get; set; }
     }
 
     public class CallRequestDto

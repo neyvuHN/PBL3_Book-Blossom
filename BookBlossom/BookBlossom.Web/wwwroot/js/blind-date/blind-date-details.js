@@ -293,6 +293,11 @@
             } catch (err) {
                 console.error("Error fetching real blind book details from hash:", err);
             }
+        } else if (tagKey.length > 0) {
+            // It's a string hash (e.g. 'horror-ghost' or 'science'). 
+            // We can't fetch it directly from the API by ID. 
+            // Let blind-date.js handleInitialHash() resolve it when all books are loaded.
+            return;
         }
 
         // Lỗi hoặc không tìm thấy sách thật -> Trở về danh sách
@@ -331,6 +336,11 @@
                     } catch (err) {
                         console.error("Error fetching real blind book in popstate:", err);
                     }
+                } else if (tagKey.length > 0) {
+                    if (window.BookBlossomBlindDateHandleInitialHash) {
+                        window.BookBlossomBlindDateHandleInitialHash();
+                    }
+                    return;
                 }
                 // Lỗi hoặc không tìm thấy sách thật -> Trở về danh sách
                 window.location.hash = '';
@@ -911,6 +921,7 @@
 
     window.BookBlossomBlindDateDetails = {
         show: showBlindDateDetails,
-        mapBookData: getMappedBlindBookData
+        mapBookData: getMappedBlindBookData,
+        getBlindHashKey: getBlindHashKey
     };
 })(window, document, window.jQuery);

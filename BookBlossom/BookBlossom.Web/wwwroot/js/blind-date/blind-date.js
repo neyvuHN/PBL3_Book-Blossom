@@ -101,7 +101,14 @@
             const idOrTitle = decodeURIComponent(hash.replace('#blind-details-', ''));
             let match = allBlindBooks.find(b => {
                 const bid = b.blindBookID || b.blindBookId || b.id;
-                return bid && bid.toString() === idOrTitle;
+                if (bid && bid.toString() === idOrTitle) return true;
+                
+                // Match by hash key
+                if (window.BookBlossomBlindDateDetails && window.BookBlossomBlindDateDetails.getBlindHashKey) {
+                    const bData = getBlindBookDataFromObject(b);
+                    if (window.BookBlossomBlindDateDetails.getBlindHashKey(bData) === idOrTitle) return true;
+                }
+                return false;
             });
             if (!match) {
                 match = allBlindBooks.find(b => {
@@ -117,6 +124,7 @@
             }
         }
     }
+    window.BookBlossomBlindDateHandleInitialHash = handleInitialHash;
 
     function initBlindDatePage() {
         const hash = window.location.hash || '';

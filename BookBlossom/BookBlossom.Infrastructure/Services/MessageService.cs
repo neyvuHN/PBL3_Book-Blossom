@@ -241,19 +241,35 @@ namespace BookBlossom.Infrastructure.Services
 
             if (dto.AttachedBookID.HasValue && dto.AttachedBookID.Value > 0)
             {
-                var book = await _context.RealBooks.Include(b => b.BookAuthors).ThenInclude(ba => ba.Author).FirstOrDefaultAsync(b => b.BookID == dto.AttachedBookID.Value);
-                if (book != null)
+                if (dto.IsBlindDate)
                 {
                     _context.MessageAttachments.Add(new MessageAttachment
                     {
                         MessageID = message.MessageID,
-                        FileUrl = "/images/Book/book1.jpg", // Hardcoded as original or could be fetched separately
-                        FileName = book.Title,
-                        FileType = string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)),
-                        FileSize = book.BookID,
+                        FileUrl = dto.AttachedBookImage ?? "/images/BlindDateBook/BlindBook.jpg",
+                        FileName = dto.AttachedBookTitle ?? "Blind Book",
+                        FileType = dto.AttachedBookAuthor ?? "Mystery",
+                        FileSize = dto.AttachedBookID.Value,
                         AttachmentType = 2, // Book
                         CreatedAt = DateTime.Now
                     });
+                }
+                else
+                {
+                    var book = await _context.RealBooks.Include(b => b.BookAuthors).ThenInclude(ba => ba.Author).FirstOrDefaultAsync(b => b.BookID == dto.AttachedBookID.Value);
+                    if (book != null)
+                    {
+                        _context.MessageAttachments.Add(new MessageAttachment
+                        {
+                            MessageID = message.MessageID,
+                            FileUrl = "/images/Book/book1.jpg", // Hardcoded as original or could be fetched separately
+                            FileName = book.Title,
+                            FileType = string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)),
+                            FileSize = book.BookID,
+                            AttachmentType = 2, // Book
+                            CreatedAt = DateTime.Now
+                        });
+                    }
                 }
             }
 
