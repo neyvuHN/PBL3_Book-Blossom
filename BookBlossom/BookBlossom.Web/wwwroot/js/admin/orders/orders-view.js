@@ -150,13 +150,9 @@ class OrdersView {
             step1Class = 'completed';
             step2Class = 'completed';
             
-            if (order.subStatus === 'Handed to carrier') {
-                fillWidth = '50%';
-                step3Class = 'active';
-            } else if (order.subStatus === 'In Transit') {
+            if (order.subStatus === 'In Transit') {
                 fillWidth = '66%';
-                step3Class = 'completed';
-                step4Class = 'active';
+                step3Class = 'active';
             } else if (order.subStatus === 'Delivering') {
                 fillWidth = '83%';
                 step3Class = 'completed';
@@ -242,9 +238,8 @@ class OrdersView {
                     <span style="font-size: 0.78rem; font-weight:600; color: #82758D;">Logistic Status Simulator:</span>
                     <select class="filter-select select-logistic-mock" data-id="${order.id}" style="padding: 4px 12px; font-size: 0.8rem;" ${isDeliveredWaiting ? 'disabled' : ''}>
                         <option value="In Transit" ${order.subStatus === 'In Transit' ? 'selected' : ''}>In Transit</option>
-                        <option value="Handed to carrier" ${order.subStatus === 'Handed to carrier' ? 'selected' : ''}>Handed to carrier</option>
                         <option value="Delivering" ${order.subStatus === 'Delivering' ? 'selected' : ''}>Delivering</option>
-                        <option value="Delivered" ${isDeliveredWaiting ? 'selected' : ''}>Delivered (Waiting Buyer)</option>
+                        <option value="Delivered" ${isDeliveredWaiting ? 'selected' : ''} disabled>Delivered (Waiting Buyer)</option>
                     </select>
                 </div>
                 <div class="footer-buttons">

@@ -153,7 +153,8 @@ class OrdersModel {
                 resolutionType: o.resolutionType,
                 returnStatus: o.returnStatus,
                 isRated: o.isRated,
-                appliedVouchers: o.appliedVouchers || []
+                appliedVouchers: o.appliedVouchers || [],
+                rawOrderStatus: o.orderStatus
             };
         });
     }

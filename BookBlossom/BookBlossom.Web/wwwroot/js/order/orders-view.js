@@ -615,30 +615,31 @@ class OrdersView {
         // Fallback milestone generator if specific milestones are not supplied
         const milestones = [
             { title: "Order Placed", time: order.orderDate || "Today, 10:00", description: "", status: "completed" },
-            { title: "Seller Shipped", time: order.shippedDate || "", description: "", status: "pending" },
-            { title: "Arrived at Sort Facility", time: "", description: "", status: "pending" },
-            { title: "Out for Delivery", time: "", description: "", status: "pending" },
-            { title: "Delivered", time: "", description: "", status: "pending" }
+            { title: "Preparing", time: order.shippedDate || "", description: "", status: "pending" },
+            { title: "In Transit", time: "", description: "", status: "pending" },
+            { title: "Delivering", time: "", description: "", status: "pending" }
         ];
 
-        if (order.status === 'to-ship') {
+        if (order.rawOrderStatus === 1) { // AwaitingPickup -> Preparing
             milestones[1].status = 'current';
             milestones[1].time = 'Today, 14:30';
             milestones[1].description = 'Seller is preparing your package.';
-        } else if (order.status === 'to-receive') {
+        } else if (order.rawOrderStatus === 2) { // Shipping -> In Transit
+            milestones[1].status = 'completed';
+            milestones[2].status = 'current';
+            milestones[2].time = order.shippedDate || 'Yesterday, 14:00';
+            milestones[2].description = 'Parcel is out for delivery with the local courier.';
+        } else if (order.rawOrderStatus === 3) { // Delivering -> Delivering
             milestones[1].status = 'completed';
             milestones[2].status = 'completed';
-            milestones[2].time = order.shippedDate || 'Yesterday, 14:00';
             milestones[3].status = 'current';
             milestones[3].time = 'Today, 08:30';
-            milestones[3].description = 'Parcel is out for delivery with the local courier.';
-        } else if (order.status === 'completed') {
+            milestones[3].description = 'Parcel is being delivered to your address.';
+        } else if (order.rawOrderStatus === 4 || order.status === 'completed') {
             milestones.forEach(m => m.status = 'completed');
             milestones[1].time = order.shippedDate || '2 days ago';
             milestones[2].time = 'Yesterday, 10:00';
             milestones[3].time = 'Yesterday, 14:00';
-            milestones[4].time = order.completedDate || 'Today, 11:30';
-            milestones[4].description = 'Package has been successfully handed over.';
         }
 
         return milestones;
