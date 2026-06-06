@@ -62,7 +62,7 @@ namespace BookBlossom.Infrastructure.Services
                 Weight = request.Weight,
                 UnitsInStock = request.UnitsInStock,
                 ReservedQuantity = 0, // Mặc định sách mới nhập chưa ai giữ chỗ
-                IsContinued = true    // Mặc định cho phép hiển thị kinh doanh công khai
+                IsContinued = request.IsContinued
             };
 
             // Thêm các tác giả
@@ -283,6 +283,7 @@ namespace BookBlossom.Infrastructure.Services
             book.Price = request.Price;
             book.Weight = request.Weight;
             book.UnitsInStock = request.UnitsInStock;
+            book.IsContinued = request.IsContinued;
 
             // Xử lý lưu ảnh bìa mới nếu có tải lên
             if (request.BookImages != null && request.BookImages.Any())

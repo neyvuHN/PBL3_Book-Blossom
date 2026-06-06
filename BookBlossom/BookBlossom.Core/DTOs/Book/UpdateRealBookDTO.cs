@@ -38,5 +38,7 @@ namespace BookBlossom.Core.DTOs.Book
         public List<IFormFile>? BookImages { get; set; }
 
         public string? Authors { get; set; }
+
+        public bool IsContinued { get; set; }
     }
 }
