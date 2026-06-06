@@ -136,16 +136,29 @@
             };
         }
 
-        renderBooks(books) {
+        renderBooks(books, append = false) {
             const $grid = $(this.selectors.bookGrid);
-            $grid.empty();
+            
+            if (!append) {
+                this.filteredBooks = books || [];
+                this.currentPage = 1;
+                this.pageSize = 20;
+                $grid.empty();
+            } else {
+                this.currentPage++;
+            }
 
-            if (!books || books.length === 0) {
+            const startIndex = (this.currentPage - 1) * this.pageSize;
+            const endIndex = this.currentPage * this.pageSize;
+            const booksToRender = this.filteredBooks.slice(startIndex, endIndex);
+
+            if (!append && this.filteredBooks.length === 0) {
                 $grid.append('<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #777;">No books found matching your criteria.</div>');
+                $('#load-more-explore-container').remove();
                 return;
             }
 
-            books.forEach((book) => {
+            booksToRender.forEach((book) => {
                 let mainImg = `/images/Book/book${(book.bookID % 6) + 1}.jpg`;
                 if (book.imageUrls && book.imageUrls.length > 0) {
                     mainImg = book.imageUrls[0];
@@ -169,6 +182,23 @@
                 `;
                 $grid.append(html);
             });
+
+            $('#load-more-explore-container').remove();
+            if (endIndex < this.filteredBooks.length) {
+                const loadMoreHtml = `
+                    <div id="load-more-explore-container" style="grid-column: 1/-1; text-align: center; margin-top: 30px;">
+                        <button id="btn-load-more-explore" style="background-color: #C2185B; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                            Load More
+                        </button>
+                    </div>
+                `;
+                $grid.append(loadMoreHtml);
+
+                $('#btn-load-more-explore').off('click.loadMore').on('click.loadMore', (e) => {
+                    e.preventDefault();
+                    this.renderBooks(this.filteredBooks, true);
+                });
+            }
         }
 
         normalizeText(text) {

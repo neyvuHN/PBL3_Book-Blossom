@@ -46,21 +46,37 @@
         }
     }
 
-    function renderBlindBooks(books) {
-        const grid = $('#blind-date-grid');
-        grid.empty();
+    let currentFilteredBlindBooks = [];
+    let currentBlindPage = 1;
+    const blindPageSize = 20;
 
-        if (books.length === 0) {
+    function renderBlindBooks(books, append = false) {
+        const grid = $('#blind-date-grid');
+        
+        if (!append) {
+            currentFilteredBlindBooks = books || [];
+            currentBlindPage = 1;
+            grid.empty();
+        } else {
+            currentBlindPage++;
+        }
+
+        const startIndex = (currentBlindPage - 1) * blindPageSize;
+        const endIndex = currentBlindPage * blindPageSize;
+        const booksToRender = currentFilteredBlindBooks.slice(startIndex, endIndex);
+
+        if (!append && currentFilteredBlindBooks.length === 0) {
             grid.html(`
                 <div class="empty-state text-center" style="grid-column: 1 / -1; padding: 50px; color: #a291b5;">
                     <i class="fas fa-search fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
                     <p style="font-size: 1.1rem; font-weight: 600;">No mystery books match your current filters.</p>
                 </div>
             `);
+            $('#load-more-blind-container').remove();
             return;
         }
 
-        books.forEach((book, index) => {
+        booksToRender.forEach((book, index) => {
             const imgId = (book.blindBookID % 5) + 1;
             const fallbackImg = `/images/BlindDateBook/BlindBook${imgId}.jpg`;
             // Ưu tiên ảnh thật từ DB (imagePaths đã sort theo SortOrder từ API)
@@ -93,6 +109,23 @@
             `;
             grid.append(cardHtml);
         });
+
+        $('#load-more-blind-container').remove();
+        if (endIndex < currentFilteredBlindBooks.length) {
+            const loadMoreHtml = `
+                <div id="load-more-blind-container" style="grid-column: 1/-1; text-align: center; margin-top: 30px;">
+                    <button id="btn-load-more-blind" style="background-color: #a291b5; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                        Load More
+                    </button>
+                </div>
+            `;
+            grid.append(loadMoreHtml);
+
+            $('#btn-load-more-blind').off('click.loadMore').on('click.loadMore', (e) => {
+                e.preventDefault();
+                renderBlindBooks(currentFilteredBlindBooks, true);
+            });
+        }
     }
 
     function handleInitialHash() {
