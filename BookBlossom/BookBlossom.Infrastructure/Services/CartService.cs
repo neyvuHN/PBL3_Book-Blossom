@@ -44,6 +44,7 @@ namespace BookBlossom.Infrastructure.Services
                 CartID = c.CartID,
                 BookID = c.BookID,
                 BlindBookID = c.BlindBookID,
+                CategoryID = c.BookID.HasValue ? c.Book?.CategoryID : c.BlindBook?.RealBook?.CategoryID,
                 Title = c.BookID.HasValue 
                     ? (c.Book?.Title ?? "Unknown Book") 
                     : (c.BlindBook != null ? $"Blind Book ({c.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}) - {c.BlindBook.Hashtags}" : "Unknown Blind Book"),
@@ -148,6 +149,7 @@ namespace BookBlossom.Infrastructure.Services
                 CartID = existingCartItem.CartID,
                 BookID = existingCartItem.BookID,
                 BlindBookID = existingCartItem.BlindBookID,
+                CategoryID = request.BookID.HasValue ? addedBook?.CategoryID : addedBlindBook?.RealBook?.CategoryID,
                 Title = request.BookID.HasValue 
                     ? (addedBook?.Title ?? "Unknown Book") 
                     : (addedBlindBook != null ? $"Blind Book ({addedBlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}) - {addedBlindBook.Hashtags}" : "Unknown Blind Book"),
@@ -196,6 +198,7 @@ namespace BookBlossom.Infrastructure.Services
                 CartID = cartItem.CartID,
                 BookID = cartItem.BookID,
                 BlindBookID = cartItem.BlindBookID,
+                CategoryID = cartItem.BookID.HasValue ? cartItem.Book?.CategoryID : cartItem.BlindBook?.RealBook?.CategoryID,
                 Title = cartItem.BookID.HasValue 
                     ? (cartItem.Book?.Title ?? "Unknown Book") 
                     : (cartItem.BlindBook != null ? $"Blind Book ({cartItem.BlindBook.RealBook?.Category?.CategoryName ?? "Unknown"}) - {cartItem.BlindBook.Hashtags}" : "Unknown Blind Book"),

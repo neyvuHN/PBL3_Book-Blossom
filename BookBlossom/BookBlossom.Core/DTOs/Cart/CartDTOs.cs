@@ -7,6 +7,7 @@ namespace BookBlossom.Core.DTOs.Cart
         public long CartID { get; set; }
         public long? BookID { get; set; }
         public long? BlindBookID { get; set; }
+        public long? CategoryID { get; set; }
         public string? Title { get; set; }
         public decimal Price { get; set; }
         public int Quantity { get; set; }

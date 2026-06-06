@@ -43,7 +43,8 @@
             limit: null,
             author: 'BookBlossom Edition',
             bookID: bookId,
-            blindBookID: blindBookId
+            blindBookID: blindBookId,
+            categoryID: apiItem.categoryID || apiItem.CategoryID || null
         };
     }
 
