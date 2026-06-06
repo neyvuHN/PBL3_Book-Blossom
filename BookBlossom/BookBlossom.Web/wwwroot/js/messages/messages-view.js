@@ -170,7 +170,7 @@ class MessagesView {
                 bubble = `
                     <div class="msg-bubble-group incoming" id="chat-msg-${msgId}">
                         <div class="msg-avatar-container">
-                            <img src="${msg.senderAvatar}" alt="${msg.senderName}" class="msg-avatar">
+                            <img src="/images/avatar/BookBlossom.png" alt="${msg.senderName}" class="msg-avatar" style="transform: scale(1.3); object-fit: cover;">
                         </div>
                         <div class="msg-bubble-content">
                             <div class="msg-text-bubble">
