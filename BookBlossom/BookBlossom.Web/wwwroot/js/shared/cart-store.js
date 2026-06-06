@@ -36,7 +36,7 @@
             qty: apiItem.quantity,
             condition: isBlind ? 'New Curated' : 'Like New',
             // Default images since API doesn't provide them yet
-            img: isBlind ? '/images/BlindDateBook/BlindBook.jpg' : '/images/Book/book1.jpg',
+            img: apiItem.imageUrl || apiItem.image || (isBlind ? '/images/BlindDateBook/BlindBook.jpg' : '/images/Book/book1.jpg'),
             selected: true, // Default to selected when loaded
             isBlind: isBlind,
             hashtags: isBlind ? ['Mystery'] : [],

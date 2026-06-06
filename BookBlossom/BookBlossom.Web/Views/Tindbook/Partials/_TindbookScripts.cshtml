@@ -59,7 +59,7 @@
                     // Correct image fallbacks
                     const imgUrl = isBlind 
                         ? '/images/BlindDateBook/BlindBook.jpg' 
-                        : `/images/Book/cover_${bookId}.jpg`;
+                        : (book.imageUrl || `/images/Book/cover_${bookId}.jpg`);
                         
                     const genreTag = book.categoryName || 'Sách Hay';
                     const priceFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.price);

@@ -250,7 +250,7 @@ namespace BookBlossom.Infrastructure.Services
             // Lọc đơn hàng theo chính CustomerID để đảm bảo bảo mật dữ liệu khách hàng
             var query = _context.Set<Order>()
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.RealBook)
+                    .ThenInclude(od => od.RealBook).ThenInclude(rb => rb.BookImages)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .Include(o => o.Reviews)
@@ -316,7 +316,7 @@ namespace BookBlossom.Infrastructure.Services
                         Quantity = od.Quantity,
                         Discount = od.Discount ?? 0,
                         TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
-                        SampleFilePath = od.RealBook?.SampleFilePath,
+                        SampleFilePath = od.RealBook != null ? (od.RealBook.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? od.RealBook.BookImages.FirstOrDefault()?.ImagePath) : null,
                         ISBN = od.RealBook?.ISBN ?? string.Empty,
                         Publisher = od.RealBook?.Publisher ?? string.Empty,
                         VoucherBreakdown = od.VoucherBreakdown
@@ -329,7 +329,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             var order = await _context.Set<Order>()
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.RealBook)
+                    .ThenInclude(od => od.RealBook).ThenInclude(rb => rb.BookImages)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .Include(o => o.Reviews)
@@ -388,7 +388,7 @@ namespace BookBlossom.Infrastructure.Services
                     Quantity = od.Quantity,
                     Discount = od.Discount ?? 0,
                     TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
-                    SampleFilePath = od.RealBook?.SampleFilePath,
+                    SampleFilePath = od.RealBook != null ? (od.RealBook.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? od.RealBook.BookImages.FirstOrDefault()?.ImagePath) : null,
                     ISBN = od.RealBook?.ISBN ?? string.Empty,
                     Publisher = od.RealBook?.Publisher ?? string.Empty,
                     VoucherBreakdown = od.VoucherBreakdown
@@ -551,7 +551,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             var query = _context.Set<Order>()
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.RealBook)
+                    .ThenInclude(od => od.RealBook).ThenInclude(rb => rb.BookImages)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .AsQueryable();
@@ -604,7 +604,7 @@ namespace BookBlossom.Infrastructure.Services
                     Quantity = od.Quantity,
                     Discount = od.Discount ?? 0,
                     TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
-                    SampleFilePath = od.RealBook?.SampleFilePath,
+                    SampleFilePath = od.RealBook != null ? (od.RealBook.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? od.RealBook.BookImages.FirstOrDefault()?.ImagePath) : null,
                     ISBN = od.RealBook?.ISBN ?? string.Empty,
                     Publisher = od.RealBook?.Publisher ?? string.Empty,
                     VoucherBreakdown = od.VoucherBreakdown
@@ -616,7 +616,7 @@ namespace BookBlossom.Infrastructure.Services
         {
             var order = await _context.Set<Order>()
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.RealBook)
+                    .ThenInclude(od => od.RealBook).ThenInclude(rb => rb.BookImages)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.BlindBook).ThenInclude(b => b.RealBook).ThenInclude(r => r.Category)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId);
@@ -659,7 +659,7 @@ namespace BookBlossom.Infrastructure.Services
                     Quantity = od.Quantity,
                     Discount = od.Discount ?? 0,
                     TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
-                    SampleFilePath = od.RealBook?.SampleFilePath,
+                    SampleFilePath = od.RealBook != null ? (od.RealBook.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? od.RealBook.BookImages.FirstOrDefault()?.ImagePath) : null,
                     ISBN = od.RealBook?.ISBN ?? string.Empty,
                     Publisher = od.RealBook?.Publisher ?? string.Empty,
                     VoucherBreakdown = od.VoucherBreakdown

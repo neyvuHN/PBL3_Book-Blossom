@@ -27,7 +27,7 @@ namespace BookBlossom.Infrastructure.Services
             if (!userId.HasValue && (categoryIds == null || !categoryIds.Any()))
                 categoryIds = await _context.Categories.OrderBy(c => Guid.NewGuid()).Take(3).Select(c => c.CategoryID).ToListAsync();
 
-            return await _context.RealBooks.Include(b => b.Category)
+            return await _context.RealBooks.Include(b => b.Category).Include(b => b.BookImages)
                 .Where(b => categoryIds != null && categoryIds.Contains(b.CategoryID))
                 .OrderBy(b => Guid.NewGuid()).Take(count)
                 .Select(b => new BookResponseDTO {
@@ -36,7 +36,8 @@ namespace BookBlossom.Infrastructure.Services
                     CategoryName = b.Category != null ? b.Category.CategoryName : "",
                     Title = b.Title, 
                     Description = b.Description, 
-                    Price = b.Price
+                    Price = b.Price,
+                    ImageUrl = b.BookImages.OrderByDescending(i => i.IsMain).Select(i => i.ImagePath).FirstOrDefault()
                 }).ToListAsync();
         }
 
@@ -131,7 +132,7 @@ namespace BookBlossom.Infrastructure.Services
             bool isFirstTime = totalSwipes == 0 && userPreferenceCategoryIds.Any();
 
             // 5. Luồng 1: Lấy RealBooks thường
-            var realBooksQuery = _context.RealBooks.Include(b => b.Category)
+            var realBooksQuery = _context.RealBooks.Include(b => b.Category).Include(b => b.BookImages)
                 .Where(b => !swipedBookIds.Contains(b.BookID) 
                          && b.BlindBook == null
                          && !blockedCategoryIds.Contains(b.CategoryID));
@@ -150,6 +151,7 @@ namespace BookBlossom.Infrastructure.Services
                 Publisher = b.Publisher,
                 Price = b.Price,
                 Description = b.Description,
+                ImageUrl = b.BookImages.OrderByDescending(i => i.IsMain).Select(i => i.ImagePath).FirstOrDefault(),
                 Priority = userPreferenceCategoryIds.Contains(b.CategoryID) ? 1 : 2
             });
 
@@ -173,6 +175,7 @@ namespace BookBlossom.Infrastructure.Services
                 Publisher = "Nhà xuất bản Bí Ẩn",
                 Price = b.Price,
                 Description = (string?)("💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\""),
+                ImageUrl = (string?)null,
                 Priority = (b.RealBook != null && userPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
             });
 
@@ -192,7 +195,8 @@ namespace BookBlossom.Infrastructure.Services
                 Title = x.Title,
                 Publisher = x.Publisher,
                 Price = x.Price,
-                Description = x.Description
+                Description = x.Description,
+                ImageUrl = x.ImageUrl
             });
         }
 
@@ -475,7 +479,7 @@ namespace BookBlossom.Infrastructure.Services
             bool isFirstTime = totalGuestSwipes == 0 && guestPreferenceCategoryIds.Any();
 
             // 5. Luồng RealBooks cho Guest
-            var realBooksQuery = _context.RealBooks.Include(b => b.Category)
+            var realBooksQuery = _context.RealBooks.Include(b => b.Category).Include(b => b.BookImages)
                 .Where(b => !swipedBookIds.Contains(b.BookID) 
                          && b.BlindBook == null
                          && !blockedCategoryIds.Contains(b.CategoryID));
@@ -494,6 +498,7 @@ namespace BookBlossom.Infrastructure.Services
                 Publisher = b.Publisher,
                 Price = b.Price,
                 Description = b.Description,
+                ImageUrl = b.BookImages.OrderByDescending(i => i.IsMain).Select(i => i.ImagePath).FirstOrDefault(),
                 Priority = guestPreferenceCategoryIds.Contains(b.CategoryID) ? 1 : 2
             });
 
@@ -517,6 +522,7 @@ namespace BookBlossom.Infrastructure.Services
                 Publisher = "Nhà xuất bản Bí Ẩn",
                 Price = b.Price,
                 Description = (string?)("💡 Gợi ý về sách: " + b.Keywords + "\n\n📖 Trích dẫn hay: \"" + b.Quotes + "\""),
+                ImageUrl = (string?)null,
                 Priority = (b.RealBook != null && guestPreferenceCategoryIds.Contains(b.RealBook.CategoryID)) ? 1 : 2
             });
 
@@ -536,7 +542,8 @@ namespace BookBlossom.Infrastructure.Services
                 Title = x.Title,
                 Publisher = x.Publisher,
                 Price = x.Price,
-                Description = x.Description
+                Description = x.Description,
+                ImageUrl = x.ImageUrl
             });
         }
 

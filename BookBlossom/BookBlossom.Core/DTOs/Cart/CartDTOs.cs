@@ -12,6 +12,7 @@ namespace BookBlossom.Core.DTOs.Cart
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public DateTime AddedAt { get; set; }
+        public string? ImageUrl { get; set; }
         public decimal LineTotal => Price * Quantity;
     }
 
