@@ -93,11 +93,42 @@ class MessagesView {
             this.$chatStream.empty();
         }
         
+        let lastDateString = null;
+        if (append && this.$chatStream.find('.date-separator').length > 0) {
+            lastDateString = this.$chatStream.find('.date-separator').last().attr('data-date');
+        }
+        
         messages.forEach(msg => {
             const msgId = msg.messageID || msg.messageId;
             if (append && this.$chatStream.find(`#chat-msg-${msgId}`).length > 0) {
                 return;
             }
+            
+            let msgDate = new Date(msg.sentAt);
+            let dateString = msgDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            if (dateString !== lastDateString) {
+                let today = new Date();
+                let isToday = msgDate.getDate() === today.getDate() && msgDate.getMonth() === today.getMonth() && msgDate.getFullYear() === today.getFullYear();
+                
+                let yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                let isYesterday = msgDate.getDate() === yesterday.getDate() && msgDate.getMonth() === yesterday.getMonth() && msgDate.getFullYear() === yesterday.getFullYear();
+                
+                let displayDate = dateString;
+                if (isToday) displayDate = "Today";
+                else if (isYesterday) displayDate = "Yesterday";
+
+                let separatorHtml = `
+                    <div class="date-separator" data-date="${dateString}" style="text-align: center; margin: 20px 0; position: relative;">
+                        <span style="background: #fff; padding: 0 15px; font-size: 0.8rem; color: #888; font-weight: 600; position: relative; z-index: 1;">${displayDate}</span>
+                        <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.05); z-index: 0;"></div>
+                    </div>
+                `;
+                this.$chatStream.append(separatorHtml);
+                lastDateString = dateString;
+            }
+
             let bubble = '';
             let time = new Date(msg.sentAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             
