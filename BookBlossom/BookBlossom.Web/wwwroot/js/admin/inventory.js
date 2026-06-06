@@ -1,138 +1,4 @@
 function initInventorySetup() {
-    const addBookBtn = document.getElementById('btn-add-book');
-    const addBookModalElement = document.getElementById('addBookModal');
-    const addBookForm = document.getElementById('addBookForm');
-    const addBookModalLabel = document.getElementById('addBookModalLabel');
-    const searchBooksInput = document.getElementById('searchBooksInput');
-    let bookModal = null;
-    if (addBookModalElement) {
-        bookModal = new bootstrap.Modal(addBookModalElement);
-    }
-
-    // In-memory file array to manage uploaded images dynamically
-    let selectedBookImages = [];
-    const bookImagesInput = document.getElementById('bookImagesInput');
-    const bookImagesPreviewContainer = document.getElementById('bookImagesPreviewContainer');
-
-    function renderBookImagePreviews() {
-        if (!bookImagesPreviewContainer) return;
-        bookImagesPreviewContainer.innerHTML = "";
-
-        selectedBookImages.forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const wrapper = document.createElement('div');
-                wrapper.className = "image-preview-wrapper";
-
-                const img = document.createElement('img');
-                img.src = e.target.result;
-
-                const removeBtn = document.createElement('button');
-                removeBtn.type = "button";
-                removeBtn.className = "remove-btn";
-                removeBtn.innerHTML = "&times;";
-                removeBtn.addEventListener('click', function (event) {
-                    event.stopPropagation();
-                    selectedBookImages.splice(index, 1);
-                    renderBookImagePreviews();
-                });
-
-                wrapper.appendChild(img);
-                wrapper.appendChild(removeBtn);
-                bookImagesPreviewContainer.appendChild(wrapper);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        updateInputFiles();
-    }
-
-    function updateInputFiles() {
-        if (!bookImagesInput) return;
-        const dt = new DataTransfer();
-        selectedBookImages.forEach(file => dt.items.add(file));
-        bookImagesInput.files = dt.files;
-    }
-
-    if (bookImagesInput) {
-        bookImagesInput.addEventListener('change', function () {
-            for (let i = 0; i < this.files.length; i++) {
-                selectedBookImages.push(this.files[i]);
-            }
-            renderBookImagePreviews();
-        });
-    }
-
-    if (addBookBtn) {
-        addBookBtn.addEventListener('click', function () {
-            // Reset form for ADDING new book
-            addBookForm.reset();
-            selectedBookImages = [];
-            if (bookImagesPreviewContainer) bookImagesPreviewContainer.innerHTML = "";
-
-            // Hide current cover image container when adding
-            const currentBookCoverContainer = document.getElementById('currentBookCoverContainer');
-            if (currentBookCoverContainer) currentBookCoverContainer.style.display = 'none';
-
-            addBookForm.action = "/Admin/AddBook";
-            addBookForm.dataset.mode = 'add';
-            delete addBookForm.dataset.bookId;
-            addBookForm.dataset.reserved = '0';
-            addBookModalLabel.innerText = "Add New Book";
-            if (bookImagesInput) bookImagesInput.required = true; // Required for new book
-            bookModal.show();
-        });
-    }
-
-    // Handle Edit Book Button clicks
-    document.querySelectorAll('.btn-edit-book').forEach(btn => {
-        btn.addEventListener('click', function () {
-            // Fill values from data attributes
-            document.getElementById('bookTitle').value = this.dataset.title;
-            document.getElementById('bookCategory').value = this.dataset.category;
-            document.getElementById('bookPublisher').value = this.dataset.publisher || '';
-            document.getElementById('bookIsbn').value = this.dataset.isbn || '';
-            document.getElementById('bookPublishYear').value = this.dataset.publishyear || '';
-            document.getElementById('bookPrice').value = this.dataset.price;
-            document.getElementById('bookWeight').value = this.dataset.weight || '';
-            document.getElementById('bookStock').value = this.dataset.stock;
-            document.getElementById('bookDescription').value = this.dataset.description || '';
-            document.getElementById('bookAuthors').value = this.dataset.authors || '';
-
-            const isContinuedChecked = this.dataset.iscontinued === 'true';
-            document.getElementById('isContinued').checked = isContinuedChecked;
-
-            // Reset image selections on edit
-            selectedBookImages = [];
-            if (bookImagesPreviewContainer) bookImagesPreviewContainer.innerHTML = "";
-            if (bookImagesInput) {
-                bookImagesInput.required = false;
-                bookImagesInput.value = "";
-            }
-
-            // Display current cover image inside edit form
-            const currentBookCoverContainer = document.getElementById('currentBookCoverContainer');
-            const currentBookCoverImg = document.getElementById('currentBookCoverImg');
-            if (currentBookCoverContainer && currentBookCoverImg) {
-                const mainImage = this.dataset.mainimage;
-                if (mainImage) {
-                    currentBookCoverImg.src = mainImage;
-                    currentBookCoverContainer.style.display = 'block';
-                } else {
-                    currentBookCoverContainer.style.display = 'none';
-                }
-            }
-
-            // Update form action and modal header
-            addBookForm.action = `/Admin/EditBook?id=${this.dataset.bookId}`;
-            addBookForm.dataset.mode = 'edit';
-            addBookForm.dataset.bookId = this.dataset.bookId;
-            addBookForm.dataset.reserved = this.dataset.reserved || '0';
-            addBookModalLabel.innerText = "Edit Book";
-
-            bookModal.show();
-        });
-    });
 
     const addCategoryBtn = document.getElementById('btn-add-category');
     const addCategoryModalElement = document.getElementById('addCategoryModal');
@@ -391,7 +257,9 @@ function initInventorySetup() {
                 const result = await window.apiClient.apiDelete(url);
                 const modal = getSafeModal(document.getElementById('deleteConfirmModal'));
                 if (modal) modal.hide();
-                loadInventoryBooks();
+                if (window.bookController) {
+                    window.bookController.loadBooks();
+                }
                 loadInventoryCategories();
 
                 if (window.apiClient) {
@@ -406,67 +274,7 @@ function initInventorySetup() {
 
     // Real book restock workflow removed
 
-    if (addBookForm) {
-        addBookForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const fileInput = document.querySelector('input[name="SampleFile"]');
-            if (fileInput && fileInput.files.length > 0) {
-                if (fileInput.files[0].size > 10 * 1024 * 1024) {
-                    alert("Error: Sample PDF file size cannot exceed 10MB!");
-                    return;
-                }
-            }
-
-            const priceVal = parseFloat(document.getElementById('bookPrice').value);
-            if (priceVal <= 0) {
-                alert("Error: Book price must be greater than 0!");
-                return;
-            }
-
-            const stockVal = parseInt(document.getElementById('bookStock').value);
-            const reservedVal = parseInt(this.dataset.reserved || '0');
-            const mode = this.dataset.mode || 'add';
-
-            if (mode === 'edit' && stockVal < reservedVal) {
-                alert(`Error: New stock quantity (${stockVal}) cannot be less than the reserved quantity (${reservedVal})!`);
-                return;
-            }
-
-            const formData = new FormData(this);
-            const bookId = this.dataset.bookId;
-            const url = mode === 'edit' ? `/api/realbook/${bookId}` : '/api/realbook';
-            const method = mode === 'edit' ? 'PUT' : 'POST';
-
-            const submitBtn = document.querySelector(`button[form="addBookForm"]`);
-            let originalBtnText = "Save Book";
-            if (submitBtn) {
-                originalBtnText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
-                submitBtn.disabled = true;
-            }
-
-            try {
-                const result = await window.apiClient.apiUpload(url, formData, method);
-                const modal = getSafeModal(addBookModalElement);
-                if (modal) modal.hide();
-                loadInventoryBooks();
-                loadInventoryCategories();
-
-                if (window.apiClient) {
-                    window.apiClient.showToast("Saved book details successfully!", "success");
-                }
-            } catch (error) {
-                console.error("Save Book Error:", error);
-                alert("Error: " + error.message);
-            } finally {
-                if (submitBtn) {
-                    submitBtn.innerHTML = originalBtnText;
-                    submitBtn.disabled = false;
-                }
-            }
-        });
-    }
+    // Book Form submit logic removed and handled by book-controller.js
 
     const addCategoryFormElement = document.getElementById('addCategoryForm');
     if (addCategoryFormElement) {
@@ -539,17 +347,7 @@ function getSafeModal(element) {
 
 function initInventoryData() {
     // Tải dữ liệu ban đầu
-    loadInventoryBooks(true);
     loadInventoryCategories(true);
-
-    // Lắng nghe sự kiện thay đổi trên các ô Search và Filter của Sách
-    const searchInput = document.getElementById('searchBooksInput');
-    const categoryFilter = document.getElementById('filterCategory');
-    const statusFilter = document.getElementById('filterBookStatus');
-
-    if (searchInput) searchInput.addEventListener('input', debounce(() => loadInventoryBooks(false), 500));
-    if (categoryFilter) categoryFilter.addEventListener('change', () => loadInventoryBooks(false));
-    if (statusFilter) statusFilter.addEventListener('change', () => loadInventoryBooks(false));
 }
 
 // Hàm hỗ trợ delay việc gọi API khi đang gõ chữ
@@ -559,129 +357,6 @@ function debounce(func, delay) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), delay);
     };
-}
-
-// 1. TẢI DANH SÁCH SÁCH TỪ API THẬT
-async function loadInventoryBooks(isInitial = false) {
-    const tbody = document.getElementById('booksTableBody');
-    if (!tbody) return;
-
-    const searchTerm = document.getElementById('searchBooksInput')?.value || '';
-    const category = document.getElementById('filterCategory')?.value || '';
-    const filterStatus = document.getElementById('filterBookStatus')?.value || '';
-
-    // Check if we already have rows from SWR cache
-    const hasExistingData = tbody.children.length > 0 && !tbody.querySelector('.spinner-border') && !tbody.querySelector('.text-muted');
-    if (!isInitial || !hasExistingData) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading book inventory data from API...</div></td></tr>';
-    }
-
-    try {
-        // Calling API including discontinued books (includeDiscontinued=true)
-        const url = `/api/realbook?searchTerm=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&includeDiscontinued=true`;
-
-        let books = await window.apiClient.apiGet(url);
-
-        // Client-side filtering by status
-        if (filterStatus) {
-            books = books.filter(book => {
-                if (filterStatus === 'Discontinued') return !book.isContinued;
-                if (filterStatus === 'Out of Stock') return book.isContinued && book.unitsInStock === 0;
-                if (filterStatus === 'Low Stock') return book.isContinued && book.unitsInStock > 0 && book.unitsInStock < 15;
-                if (filterStatus === 'In Stock') return book.isContinued && book.unitsInStock >= 15;
-                return true;
-            });
-        }
-
-        tbody.innerHTML = '';
-
-        if (books.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No books found matching the filter criteria.</td></tr>';
-            return;
-        }
-
-        let htmlContent = '';
-        books.forEach(book => {
-            let stockBadgeHtml = '';
-            if (!book.isContinued) {
-                stockBadgeHtml = '<span class="badge bg-secondary status-badge">Discontinued</span>';
-            } else if (book.unitsInStock === 0) {
-                stockBadgeHtml = '<span class="badge bg-danger status-badge">Out of Stock</span>';
-            } else if (book.unitsInStock > 0 && book.unitsInStock < 15) {
-                stockBadgeHtml = '<span class="badge bg-warning text-dark status-badge">Low Stock</span>';
-            } else {
-                stockBadgeHtml = '<span class="badge bg-success status-badge">In Stock</span>';
-            }
-
-            const imgUrl = `/images/Book/cover_${book.bookID}.jpg`;
-            const formattedPrice = new Intl.NumberFormat('vi-VN').format(book.price) + ' ₫';
-
-            htmlContent += `
-                <tr>
-                    <td class="align-middle text-muted">${book.bookID}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <img src="${imgUrl}" class="rounded shadow-sm me-3" style="width: 45px; height: 60px; object-fit: cover;" onerror="this.onerror=null; this.src='/images/Book/book${(book.bookID % 6) + 1}.jpg';"/>
-                            <div>
-                                <div class="fw-bold text-dark text-truncate" style="max-width: 250px;" title="${book.title}">${book.title}</div>
-                                <div class="text-muted small">ISBN: ${book.isbn} | Tác giả: ${book.authors || 'N/A'}</div>
-                                <div class="book-authors-list text-muted small" title="${book.publisher || ''}">Publisher: ${book.publisher || 'N/A'}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="align-middle">${book.categoryName}</td>
-                    <td class="align-middle fw-bold ${book.unitsInStock === 0 ? 'text-danger' : ''}">${book.unitsInStock}</td>
-                    <td class="align-middle">${book.reservedQuantity}</td>
-                    <td class="align-middle text-danger fw-semibold">${formattedPrice}</td>
-                    <td class="align-middle">${stockBadgeHtml}</td>
-                    <td class="align-middle text-end text-nowrap">
-                        <button class="btn btn-sm btn-outline-danger btn-action-sm btn-create-blind-date me-1" 
-                                data-book-id="${book.bookID}"
-                                data-title="${book.title.replace(/"/g, '&quot;')}"
-                                data-price="${book.price}"
-                                data-stock="${book.unitsInStock}"
-                                data-reserved="${book.reservedQuantity}"
-                                data-mainimage="${imgUrl}"
-                                data-category-name="${book.categoryName}"
-                                title="Create Blind Date Package">
-                            <i class="ph ph-heart"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-primary btn-action-sm btn-edit-book me-1" 
-                                data-book-id="${book.bookID}"
-                                data-title="${book.title.replace(/"/g, '&quot;')}"
-                                data-category="${book.categoryID}"
-                                data-publisher="${book.publisher || ''}"
-                                data-isbn="${book.isbn}"
-                                data-publishyear="${book.publishYear}"
-                                data-price="${book.price}"
-                                data-weight="${book.weight}"
-                                data-stock="${book.unitsInStock}"
-                                data-reserved="${book.reservedQuantity}"
-                                data-description="${book.description || ''}"
-                                data-iscontinued="${book.isContinued}"
-                                data-authors="${(book.authors || '').replace(/"/g, '&quot;')}"
-                                data-mainimage="${imgUrl}"
-                                title="Edit Book">
-                            <i class="ph ph-pencil-simple"></i>
-                        </button>
-                        <button class="btn btn-sm ${book.isContinued ? 'btn-outline-danger' : 'btn-outline-success'} btn-action-sm btn-delete-item" 
-                                data-url="/api/realbook/${book.bookID}" 
-                                data-title="${book.isContinued ? 'Discontinue selling book?' : 'Resume selling book?'}" 
-                                data-message="Are you sure you want to ${book.isContinued ? 'discontinue' : 'resume'} selling this book?"
-                                title="${book.isContinued ? 'Discontinue Selling' : 'Resume Selling'}">
-                            <i class="ph ${book.isContinued ? 'ph-minus-circle' : 'ph-check-circle'}"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = htmlContent;
-
-    } catch (error) {
-        console.error("Error loading books:", error);
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">An error occurred while loading book data.</td></tr>`;
-    }
 }
 
 // 2. LOAD CATEGORIES LIST FROM REAL API

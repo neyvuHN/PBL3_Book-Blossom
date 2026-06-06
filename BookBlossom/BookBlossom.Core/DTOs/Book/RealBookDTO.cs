@@ -30,5 +30,7 @@ namespace BookBlossom.Core.DTOs.Book
 
         public string? Authors { get; set; }
         public int SoldCount { get; set; }
+        
+        public List<string> ImageUrls { get; set; } = new List<string>();
     }
 }

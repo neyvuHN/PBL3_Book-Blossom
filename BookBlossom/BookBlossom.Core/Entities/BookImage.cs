@@ -29,6 +29,6 @@ namespace BookBlossom.Core.Entities
 
         // Navigation Property
         [ForeignKey("BookID")]
-        public virtual Book RealBook { get; set; } = null!;
+        public virtual RealBook RealBook { get; set; } = null!;
     }
 }

@@ -20,8 +20,9 @@ public class RealBook
    public int ReservedQuantity {get; set; } 
    public bool IsContinued {get; set; }
 
-   [ForeignKey("CategoryID")]
+    [ForeignKey("CategoryID")]
     public virtual Category Category { get; set; } 
     public virtual BlindBook? BlindBook {get; set; }
     public virtual ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
+    public virtual ICollection<BookImage> BookImages { get; set; } = new List<BookImage>();
 }

@@ -270,7 +270,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Sample File (Optional)</label>
-                            <input type="file" name="SampleFile" class="form-control">
+                            <input type="file" name="SampleFile" class="form-control" id="sampleFileInput">
+                            <div id="currentSampleFileContainer" class="mt-2 text-muted small" style="display: none;"></div>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Book Images</label>
@@ -424,6 +425,10 @@
 
 @section Scripts {
     <script src="~/js/admin/inventory.js" asp-append-version="true"></script>
+    <script src="~/js/admin/inventory/books/book-model.js" asp-append-version="true"></script>
+    <script src="~/js/admin/inventory/books/book-view.js" asp-append-version="true"></script>
+    <script src="~/js/admin/inventory/books/book-controller.js" asp-append-version="true"></script>
+    
     <script src="~/js/admin/inventory/blind-date/blind-date-model.js" asp-append-version="true"></script>
     <script src="~/js/admin/inventory/blind-date/blind-date-view.js" asp-append-version="true"></script>
     <script src="~/js/admin/inventory/blind-date/blind-date-controller.js" asp-append-version="true"></script>
@@ -440,6 +445,13 @@
             initInventoryData();
         } catch (e) {
             console.error("Error initializing inventory data:", e);
+        }
+
+        // Khởi tạo MVC cho tính năng Sách (Real Books)
+        try {
+            initBookMVC();
+        } catch (e) {
+            console.error("Error initializing Book MVC:", e);
         }
 
         // Khởi tạo MVC cho tính năng Blind Date

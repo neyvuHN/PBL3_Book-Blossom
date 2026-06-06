@@ -91,21 +91,37 @@ namespace BookBlossom.Infrastructure.Services
 
             if (success)
             {
-                // Save cover image if uploaded
+                // Save cover images if uploaded
                 if (request.BookImages != null && request.BookImages.Any())
                 {
-                    var file = request.BookImages.First();
-                    if (file.Length > 0)
-                    {
-                        var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "Book");
-                        if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
+                    var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "Book");
+                    if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
 
-                        var filePath = Path.Combine(bookImagesFolder, $"cover_{realBook.BookID}.jpg");
-                        using (var stream = new FileStream(filePath, FileMode.Create))
+                    int index = 0;
+                    foreach (var file in request.BookImages)
+                    {
+                        if (file.Length > 0)
                         {
-                            await file.CopyToAsync(stream);
+                            string fileName = index == 0 ? $"cover_{realBook.BookID}.jpg" : $"cover_{realBook.BookID}_{index}.jpg";
+                            var filePath = Path.Combine(bookImagesFolder, fileName);
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+                            
+                            _context.Set<BookImage>().Add(new BookImage
+                            {
+                                BookID = realBook.BookID,
+                                ImagePath = $"/images/Book/{fileName}",
+                                IsMain = index == 0,
+                                SortOrder = index,
+                                CreatedAt = DateTime.Now
+                            });
+                            
+                            index++;
                         }
                     }
+                    await _context.SaveChangesAsync();
                 }
 
                 try
@@ -271,16 +287,47 @@ namespace BookBlossom.Infrastructure.Services
             // Xử lý lưu ảnh bìa mới nếu có tải lên
             if (request.BookImages != null && request.BookImages.Any())
             {
-                var file = request.BookImages.First();
-                if (file.Length > 0)
-                {
-                    var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "Book");
-                    if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
+                var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "Book");
+                if (!Directory.Exists(bookImagesFolder)) Directory.CreateDirectory(bookImagesFolder);
 
-                    var filePath = Path.Combine(bookImagesFolder, $"cover_{id}.jpg");
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                // Xóa các ảnh cũ của sách này để tránh rác
+                var oldMainImage = Path.Combine(bookImagesFolder, $"cover_{id}.jpg");
+                if (File.Exists(oldMainImage)) File.Delete(oldMainImage);
+
+                var oldSubImages = Directory.GetFiles(bookImagesFolder, $"cover_{id}_*.jpg");
+                foreach (var oldFile in oldSubImages)
+                {
+                    File.Delete(oldFile);
+                }
+
+                var oldDbImages = await _context.Set<BookImage>().Where(i => i.BookID == id).ToListAsync();
+                if (oldDbImages.Any())
+                {
+                    _context.Set<BookImage>().RemoveRange(oldDbImages);
+                }
+
+                int index = 0;
+                foreach (var file in request.BookImages)
+                {
+                    if (file.Length > 0)
                     {
-                        await file.CopyToAsync(stream);
+                        string fileName = index == 0 ? $"cover_{id}.jpg" : $"cover_{id}_{index}.jpg";
+                        var filePath = Path.Combine(bookImagesFolder, fileName);
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                        
+                        _context.Set<BookImage>().Add(new BookImage
+                        {
+                            BookID = id,
+                            ImagePath = $"/images/Book/{fileName}",
+                            IsMain = index == 0,
+                            SortOrder = index,
+                            CreatedAt = DateTime.Now
+                        });
+                        
+                        index++;
                     }
                 }
             }
@@ -331,7 +378,7 @@ namespace BookBlossom.Infrastructure.Services
         // Hàm Map nội bộ từ Entity sang DTO để tránh lặp code mapping nhiều nơi
         private static RealBookDTO MapToDTO(RealBook b, int soldCount = 0)
         {
-            return new RealBookDTO
+            var dto = new RealBookDTO
             {
                 BookID = b.BookID,
                 CategoryID = b.CategoryID,
@@ -352,6 +399,33 @@ namespace BookBlossom.Infrastructure.Services
                     : string.Empty,
                 SoldCount = soldCount
             };
+
+            var bookImagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "Book");
+            if (Directory.Exists(bookImagesFolder))
+            {
+                var mainImagePath = Path.Combine(bookImagesFolder, $"cover_{b.BookID}.jpg");
+                if (File.Exists(mainImagePath))
+                {
+                    dto.ImageUrls.Add($"/images/Book/cover_{b.BookID}.jpg");
+                }
+                
+                int index = 1;
+                while (true)
+                {
+                    var subImagePath = Path.Combine(bookImagesFolder, $"cover_{b.BookID}_{index}.jpg");
+                    if (File.Exists(subImagePath))
+                    {
+                        dto.ImageUrls.Add($"/images/Book/cover_{b.BookID}_{index}.jpg");
+                        index++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return dto;
         }
 
         public async Task<bool> ReserveStockAsync(long bookId, int quantity)

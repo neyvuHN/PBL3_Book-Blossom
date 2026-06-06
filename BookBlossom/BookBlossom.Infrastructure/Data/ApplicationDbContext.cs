@@ -22,6 +22,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<GuestPreference> GuestPreferences {get; set; }
         public DbSet<Category> Categories {get; set; }
         public DbSet<RealBook> RealBooks {get; set; }
+        public DbSet<BookImage> BookImages { get; set; }
         public DbSet<Importing> Importings { get; set; }
         public DbSet<ImportingDetail> ImportingDetails { get; set; }
         public DbSet<Cart> Carts { get; set; }
