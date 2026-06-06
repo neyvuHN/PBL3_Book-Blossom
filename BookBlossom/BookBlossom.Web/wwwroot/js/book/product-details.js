@@ -297,11 +297,13 @@
         const fullBookLink = window.location.origin + activeBookHash;
         const discountPriceText = $('#detail-price').text();
 
+        const bookIdVal = bookData.bookID || bookData.id || '';
         const bookChatHref =
             `/Messages?title=${encodeURIComponent(bookData.title)}` +
             `&price=${encodeURIComponent(discountPriceText)}` +
             `&img=${encodeURIComponent(mainImage)}` +
-            `&link=${encodeURIComponent(fullBookLink)}`;
+            `&link=${encodeURIComponent(fullBookLink)}` +
+            `&id=${encodeURIComponent(bookIdVal)}`;
 
         $('#btn-detail-chat').attr('href', bookChatHref);
     }

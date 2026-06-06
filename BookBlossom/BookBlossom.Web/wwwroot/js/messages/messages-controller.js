@@ -95,6 +95,7 @@ class MessagesController {
         const paramPrice = urlParams.get('price');
         const paramImg = urlParams.get('img');
         const paramLink = urlParams.get('link');
+        const paramId = urlParams.get('id');
 
         if (paramTitle && paramPrice && paramImg) {
             // Update Context Bar UI dynamically
@@ -110,7 +111,7 @@ class MessagesController {
         if (paramTitle && paramImg && paramLink) {
             // Ensure no duplicate chip is attached
             if ($(`#tagged-books-preview .tagged-book-preview-chip[data-link="${paramLink}"]`).length === 0) {
-                this.view.addTaggedBookChip(paramTitle, paramImg, paramLink, "");
+                this.view.addTaggedBookChip(paramTitle, paramImg, paramLink, paramId || "");
             }
         }
     }

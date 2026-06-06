@@ -119,11 +119,13 @@
         const activeHash = `/BlindDate#blind-details-${encodeURIComponent(getBlindHashKey(blindBookData))}`;
         const fullLink = window.location.origin + activeHash;
 
+        const blindBookIdVal = blindBookData.blindBookID || blindBookData.blindBookId || blindBookData.id || '';
         const chatHref =
             `/Messages?title=${encodeURIComponent(title)}` +
             `&price=${encodeURIComponent(blindBookData.price || '120.000 VNĐ')}` +
             `&img=${encodeURIComponent(blindBookData.imgSrc || '/images/BlindDateBook/BlindBook.jpg')}` +
-            `&link=${encodeURIComponent(fullLink)}`;
+            `&link=${encodeURIComponent(fullLink)}` +
+            `&id=${encodeURIComponent(blindBookIdVal)}`;
 
         $('.btn-chat-owner').attr('href', chatHref);
     }
@@ -755,7 +757,12 @@
         let shippingFeeVnd = subtotalVnd > 0 ? 30000 : 0;
         const appliedVoucherLines = [];
 
-        selectedBlindVouchers.forEach(function (code) {
+        let selectedVouchers = [];
+        if (window.BookBlossomBlindDateVouchers && typeof window.BookBlossomBlindDateVouchers.getSelectedVouchers === 'function') {
+            selectedVouchers = Array.from(window.BookBlossomBlindDateVouchers.getSelectedVouchers());
+        }
+
+        selectedVouchers.forEach(function (code) {
             const voucher = (window.VOUCHERS_DATA || []).find(v => v.code === code);
             
             if (voucher) {

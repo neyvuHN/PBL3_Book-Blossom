@@ -309,6 +309,10 @@ const BlindVoucherController = {
             BlindVoucherView.showToast(`Mystery Voucher "${code}" removed.`);
         }
         BlindVoucherView.syncUI(BlindVoucherModel.selectedVouchers);
+    },
+
+    getSelectedVouchers: function() {
+        return BlindVoucherModel.selectedVouchers;
     }
 };
 
