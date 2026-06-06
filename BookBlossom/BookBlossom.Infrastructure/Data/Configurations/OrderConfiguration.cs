@@ -54,13 +54,7 @@ namespace BookBlossom.Infrastructure.Data.Configurations
             builder.HasIndex(o => o.OrderDate)
                    .HasDatabaseName("IX_Orders_OrderDate");
 
-            // 7. Cấu hình VoucherID (Nullable FK sang Voucher)
-            builder.Property(o => o.VoucherID);
-
-            builder.HasOne(o => o.Voucher)
-                   .WithMany(v => v.Orders)
-                   .HasForeignKey(o => o.VoucherID)
-                   .OnDelete(DeleteBehavior.Restrict);
+            // 7. (Removed VoucherID configuration as it uses OrderVoucher now)
         }
     }
 }

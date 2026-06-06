@@ -69,6 +69,7 @@ namespace BookBlossom.Core.DTOs
         public string? SampleFilePath { get; set; }
         public string ISBN { get; set; } = string.Empty;
         public string Publisher { get; set; } = string.Empty;
+        public string? VoucherBreakdown { get; set; } // [NEW] Dành cho hiển thị trên UI
     }
 
     public class BulkConfirmRequestDTO

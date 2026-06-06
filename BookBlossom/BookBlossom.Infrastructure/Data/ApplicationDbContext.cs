@@ -62,6 +62,7 @@ namespace BookBlossom.Infrastructure.Data
         public DbSet<Author> Authors { get; set; }
         public DbSet<BookAuthor> BookAuthors { get; set; }
         public DbSet<DeliveryAddress> DeliveryAddresses { get; set; }
+        public DbSet<OrderVoucher> OrderVouchers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -79,6 +80,21 @@ namespace BookBlossom.Infrastructure.Data
                 entity.HasOne(ba => ba.Author)
                       .WithMany(a => a.BookAuthors)
                       .HasForeignKey(ba => ba.AuthorID)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<OrderVoucher>(entity =>
+            {
+                entity.HasKey(ov => new { ov.OrderID, ov.VoucherID });
+
+                entity.HasOne(ov => ov.Order)
+                      .WithMany(o => o.OrderVouchers)
+                      .HasForeignKey(ov => ov.OrderID)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ov => ov.Voucher)
+                      .WithMany(v => v.OrderVouchers)
+                      .HasForeignKey(ov => ov.VoucherID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 

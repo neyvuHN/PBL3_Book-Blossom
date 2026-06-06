@@ -3,7 +3,7 @@
 
         function showToast(message, onUndo, undoText = 'Undo') {
             const $toast = $(`
-                <div class="toast-notification">
+                <div class="toast-notification" style="z-index: 10500 !important;">
                     <i class="fas fa-check-circle" style="color: #28a745;"></i>
                     <span>${message}</span>
                     <button class="btn-undo-share" style="${onUndo ? '' : 'display: none;'} background: none; border: none; color: #C2185B; font-weight: bold; cursor: pointer; text-decoration: underline; margin-left: 10px; font-size: 0.85rem; padding: 0;">${undoText}</button>
@@ -207,22 +207,22 @@
             }
 
             // [NEW] Dynamically load and calculate vouchers from backend API
-            window.myClaimedVouchers = [];
+            window.activeVouchers = [];
 
-            async function fetchWalletVouchers() {
+            async function fetchActiveVouchers() {
                 if (window.apiClient) {
                     try {
-                        const myVouchers = await window.apiClient.apiGet('/api/management/Voucher/my-vouchers');
-                        window.myClaimedVouchers = myVouchers.filter(cv => !cv.isUsed);
+                        const res = await window.apiClient.apiGet('/api/VoucherAPI/active');
+                        window.activeVouchers = res.data || res;
                     } catch (e) {
                         console.error("Failed to prefetch wallet vouchers", e);
                     }
                 }
             }
-            fetchWalletVouchers();
+            fetchActiveVouchers();
 
             function getVoucherDiscount(v, subtotalVnd) {
-                const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === v.code) : null;
+                const detail = window.activeVouchers ? window.activeVouchers.find(cv => cv.voucherCode === v.code) : null;
                 const globalVoucher = window.VOUCHERS_DATA ? window.VOUCHERS_DATA.find(gv => gv.code === v.code) : null;
 
                 if (detail) {
@@ -252,147 +252,204 @@
                 return 0;
             }
 
-            async function loadCustomerVouchers() {
+            async function loadActiveVouchers() {
                 if (!window.apiClient) return;
                 try {
-                    const myVouchers = await window.apiClient.apiGet('/api/management/Voucher/my-vouchers');
-                    window.myClaimedVouchers = myVouchers.filter(cv => !cv.isUsed);
+                    const res = await window.apiClient.apiGet('/api/VoucherAPI/active');
+                    window.activeVouchers = res.data || res;
 
-                    const $blossomList = $('#blossom-vouchers-list');
-                    $blossomList.empty();
+                    const $productVouchersList = $('#product-vouchers-list');
+                    const $platformVouchersList = $('#platform-vouchers-list');
+                    
+                    $productVouchersList.empty();
+                    $platformVouchersList.empty();
 
-                    if (window.myClaimedVouchers.length === 0) {
-                        $blossomList.html('<div style="text-align: center; padding: 20px; color: #888;">You have no active vouchers in your wallet.</div>');
+                    if (window.activeVouchers.length === 0) {
+                        $productVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No product vouchers available.</div>');
+                        $platformVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No platform vouchers available.</div>');
                         return;
                     }
 
-                    let blossomCount = 0;
-                    let mysteryCount = 0;
-
-                    window.myClaimedVouchers.forEach(v => {
+                    window.activeVouchers.forEach(v => {
                         const code = v.voucherCode;
                         const name = v.voucherName || 'Special Discount';
                         const valueDisplay = v.discountType === 'Percentage' ? `${v.discountValue}%` : `${new Intl.NumberFormat('vi-VN').format(v.discountValue)} VND`;
-
-                        const bg = '#fffdfb';
-                        const border = '1.5px dashed #f07c7c';
-                        const leftBg = '#ffebee';
-                        const textCol = '#f07c7c';
-                        const badgeClass = 'modal-voucher-item';
-                        const btnClass = 'btn-modal-apply-voucher';
-                        const btnBorder = '1.5px solid #C2185B';
-                        const btnTextCol = '#C2185B';
+                        const isStackable = v.isStackable;
+                        const stackableBadge = isStackable ? 
+                            `<span style="background: #e8f5e9; color: #2e7d32; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Stackable</span>` : 
+                            `<span style="background: #ffebee; color: #c62828; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Non-stackable</span>`;
 
                         const itemHtml = `
-                            <div class="${badgeClass}" data-code="${code}" style="display: flex; border: ${border}; border-radius: 12px; overflow: hidden; background: ${bg}; transition: all 0.25s; cursor: pointer; position: relative;">
-                                <div style="background: ${leftBg}; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: ${border}; text-align: center;">
-                                    <span style="font-size: 0.85rem; font-weight: 700; color: ${textCol}; letter-spacing: 0.5px;">${code}</span>
-                                    <span style="font-size: 0.65rem; color: ${textCol}; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                            <div class="modal-voucher-item" data-code="${code}" data-stackable="${isStackable}" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                                <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                                    <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">${code}</span>
+                                    <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
                                 </div>
                                 <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
-                                    <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0 0 4px 0;">${name} (Save ${valueDisplay})</h4>
+                                    <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 4px;">
+                                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0;">${name} (Save ${valueDisplay})</h4>
+                                        ${stackableBadge}
+                                    </div>
                                     <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min order ${new Intl.NumberFormat('vi-VN').format(v.minOrderValue)} VND.${v.maxDiscountAmount > 0 ? ' Max discount ' + new Intl.NumberFormat('vi-VN').format(v.maxDiscountAmount) + ' VND.' : ''}</p>
                                     <span style="font-size: 0.7rem; color: #aaa;">Expiry: ${new Date(v.endDate).toLocaleDateString()}</span>
                                 </div>
                                 <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
-                                    <button class="${btnClass}" style="background: #fff; color: ${btnTextCol}; border: ${btnBorder}; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
+                                    <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Apply</button>
                                 </div>
                             </div>
                         `;
 
-                        $blossomList.append(itemHtml);
+                        // Determine if it's a product or platform voucher
+                        const hasCategory = v.applicableCategoryIDs && v.applicableCategoryIDs.length > 0;
+                        const hasBook = v.applicableBookIDs && v.applicableBookIDs.length > 0;
+                        
+                        if (hasCategory || hasBook) {
+                            $productVouchersList.append(itemHtml);
+                        } else {
+                            $platformVouchersList.append(itemHtml);
+                        }
                     });
+                    
+                    if ($productVouchersList.children().length === 0) {
+                        $productVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No product vouchers available.</div>');
+                    }
+                    if ($platformVouchersList.children().length === 0) {
+                        $platformVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No platform vouchers available.</div>');
+                    }
                 } catch (e) {
                     console.error("Failed to load customer vouchers", e);
                 }
             }
 
-            // [UPDATED] Calculate totals dynamically in VND only based on selected cart items and standard or mystery vouchers
+            // Tab switching logic
+            $(document).on('click', '.cart-voucher-tab-btn', function() {
+                $('.cart-voucher-tab-btn').removeClass('active');
+                $(this).addClass('active');
+                const target = $(this).attr('data-target');
+                $('.cart-voucher-tab-content').removeClass('active');
+                $('#' + target).addClass('active');
+            });
+
+            // [UPDATED] Calculate totals dynamically with sequential discounting
             function calculateTotals() {
                 let subtotalVnd = 0;
-                let blindSubtotalVnd = 0;
-                let hasBlindBooks = false;
+                let cartLines = [];
 
                 cartItems.forEach(item => {
                     if (item.selected) {
                         const itemPriceVnd = getItemPriceVnd(item);
                         subtotalVnd += itemPriceVnd * item.qty;
-                        if (item.isBlind) {
-                            blindSubtotalVnd += itemPriceVnd * item.qty;
-                            hasBlindBooks = true;
-                        }
+                        cartLines.push({
+                            id: item.id,
+                            bookID: item.isBlind ? item.blindBookID : item.bookID,
+                            categoryID: item.categoryID,
+                            currentValue: itemPriceVnd * item.qty,
+                            originalValue: itemPriceVnd * item.qty
+                        });
                     }
                 });
 
                 $('#cart-subtotal').text(new Intl.NumberFormat('vi-VN').format(subtotalVnd) + ' VND');
 
-                let discountVnd = 0;
-                let discountLines = [];
-                let hasFreeShipVoucher = false;
+                let totalDiscountVnd = 0;
+                let platformDiscountLines = []; // [UPDATED] Only store platform vouchers for the order summary
                 let validVouchers = [];
 
                 if (appliedVouchers && appliedVouchers.length > 0) {
+                    // Filter stackable conflict: if any voucher is non-stackable, keep only the first one selected
+                    let nonStackable = appliedVouchers.find(v => v.isStackable === false);
+                    if (nonStackable && appliedVouchers.length > 1) {
+                        showToast(`Voucher ${nonStackable.code} cannot be combined. Removed other vouchers.`);
+                        appliedVouchers = [nonStackable];
+                        updateModalFooterSelection(); // Update UI
+                    }
+
+                    // Sort vouchers: Product first, Platform next
+                    let productVouchersToApply = [];
+                    let platformVouchersToApply = [];
+
                     appliedVouchers.forEach(v => {
-                        const code = v.code;
-                        let isVoucherValid = true;
+                        const detail = window.activeVouchers ? window.activeVouchers.find(cv => cv.voucherCode === v.code) : null;
+                        if (!detail) return;
 
-                        const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === code) : null;
-                        const globalVoucher = window.VOUCHERS_DATA ? window.VOUCHERS_DATA.find(gv => gv.code === code) : null;
-                        const minOrderVal = detail ? detail.minOrderValue : (globalVoucher ? globalVoucher.minOrder : 0);
-                        const applicableBooks = globalVoucher ? globalVoucher.applicableBooks : [];
-                        const applicableCategories = globalVoucher ? globalVoucher.applicableCategories : [];
+                        const hasCat = detail.applicableCategoryIDs && detail.applicableCategoryIDs.length > 0;
+                        const hasBook = detail.applicableBookIDs && detail.applicableBookIDs.length > 0;
 
-                        const hasBookConstraint = applicableBooks && applicableBooks.length > 0;
-                        const hasCategoryConstraint = applicableCategories && applicableCategories.length > 0;
+                        if (hasCat || hasBook) productVouchersToApply.push(detail);
+                        else platformVouchersToApply.push(detail);
+                    });
 
-                        let applicableSubtotalVnd = 0;
-                        let hasApplicableItem = false;
+                    // Sort Product Vouchers: Percentage first, then Fixed desc
+                    productVouchersToApply.sort((a, b) => {
+                        if (a.discountType === 'Percentage' && b.discountType !== 'Percentage') return -1;
+                        if (a.discountType !== 'Percentage' && b.discountType === 'Percentage') return 1;
+                        return b.discountValue - a.discountValue;
+                    });
 
-                        cartItems.forEach(item => {
-                            if (item.selected) {
-                                const bookIdToCheck = item.isBlind ? item.blindBookID : item.bookID;
-                                const categoryIdToCheck = item.categoryID;
-                                
-                                let isItemApplicable = false;
+                    // 1. Apply Product Vouchers
+                    productVouchersToApply.forEach(v => {
+                        const reqCatIds = v.applicableCategoryIDs || [];
+                        const reqBookIds = v.applicableBookIDs || [];
 
-                                if (!hasBookConstraint && !hasCategoryConstraint) {
-                                    isItemApplicable = true;
-                                } else {
-                                    const matchBook = hasBookConstraint && applicableBooks.includes(bookIdToCheck);
-                                    const matchCategory = hasCategoryConstraint && applicableCategories.includes(categoryIdToCheck);
-                                    
-                                    if (matchBook || matchCategory) {
-                                        isItemApplicable = true;
-                                    }
-                                }
+                        let eligibleLines = cartLines.filter(cl => 
+                            (reqCatIds.length > 0 && reqCatIds.includes(cl.categoryID)) ||
+                            (reqBookIds.length > 0 && reqBookIds.includes(cl.bookID))
+                        );
 
-                                if (isItemApplicable) {
-                                    applicableSubtotalVnd += getItemPriceVnd(item) * item.qty;
-                                    hasApplicableItem = true;
-                                }
+                        let eligibleTotal = eligibleLines.reduce((sum, cl) => sum + cl.currentValue, 0);
+
+                        if (eligibleTotal >= v.minOrderValue && eligibleLines.length > 0) {
+                            // Sort by current value desc
+                            eligibleLines.sort((a, b) => b.currentValue - a.currentValue);
+                            let targetLine = eligibleLines[0];
+
+                            let discount = 0;
+                            if (v.discountType === 'Fixed') discount = v.discountValue;
+                            else {
+                                discount = targetLine.currentValue * v.discountValue / 100;
+                                if (v.maxDiscountAmount > 0 && discount > v.maxDiscountAmount) discount = v.maxDiscountAmount;
                             }
-                        });
 
-                        if (hasApplicableItem && applicableSubtotalVnd >= minOrderVal) {
-                            const disc = getVoucherDiscount(v, applicableSubtotalVnd);
-                            discountVnd += disc;
-                            discountLines.push(`${code} (-${new Intl.NumberFormat('vi-VN').format(disc)} VND)`);
+                            discount = Math.min(discount, targetLine.currentValue);
+                            targetLine.currentValue -= discount;
+                            totalDiscountVnd += discount;
+                            
+                            // [UPDATED] DO NOT add to platformDiscountLines. Product vouchers are shown under the book items.
+                            
+                            if (!targetLine.appliedVouchers) targetLine.appliedVouchers = [];
+                            targetLine.appliedVouchers.push({ code: v.voucherCode, discount: discount });
+                            
+                            validVouchers.push({ code: v.voucherCode, isStackable: v.isStackable });
                         } else {
-                            isVoucherValid = false;
-                            if (!hasApplicableItem && (hasBookConstraint || hasCategoryConstraint)) {
-                                showToast(`Voucher ${code} is only applicable to specific books or categories!`);
-                            } else {
-                                showToast(`Min order for ${code} is ${new Intl.NumberFormat('vi-VN').format(minOrderVal)} VND!`);
-                            }
+                            showToast(`Min order for product voucher ${v.voucherCode} is ${new Intl.NumberFormat('vi-VN').format(v.minOrderValue)} VND of applicable books!`);
                         }
+                    });
 
-                        if (isVoucherValid) {
-                            validVouchers.push(v);
+                    // 2. Apply Platform Vouchers sequentially
+                    let currentSubTotal = cartLines.reduce((sum, cl) => sum + cl.currentValue, 0);
+                    
+                    platformVouchersToApply.forEach(v => {
+                        if (currentSubTotal >= v.minOrderValue) {
+                            let discount = 0;
+                            if (v.discountType === 'Fixed') discount = v.discountValue;
+                            else {
+                                discount = currentSubTotal * v.discountValue / 100;
+                                if (v.maxDiscountAmount > 0 && discount > v.maxDiscountAmount) discount = v.maxDiscountAmount;
+                            }
+                            discount = Math.min(discount, currentSubTotal);
+                            currentSubTotal -= discount;
+                            totalDiscountVnd += discount;
+                            
+                            // [UPDATED] Add platform vouchers to the order summary list
+                            platformDiscountLines.push(`${v.voucherCode} (-${new Intl.NumberFormat('vi-VN').format(discount)}đ)`);
+                            
+                            validVouchers.push({ code: v.voucherCode, isStackable: v.isStackable });
+                        } else {
+                            showToast(`Min order for platform voucher ${v.voucherCode} is ${new Intl.NumberFormat('vi-VN').format(v.minOrderValue)} VND remaining!`);
                         }
                     });
                 }
 
-                // Keep only valid vouchers
                 appliedVouchers = validVouchers;
 
                 // Shipping fee calculation in VND only
@@ -403,11 +460,17 @@
                     $('#cart-shipping').text('0 VND');
                 }
 
-                let totalVnd = Math.max(0, subtotalVnd + shippingFeeVnd - discountVnd);
+                let totalVnd = Math.max(0, subtotalVnd + shippingFeeVnd - totalDiscountVnd);
                 $('#cart-total').text(new Intl.NumberFormat('vi-VN').format(totalVnd) + ' VND');
 
-                if (discountVnd > 0) {
-                    const discountText = "Applied: " + discountLines.join(", ");
+                window.cartCalculatedSubtotalVnd = subtotalVnd;
+                window.cartCalculatedShippingVnd = shippingFeeVnd;
+                window.cartCalculatedDiscountVnd = totalDiscountVnd;
+                window.cartPlatformDiscountLines = platformDiscountLines; // [UPDATED] Export only platform lines
+                window.cartLinesWithVouchers = cartLines;
+
+                if (totalDiscountVnd > 0) {
+                    const discountText = "Vouchers applied successfully!";
                     $('#cart-discount-badge').html('<i class="fas fa-check-circle"></i> ' + discountText).show();
                     $('#voucher-message').html('<i class="fas fa-tags"></i> ' + discountText).css('color', '#2e7d32').show();
                 } else {
@@ -415,7 +478,6 @@
                     $('#voucher-message').hide();
                 }
 
-                // Update selected voucher label on the selector button dynamically with premium themes
                 if (appliedVouchers && appliedVouchers.length > 0) {
                     const codes = appliedVouchers.map(v => v.code).join(', ');
                     $('#selected-voucher-label').text(`Vouchers: ${codes} applied`);
@@ -452,41 +514,27 @@
 
             function updateVoucherAvailability() {
                 const selectedItems = cartItems.filter(i => i.selected);
-                const $vouchers = $('#blossom-vouchers-list .modal-voucher-item');
+                const $vouchers = $('#cart-vouchers-modal .modal-voucher-item');
                 
                 if (selectedItems.length === 0) {
                     $vouchers.each(function() {
-                        $(this).css({
-                            'opacity': '1',
-                            'pointer-events': 'auto',
-                            'filter': 'none'
-                        });
-                        $(this).find('.btn-modal-apply-voucher').css({
-                            'background': '#fff',
-                            'color': '#C2185B',
-                            'border': '1.5px solid #C2185B'
-                        }).text('Apply');
+                        $(this).css({ 'opacity': '1', 'pointer-events': 'auto', 'filter': 'none' });
+                        $(this).find('.btn-modal-apply-voucher').css({ 'background': '#fff', 'color': '#C2185B', 'border': '1.5px solid #C2185B' }).text('Apply');
                     });
                     return;
                 }
 
-                let subtotalVnd = 0;
-                
-                selectedItems.forEach(item => {
-                    subtotalVnd += getItemPriceVnd(item) * item.qty;
-                });
-
                 $vouchers.each(function() {
                     const code = $(this).attr('data-code');
-                    
-                    const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === code) : null;
-                    const globalVoucher = window.VOUCHERS_DATA ? window.VOUCHERS_DATA.find(gv => gv.code === code) : null;
-                    const minOrderVal = detail ? detail.minOrderValue : (globalVoucher ? globalVoucher.minOrder : 0);
-                    const applicableBooks = globalVoucher ? globalVoucher.applicableBooks : [];
-                    const applicableCategories = globalVoucher ? globalVoucher.applicableCategories : [];
+                    const detail = window.activeVouchers ? window.activeVouchers.find(cv => cv.voucherCode === code) : null;
+                    if (!detail) return;
 
-                    const hasBookConstraint = applicableBooks && applicableBooks.length > 0;
-                    const hasCategoryConstraint = applicableCategories && applicableCategories.length > 0;
+                    const minOrderVal = detail.minOrderValue || 0;
+                    const applicableBooks = detail.applicableBookIDs || [];
+                    const applicableCategories = detail.applicableCategoryIDs || [];
+
+                    const hasBookConstraint = applicableBooks.length > 0;
+                    const hasCategoryConstraint = applicableCategories.length > 0;
 
                     let applicableSubtotalVnd = 0;
                     let hasApplicableItem = false;
@@ -502,10 +550,7 @@
                         } else {
                             const matchBook = hasBookConstraint && applicableBooks.includes(bookIdToCheck);
                             const matchCategory = hasCategoryConstraint && applicableCategories.includes(categoryIdToCheck);
-                            
-                            if (matchBook || matchCategory) {
-                                isItemApplicable = true;
-                            }
+                            if (matchBook || matchCategory) isItemApplicable = true;
                         }
 
                         if (isItemApplicable) {
@@ -517,89 +562,89 @@
                     let isValid = hasApplicableItem && applicableSubtotalVnd >= minOrderVal;
 
                     if (!isValid) {
-                        $(this).css({
-                            'opacity': '0.5',
-                            'pointer-events': 'none',
-                            'filter': 'grayscale(100%)'
-                        });
+                        $(this).css({ 'opacity': '0.5', 'pointer-events': 'none', 'filter': 'grayscale(100%)' });
                         $(this).removeClass('selected');
-                        $(this).find('.btn-modal-apply-voucher').css({
-                            'background': '#eee',
-                            'color': '#999',
-                            'border': '1.5px solid #ccc'
-                        }).text('Not Eligible');
+                        $(this).find('.btn-modal-apply-voucher').css({ 'background': '#eee', 'color': '#999', 'border': '1.5px solid #ccc' }).text('Not Eligible');
                     } else {
-                        $(this).css({
-                            'opacity': '1',
-                            'pointer-events': 'auto',
-                            'filter': 'none'
-                        });
-                        $(this).find('.btn-modal-apply-voucher').css({
-                            'background': '#fff',
-                            'color': '#C2185B',
-                            'border': '1.5px solid #C2185B'
-                        }).text('Apply');
+                        $(this).css({ 'opacity': '1', 'pointer-events': 'auto', 'filter': 'none' });
+                        $(this).find('.btn-modal-apply-voucher').css({ 'background': '#fff', 'color': '#C2185B', 'border': '1.5px solid #C2185B' }).text('Apply');
+                        if ($(this).hasClass('selected')) $(this).find('.btn-modal-apply-voucher').text('Applied');
                     }
                 });
             }
 
-            // [UPDATED] Open Unified Cart Vouchers full-screen modal
-            $(document).on('click', '#btn-select-cart-voucher', function() {
-                // Reset selection styles
+            // Open Cart Vouchers modal
+            $(document).on('click', '#btn-select-cart-voucher', async function() {
                 $('#cart-vouchers-modal .modal-voucher-item').removeClass('selected');
                 $('#cart-vouchers-modal .btn-modal-apply-voucher').text('Apply');
 
-                updateVoucherAvailability();
+                // Re-fetch and populate vouchers every time modal opens
+                await loadActiveVouchers();
 
                 if (appliedVouchers && appliedVouchers.length > 0) {
                     appliedVouchers.forEach(v => {
-                        const $item = $(`#blossom-vouchers-list .modal-voucher-item[data-code="${v.code}"]`);
+                        const $item = $(`#cart-vouchers-modal .modal-voucher-item[data-code="${v.code}"]`);
                         $item.addClass('selected');
-                        $item.find('.btn-modal-apply-voucher').text('Applied');
                     });
                 }
-
+                
+                updateVoucherAvailability();
                 updateModalFooterSelection();
                 $('#cart-vouchers-modal').fadeIn(250);
             });
 
-            // Close Unified Cart Vouchers modal
             $(document).on('click', '#btn-close-cart-vouchers, #cart-vouchers-modal .modal-backdrop', function() {
                 $('#cart-vouchers-modal').fadeOut(250);
             });
 
-            // [UPDATED] Click Blossom voucher inside modal list (supporting multi-selection)
-            $(document).on('click', '#blossom-vouchers-list .modal-voucher-item', function() {
-                $(this).toggleClass('selected');
-                if ($(this).hasClass('selected')) {
+            // Handle voucher click and conflict logic
+            $(document).on('click', '#cart-vouchers-modal .modal-voucher-item', function() {
+                const code = $(this).attr('data-code');
+                const isStackable = $(this).attr('data-stackable') === 'true';
+                const currentlySelected = $(this).hasClass('selected');
+                
+                if (!currentlySelected) {
+                    // About to select
+                    if (!isStackable) {
+                        // If selecting a non-stackable, deselect all others
+                        $('#cart-vouchers-modal .modal-voucher-item').removeClass('selected');
+                        $('#cart-vouchers-modal .btn-modal-apply-voucher').text('Apply');
+                        showToast(`Voucher ${code} cannot be combined with others.`);
+                    } else {
+                        // If selecting a stackable, ensure no non-stackable is selected
+                        const hasNonStackable = $('#cart-vouchers-modal .modal-voucher-item.selected[data-stackable="false"]').length > 0;
+                        if (hasNonStackable) {
+                            showToast("You have selected a non-stackable voucher. Please remove it first to select multiple vouchers.");
+                            return; // Prevent selection
+                        }
+                    }
+                    $(this).addClass('selected');
                     $(this).find('.btn-modal-apply-voucher').text('Applied');
                 } else {
+                    // Deselecting
+                    $(this).removeClass('selected');
                     $(this).find('.btn-modal-apply-voucher').text('Apply');
                 }
                 updateModalFooterSelection();
             });
 
-            $(document).on('click', '#blossom-vouchers-list .btn-modal-apply-voucher', function(e) {
+            $(document).on('click', '#cart-vouchers-modal .btn-modal-apply-voucher', function(e) {
                 e.stopPropagation();
                 $(this).closest('.modal-voucher-item').trigger('click');
             });
 
-            // [UPDATED] Confirm selected vouchers in modal (supporting multiple vouchers)
             $(document).on('click', '#btn-confirm-cart-vouchers', function() {
                 appliedVouchers = [];
-                const activeItems = $('#cart-vouchers-modal .modal-voucher-item.selected');
-                activeItems.each(function() {
-                    const code = $(this).attr('data-code');
-                    const isMystery = checkIsMystery(code);
+                $('#cart-vouchers-modal .modal-voucher-item.selected').each(function() {
                     appliedVouchers.push({
-                        code: code,
-                        isMystery: isMystery
+                        code: $(this).attr('data-code'),
+                        isStackable: $(this).attr('data-stackable') === 'true'
                     });
                 });
 
                 if (appliedVouchers.length > 0) {
                     const codes = appliedVouchers.map(v => v.code).join(', ');
-                    showToast(`Applied vouchers: ${codes}!`);
+                    showToast(`Applied vouchers: ${codes}`);
                 } else {
                     showToast("No vouchers applied.");
                 }
@@ -608,7 +653,6 @@
                 calculateTotals();
             });
 
-            // [UPDATED] Remove all applied vouchers from cart modal
             $(document).on('click', '#btn-remove-cart-voucher', function() {
                 appliedVouchers = [];
                 $('#cart-vouchers-modal .modal-voucher-item').removeClass('selected');
@@ -729,70 +773,34 @@
                     return;
                 }
 
-                let subtotalVnd = 0;
                 let hasBlind = false;
                 selectedItems.forEach(item => {
-                    subtotalVnd += getItemPriceVnd(item) * item.qty;
                     if (item.isBlind) hasBlind = true;
                 });
-
-                let discountVnd = 0;
-                let hasFreeShip = false;
-                if (appliedVouchers && appliedVouchers.length > 0) {
-                    appliedVouchers.forEach(v => {
-                        const code = v.code;
-                        const isMystery = v.isMystery;
-                        
-                        const detail = window.myClaimedVouchers ? window.myClaimedVouchers.find(cv => cv.voucherCode === code) : null;
-                        if (code === 'FREESHIP' || (detail && detail.voucherCode === 'FREESHIP')) {
-                            hasFreeShip = true;
-                        } else {
-                            const itemSub = isMystery ? selectedItems.filter(i => i.isBlind).reduce((sum, i) => sum + getItemPriceVnd(i) * i.qty, 0) : subtotalVnd;
-                            discountVnd += getVoucherDiscount(v, itemSub, isMystery);
-                        }
-                    });
-                }
-
-                let shippingFeeVnd = subtotalVnd > 0 ? 30000 : 0;
-                if (hasFreeShip && subtotalVnd >= 150000) {
-                    shippingFeeVnd = 0;
-                }
 
                 window.checkoutState = {
                     isCart: true,
                     isBlind: hasBlind,
-                    subtotal: subtotalVnd,
-                    shippingFee: shippingFeeVnd,
-                    discount: discountVnd,
+                    subtotal: window.cartCalculatedSubtotalVnd,
+                    shippingFee: window.cartCalculatedShippingVnd,
+                    discount: window.cartCalculatedDiscountVnd,
                     appliedVouchers: appliedVouchers
                 };
 
                 const container = document.getElementById('checkout-applied-vouchers-container');
                 const list = document.getElementById('checkout-vouchers-list');
                 list.innerHTML = '';
-                if (appliedVouchers && appliedVouchers.length > 0) {
+                if (window.cartPlatformDiscountLines && window.cartPlatformDiscountLines.length > 0) {
                     container.style.display = 'block';
-                    appliedVouchers.forEach(v => {
+                    
+                    window.cartPlatformDiscountLines.forEach(lineText => {
                         const badge = document.createElement('div');
-                        const isMystery = v.isMystery;
-                        const bg = isMystery ? '#faf8fc' : '#ffebee';
-                        const border = isMystery ? '1px solid #a291b5' : '1px solid #f07c7c';
-                        const textCol = isMystery ? '#6a4f8c' : '#C2185B';
-
-                        let valVnd = 0;
-                        if (v.code === 'FREESHIP') {
-                            valVnd = 0;
-                        } else {
-                            const itemSub = isMystery ? selectedItems.filter(i => i.isBlind).reduce((sum, i) => sum + getItemPriceVnd(i) * i.qty, 0) : subtotalVnd;
-                            valVnd = getVoucherDiscount(v, itemSub, isMystery);
-                        }
+                        const bg = '#ffebee';
+                        const border = '1px solid #f07c7c';
+                        const textCol = '#C2185B';
 
                         badge.style.cssText = `background: ${bg}; border: ${border}; color: ${textCol}; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px;`;
-                        if (v.code === 'FREESHIP') {
-                            badge.innerHTML = `<i class="fas fa-ticket"></i> FREESHIP (Free Shipping)`;
-                        } else {
-                            badge.innerHTML = `<i class="fas fa-ticket"></i> ${v.code} (-${new Intl.NumberFormat('vi-VN').format(valVnd)} VND)`;
-                        }
+                        badge.innerHTML = `<i class="fas fa-ticket"></i> ${lineText}`;
                         list.appendChild(badge);
                     });
                 } else {
@@ -800,6 +808,15 @@
                 }
 
                 if (typeof window.populateCheckoutBookInfo === 'function') {
+                    // Inject applied vouchers from cart calculation
+                    if (window.cartLinesWithVouchers) {
+                        selectedItems.forEach(item => {
+                            const line = window.cartLinesWithVouchers.find(cl => cl.id === item.id);
+                            if (line) {
+                                item.appliedVouchers = line.appliedVouchers || [];
+                            }
+                        });
+                    }
                     window.populateCheckoutBookInfo(selectedItems);
                 }
                 if (typeof window.updateCheckoutTotals === 'function') {

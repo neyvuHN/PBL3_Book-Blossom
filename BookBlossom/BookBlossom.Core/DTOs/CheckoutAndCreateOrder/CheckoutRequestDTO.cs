@@ -8,8 +8,8 @@ namespace BookBlossom.Core.DTOs.CheckoutAndCreateOrder
         public long AddressID { get; set; } // Chỉ cần ID này (Hệ thống sẽ tự LOOKUP ra Tên, SĐT, Địa chỉ chi tiết từ DB)
         public PaymentMethod PaymentMethod { get; set; }
 
-        // Mã voucher muốn áp dụng (Nullable - không bắt buộc)
-        public string? VoucherCode { get; set; }
+        // Danh sách mã voucher muốn áp dụng (có thể trống)
+        public List<string> VoucherCodes { get; set; } = new List<string>();
 
         public string? Note { get; set; }
 

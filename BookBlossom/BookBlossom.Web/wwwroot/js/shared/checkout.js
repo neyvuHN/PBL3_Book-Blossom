@@ -119,7 +119,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 'border-radius': '12px',
                 'border': '1px solid #f2ede4'
             });
-            $container.append(`
+        let vouchersHtml = '';
+        if (item.appliedVouchers && item.appliedVouchers.length > 0) {
+            item.appliedVouchers.forEach(v => {
+                vouchersHtml += `<div style="display:inline-flex; align-items:center; background:#ffebee; color:#C2185B; border:1px solid #f07c7c; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; margin-right:5px; margin-top:5px;"><i class="fas fa-tag" style="margin-right:4px;"></i> ${v.code} (-${new Intl.NumberFormat('vi-VN').format(v.discount)}đ)</div>`;
+            });
+        }
+        
+        $container.append(`
     <img id="checkout-book-img" src="${item.img || '/images/Book/book4.jpg'}" style="width: 80px; height: 120px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" alt="Book Cover">
         <div style="flex-grow: 1;">
             <h4 id="checkout-book-title" style="margin: 0 0 5px; font-size: 1.2rem; font-weight: 700; color: #333;">${item.title}</h4>
@@ -128,6 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span style="font-size: 0.95rem; color: #555;">Quantity: <strong id="checkout-book-qty">${item.qty}</strong></span>
                 <span id="checkout-book-price" style="font-size: 1.25rem; font-weight: 700; color: #C2185B;">${new Intl.NumberFormat('vi-VN').format(itemPriceVnd * item.qty)} VND</span>
             </div>
+            ${vouchersHtml}
         </div>
         `);
         } else {
@@ -145,6 +153,13 @@ document.addEventListener('DOMContentLoaded', function () {
             let itemsHtml = '';
             items.forEach(item => {
                 const itemPriceVnd = item.priceVnd ? item.priceVnd : (item.price * 20000);
+                let vouchersHtml = '';
+                if (item.appliedVouchers && item.appliedVouchers.length > 0) {
+                    item.appliedVouchers.forEach(v => {
+                        vouchersHtml += `<div style="display:inline-flex; align-items:center; background:#ffebee; color:#C2185B; border:1px solid #f07c7c; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-right:5px; margin-top:4px;"><i class="fas fa-tag" style="margin-right:3px;"></i> ${v.code} (-${new Intl.NumberFormat('vi-VN').format(v.discount)}đ)</div>`;
+                    });
+                }
+                
                 itemsHtml += `
         <div style="display: flex; gap: 15px; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 3px;">
             <img src="${item.img || '/images/Book/book4.jpg'}" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);" alt="Book Cover">
@@ -155,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span style="font-size: 0.82rem; color: #555;">Qty: <strong>${item.qty}</strong></span>
                         <span style="font-size: 0.95rem; font-weight: 700; color: #C2185B;">${new Intl.NumberFormat('vi-VN').format(itemPriceVnd * item.qty)} VND</span>
                     </div>
+                    ${vouchersHtml}
                 </div>
         </div>
         `;

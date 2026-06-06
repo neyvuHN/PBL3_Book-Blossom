@@ -691,7 +691,7 @@ namespace BookBlossom.Infrastructure.Data
             if (vouchersToAssign.Any())
             {
                 var unassignedCompletedOrders = await context.Orders
-                    .Where(o => o.OrderStatus == OrderStatus.Completed && o.VoucherID == null)
+                    .Where(o => o.OrderStatus == OrderStatus.Completed && !o.OrderVouchers.Any())
                     .ToListAsync();
                 
                 if (unassignedCompletedOrders.Any())
@@ -719,7 +719,11 @@ namespace BookBlossom.Infrastructure.Data
                         
                         if (discount > subtotal) discount = subtotal * 0.5m;
                         
-                        orderItem.VoucherID = v.VoucherID;
+                        context.OrderVouchers.Add(new OrderVoucher {
+                            OrderID = orderItem.OrderID,
+                            VoucherID = v.VoucherID,
+                            DiscountAmount = discount
+                        });
                         orderItem.DiscountAmount = discount;
                         orderItem.TotalAmount = subtotal + orderItem.ShippingFee.GetValueOrDefault() - discount;
                     }

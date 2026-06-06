@@ -153,4 +153,87 @@
             background: #e2dcd0 !important;
             color: #333 !important;
         }
+
+        /* Cart Vouchers Modal Tabs Styling */
+        .cart-voucher-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        .cart-voucher-tab-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #777;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 20px;
+        }
+        .cart-voucher-tab-btn.active {
+            background: #ffebee;
+            color: #C2185B;
+        }
+        .cart-voucher-tab-content {
+            display: none;
+        }
+        .cart-voucher-tab-content.active {
+            display: block;
+        }
     </style>
+
+    <!-- [NEW] Unified Cart Vouchers Modal with 2 Tabs -->
+    <div class="custom-modal" id="cart-vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(194, 24, 91, 0.1);">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #333; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🎟️ Select Cart Vouchers
+                </h3>
+                <button class="btn-close-cart-vouchers" id="btn-close-cart-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="cart-voucher-tabs">
+                <button class="cart-voucher-tab-btn active" data-target="tab-product-vouchers">📦 Product Vouchers</button>
+                <button class="cart-voucher-tab-btn" data-target="tab-platform-vouchers">🏪 Platform Vouchers</button>
+            </div>
+
+            <!-- Modal Content - Scrollable Lists -->
+            <div class="cart-vouchers-modal-list-wrapper" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; margin-bottom: 20px; display: flex; flex-direction: column;">
+                
+                <!-- Product Vouchers List -->
+                <div id="tab-product-vouchers" class="cart-voucher-tab-content active">
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Applied specifically to books or categories. Multiple stackable product vouchers can be used!</p>
+                    <div id="product-vouchers-list" class="vouchers-modal-list" style="display: flex; flex-direction: column; gap: 15px;">
+                        <!-- Dynamically populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Platform Vouchers List -->
+                <div id="tab-platform-vouchers" class="cart-voucher-tab-content">
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Applied to your entire order subtotal.</p>
+                    <div id="platform-vouchers-list" class="vouchers-modal-list" style="display: flex; flex-direction: column; gap: 15px;">
+                        <!-- Dynamically populated by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;">Selected: <strong id="cart-modal-selected-code" style="color: #C2185B;">None</strong></span>
+                <div class="d-flex gap-2">
+                    <button class="btn" id="btn-remove-cart-voucher" style="background: #f5f4f0; color: #666; border: 1px solid #ddd; border-radius: 20px; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">Remove All</button>
+                    <button class="btn-modal-confirm" id="btn-confirm-cart-vouchers" style="margin: 0; background: #C2185B; color: #fff; border: none; border-radius: 20px; padding: 8px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; min-width: 120px;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>

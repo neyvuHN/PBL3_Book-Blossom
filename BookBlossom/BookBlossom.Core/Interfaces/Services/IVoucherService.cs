@@ -27,10 +27,8 @@ namespace BookBlossom.Core.Interfaces.Services
         // Validate và tính giá trị giảm giá (gọi từ OrderService trước khi tạo đơn)
         Task<VoucherValidationResultDTO> ValidateAndApplyVoucherAsync(
             long customerId,
-            string voucherCode,
-            decimal orderSubTotal,
-            List<long> bookCategoryIds,
-            List<long> bookIds);
+            List<string> voucherCodes,
+            ICollection<BookBlossom.Core.Entities.OrderDetail> orderDetails);
 
         // Đánh dấu đã dùng sau khi tạo đơn thành công
         Task MarkVoucherAsUsedAsync(long customerId, long voucherId, long orderId);

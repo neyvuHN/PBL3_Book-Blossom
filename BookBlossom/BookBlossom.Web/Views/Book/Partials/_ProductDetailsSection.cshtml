@@ -284,3 +284,58 @@
             </div>
         </div>
     </section>
+
+    <style>
+        #vouchers-modal .cart-voucher-tab-btn:hover {
+            color: #C2185B !important;
+        }
+        #vouchers-modal .cart-voucher-tab-btn.active {
+            color: #C2185B !important;
+            border-bottom-color: #C2185B !important;
+        }
+    </style>
+    <!-- BookBlossom Vouchers Modal -->
+    <div class="custom-modal" id="vouchers-modal" style="display: none; z-index: 9999;">
+        <div class="modal-backdrop" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
+        <div class="modal-box" style="max-width: 600px; width: 90%; text-align: left; padding: 30px; border-radius: 24px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(194, 24, 91, 0.1);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Lora', serif; font-size: 1.5rem; color: #333; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🌸 BookBlossom Vouchers
+                </h3>
+                <button class="btn-close-vouchers" id="btn-close-vouchers" style="background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#C2185B'" onmouseout="this.style.color='#aaa'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Custom Tabs -->
+            <div class="cart-voucher-tabs" style="display: flex; gap: 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; padding-bottom: 0;">
+                <div class="cart-voucher-tab-btn active" data-target="product-vouchers-content" style="font-size: 1.05rem; font-weight: 700; color: #888; cursor: pointer; padding-bottom: 12px; border-bottom: 3px solid transparent; transition: all 0.2s; margin-bottom: -1px;">
+                    Product Vouchers
+                </div>
+                <div class="cart-voucher-tab-btn" data-target="platform-vouchers-content" style="font-size: 1.05rem; font-weight: 700; color: #888; cursor: pointer; padding-bottom: 12px; border-bottom: 3px solid transparent; transition: all 0.2s; margin-bottom: -1px;">
+                    Platform Vouchers
+                </div>
+            </div>
+
+            <div class="cart-vouchers-modal-list-wrapper" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; margin-bottom: 20px; display: flex; flex-direction: column;">
+                
+                <div id="product-vouchers-content" class="cart-voucher-tab-content active" style="display: flex; flex-direction: column;">
+                    <div id="product-vouchers-list" class="vouchers-modal-list" style="display: flex; flex-direction: column; gap: 15px;">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+
+                <div id="platform-vouchers-content" class="cart-voucher-tab-content" style="display: none; flex-direction: column;">
+                    <div id="platform-vouchers-list" class="vouchers-modal-list" style="display: flex; flex-direction: column; gap: 15px;">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+            </div>
+
+            <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-size: 0.85rem; color: #666;"><strong id="modal-selected-count">0</strong> voucher(s) selected</span>
+                <button class="btn-modal-confirm" id="btn-confirm-vouchers" style="width: 140px; margin: 0; background: #C2185B; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;">Apply Selected</button>
+            </div>
+        </div>
+    </div>

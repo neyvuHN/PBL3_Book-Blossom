@@ -169,54 +169,26 @@ namespace BookBlossom.Infrastructure.Services
 
                 // ─── VOUCHER: Validate & Áp giảm giá ────────────────────────
                 decimal discountAmount = 0;
-                long? appliedVoucherId = null;
 
-                if (!string.IsNullOrWhiteSpace(request.VoucherCode))
+                if (request.VoucherCodes != null && request.VoucherCodes.Any())
                 {
-                    // Lấy CategoryID của tất cả sách trong giỏ hàng để kiểm tra scope
-                    var bookIds = request.CartItems
-                        .Where(i => i.BookID.HasValue)
-                        .Select(i => i.BookID!.Value)
-                        .ToList();
-
-                    var bookCategoryIds = await _context.Set<RealBook>()
-                        .Where(b => bookIds.Contains(b.BookID))
-                        .Select(b => b.CategoryID)
-                        .Distinct()
-                        .ToListAsync();
-
-                    var blindBookIds = request.CartItems
-                        .Where(i => i.BlindBookID.HasValue)
-                        .Select(i => i.BlindBookID!.Value)
-                        .ToList();
-
-                    if (blindBookIds.Any())
-                    {
-                        var blindBookCategories = await _context.Set<BlindBook>()
-                            .Include(b => b.RealBook)
-                            .Where(b => blindBookIds.Contains(b.BlindBookID) && b.RealBook != null)
-                            .Select(b => b.RealBook!.CategoryID)
-                            .Distinct()
-                            .ToListAsync();
-
-                        bookCategoryIds = bookCategoryIds.Union(blindBookCategories).Distinct().ToList();
-                    }
-
                     var voucherResult = await _voucherService.ValidateAndApplyVoucherAsync(
                         customerId,
-                        request.VoucherCode,
-                        subTotal,
-                        bookCategoryIds,
-                        bookIds);
+                        request.VoucherCodes,
+                        order.OrderDetails);
 
                     if (!voucherResult.IsValid)
                         throw new InvalidOperationException($"Voucher không hợp lệ: {voucherResult.ErrorMessage}");
 
-                    discountAmount = voucherResult.DiscountAmount;
-                    if (voucherResult.VoucherID.HasValue)
+                    discountAmount = voucherResult.TotalDiscountAmount;
+                    
+                    foreach (var applied in voucherResult.AppliedVouchers)
                     {
-                        appliedVoucherId = voucherResult.VoucherID.Value;
-                        order.VoucherID = appliedVoucherId;
+                        order.OrderVouchers.Add(new OrderVoucher
+                        {
+                            VoucherID = applied.VoucherID,
+                            DiscountAmount = applied.DiscountAmount
+                        });
                     }
                     order.DiscountAmount = discountAmount;
                 }
@@ -227,9 +199,12 @@ namespace BookBlossom.Infrastructure.Services
                 await _context.SaveChangesAsync();
 
                 // Đánh dấu voucher đã được dùng sau khi tạo đơn thành công
-                if (appliedVoucherId.HasValue)
+                if (request.VoucherCodes != null && request.VoucherCodes.Any() && order.OrderVouchers.Any())
                 {
-                    await _voucherService.MarkVoucherAsUsedAsync(customerId, appliedVoucherId.Value, order.OrderID);
+                    foreach (var ov in order.OrderVouchers)
+                    {
+                        await _voucherService.MarkVoucherAsUsedAsync(customerId, ov.VoucherID, order.OrderID);
+                    }
                 }
 
                 // XÓA CÁC SẢN PHẨM KHỎI GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
@@ -343,7 +318,8 @@ namespace BookBlossom.Infrastructure.Services
                         TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
                         SampleFilePath = od.RealBook?.SampleFilePath,
                         ISBN = od.RealBook?.ISBN ?? string.Empty,
-                        Publisher = od.RealBook?.Publisher ?? string.Empty
+                        Publisher = od.RealBook?.Publisher ?? string.Empty,
+                        VoucherBreakdown = od.VoucherBreakdown
                     }).ToList()
                 };
             });
@@ -414,7 +390,8 @@ namespace BookBlossom.Infrastructure.Services
                     TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
                     SampleFilePath = od.RealBook?.SampleFilePath,
                     ISBN = od.RealBook?.ISBN ?? string.Empty,
-                    Publisher = od.RealBook?.Publisher ?? string.Empty
+                    Publisher = od.RealBook?.Publisher ?? string.Empty,
+                    VoucherBreakdown = od.VoucherBreakdown
                 }).ToList()
             };
         }
@@ -629,7 +606,8 @@ namespace BookBlossom.Infrastructure.Services
                     TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
                     SampleFilePath = od.RealBook?.SampleFilePath,
                     ISBN = od.RealBook?.ISBN ?? string.Empty,
-                    Publisher = od.RealBook?.Publisher ?? string.Empty
+                    Publisher = od.RealBook?.Publisher ?? string.Empty,
+                    VoucherBreakdown = od.VoucherBreakdown
                 }).ToList()
             });
         }
@@ -683,7 +661,8 @@ namespace BookBlossom.Infrastructure.Services
                     TotalItemAmount = od.UnitPrice * od.Quantity - (od.Discount ?? 0),
                     SampleFilePath = od.RealBook?.SampleFilePath,
                     ISBN = od.RealBook?.ISBN ?? string.Empty,
-                    Publisher = od.RealBook?.Publisher ?? string.Empty
+                    Publisher = od.RealBook?.Publisher ?? string.Empty,
+                    VoucherBreakdown = od.VoucherBreakdown
                 }).ToList()
             };
 

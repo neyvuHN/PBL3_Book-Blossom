@@ -1031,40 +1031,67 @@
         const appliedVoucherLines = [];
 
         selectedVouchers.forEach(function (code) {
-            const voucher = VOUCHERS_DATA.find(v => v.code === code);
+            const voucher = window.activeVouchers ? window.activeVouchers.find(v => v.voucherCode === code) : null;
 
             if (!voucher) return;
 
-            if (subtotalVnd < voucher.minOrder) {
-                showToast(`${voucher.code} requires minimum order ${voucher.minOrder.toLocaleString('vi-VN')} VND.`);
+            if (subtotalVnd < voucher.minOrderValue) {
+                showToast(`Voucher ${voucher.voucherCode} requires minimum order ${voucher.minOrderValue.toLocaleString('vi-VN')} VND.`);
                 return;
             }
 
-            if (voucher.type === 'fixed') {
-                discountVnd += voucher.discount;
+            let currentDiscount = 0;
+
+            if (voucher.discountType === 'Fixed') {
+                currentDiscount = voucher.discountValue;
+                discountVnd += currentDiscount;
                 appliedVoucherLines.push({
-                    code: voucher.code,
-                    text: `${voucher.code} (-${voucher.discount.toLocaleString('vi-VN')} VND)`
+                    code: voucher.voucherCode,
+                    text: `${voucher.voucherCode} (-${currentDiscount.toLocaleString('vi-VN')} VND)`
                 });
-            }
-
-            if (voucher.type === 'percent') {
-                const percentDiscount = Math.min(Math.round(subtotalVnd * voucher.discount), voucher.maxDiscount);
-                discountVnd += percentDiscount;
+            } else if (voucher.discountType === 'Percentage') {
+                let percentDiscount = Math.round(subtotalVnd * (voucher.discountValue / 100));
+                if (voucher.maxDiscountAmount > 0) {
+                    percentDiscount = Math.min(percentDiscount, voucher.maxDiscountAmount);
+                }
+                currentDiscount = percentDiscount;
+                discountVnd += currentDiscount;
 
                 appliedVoucherLines.push({
-                    code: voucher.code,
-                    text: `${voucher.code} (-${percentDiscount.toLocaleString('vi-VN')} VND)`
+                    code: voucher.voucherCode,
+                    text: `${voucher.voucherCode} (-${currentDiscount.toLocaleString('vi-VN')} VND)`
                 });
-            }
-
-            if (voucher.type === 'freeship') {
+            } else if (voucher.discountType === 'FreeShipping' || voucher.discountType === 'freeship') {
                 shippingFeeVnd = 0;
-
                 appliedVoucherLines.push({
-                    code: voucher.code,
-                    text: `${voucher.code} (Free Shipping)`
+                    code: voucher.voucherCode,
+                    text: `${voucher.voucherCode} (Free Shipping)`
                 });
+            } else {
+                // Handle old mock data format
+                if (voucher.type === 'fixed') {
+                    currentDiscount = voucher.discount;
+                    discountVnd += currentDiscount;
+                    appliedVoucherLines.push({
+                        code: voucher.code,
+                        text: `${voucher.code} (-${currentDiscount.toLocaleString('vi-VN')} VND)`
+                    });
+                } else if (voucher.type === 'percent') {
+                    let percentDiscount = Math.round(subtotalVnd * voucher.discount);
+                    if (voucher.maxDiscount) percentDiscount = Math.min(percentDiscount, voucher.maxDiscount);
+                    currentDiscount = percentDiscount;
+                    discountVnd += currentDiscount;
+                    appliedVoucherLines.push({
+                        code: voucher.code,
+                        text: `${voucher.code} (-${currentDiscount.toLocaleString('vi-VN')} VND)`
+                    });
+                } else if (voucher.type === 'freeship') {
+                    shippingFeeVnd = 0;
+                    appliedVoucherLines.push({
+                        code: voucher.code,
+                        text: `${voucher.code} (Free Shipping)`
+                    });
+                }
             }
         });
 
@@ -1150,79 +1177,123 @@
                     return;
                 }
 
-                // Add checks for other conditions if window.currentUser is defined
-                if (window.currentUser) {
-                    if (voucher.minPlan > (window.currentUser.plan || 0)) {
-                        window.showVoucherError(`Voucher <b>${code}</b> requires a minimum subscription plan of <b>${getPlanName(voucher.minPlan)}</b>.`);
-                        return;
-                    }
-                    if (voucher.minReputation > (window.currentUser.reputation || 0)) {
-                        window.showVoucherError(`Voucher <b>${code}</b> requires a minimum reputation score of <b>${voucher.minReputation}</b>.`);
-                        return;
-                    }
-                    if (voucher.minRank > (window.currentUser.rank || 0)) {
-                        window.showVoucherError(`Voucher <b>${code}</b> requires a minimum membership rank of <b>${getRankName(voucher.minRank)}</b>.`);
-                        return;
-                    }
-                }
-
                 selectedVouchers.add(code);
                 updateVoucherSync(code, true);
                 showToast(`Voucher "${code}" applied successfully!`);
             }
         }
 
-        $(document)
-            .off('click.productSeeAllVouchers')
-            .on('click.productSeeAllVouchers', '.btn-see-all-vouchers', function (e) {
-                e.preventDefault();
-
-                const validCodes = new Set();
-                if (currentDetailBook) {
-                    const bookId = currentDetailBook.bookID || currentDetailBook.id;
-                    const categoryId = currentDetailBook.categoryID;
-                    
-                    VOUCHERS_DATA.forEach(v => {
-                        const hasBookConstraint = v.applicableBooks && v.applicableBooks.length > 0;
-                        const hasCategoryConstraint = v.applicableCategories && v.applicableCategories.length > 0;
-                        
-                        let isValid = true;
-                        if (hasBookConstraint || hasCategoryConstraint) {
-                            let bookMatch = hasBookConstraint && bookId && v.applicableBooks.includes(bookId);
-                            let categoryMatch = hasCategoryConstraint && categoryId && v.applicableCategories.includes(categoryId);
-                            isValid = bookMatch || categoryMatch;
-                        }
-                        
-                        if (isValid) validCodes.add(v.code);
-                    });
+        async function fetchAndPopulateVouchers() {
+            if (!window.activeVouchers) {
+                if (window.apiClient) {
+                    try {
+                        const res = await window.apiClient.apiGet('/api/VoucherAPI/active');
+                        window.activeVouchers = res.data || res;
+                    } catch (e) {
+                        console.error('Failed to load customer vouchers', e);
+                        window.activeVouchers = [];
+                    }
                 } else {
-                    VOUCHERS_DATA.forEach(v => validCodes.add(v.code));
+                    window.activeVouchers = [];
+                }
+            }
+
+            const $productVouchersList = $('#product-vouchers-list');
+            const $platformVouchersList = $('#platform-vouchers-list');
+            
+            $productVouchersList.empty();
+            $platformVouchersList.empty();
+
+            if (window.activeVouchers.length === 0) {
+                $productVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No product vouchers available.</div>');
+                $platformVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No platform vouchers available.</div>');
+                return;
+            }
+
+            const bookId = currentDetailBook ? (currentDetailBook.bookID || currentDetailBook.id) : null;
+            const categoryId = currentDetailBook ? currentDetailBook.categoryID : null;
+
+            window.activeVouchers.forEach(v => {
+                const code = v.voucherCode;
+                const name = v.voucherName || 'Special Discount';
+                const valueDisplay = v.discountType === 'Percentage' ? `${v.discountValue}%` : `${new Intl.NumberFormat('vi-VN').format(v.discountValue)} VND`;
+                const isStackable = v.isStackable;
+                const stackableBadge = isStackable ? 
+                    `<span style="background: #e8f5e9; color: #2e7d32; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Stackable</span>` : 
+                    `<span style="background: #ffebee; color: #c62828; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Non-stackable</span>`;
+
+                // Determine if it's a product or platform voucher
+                const hasCategory = v.applicableCategoryIDs && v.applicableCategoryIDs.length > 0;
+                const hasBook = v.applicableBookIDs && v.applicableBookIDs.length > 0;
+                
+                // Validate if voucher applies to this book specifically
+                let isValid = true;
+                if (hasBook || hasCategory) {
+                    let bookMatch = hasBook && bookId && v.applicableBookIDs.includes(bookId);
+                    let categoryMatch = hasCategory && categoryId && v.applicableCategoryIDs.includes(categoryId);
+                    isValid = bookMatch || categoryMatch;
                 }
 
-                $('#vouchers-modal .modal-voucher-item').each(function () {
-                    const code = $(this).attr('data-code');
-                    
-                    if (!validCodes.has(code)) {
-                        $(this).hide();
-                        return;
-                    } else {
-                        $(this).show();
-                    }
+                if (!isValid) return; // Skip invalid product vouchers
 
-                    const isSelected = selectedVouchers.has(code);
+                const isSelected = selectedVouchers.has(code);
+                const selectedClass = isSelected ? 'selected' : '';
+                const btnText = isSelected ? 'Applied' : 'Apply';
 
-                    if (isSelected) {
-                        $(this).addClass('selected');
-                        $(this).find('.btn-modal-apply-voucher').text('Applied');
-                    } else {
-                        $(this).removeClass('selected');
-                        $(this).find('.btn-modal-apply-voucher').text('Apply');
-                    }
-                });
+                const itemHtml = `
+                    <div class="modal-voucher-item ${selectedClass}" data-code="${code}" data-stackable="${isStackable}" style="display: flex; border: 1.5px dashed #f07c7c; border-radius: 12px; overflow: hidden; background: #fffdfb; transition: all 0.25s; cursor: pointer; position: relative;">
+                        <div style="background: #ffebee; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; border-right: 1.5px dashed #f07c7c; text-align: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #f07c7c; letter-spacing: 0.5px;">${code}</span>
+                            <span style="font-size: 0.65rem; color: #f07c7c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
+                        </div>
+                        <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                            <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 4px;">
+                                <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0;">${name} (Save ${valueDisplay})</h4>
+                                ${stackableBadge}
+                            </div>
+                            <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min order ${new Intl.NumberFormat('vi-VN').format(v.minOrderValue)} VND.${v.maxDiscountAmount > 0 ? ' Max discount ' + new Intl.NumberFormat('vi-VN').format(v.maxDiscountAmount) + ' VND.' : ''}</p>
+                            <span style="font-size: 0.7rem; color: #aaa;">Expiry: ${new Date(v.endDate).toLocaleDateString()}</span>
+                        </div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: center; min-width: 90px; z-index: 2;">
+                            <button class="btn-modal-apply-voucher" style="background: #fff; color: #C2185B; border: 1.5px solid #C2185B; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">${btnText}</button>
+                        </div>
+                    </div>
+                `;
+                
+                if (hasCategory || hasBook) {
+                    $productVouchersList.append(itemHtml);
+                } else {
+                    $platformVouchersList.append(itemHtml);
+                }
+            });
+            
+            if ($productVouchersList.children().length === 0) {
+                $productVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No product vouchers applicable.</div>');
+            }
+            if ($platformVouchersList.children().length === 0) {
+                $platformVouchersList.html('<div style="text-align: center; padding: 20px; color: #888;">No platform vouchers available.</div>');
+            }
+        }
+
+        $(document)
+            .off('click.productSeeAllVouchers')
+            .on('click.productSeeAllVouchers', '.btn-see-all-vouchers', async function (e) {
+                e.preventDefault();
+
+                await fetchAndPopulateVouchers();
 
                 $('#modal-selected-count').text(selectedVouchers.size);
                 $('#vouchers-modal').fadeIn(250);
             });
+
+        // Tab switching logic for product details voucher modal
+        $(document).off('click.pdVoucherTab').on('click.pdVoucherTab', '#vouchers-modal .cart-voucher-tab-btn', function() {
+            $('#vouchers-modal .cart-voucher-tab-btn').removeClass('active');
+            $(this).addClass('active');
+            const target = $(this).attr('data-target');
+            $('#vouchers-modal .cart-voucher-tab-content').removeClass('active').hide();
+            $('#' + target).addClass('active').css('display', 'flex');
+        });
 
         $(document)
             .off('click.productCloseVouchers')
@@ -1236,14 +1307,14 @@
 
         $(document)
             .off('click.productModalVoucher')
-            .on('click.productModalVoucher', '.modal-voucher-item', function () {
+            .on('click.productModalVoucher', '#vouchers-modal .modal-voucher-item', function () {
                 const code = $(this).attr('data-code');
                 handleVoucherSelection(code);
             });
 
         $(document)
             .off('click.productModalVoucherButton')
-            .on('click.productModalVoucherButton', '.btn-modal-apply-voucher', function (e) {
+            .on('click.productModalVoucherButton', '#vouchers-modal .btn-modal-apply-voucher', function (e) {
                 e.stopPropagation();
                 $(this).closest('.modal-voucher-item').trigger('click');
             });

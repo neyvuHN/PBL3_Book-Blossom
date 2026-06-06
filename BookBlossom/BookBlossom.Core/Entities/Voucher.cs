@@ -50,7 +50,7 @@ namespace BookBlossom.Core.Entities
         public virtual Badge? RequiredBadge { get; set; }
         public virtual ICollection<CustomerVoucher> CustomerVouchers { get; set; } = new List<CustomerVoucher>();
         public virtual ICollection<VoucherCategory> VoucherCategories { get; set; } = new List<VoucherCategory>();
-        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        public virtual ICollection<OrderVoucher> OrderVouchers { get; set; } = new List<OrderVoucher>();
         public virtual ICollection<VoucherBook> VoucherBooks { get; set; } = new List<VoucherBook>();
     }
 

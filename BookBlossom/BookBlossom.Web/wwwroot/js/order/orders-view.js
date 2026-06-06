@@ -447,7 +447,21 @@ class OrdersView {
 
         // Populate items
         const itemsList = document.getElementById('detail-items-list');
-        itemsList.innerHTML = order.items.map(item => `
+        itemsList.innerHTML = order.items.map(item => {
+            let vouchersHtml = '';
+            if (item.voucherBreakdown) {
+                const parts = item.voucherBreakdown.split('|');
+                parts.forEach(p => {
+                    const kv = p.split(':');
+                    if (kv.length === 2) {
+                        const code = kv[0];
+                        const discount = parseFloat(kv[1]);
+                        vouchersHtml += `<div style="display:inline-flex; align-items:center; background:#ffebee; color:#C2185B; border:1px solid #f07c7c; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; margin-right:5px; margin-top:5px;"><i class="fas fa-tag" style="margin-right:4px;"></i> ${code} (-${new Intl.NumberFormat('vi-VN').format(discount)}đ)</div>`;
+                    }
+                });
+            }
+            
+            return `
             <div class="d-flex align-items-center mb-3">
                 <!-- [UPDATED] Added data attributes and CSS link class to modal book image -->
                 <img src="${item.image}" alt="${item.title}" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px;" class="mr-3 order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.src='/images/placeholder.jpg'">
@@ -455,10 +469,12 @@ class OrdersView {
                     <!-- [UPDATED] Added data attributes and CSS link class to modal book title -->
                     <div class="font-weight-medium text-dark order-item-title-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}">${item.title}</div>
                     <div class="text-muted small">Qty: ${item.quantity}</div>
+                    ${vouchersHtml}
                 </div>
                 <div class="font-weight-medium">${item.price.toLocaleString('vi-VN')}đ</div>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         // Summary amounts
         // Summary amounts

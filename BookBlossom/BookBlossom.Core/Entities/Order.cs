@@ -24,11 +24,8 @@ namespace BookBlossom.Core.Entities
         public DateTime? DeliveredDate { get; set; }
         public DateTime? CompletedDate { get; set; }
 
-        // Voucher áp dụng cho đơn hàng (Nullable - không bắt buộc)
-        public long? VoucherID { get; set; }
-
         // Navigation Properties
-        public virtual Voucher? Voucher { get; set; }
+        public virtual ICollection<OrderVoucher> OrderVouchers { get; set; } = new List<OrderVoucher>();
         public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }

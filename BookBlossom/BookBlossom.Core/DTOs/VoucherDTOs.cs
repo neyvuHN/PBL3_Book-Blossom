@@ -81,14 +81,19 @@ namespace BookBlossom.Core.DTOs
         public List<long>? ApplicableBookIDs { get; set; }
     }
 
-    // Kết quả sau khi validate và áp voucher tại checkout
     public class VoucherValidationResultDTO
     {
         public bool IsValid { get; set; }
         public string? ErrorMessage { get; set; }
+        public decimal TotalDiscountAmount { get; set; }
+        public List<AppliedVoucherDTO> AppliedVouchers { get; set; } = new List<AppliedVoucherDTO>();
+    }
+
+    public class AppliedVoucherDTO
+    {
+        public long VoucherID { get; set; }
+        public string VoucherCode { get; set; } = string.Empty;
         public decimal DiscountAmount { get; set; }
-        public long? VoucherID { get; set; }
-        public string? VoucherCode { get; set; }
     }
 
     // Thống kê sử dụng voucher (Usage Rate & ROI cho Marketing)
@@ -117,5 +122,12 @@ namespace BookBlossom.Core.DTOs
         public DateTime EndDate { get; set; }
         public bool IsUsed { get; set; }
         public long? OrderID { get; set; }
+        public bool IsStackable { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("applicableCategoryIDs")]
+        public List<long> ApplicableCategoryIDs { get; set; } = new List<long>();
+
+        [System.Text.Json.Serialization.JsonPropertyName("applicableBookIDs")]
+        public List<long> ApplicableBookIDs { get; set; } = new List<long>();
     }
 }
