@@ -146,14 +146,17 @@
             }
 
             books.forEach((book) => {
-                const randomImg = `/images/Book/book${(book.bookID % 6) + 1}.jpg`;
+                let mainImg = `/images/Book/book${(book.bookID % 6) + 1}.jpg`;
+                if (book.imageUrls && book.imageUrls.length > 0) {
+                    mainImg = book.imageUrls[0];
+                }
                 const priceStr = book.price.toLocaleString('vi-VN');
                 const publisherDisplay = book.publisher || 'Unknown Publisher';
                 const rating = (4.0 + (book.bookID % 10) / 10).toFixed(1);
 
                 const html = `
                     <div class="book-card" data-id="${book.bookID}">
-                        <img src="${randomImg}" alt="${book.title}">
+                        <img src="${mainImg}" alt="${book.title}">
                         <div class="book-info">
                             <h3>${book.title}</h3>
                             <p>${publisherDisplay}</p>

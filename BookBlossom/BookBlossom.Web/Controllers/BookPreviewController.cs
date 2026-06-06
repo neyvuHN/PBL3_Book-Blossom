@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
+using BookBlossom.Infrastructure.Data;
 
 namespace BookBlossom.Web.Controllers
 {
@@ -9,12 +10,14 @@ namespace BookBlossom.Web.Controllers
     public class BookPreviewController : ControllerBase
     {
         private readonly IWebHostEnvironment _env;
+        private readonly ApplicationDbContext _context;
         // In a production app, this key should be loaded from AppSettings or Key Vault
         private static readonly string SecretKey = "BookBlossomSuperSecureSecretKey_2026"; 
 
-        public BookPreviewController(IWebHostEnvironment env)
+        public BookPreviewController(IWebHostEnvironment env, ApplicationDbContext context)
         {
             _env = env;
+            _context = context;
         }
 
         /// <summary>
@@ -106,15 +109,25 @@ namespace BookBlossom.Web.Controllers
                 }
 
                 // 4. Securely locate and stream the preview PDF file dynamically
-                // We serve Book1.pdf, Book2.pdf, Book3.pdf depending on the active book cover,
-                // and fallback to Book1.pdf if the specific PDF is not yet created.
-                var fileName = $"{id}.pdf";
-                var pdfPath = Path.Combine(_env.WebRootPath, "PDF", fileName);
-                
-                if (!System.IO.File.Exists(pdfPath))
+                string pdfPath = string.Empty;
+                if (long.TryParse(id, out long realBookId))
                 {
-                    // Fallback to Book1.pdf if requested book preview doesn't exist yet
-                    pdfPath = Path.Combine(_env.WebRootPath, "PDF", "Book1.pdf");
+                    var book = _context.RealBooks.FirstOrDefault(b => b.BookID == realBookId);
+                    if (book != null && !string.IsNullOrEmpty(book.SampleFilePath))
+                    {
+                        var relativePath = book.SampleFilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                        pdfPath = Path.Combine(_env.WebRootPath, relativePath);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(pdfPath) || !System.IO.File.Exists(pdfPath))
+                {
+                    var fileName = $"{id}.pdf";
+                    pdfPath = Path.Combine(_env.WebRootPath, "PDF", fileName);
+                    if (!System.IO.File.Exists(pdfPath))
+                    {
+                        pdfPath = Path.Combine(_env.WebRootPath, "PDF", "Book1.pdf");
+                    }
                 }
 
                 if (!System.IO.File.Exists(pdfPath))

@@ -16,6 +16,8 @@ class BookModel {
                 return true;
             });
         }
+        
+        books.sort((a, b) => a.bookID - b.bookID);
         return books;
     }
 

@@ -154,10 +154,19 @@
             '/images/Book/book6.webp'
         ];
 
-        const mainImage = isRealData ? `/images/Book/book${(bookData.bookID % 6) + 1}.jpg` : (bookData.imgSrc || '/images/Book/book1.jpg');
-        const otherImages = demoImages.filter(img => img !== mainImage);
+        let mainImage;
+        let finalImages = [];
+        
+        if (isRealData && bookData.imageUrls && bookData.imageUrls.length > 0) {
+            mainImage = bookData.imageUrls[0];
+            finalImages = [...bookData.imageUrls];
+        } else {
+            mainImage = isRealData ? `/images/Book/book${(bookData.bookID % 6) + 1}.jpg` : (bookData.imgSrc || '/images/Book/book1.jpg');
+            const otherImages = demoImages.filter(img => img !== mainImage);
+            finalImages = [mainImage, ...otherImages.slice(0, 3)];
+        }
 
-        detailImagesArray = [mainImage, ...otherImages.slice(0, 3)];
+        detailImagesArray = finalImages;
 
         $('.thumb-item').each(function (index) {
             if (index < detailImagesArray.length) {
@@ -1401,10 +1410,12 @@
             if (window.BookBlossomBookPreview) {
                 const title = $('#detail-title').text().trim();
                 const coverSrc = $('#detail-main-img').attr('src') || '/images/Book/book1.jpg';
+                const bookId = $('#btn-detail-add-cart').data('book-id');
 
                 window.BookBlossomBookPreview.open({
                     title: title,
-                    coverSrc: coverSrc
+                    coverSrc: coverSrc,
+                    bookId: bookId
                 });
             } else {
                 showToast('Read Preview module is not ready.');

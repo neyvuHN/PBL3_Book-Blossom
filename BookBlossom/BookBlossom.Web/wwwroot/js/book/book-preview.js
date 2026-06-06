@@ -39,10 +39,13 @@
         updatePreviewControls();
 
         // Extract PDF filename from current main cover image dynamically (e.g. book1.jpg -> Book1)
-        let bookId = 'Book1'; // fallback default
-        const match = (options.coverSrc || '').match(/book(\d+)/i);
-        if (match) {
-            bookId = 'Book' + match[1];
+        let bookId = options.bookId; 
+        if (!bookId) {
+            bookId = 'Book1'; // fallback default
+            const match = (options.coverSrc || '').match(/book(\d+)/i);
+            if (match) {
+                bookId = 'Book' + match[1];
+            }
         }
 
         $modal.fadeIn(300, function () {
