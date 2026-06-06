@@ -139,5 +139,44 @@
         $(document).on('click', '#community .testimonial-card', function () {
             window.location.href = '/Reviews';
         });
+
+        // Fetch Featured Books
+        function loadFeaturedBooks() {
+            $.ajax({
+                url: '/api/realbook/featured?count=10',
+                type: 'GET',
+                success: function (books) {
+                    const track = $('#featured-books-track');
+                    track.empty();
+                    
+                    if (books && books.length > 0) {
+                        books.forEach(book => {
+                            const imageUrl = (book.imageUrls && book.imageUrls.length > 0) ? book.imageUrls[0] : '/images/Book/book1.jpg';
+                            const title = book.title || 'Unknown Title';
+                            const author = book.authors || book.publisher || 'Unknown';
+                            
+                            const cardHtml = `
+                                <div class="book-card" data-title="${title}">
+                                    <img src="${imageUrl}" alt="${title}">
+                                    <div class="book-info">
+                                        <h3>${title}</h3>
+                                        <p>${author}</p>
+                                    </div>
+                                </div>
+                            `;
+                            track.append(cardHtml);
+                        });
+                    } else {
+                        track.append('<p>No featured books available at the moment.</p>');
+                    }
+                },
+                error: function (err) {
+                    console.error('Failed to load featured books:', err);
+                }
+            });
+        }
+
+        // Call it immediately
+        loadFeaturedBooks();
     });
 </script>

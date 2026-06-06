@@ -142,6 +142,14 @@ namespace BookBlossom.API.Controllers
             return Ok(book);
         }
 
+        // 5.5 GET: api/realbook/featured (Lấy danh sách sách nổi bật)
+        [HttpGet("featured")]
+        public async Task<IActionResult> GetFeaturedBooks([FromQuery] int count = 10)
+        {
+            var books = await _realBookService.GetFeaturedBooksAsync(count);
+            return Ok(books);
+        }
+
         // 6. GET: api/realbook/category/{categoryId} (Gợi ý sách liên quan)
         [HttpGet("category/{categoryId}")]
         public async Task<IActionResult> GetByCategoryId(long categoryId, [FromQuery] SortOrder sortOrder = SortOrder.Ascending)

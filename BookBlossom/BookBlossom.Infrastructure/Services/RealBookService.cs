@@ -428,6 +428,54 @@ namespace BookBlossom.Infrastructure.Services
             return dto;
         }
 
+        public async Task<List<RealBookDTO>> GetFeaturedBooksAsync(int count = 10)
+        {
+            var topRevenueBooks = await _context.OrderDetails
+                .Where(od => !od.BlindBookID.HasValue && od.Order.OrderStatus == OrderStatus.Completed)
+                .GroupBy(od => od.BookID)
+                .Select(g => new { BookID = g.Key, Revenue = g.Sum(x => x.Quantity * x.UnitPrice) })
+                .OrderByDescending(x => x.Revenue)
+                .Take(count)
+                .ToListAsync();
+
+            var bookIds = topRevenueBooks.Select(x => x.BookID).ToList();
+
+            if (bookIds.Count < count)
+            {
+                var extraBookIds = await _context.RealBooks
+                    .Where(b => b.IsContinued && !bookIds.Contains(b.BookID))
+                    .OrderByDescending(b => b.BookID)
+                    .Take(count - bookIds.Count)
+                    .Select(b => b.BookID)
+                    .ToListAsync();
+                bookIds.AddRange(extraBookIds);
+            }
+
+            var books = await _context.RealBooks
+                .Include(b => b.Category)
+                .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
+                .Where(b => bookIds.Contains(b.BookID) && b.IsContinued)
+                .ToListAsync();
+
+            var soldCounts = await _context.OrderDetails
+                .Where(od => bookIds.Contains(od.BookID) && od.Order.OrderStatus != OrderStatus.Cancelled)
+                .GroupBy(od => od.BookID)
+                .Select(g => new { BookID = g.Key, Count = g.Sum(od => od.Quantity) })
+                .ToDictionaryAsync(x => x.BookID, x => x.Count);
+
+            var result = new List<RealBookDTO>();
+            foreach (var id in bookIds)
+            {
+                var book = books.FirstOrDefault(b => b.BookID == id);
+                if (book != null)
+                {
+                    result.Add(MapToDTO(book, soldCounts.TryGetValue(book.BookID, out var sc) ? sc : 0));
+                }
+            }
+
+            return result;
+        }
+
         public async Task<bool> ReserveStockAsync(long bookId, int quantity)
         {
             // 1. Tìm cuốn sách cần giữ kho dưới DB

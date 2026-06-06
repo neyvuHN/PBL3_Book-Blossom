@@ -14,5 +14,6 @@ namespace BookBlossom.Core.Interfaces
 
         // Hàm phục vụ giữ kho khi Buyer tạo đơn hàng ở Phase 3
         Task<bool> ReserveStockAsync(long bookId, int quantity);
+        Task<List<RealBookDTO>> GetFeaturedBooksAsync(int count = 10);
     }
 }
