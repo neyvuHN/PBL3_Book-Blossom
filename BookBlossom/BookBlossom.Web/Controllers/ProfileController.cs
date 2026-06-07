@@ -74,7 +74,9 @@ namespace BookBlossom.Web.Controllers
                 Bio = user.Note ?? "Cập nhật tiểu sử của bạn tại đây.",
                 MemberSince = System.DateTime.Now,
                 
-                MembershipTier = user.CustomerDetail?.MembershipRank?.RankType?.ToString() ?? "Đồng",
+                MembershipTier = user.CustomerDetail?.MembershipRank?.RankType.HasValue == true
+                    ? ((BookBlossom.Core.Enums.RankType)user.CustomerDetail.MembershipRank.RankType.Value).ToString()
+                    : "Bronze",
                 TotalSpending = user.CustomerDetail?.TotalSpending ?? 0,
                 NextTierThreshold = 5000000,
                 
