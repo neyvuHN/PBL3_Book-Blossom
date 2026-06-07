@@ -171,7 +171,67 @@
             });
         }
 
-        // Call it immediately
+        // Fetch Real Community Reviews
+        function loadCommunityReviews() {
+            $.ajax({
+                url: '/api/Review',
+                type: 'GET',
+                success: function (reviews) {
+                    const track = $('#community-slider .slider-track');
+                    
+                    if (reviews && reviews.length > 0) {
+                        track.empty();
+                        reviews.forEach(review => {
+                            const avatarUrl = review.customerAvatar || '/images/Avatar/default-avatar.png';
+                            const name = review.customerName || 'Anonymous';
+                            const content = review.content || '';
+                            
+                            const isLong = content.length > 120;
+                            const displayContent = isLong ? content.substring(0, 120) + '...' : content;
+                            
+                            const $card = $('<div class="testimonial-card"></div>');
+                            $card.append(`<img src="${avatarUrl}" alt="User Avatar" class="avatar">`);
+                            
+                            const $p = $('<p class="review-text"></p>').text(`"${displayContent}"`);
+                            $p.data('fullcontent', content);
+                            
+                            if (isLong) {
+                                $p.append(' ');
+                                $p.append($('<a href="#" class="see-more-btn" style="color: #C2185B; font-weight: 600; text-decoration: none; margin-left: 5px;">See More</a>'));
+                            }
+                            
+                            $card.append($p);
+                            $card.append(`<span>- ${name}</span>`);
+                            track.append($card);
+                        });
+                    }
+                },
+                error: function (err) {
+                    console.error('Failed to load community reviews:', err);
+                }
+            });
+        }
+
+        // See More / See Less Toggle Handlers
+        $(document).on('click', '#community .see-more-btn', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $p = $(this).parent();
+            const fullContent = $p.data('fullcontent');
+            $p.text(`"${fullContent}"`).append(' ').append($('<a href="#" class="see-less-btn" style="color: #C2185B; font-weight: 600; text-decoration: none; margin-left: 5px;">See Less</a>'));
+        });
+
+        $(document).on('click', '#community .see-less-btn', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $p = $(this).parent();
+            const fullContent = $p.data('fullcontent');
+            const truncated = fullContent.substring(0, 120) + '...';
+            $p.text(`"${truncated}"`).append(' ').append($('<a href="#" class="see-more-btn" style="color: #C2185B; font-weight: 600; text-decoration: none; margin-left: 5px;">See More</a>'));
+        });
+
+        // Call them immediately
         loadFeaturedBooks();
+        loadCommunityReviews();
     });
 </script>

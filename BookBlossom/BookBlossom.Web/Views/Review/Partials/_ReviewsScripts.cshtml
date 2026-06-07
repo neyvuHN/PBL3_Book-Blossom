@@ -119,7 +119,7 @@
                 const html = `
                     <div class="thread-card review-item mb-3" style="flex: 1 1 100%;" data-id="${r.reviewID}" data-rating="${r.rating}">
                         <div class="thread-header">
-                            <img src="${r.userAvatar || '/images/Avatar/default.png'}" alt="Avatar" class="avatar">
+                            <img src="${r.customerAvatar || '/images/Avatar/default.png'}" alt="Avatar" class="avatar">
                             <div class="user-info">
                                 <h4>${r.customerName || 'Anonymous'}</h4>
                                 <span>${dateStr}</span>
