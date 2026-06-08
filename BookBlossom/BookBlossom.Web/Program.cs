@@ -19,7 +19,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký ApplicationDbContext sử dụng SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // Đăng ký các Service khác (Đảm bảo đã có các dòng này)
 builder.Services.AddScoped<IOTPService, OTPService>();

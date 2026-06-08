@@ -78,7 +78,20 @@ namespace BookBlossom.Web.Controllers
                     ? ((BookBlossom.Core.Enums.RankType)user.CustomerDetail.MembershipRank.RankType.Value).ToString()
                     : "Bronze",
                 TotalSpending = user.CustomerDetail?.TotalSpending ?? 0,
-                NextTierThreshold = 5000000,
+                NextTierThreshold = user.CustomerDetail?.MembershipRank?.RankType switch
+                {
+                    0 => 1000000m,   // Bronze → Silver threshold
+                    1 => 5000000m,   // Silver → Gold threshold
+                    2 => 10000000m,  // Gold → Diamond threshold
+                    _ => 10000000m   // Diamond: already max
+                },
+                NextTierName = user.CustomerDetail?.MembershipRank?.RankType switch
+                {
+                    0 => "Silver",
+                    1 => "Gold",
+                    2 => "Diamond",
+                    _ => "Diamond"   // Already at max
+                },
                 
                 ReputationScore = reputation?.ReputationPoint ?? 100,
                 MaxReputationScore = 150,

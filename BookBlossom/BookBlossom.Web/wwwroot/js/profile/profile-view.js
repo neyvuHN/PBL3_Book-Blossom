@@ -51,7 +51,7 @@ class ProfileView {
         // Membership Tier
         $('#display-tier-text').text(user.membershipTier);
         $('#display-tier-badge')
-            .removeClass('tier-Copper tier-Silver tier-Gold tier-Diamond')
+            .removeClass('tier-Bronze tier-Silver tier-Gold tier-Diamond')
             .addClass('tier-' + user.membershipTier);
 
         // Spending metrics
