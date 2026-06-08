@@ -472,7 +472,17 @@ class OrdersView {
                         ).join('');
                     }
                 } catch (e) {
-                    voucherHtml = `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${item.voucherBreakdown}</div>`;
+                    let splits = item.voucherBreakdown.split('|');
+                    let fallbackHtml = '';
+                    splits.forEach(s => {
+                        let parts = s.split(':');
+                        if (parts.length === 2) {
+                            fallbackHtml += `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${parts[0]} (-${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(parseFloat(parts[1]))})</div>`;
+                        } else {
+                            fallbackHtml += `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${s}</div>`;
+                        }
+                    });
+                    voucherHtml = fallbackHtml;
                 }
             }
 

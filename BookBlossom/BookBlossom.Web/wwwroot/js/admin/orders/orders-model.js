@@ -163,11 +163,11 @@ class OrdersModel {
                 const returnRequests = await returnResponse.json() || [];
 
                 // Map Return Requests with ReturnAndRefund (resolutionType === 1) to returns
-                const returnedItemsList = returnRequests.filter(r => r.resolutionType === 1);
+                const returnedItemsList = returnRequests.filter(r => r.resolutionType === 1 && r.returnStatus !== 0);
                 this.returnedItems = returnedItemsList.map(r => {
                     let restockStatus = "Pending Restock";
-                    if (r.returnStatus === 1) restockStatus = "Restocked";
                     if (r.returnStatus === 2) restockStatus = "Rejected";
+                    if (r.returnStatus === 3) restockStatus = "Restocked";
 
                     return {
                         id: r.returnRequestID.toString(),
@@ -534,6 +534,24 @@ class OrdersModel {
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.message || "Failed to submit return request review.");
+        }
+
+        return true;
+    }
+
+    /**
+     * Call backend to restock an approved return.
+     */
+    async restockReturn(requestId) {
+        const headers = this._getHeaders();
+        const response = await fetch(`/api/return/staff/${requestId}/restock`, {
+            method: 'POST',
+            headers: headers
+        });
+        
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || 'Restock processing failed on server.');
         }
 
         return true;

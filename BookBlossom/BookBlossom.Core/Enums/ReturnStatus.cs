@@ -4,6 +4,7 @@ namespace BookBlossom.Core.Enums
     {
         Pending = 0,
         Approved = 1,
-        Rejected = 2
+        Rejected = 2,
+        Restocked = 3
     }
 }

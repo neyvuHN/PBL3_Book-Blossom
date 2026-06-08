@@ -132,5 +132,36 @@ namespace BookBlossom.Web.Controllers
                 return BadRequest(new { message = "Đã xảy ra lỗi khi duyệt khiếu nại.", detail = ex.Message });
             }
         }
+
+        // API 5: Logistics nhập kho vật lý cho khiếu nại đã duyệt
+        [HttpPost("staff/{requestId}/restock")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> RestockReturn(long requestId)
+        {
+            var staffIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(staffIdStr) || !long.TryParse(staffIdStr, out long staffId))
+            {
+                return Unauthorized(new { message = "Hết phiên đăng nhập hoặc Token không hợp lệ." });
+            }
+
+            try
+            {
+                var success = await _service.RestockReturnAsync(staffId, requestId);
+                if (!success) return BadRequest(new { message = "Nhập kho thất bại." });
+                return Ok(new { message = "Nhập kho vật lý thành công và đã cập nhật số lượng tồn." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi khi nhập kho.", detail = ex.Message });
+            }
+        }
     }
 }

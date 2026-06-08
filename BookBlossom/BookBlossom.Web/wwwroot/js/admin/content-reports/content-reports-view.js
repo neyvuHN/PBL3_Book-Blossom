@@ -290,7 +290,7 @@ class ContentReportsView {
                 <div class="report-header">
                     <div>
                         <span class="report-type" style="background:#FFFBEB; color:#B45309;">ESCALATED COMPLAINT</span>
-                        <span style="margin-left: 8px; font-weight: 600;">Order: <a href="javascript:void(0);" class="view-order-details-link" data-id="${item.orderId.replace('ORD-', '')}" style="color: #2F80ED; text-decoration: underline;">${item.orderId}</a></span>
+                        <span style="margin-left: 8px; font-weight: 600;">Order: <a href="javascript:void(0);" class="view-order-details-link" data-action="view-order-details" data-id="${item.orderId.replace('ORD-', '')}" style="color: #2F80ED; text-decoration: underline;">${item.orderId}</a></span>
                     </div>
                     <div style="font-size: 0.85rem; color: #6B7280;">${item.date}</div>
                 </div>
@@ -395,7 +395,7 @@ class ContentReportsView {
     bindReturnActions(handler) {
         if(!this.returnsContainer) return;
         this.returnsContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-action, .btn-read-more');
+            const btn = e.target.closest('.btn-action, .btn-read-more, .view-order-details-link');
             if(!btn) return;
             
             const action = btn.getAttribute('data-action');
@@ -472,7 +472,17 @@ class ContentReportsView {
                         ).join('');
                     }
                 } catch (e) {
-                    voucherHtml = `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${item.voucherBreakdown}</div>`;
+                    let splits = item.voucherBreakdown.split('|');
+                    let fallbackHtml = '';
+                    splits.forEach(s => {
+                        let parts = s.split(':');
+                        if (parts.length === 2) {
+                            fallbackHtml += `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${parts[0]} (-${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(parseFloat(parts[1]))})</div>`;
+                        } else {
+                            fallbackHtml += `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${s}</div>`;
+                        }
+                    });
+                    voucherHtml = fallbackHtml;
                 }
             }
 

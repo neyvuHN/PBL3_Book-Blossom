@@ -11,5 +11,6 @@ namespace BookBlossom.Core.Interfaces
         Task<IEnumerable<ReturnRequestDetailDTO>> GetReturnRequestsAsync(byte? status);
         Task<ReturnRequestDetailDTO?> GetReturnRequestByIdAsync(long requestId);
         Task<bool> ReviewReturnRequestAsync(long staffId, long requestId, ReviewReturnRequestDTO dto);
+        Task<bool> RestockReturnAsync(long staffId, long requestId);
     }
 }

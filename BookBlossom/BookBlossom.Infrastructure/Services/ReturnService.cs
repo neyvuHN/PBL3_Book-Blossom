@@ -292,25 +292,67 @@ namespace BookBlossom.Infrastructure.Services
                         request.GatewayTransactionID = "REFUND_" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 12).ToUpper();
                     }
 
-                    // 2. Nhập lại kho vật lý của RealBook
-                    if (request.RealBook != null)
-                    {
-                        request.RealBook.UnitsInStock += request.ReturnQuantity;
-                    }
-
-                    // 3. Nếu là sách của BlindBook, nhập kho gói BlindBook tương ứng
-                    if (detail.BlindBookID.HasValue)
-                    {
-                        var blindBook = await _context.Set<BlindBook>().FindAsync(detail.BlindBookID.Value);
-                        if (blindBook != null)
-                        {
-                            blindBook.StockQuantity += request.ReturnQuantity;
-                        }
-                    }
-
                     // 4. Cập nhật trạng thái đơn hàng sang Returning
                     order.OrderStatus = OrderStatus.Returning;
                 }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> RestockReturnAsync(long staffId, long requestId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var request = await _context.Set<ReturnRequest>()
+                    .Include(r => r.Order)
+                        .ThenInclude(o => o.OrderDetails)
+                    .Include(r => r.RealBook)
+                    .FirstOrDefaultAsync(r => r.ReturnRequestID == requestId);
+
+                if (request == null)
+                {
+                    throw new KeyNotFoundException("Không tìm thấy yêu cầu khiếu nại trả hàng.");
+                }
+
+                if (request.ReturnStatus != ReturnStatus.Approved)
+                {
+                    throw new InvalidOperationException("Chỉ có thể nhập kho cho yêu cầu đã được duyệt hoàn trả.");
+                }
+
+                var order = request.Order;
+                if (order == null) throw new Exception("Không có thông tin đơn hàng tương ứng.");
+
+                var detail = order.OrderDetails.FirstOrDefault(od => od.BookID == request.BookID);
+                if (detail == null) throw new Exception("Thông tin sản phẩm trong hóa đơn không hợp lệ.");
+
+                // Nhập lại kho vật lý của RealBook
+                if (request.RealBook != null)
+                {
+                    request.RealBook.UnitsInStock += request.ReturnQuantity;
+                }
+
+                // Nếu là sách của BlindBook, nhập kho gói BlindBook tương ứng
+                if (detail.BlindBookID.HasValue)
+                {
+                    var blindBook = await _context.Set<BlindBook>().FindAsync(detail.BlindBookID.Value);
+                    if (blindBook != null)
+                    {
+                        blindBook.StockQuantity += request.ReturnQuantity;
+                    }
+                }
+
+                // Cập nhật trạng thái ReturnRequest sang Restocked
+                request.ReturnStatus = ReturnStatus.Restocked;
+                request.StaffID = staffId; // Ghi nhận nhân viên Logistics đã xử lý
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();

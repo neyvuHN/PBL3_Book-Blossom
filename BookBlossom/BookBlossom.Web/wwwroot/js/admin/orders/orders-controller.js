@@ -360,7 +360,7 @@ class OrdersController {
                             async () => {
                                 this.view.showToast('Restocking', 'Processing return restocking & warehouse update...', 'info');
                                 try {
-                                    await this.model.reviewReturnRequest(id, true);
+                                    await this.model.restockReturn(id);
                                     this.view.showToast(
                                         'Item Restocked', 
                                         `Restock success! ${item.quantity} unit(s) of "${item.bookTitle}" returned to stock.`, 
