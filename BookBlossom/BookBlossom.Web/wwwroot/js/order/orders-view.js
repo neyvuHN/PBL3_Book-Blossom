@@ -479,7 +479,13 @@ class OrdersView {
         const shipping = (order.shippingFee !== undefined && order.shippingFee !== null) ? order.shippingFee : 30000;
         const discountVal = (order.discountAmount !== undefined && order.discountAmount !== null) ? order.discountAmount : (order.discountValue || 0);
 
-        document.getElementById('detail-subtotal').textContent = (order.subTotal || order.totalPrice).toLocaleString('vi-VN') + 'đ';
+        let calculatedSubtotal = 0;
+        if (order.items && order.items.length > 0) {
+            calculatedSubtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        }
+        const displaySubtotal = calculatedSubtotal > 0 ? calculatedSubtotal : (order.subTotal || order.totalPrice);
+
+        document.getElementById('detail-subtotal').textContent = displaySubtotal.toLocaleString('vi-VN') + 'đ';
         document.getElementById('detail-shipping-fee').textContent = shipping.toLocaleString('vi-VN') + 'đ';
 
         const globalVouchersContainer = document.getElementById('detail-global-vouchers');
