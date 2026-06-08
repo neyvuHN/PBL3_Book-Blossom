@@ -395,7 +395,8 @@ namespace BookBlossom.Infrastructure.Services
                 {
                     OrderDetail = od,
                     BookID = od.BookID,
-                    CategoryID = categoryId
+                    CategoryID = categoryId,
+                    IsBlindDate = od.BlindBookID.HasValue
                 });
             }
 
@@ -458,9 +459,21 @@ namespace BookBlossom.Infrastructure.Services
                 var reqBookIds = v.VoucherBooks.Select(vb => vb.BookID).ToList();
 
                 var eligibleLines = cartLines.Where(cl => 
-                    (reqCatIds.Any() && reqCatIds.Contains((long)cl.CategoryID)) ||
-                    (reqBookIds.Any() && reqBookIds.Contains((long)cl.BookID))
-                ).ToList();
+                {
+                    bool isBlindDate = (bool)cl.IsBlindDate;
+                    long catId = (long)cl.CategoryID;
+                    long bookId = (long)cl.BookID;
+
+                    if (isBlindDate)
+                    {
+                        return reqCatIds.Any() && reqCatIds.Contains(catId);
+                    }
+                    else
+                    {
+                        return (reqCatIds.Any() && reqCatIds.Contains(catId)) ||
+                               (reqBookIds.Any() && reqBookIds.Contains(bookId));
+                    }
+                }).ToList();
 
                 decimal eligibleTotal = eligibleLines.Sum(cl => lineValues[(OrderDetail)cl.OrderDetail]);
 

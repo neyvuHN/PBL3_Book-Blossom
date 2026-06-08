@@ -78,11 +78,8 @@
                 if (!item) return;
 
                 if (item.isBlind) {
-                    const tags = item.hashtags && item.hashtags.length
-                        ? item.hashtags.join('-')
-                        : 'Mystery';
-
-                    window.location.href = `/BlindDate#blind-details-${encodeURIComponent(tags)}`;
+                    const targetId = item.blindBookID || item.id;
+                    window.location.href = `/BlindDate#blind-details-${encodeURIComponent(targetId)}`;
                 } else {
                     window.location.href = `/Explore#book-details-${encodeURIComponent(item.title)}`;
                 }
@@ -344,7 +341,8 @@
                             bookID: item.isBlind ? item.blindBookID : item.bookID,
                             categoryID: item.categoryID,
                             currentValue: itemPriceVnd * item.qty,
-                            originalValue: itemPriceVnd * item.qty
+                            originalValue: itemPriceVnd * item.qty,
+                            isBlind: item.isBlind
                         });
                     }
                 });
@@ -391,10 +389,14 @@
                         const reqCatIds = v.applicableCategoryIDs || [];
                         const reqBookIds = v.applicableBookIDs || [];
 
-                        let eligibleLines = cartLines.filter(cl => 
-                            (reqCatIds.length > 0 && reqCatIds.includes(cl.categoryID)) ||
-                            (reqBookIds.length > 0 && reqBookIds.includes(cl.bookID))
-                        );
+                        let eligibleLines = cartLines.filter(cl => {
+                            if (cl.isBlind) {
+                                return reqCatIds.length > 0 && reqCatIds.includes(cl.categoryID);
+                            } else {
+                                return (reqCatIds.length > 0 && reqCatIds.includes(cl.categoryID)) ||
+                                       (reqBookIds.length > 0 && reqBookIds.includes(cl.bookID));
+                            }
+                        });
 
                         let eligibleTotal = eligibleLines.reduce((sum, cl) => sum + cl.currentValue, 0);
 
@@ -548,9 +550,14 @@
                         if (!hasBookConstraint && !hasCategoryConstraint) {
                             isItemApplicable = true;
                         } else {
-                            const matchBook = hasBookConstraint && applicableBooks.includes(bookIdToCheck);
-                            const matchCategory = hasCategoryConstraint && applicableCategories.includes(categoryIdToCheck);
-                            if (matchBook || matchCategory) isItemApplicable = true;
+                            if (item.isBlind) {
+                                const matchCategory = hasCategoryConstraint && applicableCategories.includes(categoryIdToCheck);
+                                if (matchCategory) isItemApplicable = true;
+                            } else {
+                                const matchBook = hasBookConstraint && applicableBooks.includes(bookIdToCheck);
+                                const matchCategory = hasCategoryConstraint && applicableCategories.includes(categoryIdToCheck);
+                                if (matchBook || matchCategory) isItemApplicable = true;
+                            }
                         }
 
                         if (isItemApplicable) {
