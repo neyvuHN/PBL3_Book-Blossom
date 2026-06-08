@@ -133,7 +133,7 @@ class ProfileController {
             if (rank) {
                 $('#display-tier-text').text(rank);
                 $('#display-tier-badge')
-                    .removeClass('tier-Copper tier-Silver tier-Gold tier-Diamond tier-Bronze tier-Bronze tier-Silver tier-Gold tier-Diamond')
+                    .removeClass('tier-Bronze tier-Silver tier-Gold tier-Diamond')
                     .addClass('tier-' + rank);
             }
 

@@ -430,7 +430,14 @@
                                         <div class="premium-progress-fill" id="display-spending-progress" style="width: @spendingPercent.ToString("0")%;"></div>
                                     </div>
                                     <span class="text-muted" style="font-size: 0.78rem; display: block; font-style: italic;" id="display-spending-hint">
-                                        Spend <strong>@((Model.NextTierThreshold - Model.TotalSpending).ToString("N0")) VND</strong> more to reach Diamond Tier!
+                                        @if (Model.MembershipTier == "Diamond")
+                                        {
+                                            <span>🎉 You have reached the maximum Tier spending milestone!</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Spend <strong>@((Model.NextTierThreshold - Model.TotalSpending).ToString("N0")) VND</strong> more to reach @Model.NextTierName Tier!</span>
+                                        }
                                     </span>
                                 </div>
                             </div>

@@ -18,7 +18,8 @@ namespace BookBlossom.Web.ViewModels.Profile
         // Membership details
         public string MembershipTier { get; set; } = "Gold"; // Copper, Silver, Gold, Diamond
         public decimal TotalSpending { get; set; } = 4250000; // in VND
-        public decimal NextTierThreshold { get; set; } = 5000000; // threshold for Diamond in VND
+        public decimal NextTierThreshold { get; set; } = 5000000; // threshold for next tier in VND
+        public string NextTierName { get; set; } = "Silver"; // Name of the next membership tier
         
         // Reputation score and privileges
         public int ReputationScore { get; set; } = 110; // Out of 150
