@@ -62,6 +62,15 @@ namespace BookBlossom.Web.Controllers
                 .Select(b => b.BadgeName)
                 .ToListAsync();
 
+            var spending = user.CustomerDetail?.TotalSpending ?? 0;
+            var currentRankEnum = spending switch
+            {
+                >= 10000000m => BookBlossom.Core.Enums.RankType.Diamond,
+                >= 5000000m => BookBlossom.Core.Enums.RankType.Gold,
+                >= 1000000m => BookBlossom.Core.Enums.RankType.Silver,
+                _ => BookBlossom.Core.Enums.RankType.Bronze
+            };
+
             var model = new ProfileViewModel
             {
                 Avatar = string.IsNullOrEmpty(user.Avatar) ? "https://i.pinimg.com/736x/fa/7e/a6/fa7ea6ce4e90b794eef88dde93522dd6.jpg" : user.Avatar,
@@ -74,23 +83,21 @@ namespace BookBlossom.Web.Controllers
                 Bio = user.Note ?? "Cập nhật tiểu sử của bạn tại đây.",
                 MemberSince = System.DateTime.Now,
                 
-                MembershipTier = user.CustomerDetail?.MembershipRank?.RankType.HasValue == true
-                    ? ((BookBlossom.Core.Enums.RankType)user.CustomerDetail.MembershipRank.RankType.Value).ToString()
-                    : "Bronze",
-                TotalSpending = user.CustomerDetail?.TotalSpending ?? 0,
-                NextTierThreshold = user.CustomerDetail?.MembershipRank?.RankType switch
+                MembershipTier = currentRankEnum.ToString(),
+                TotalSpending = spending,
+                NextTierThreshold = currentRankEnum switch
                 {
-                    0 => 1000000m,   // Bronze → Silver threshold
-                    1 => 5000000m,   // Silver → Gold threshold
-                    2 => 10000000m,  // Gold → Diamond threshold
-                    _ => 10000000m   // Diamond: already max
+                    BookBlossom.Core.Enums.RankType.Bronze => 1000000m,
+                    BookBlossom.Core.Enums.RankType.Silver => 5000000m,
+                    BookBlossom.Core.Enums.RankType.Gold => 10000000m,
+                    _ => 10000000m
                 },
-                NextTierName = user.CustomerDetail?.MembershipRank?.RankType switch
+                NextTierName = currentRankEnum switch
                 {
-                    0 => "Silver",
-                    1 => "Gold",
-                    2 => "Diamond",
-                    _ => "Diamond"   // Already at max
+                    BookBlossom.Core.Enums.RankType.Bronze => "Silver",
+                    BookBlossom.Core.Enums.RankType.Silver => "Gold",
+                    BookBlossom.Core.Enums.RankType.Gold => "Diamond",
+                    _ => "Diamond"
                 },
                 
                 ReputationScore = reputation?.ReputationPoint ?? 100,

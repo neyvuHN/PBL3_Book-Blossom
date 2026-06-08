@@ -716,6 +716,42 @@ namespace BookBlossom.Web.Controllers
             return View();
         }
 
+        [HttpPost("Admin/SyncAllCustomerSpending")]
+        public async Task<IActionResult> SyncAllCustomerSpending()
+        {
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(adminIdStr)) return Unauthorized();
+
+            var customers = await _context.CustomerDetails.ToListAsync();
+            int updatedCount = 0;
+
+            foreach (var customer in customers)
+            {
+                var actualSpending = await _context.Orders
+                    .Where(o => o.CustomerID == customer.CustomerID && o.OrderStatus == OrderStatus.Completed)
+                    .SumAsync(o => o.TotalAmount);
+
+                if (customer.TotalSpending != actualSpending)
+                {
+                    customer.TotalSpending = actualSpending;
+                    updatedCount++;
+                }
+                
+                // FORCE ĐỒNG BỘ: Luôn gọi hàm cập nhật hạng để đảm bảo RankID của CustomerDetail khớp với TotalSpending (chữa lỗi cũ)
+                await _reputationService.UpdateCustomerRankAsync(customer.CustomerID);
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, updatedCount = updatedCount, message = $"Đã đồng bộ thành công TotalSpending và Rank cho {updatedCount} khách hàng." });
+        }
+
+        [HttpGet("Admin/DebugMembership")]
+        public async Task<IActionResult> DebugMembership()
+        {
+            var ranks = await _context.MembershipRanks.ToListAsync();
+            return Json(ranks);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddBook(
             [FromForm] ViewModels.Admin.InventoryBookItemViewModel bookInput,

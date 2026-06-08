@@ -108,9 +108,16 @@ namespace BookBlossom.Infrastructure.Services
                 .FirstOrDefaultAsync();
 
             // 4. Kiểm tra và cập nhật nếu có thay đổi
-            if (suitableRank != null && reputation.RankID != suitableRank.RankID)
+            var customerDetail = await _context.CustomerDetails.FirstOrDefaultAsync(c => c.CustomerID == customerId);
+            long? currentDetailRankId = customerDetail != null ? (long?)_context.Entry(customerDetail).Property("RankID").CurrentValue : null;
+
+            if (suitableRank != null && (reputation.RankID != suitableRank.RankID || currentDetailRankId != suitableRank.RankID))
             {
                 reputation.RankID = suitableRank.RankID;
+                if (customerDetail != null)
+                {
+                    _context.Entry(customerDetail).Property("RankID").CurrentValue = suitableRank.RankID;
+                }
                 
                 // BỔ SUNG: Nên lưu lại lịch sử khi thăng/giáng hạng để người dùng theo dõi
                 _context.ReputationHistories.Add(new ReputationHistory

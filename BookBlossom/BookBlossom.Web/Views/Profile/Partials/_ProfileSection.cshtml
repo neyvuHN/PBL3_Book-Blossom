@@ -425,7 +425,7 @@
                                     </div>
                                     <div class="premium-progress-bg">
                                         @{
-                                            var spendingPercent = (Model.TotalSpending / Model.NextTierThreshold) * 100;
+                                            var spendingPercent = Math.Min(100m, (Model.TotalSpending / Model.NextTierThreshold) * 100m);
                                         }
                                         <div class="premium-progress-fill" id="display-spending-progress" style="width: @spendingPercent.ToString("0")%;"></div>
                                     </div>
