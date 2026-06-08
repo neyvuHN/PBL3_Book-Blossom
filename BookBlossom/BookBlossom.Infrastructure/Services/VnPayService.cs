@@ -47,6 +47,32 @@ namespace BookBlossom.Infrastructure.Services
             return paymentUrl;
         }
 
+        public string CreatePaymentUrlForPackage(long packageId, long customerId, decimal amount, HttpContext context)
+        {
+            var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
+
+            var pay = new VnPayLibrary();
+            pay.AddRequestData("vnp_Version", _configuration["VnPayConfig:Version"]);
+            pay.AddRequestData("vnp_Command", _configuration["VnPayConfig:Command"]);
+            pay.AddRequestData("vnp_TmnCode", _configuration["VnPayConfig:TmnCode"]);
+            pay.AddRequestData("vnp_Amount", ((int)(amount * 100)).ToString());
+            pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
+            pay.AddRequestData("vnp_CurrCode", _configuration["VnPayConfig:CurrCode"]);
+            
+            var ipAddress = Utils.GetIpAddress(context);
+            pay.AddRequestData("vnp_IpAddr", ipAddress);
+            
+            pay.AddRequestData("vnp_Locale", _configuration["VnPayConfig:Locale"]);
+            pay.AddRequestData("vnp_OrderInfo", $"Thanh toan goi dich vu {packageId}");
+            pay.AddRequestData("vnp_OrderType", _configuration["VnPayConfig:OrderType"]);
+            pay.AddRequestData("vnp_ReturnUrl", GetBaseUrl(context) + "/Payment/VnPayReturnPackage");
+            pay.AddRequestData("vnp_TxnRef", $"PKG_{packageId}_{customerId}_{timeNow.ToString("yyyyMMddHHmmss")}");
+
+            var paymentUrl = pay.CreateRequestUrl(_configuration["VnPayConfig:PaymentUrl"], _configuration["VnPayConfig:HashSecret"]);
+            return paymentUrl;
+        }
+
         public bool ValidateSignature(IQueryCollection query)
         {
             var pay = new VnPayLibrary();

@@ -33,9 +33,18 @@ class ProfileController {
         // Load reputation and badges data
         await this.loadReputationAndBadges();
 
-        // Auto-open upgrade modal if redirected with ?openUpgrade=true
+        // Check URL params for redirects
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('openUpgrade') === 'true') {
+        const paymentStatus = urlParams.get('paymentStatus');
+        if (paymentStatus === 'success') {
+            const planId = urlParams.get('packageId');
+            const planName = planId === '3' ? 'Pro' : (planId === '2' ? 'Basic' : 'Premium');
+            this.view.showPaymentSuccess(planName, 0); // Price is omitted or 0, view can handle it
+            window.history.replaceState({}, '', window.location.pathname);
+        } else if (paymentStatus === 'failed') {
+            this.view.showPaymentFailed("Package");
+            window.history.replaceState({}, '', window.location.pathname);
+        } else if (urlParams.get('openUpgrade') === 'true') {
             this.openSubscriptionModalWithData();
             // Clean up URL without reload
             window.history.replaceState({}, '', window.location.pathname);
@@ -432,34 +441,22 @@ class ProfileController {
                     window.apiClient.showToast(error.message || 'Chuyển gói thất bại. Vui lòng thử lại.', 'error');
                 }
             } else {
-                // ─── Upgrade to Basic/Pro (with UX animation) ────────────
-                // Show VNPay loading animation for UX polish
+                // ─── Upgrade to Basic/Pro (with VNPay integration) ────────────
                 self.view.showVNPayLoading();
 
                 try {
-                    // Call real API to subscribe
-                    await self.model.subscribeToPackage(packageId, 1);
-
-                    // Transition: loading → verifying → success
-                    setTimeout(() => {
+                    const paymentResp = await window.apiClient.apiPost('/api/payment/vnpay/create-package', { packageId: packageId });
+                    
+                    if (paymentResp && paymentResp.paymentUrl) {
+                        window.location.href = paymentResp.paymentUrl;
+                    } else {
                         self.view.hideVNPayLoading();
-                        self.view.showVNPayReturn();
-
-                        setTimeout(() => {
-                            self.view.hideVNPayReturn();
-
-                            // Show payment success overlay
-                            self.view.showPaymentSuccess(planName, price);
-                            self.view.showToast(`Nâng cấp lên gói ${planName} thành công!`);
-                        }, 2000);
-                    }, 2000);
+                        window.apiClient.showToast('Không thể tạo liên kết thanh toán VNPay.', 'error');
+                        $btn.prop('disabled', false).text('Upgrade Now');
+                    }
                 } catch (error) {
-                    // Hide loading screens on error
                     self.view.hideVNPayLoading();
-                    self.view.hideVNPayReturn();
-
-                    // Show payment failed overlay
-                    self.view.showPaymentFailed(planName);
+                    window.apiClient.showToast('Lỗi khi gọi thanh toán VNPay.', 'error');
                     $btn.prop('disabled', false).text('Upgrade Now');
                 }
             }
