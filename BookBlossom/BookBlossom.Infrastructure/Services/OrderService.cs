@@ -489,7 +489,7 @@ namespace BookBlossom.Infrastructure.Services
 
                 if (order == null) return false;
 
-                if (order.OrderStatus != OrderStatus.Delivering && order.OrderStatus != OrderStatus.Shipping && order.OrderStatus != OrderStatus.Completed)
+                if (order.OrderStatus != OrderStatus.Delivering && order.OrderStatus != OrderStatus.Shipping && order.OrderStatus != OrderStatus.Delivered && order.OrderStatus != OrderStatus.Completed)
                 {
                     throw new InvalidOperationException("Không thể xác nhận đã nhận hàng ở trạng thái này.");
                 }

@@ -53,6 +53,12 @@ class ContentReportsView {
         this.feedbackContainer = document.getElementById('feedbackListContainer');
         this.returnsContainer = document.getElementById('returnsListContainer');
 
+        this.orderDetailsModal = document.getElementById('orderDetailsModal');
+        const btnCloseOrderDetailsModal = document.getElementById('btnCloseOrderDetailsModal');
+        const btnCancelOrderDetails = document.getElementById('btnCancelOrderDetails');
+        if (btnCloseOrderDetailsModal) btnCloseOrderDetailsModal.addEventListener('click', () => this.closeOrderDetailsModal());
+        if (btnCancelOrderDetails) btnCancelOrderDetails.addEventListener('click', () => this.closeOrderDetailsModal());
+
         this.bindEvents();
     }
 
@@ -283,8 +289,8 @@ class ContentReportsView {
             card.innerHTML = `
                 <div class="report-header">
                     <div>
-                        <span class="report-type" style="background:#FEE2E2; color:#B91C1C;">RETURN CLAIM</span>
-                        <span style="margin-left: 8px; font-weight: 600;">Order: ${item.orderId}</span>
+                        <span class="report-type" style="background:#FFFBEB; color:#B45309;">ESCALATED COMPLAINT</span>
+                        <span style="margin-left: 8px; font-weight: 600;">Order: <a href="javascript:void(0);" class="view-order-details-link" data-id="${item.orderId.replace('ORD-', '')}" style="color: #2F80ED; text-decoration: underline;">${item.orderId}</a></span>
                     </div>
                     <div style="font-size: 0.85rem; color: #6B7280;">${item.date}</div>
                 </div>
@@ -435,5 +441,85 @@ class ContentReportsView {
                 }
             });
         }, 50);
+    }
+
+    showOrderDetailsModal(orderDetail) {
+        if (!this.orderDetailsModal) return;
+
+        document.getElementById('detail-order-id').textContent = `#${orderDetail.orderID}`;
+
+        document.getElementById('detail-receiver').textContent = orderDetail.shipReceiverName || orderDetail.customerName || 'N/A';
+        document.getElementById('detail-phone').textContent = orderDetail.shipPhoneNumber || orderDetail.customerPhoneNumber || 'N/A';
+        document.getElementById('detail-address').textContent = orderDetail.shipDetailAddress || 'N/A';
+
+        document.getElementById('detail-payment-method').textContent = orderDetail.paymentMethod === 0 ? "COD (Cash on Delivery)" : "Online Payment (VNPay)";
+        document.getElementById('detail-note').textContent = orderDetail.note || 'No notes provided';
+
+        const itemsListContainer = document.getElementById('detail-items-list');
+        const formattedItems = (orderDetail.orderItems || []).map(item => {
+            const unitPrice = item.unitPrice || 0;
+            const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(unitPrice);
+            let imageHtml = `<img src="${item.sampleFilePath || '/images/Book/book1.jpg'}" alt="Book Cover" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;" onerror="this.src='/images/Book/book1.jpg'" />`;
+            let isBlind = item.blindBookID != null;
+
+            let voucherHtml = '';
+            if (item.voucherBreakdown) {
+                try {
+                    let parsedVouchers = JSON.parse(item.voucherBreakdown);
+                    if (Array.isArray(parsedVouchers)) {
+                        voucherHtml = parsedVouchers.map(v => 
+                            `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${v.voucherCode || v.VoucherCode} (-${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.discountValue || v.DiscountValue)})</div>`
+                        ).join('');
+                    }
+                } catch (e) {
+                    voucherHtml = `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${item.voucherBreakdown}</div>`;
+                }
+            }
+
+            return `
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #E6E1EA;">
+                    ${imageHtml}
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 0.95rem; color: #2C2630;">${isBlind ? "Mystery Book" : item.title} ${isBlind ? `<span style="font-size:0.75rem; color:#82758D;">(Real: ${item.realBookTitle || item.title})</span>` : ''}</div>
+                        <div style="font-size: 0.85rem; color: #82758D;">Qty: x${item.quantity}</div>
+                        ${voucherHtml}
+                    </div>
+                    <div style="font-weight: 700; color: #2C2630;">${price}</div>
+                </div>
+            `;
+        }).join('');
+        itemsListContainer.innerHTML = formattedItems;
+
+        let subtotalVal = 0;
+        if (orderDetail.orderItems && orderDetail.orderItems.length > 0) {
+            subtotalVal = orderDetail.orderItems.reduce((acc, item) => acc + ((item.unitPrice || 0) * item.quantity), 0);
+        } else {
+            subtotalVal = orderDetail.totalAmount; 
+        }
+
+        const shipping = (orderDetail.shippingFee !== undefined && orderDetail.shippingFee !== null) ? orderDetail.shippingFee : 30000;
+        const discountVal = (orderDetail.discountAmount !== undefined && orderDetail.discountAmount !== null) ? orderDetail.discountAmount : (orderDetail.discountValue || 0);
+
+        document.getElementById('detail-subtotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(subtotalVal);
+        document.getElementById('detail-shipping-fee').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping);
+        document.getElementById('detail-discount-val').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountVal);
+        document.getElementById('detail-total').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(orderDetail.totalAmount);
+
+        const globalVouchersContainer = document.getElementById('detail-global-vouchers');
+        if (orderDetail.appliedVouchers && orderDetail.appliedVouchers.length > 0) {
+            globalVouchersContainer.innerHTML = orderDetail.appliedVouchers.map(v => 
+                `<div style="display:inline-block; background:#ffebee; color:#C2185B; border:1px solid #f07c7c; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-right:4px; margin-top:2px;"><i class="fas fa-tag"></i> ${v}</div>`
+            ).join('');
+        } else {
+            globalVouchersContainer.innerHTML = '';
+        }
+
+        this.orderDetailsModal.style.display = 'flex';
+    }
+
+    closeOrderDetailsModal() {
+        if (this.orderDetailsModal) {
+            this.orderDetailsModal.style.display = 'none';
+        }
     }
 }

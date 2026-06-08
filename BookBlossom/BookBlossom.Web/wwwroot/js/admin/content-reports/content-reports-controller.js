@@ -124,6 +124,21 @@ class ContentReportsController {
     }
 
     async handleReturnAction(action, idStr) {
+        if (action === 'view-order-details') {
+            try {
+                const detail = await this.model.fetchOrderDetails(idStr);
+                if (detail) {
+                    this.view.showOrderDetailsModal(detail);
+                } else {
+                    showPremiumAlert('Error', 'Order not found.', 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+                showPremiumAlert('Error', 'Failed to load order details.', 'danger');
+            }
+            return;
+        }
+
         const id = parseInt(idStr);
         try {
             if (action === 'accept-return') {

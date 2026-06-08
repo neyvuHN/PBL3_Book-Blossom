@@ -325,6 +325,23 @@ class OrdersController {
                 const btnApprove = e.target.closest('.btn-approve-return');
                 const btnReject = e.target.closest('.btn-reject-return');
                 const btnPlayVideo = e.target.closest('.btn-play-video');
+                const orderLink = e.target.closest('.view-order-details-link');
+
+                if (orderLink) {
+                    const orderId = orderLink.getAttribute('data-id');
+                    this.view.showToast('Loading', 'Fetching order details...', 'info');
+                    try {
+                        const detail = await this.model.fetchOrderDetails(orderId);
+                        if (detail) {
+                            this.view.showOrderDetailsModal(detail);
+                        } else {
+                            this.view.showToast('Error', 'Order not found.', 'error');
+                        }
+                    } catch (err) {
+                        this.view.showToast('Error', 'Failed to load order details.', 'error');
+                    }
+                    return;
+                }
 
                 if (btnPlayVideo) {
                     const videoUrl = btnPlayVideo.getAttribute('data-video');
@@ -386,6 +403,23 @@ class OrdersController {
                 const btnContact = e.target.closest('.btn-contact-buyer');
                 const btnResolve = e.target.closest('.btn-resolve-complaint');
                 const btnReject = e.target.closest('.btn-reject-complaint');
+                const orderLink = e.target.closest('.view-order-details-link');
+
+                if (orderLink) {
+                    const orderId = orderLink.getAttribute('data-id');
+                    this.view.showToast('Loading', 'Fetching order details...', 'info');
+                    try {
+                        const detail = await this.model.fetchOrderDetails(orderId);
+                        if (detail) {
+                            this.view.showOrderDetailsModal(detail);
+                        } else {
+                            this.view.showToast('Error', 'Order not found.', 'error');
+                        }
+                    } catch (err) {
+                        this.view.showToast('Error', 'Failed to load order details.', 'error');
+                    }
+                    return;
+                }
 
                 if (btnContact) {
                     const buyerName = btnContact.getAttribute('data-buyer');

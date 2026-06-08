@@ -8,6 +8,7 @@ namespace BookBlossom.Core.Enums
         Delivering = 3,
         Completed = 4,
         Cancelled = 5,
-        Returning = 6
+        Returning = 6,
+        Delivered = 7
     }
 }
