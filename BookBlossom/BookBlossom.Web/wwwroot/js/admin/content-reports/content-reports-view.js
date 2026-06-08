@@ -49,9 +49,9 @@ class ContentReportsView {
         this.sidebar = document.getElementById('reportsSidebar');
         this.mainContent = document.getElementById('mainContentArea');
         
-        this.returnsContainer = document.getElementById('returnsContainer');
-        this.feedbackContainer = document.getElementById('feedbackContainer');
-        this.emptyState = document.getElementById('emptyStateContent');
+        this.moderationContainer = document.getElementById('moderationListContainer');
+        this.feedbackContainer = document.getElementById('feedbackListContainer');
+        this.returnsContainer = document.getElementById('returnsListContainer');
 
         this.orderDetailsModal = document.getElementById('orderDetailsModal');
         const btnCloseOrderDetailsModal = document.getElementById('btnCloseOrderDetailsModal');
