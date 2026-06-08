@@ -116,7 +116,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "Nuocmatemroitrochoiketthuc_BookBlossom_Security_Key_2026")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                string.IsNullOrEmpty(builder.Configuration["Jwt:Key"]) 
+                    ? "Nuocmatemroitrochoiketthuc_BookBlossom_Security_Key_2026" 
+                    : builder.Configuration["Jwt:Key"]
+            )),
 
             RoleClaimType = ClaimTypes.Role
         };
