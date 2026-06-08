@@ -108,7 +108,7 @@ class OrdersView {
             return `
             <div class="order-item">
                 <!-- [UPDATED] Added data attributes and CSS link class to the book image -->
-                <img src="${item.image}" alt="${item.title}" class="order-item-img order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.src='/images/placeholder.jpg'">
+                <img src="${item.image}" alt="${item.title}" class="order-item-img order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
                 <div class="order-item-details">
                     <!-- [UPDATED] Added data attributes and CSS link class to the book title -->
                     <div class="order-item-title order-item-title-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}">${item.title}</div>
@@ -463,7 +463,7 @@ class OrdersView {
             return `
             <div class="d-flex align-items-center mb-3">
                 <!-- [UPDATED] Added data attributes and CSS link class to modal book image -->
-                <img src="${item.image}" alt="${item.title}" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px;" class="mr-3 order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.src='/images/placeholder.jpg'">
+                <img src="${item.image}" alt="${item.title}" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px;" class="mr-3 order-item-img-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}" onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
                 <div class="flex-grow-1">
                     <!-- [UPDATED] Added data attributes and CSS link class to modal book title -->
                     <div class="font-weight-medium text-dark order-item-title-link" data-action="view-book" data-title="${item.title}" data-blind="${item.isBlind || false}">${item.title}</div>

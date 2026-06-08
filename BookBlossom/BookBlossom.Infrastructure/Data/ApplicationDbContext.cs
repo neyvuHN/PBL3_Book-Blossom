@@ -88,6 +88,10 @@ namespace BookBlossom.Infrastructure.Data
             {
                 entity.HasKey(ov => new { ov.OrderID, ov.VoucherID });
 
+                entity.Property(ov => ov.DiscountAmount)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
+
                 entity.HasOne(ov => ov.Order)
                       .WithMany(o => o.OrderVouchers)
                       .HasForeignKey(ov => ov.OrderID)
