@@ -122,7 +122,7 @@ namespace BookBlossom.Tests.Services
             Assert.NotNull(result);
             Assert.Null(result.BookID);
             Assert.Equal(22, result.BlindBookID);
-            Assert.Equal("Blind Book (Literature) - #horror", result.Title);
+            Assert.Equal("[Mystery Book] Literature - #horror", result.Title);
             Assert.Equal(75000, result.Price);
         }
 

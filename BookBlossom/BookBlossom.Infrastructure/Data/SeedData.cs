@@ -14,6 +14,22 @@ namespace BookBlossom.Infrastructure.Data
             // Đảm bảo cơ sở dữ liệu đã được khởi tạo
             await context.Database.EnsureCreatedAsync();
 
+            // Cập nhật các tài khoản cũ chưa đổi avatar (null/empty/link Pinterest cũ) về avatar mặc định mới
+            var usersToUpdate = await context.Users
+                .Where(u => string.IsNullOrEmpty(u.Avatar) 
+                    || u.Avatar == "https://i.pinimg.com/736x/fa/7e/a6/fa7ea6ce4e90b794eef88dde93522dd6.jpg"
+                    || u.Avatar == "/images/Avatar/default.jpg"
+                    || u.Avatar == "/images/avatar/default.jpg")
+                .ToListAsync();
+            if (usersToUpdate.Any())
+            {
+                foreach (var user in usersToUpdate)
+                {
+                    user.Avatar = "/images/Avatar/avatar1.jpg";
+                }
+                await context.SaveChangesAsync();
+            }
+
             // 1. Seed Roles nếu chưa có
             if (!await context.Roles.AnyAsync())
             {

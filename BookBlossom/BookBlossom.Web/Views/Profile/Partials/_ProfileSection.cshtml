@@ -827,7 +827,15 @@
         </div>
         
         <!-- Footer Actions -->
-        <div style="padding: 20px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px;">
+        <div style="padding: 20px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px; align-items: center;">
+            @if (Model.Avatar != "/images/Avatar/avatar1.jpg" && Model.Avatar != "/images/avatar/avatar1.jpg" && !string.IsNullOrEmpty(Model.Avatar))
+            {
+                <button type="button" id="btn-delete-avatar" class="btn btn-danger btn-sm" style="padding: 10px 24px; border-radius: 30px; background: #dc2626; color: #fff; border: none; margin-right: auto; cursor: pointer; font-weight: 600;">Delete Avatar</button>
+            }
+            else
+            {
+                <button type="button" id="btn-delete-avatar" class="btn btn-danger btn-sm" style="padding: 10px 24px; border-radius: 30px; background: #dc2626; color: #fff; border: none; margin-right: auto; cursor: pointer; font-weight: 600; display: none;">Delete Avatar</button>
+            }
             <button type="button" id="btn-cancel-cropper" class="btn btn-profile-secondary btn-sm" style="padding: 10px 24px; border-radius: 30px;">Cancel</button>
             <button type="button" id="btn-save-cropper" class="btn btn-profile-theme btn-sm" style="padding: 10px 24px; border-radius: 30px;" disabled>Apply Changes</button>
         </div>
