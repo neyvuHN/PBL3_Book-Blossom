@@ -290,9 +290,13 @@ const BlindVoucherController = {
                         <span style="font-size: 0.65rem; color: #6a4f8c; font-weight: 600; margin-top: 4px; background: #fff; padding: 2px 6px; border-radius: 10px;">Code</span>
                     </div>
                     <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
-                        <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 4px;">
+                        <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 4px; flex-wrap: wrap;">
                             <h4 style="font-size: 0.95rem; font-weight: 700; color: #333; margin: 0;">${name} (Save ${valueDisplay})</h4>
                             ${stackableBadge}
+                            ${v.isAutoRefundable ? '<span style="background: #e6f7ff; color: #0050b3; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Refundable</span>' : '<span style="background: #fff0f6; color: #c41d7f; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Non-refundable</span>'}
+                            ${v.minPlan > 0 && window.getPlanName ? '<span style="background: #f6ffed; color: #389e0d; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Min Plan: ' + window.getPlanName(v.minPlan) + '</span>' : ''}
+                            ${v.membershipRankRequired > 0 && window.getRankName ? '<span style="background: #fff7e6; color: #d46b08; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Min Rank: ' + window.getRankName(v.membershipRankRequired) + '</span>' : ''}
+                            ${v.minReputationRequired > 0 ? '<span style="background: #f9f0ff; color: #531dab; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Min Rep: ' + v.minReputationRequired + '</span>' : ''}
                         </div>
                         <p style="font-size: 0.78rem; color: #666; margin: 0 0 6px 0;">Min order ${new Intl.NumberFormat('vi-VN').format(v.minOrderValue)} VND.${v.maxDiscountAmount > 0 ? ' Max discount ' + new Intl.NumberFormat('vi-VN').format(v.maxDiscountAmount) + ' VND.' : ''}</p>
                         <span style="font-size: 0.7rem; color: #aaa;">Expiry: ${new Date(v.endDate).toLocaleDateString()}</span>
