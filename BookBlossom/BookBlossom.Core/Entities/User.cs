@@ -15,7 +15,7 @@ namespace BookBlossom.Core.Entities
         public AccountStatus AccountStatus { get; set; }
         public string? LastName { get; set; }
         public string? FirstName { get; set; }
-        public string? Avatar { get; set; }
+        public string? Avatar { get; set; } = "/images/Avatar/avatar1.jpg";
         public string PhoneNumber { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string? Gender { get; set; }

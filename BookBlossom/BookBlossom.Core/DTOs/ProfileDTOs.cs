@@ -19,6 +19,7 @@ namespace BookBlossom.Core.DTOs
         public DateTime? Birthdate { get; set; }
         public string? Bio { get; set; }
         public IFormFile? AvatarImage { get; set; }
+        public bool DeleteAvatar { get; set; } = false;
     }
 
     public class AddressDTO

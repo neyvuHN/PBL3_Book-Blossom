@@ -43,7 +43,11 @@ namespace BookBlossom.Infrastructure.Services
             if (dto.Birthdate != null) user.Birthday = dto.Birthdate;
             if (dto.Bio != null) user.Note = dto.Bio;
 
-            if (dto.AvatarImage != null && dto.AvatarImage.Length > 0)
+            if (dto.DeleteAvatar)
+            {
+                user.Avatar = "/images/Avatar/avatar1.jpg";
+            }
+            else if (dto.AvatarImage != null && dto.AvatarImage.Length > 0)
             {
                 var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "Avatar");
                 if (!Directory.Exists(uploadsFolder))

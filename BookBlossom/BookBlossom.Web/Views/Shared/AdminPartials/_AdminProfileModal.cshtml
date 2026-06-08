@@ -38,6 +38,14 @@
                 </div>
                 <input type="file" id="admin-avatar-file-input" style="display: none;" accept="image/*" />
                 
+                <!-- Delete Avatar Button -->
+                @{
+                    var isDefaultAdminAvatar = string.IsNullOrEmpty(currentAdmin?.Avatar) || currentAdmin.Avatar == "/images/Avatar/avatar1.jpg" || currentAdmin.Avatar == "/images/avatar/avatar1.jpg";
+                }
+                <button type="button" id="btn-delete-admin-avatar" style="background: #fee2e2; color: #dc2626; border: none; border-radius: 20px; padding: 6px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: @(isDefaultAdminAvatar ? "none" : "flex"); align-items: center; gap: 4px; margin-top: -10px;">
+                    <i class="ph ph-trash"></i> Xóa ảnh
+                </button>
+                
                 <div style="text-align: center; width: 100%; overflow: hidden;">
                     <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="admin-modal-display-name">@adminName</div>
                     <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">Administrator</div>
@@ -133,6 +141,10 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        let deleteAdminAvatar = false;
+        const modalAvatarImg = document.getElementById('admin-modal-avatar-img');
+        const originalAdminAvatar = modalAvatarImg ? modalAvatarImg.getAttribute('src') : '';
+
         // Tab switching logic
         const tabs = document.querySelectorAll('.admin-profile-tab');
         const contents = document.querySelectorAll('.admin-tab-content');
@@ -158,6 +170,17 @@
         });
 
         function resetModalForms() {
+            // Reset delete state
+            deleteAdminAvatar = false;
+            if (modalAvatarImg) {
+                modalAvatarImg.src = originalAdminAvatar;
+            }
+            const btnDelete = document.getElementById('btn-delete-admin-avatar');
+            if (btnDelete) {
+                const isDefault = !originalAdminAvatar || originalAdminAvatar.includes('avatar1.jpg');
+                btnDelete.style.display = isDefault ? 'none' : 'flex';
+            }
+
             // Reset inputs
             const oldPwd = document.getElementById('admin-pwd-old');
             const newPwd = document.getElementById('admin-pwd-new');
@@ -231,6 +254,28 @@
                         modalAvatarImg.src = evt.target.result;
                     };
                     reader.readAsDataURL(file);
+
+                    deleteAdminAvatar = false;
+                    const btnDelete = document.getElementById('btn-delete-admin-avatar');
+                    if (btnDelete) btnDelete.style.display = 'flex';
+                }
+            });
+        }
+
+        // Click on delete avatar button
+        const btnDeleteAdminAvatar = document.getElementById('btn-delete-admin-avatar');
+        if (btnDeleteAdminAvatar) {
+            btnDeleteAdminAvatar.addEventListener('click', (e) => {
+                e.stopPropagation(); // prevent triggering fileInput click
+                if (confirm("Bạn có chắc muốn xóa ảnh đại diện hiện tại?")) {
+                    deleteAdminAvatar = true;
+                    if (modalAvatarImg) {
+                        modalAvatarImg.src = "/images/Avatar/avatar1.jpg";
+                    }
+                    if (fileInput) {
+                        fileInput.value = ''; // clear chosen file
+                    }
+                    btnDeleteAdminAvatar.style.display = 'none';
                 }
             });
         }
@@ -259,6 +304,7 @@
                     formData.append('birthdate', birthday);
                 }
                 formData.append('bio', bio);
+                formData.append('deleteAvatar', deleteAdminAvatar);
                 if (fileInput.files.length > 0) {
                     formData.append('avatarImage', fileInput.files[0]);
                 }

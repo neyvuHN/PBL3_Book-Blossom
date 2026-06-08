@@ -374,6 +374,32 @@ class ProfileController {
             });
         });
 
+        // Reset avatar to default and delete current custom avatar
+        $(document).on('click', '#btn-delete-avatar', async function () {
+            const $btn = $(this);
+            if (!confirm("Are you sure you want to delete your current avatar and revert to the default one?")) {
+                return;
+            }
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
+
+            const formData = new FormData();
+            formData.append('deleteAvatar', 'true');
+
+            try {
+                await self.model.updateProfileData(formData);
+                self.view.showToast("Avatar deleted successfully!");
+                self.view.closeCropperModal();
+
+                // Reload to reflect default avatar
+                setTimeout(() => {
+                    window.location.href = '/Profile?t=' + Date.now();
+                }, 1500);
+            } catch (error) {
+                $btn.prop('disabled', false).text('Delete Avatar');
+            }
+        });
+
         // Show Premium plans modal overlay on clicking Upgrade button
         $('#btn-upgrade-pkg, #btn-upgrade-pkg-footer').on('click', function () {
             self.openSubscriptionModalWithData();
