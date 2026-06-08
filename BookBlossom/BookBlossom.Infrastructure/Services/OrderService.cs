@@ -198,32 +198,36 @@ namespace BookBlossom.Infrastructure.Services
                 await _context.Set<Order>().AddAsync(order);
                 await _context.SaveChangesAsync();
 
-                // Đánh dấu voucher đã được dùng sau khi tạo đơn thành công
-                if (request.VoucherCodes != null && request.VoucherCodes.Any() && order.OrderVouchers.Any())
+                // Đánh dấu voucher đã được dùng sau khi tạo đơn thành công (Chỉ áp dụng cho COD)
+                // VNPay sẽ được xử lý khi thanh toán thành công
+                if (request.PaymentMethod == PaymentMethod.COD)
                 {
-                    foreach (var ov in order.OrderVouchers)
+                    if (request.VoucherCodes != null && request.VoucherCodes.Any() && order.OrderVouchers.Any())
                     {
-                        await _voucherService.MarkVoucherAsUsedAsync(customerId, ov.VoucherID, order.OrderID);
+                        foreach (var ov in order.OrderVouchers)
+                        {
+                            await _voucherService.MarkVoucherAsUsedAsync(customerId, ov.VoucherID, order.OrderID);
+                        }
                     }
-                }
 
-                // XÓA CÁC SẢN PHẨM KHỎI GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
-                var cartItemsToDelete = await _context.Set<Cart>()
-                    .Where(c => c.UserID == customerId)
-                    .ToListAsync();
+                    // XÓA CÁC SẢN PHẨM KHỎI GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG (Chỉ COD)
+                    var cartItemsToDelete = await _context.Set<Cart>()
+                        .Where(c => c.UserID == customerId)
+                        .ToListAsync();
+                        
+                    var purchasedBookIds = request.CartItems.Where(i => i.BookID.HasValue).Select(i => i.BookID.Value).ToList();
+                    var purchasedBlindBookIds = request.CartItems.Where(i => i.BlindBookID.HasValue).Select(i => i.BlindBookID.Value).ToList();
                     
-                var purchasedBookIds = request.CartItems.Where(i => i.BookID.HasValue).Select(i => i.BookID.Value).ToList();
-                var purchasedBlindBookIds = request.CartItems.Where(i => i.BlindBookID.HasValue).Select(i => i.BlindBookID.Value).ToList();
-                
-                var itemsToRemove = cartItemsToDelete.Where(c => 
-                    (c.BookID.HasValue && purchasedBookIds.Contains(c.BookID.Value)) ||
-                    (c.BlindBookID.HasValue && purchasedBlindBookIds.Contains(c.BlindBookID.Value))
-                ).ToList();
+                    var itemsToRemove = cartItemsToDelete.Where(c => 
+                        (c.BookID.HasValue && purchasedBookIds.Contains(c.BookID.Value)) ||
+                        (c.BlindBookID.HasValue && purchasedBlindBookIds.Contains(c.BlindBookID.Value))
+                    ).ToList();
 
-                if (itemsToRemove.Any())
-                {
-                    _context.Set<Cart>().RemoveRange(itemsToRemove);
-                    await _context.SaveChangesAsync();
+                    if (itemsToRemove.Any())
+                    {
+                        _context.Set<Cart>().RemoveRange(itemsToRemove);
+                        await _context.SaveChangesAsync();
+                    }
                 }
 
                 await transaction.CommitAsync();
@@ -996,6 +1000,8 @@ namespace BookBlossom.Infrastructure.Services
             try
             {
                 var order = await _context.Set<Order>()
+                    .Include(o => o.OrderDetails)
+                    .Include(o => o.OrderVouchers)
                     .FirstOrDefaultAsync(o => o.OrderID == orderId);
 
                 if (order == null) return false;
@@ -1024,6 +1030,32 @@ namespace BookBlossom.Infrastructure.Services
 
                 await _reputationService.UpdateCustomerRankAsync(order.CustomerID);
 
+                // Xóa giỏ hàng và đánh dấu voucher đã dùng sau khi thanh toán VNPay thành công
+                if (order.OrderVouchers != null && order.OrderVouchers.Any())
+                {
+                    foreach (var ov in order.OrderVouchers)
+                    {
+                        await _voucherService.MarkVoucherAsUsedAsync(order.CustomerID, ov.VoucherID, order.OrderID);
+                    }
+                }
+
+                var cartItemsToDelete = await _context.Set<Cart>()
+                    .Where(c => c.UserID == order.CustomerID)
+                    .ToListAsync();
+                    
+                var purchasedBookIds = order.OrderDetails.Where(od => !od.BlindBookID.HasValue).Select(od => od.BookID).ToList();
+                var purchasedBlindBookIds = order.OrderDetails.Where(od => od.BlindBookID.HasValue).Select(od => od.BlindBookID.Value).ToList();
+                
+                var itemsToRemove = cartItemsToDelete.Where(c => 
+                    (c.BookID.HasValue && purchasedBookIds.Contains(c.BookID.Value)) ||
+                    (c.BlindBookID.HasValue && purchasedBlindBookIds.Contains(c.BlindBookID.Value))
+                ).ToList();
+
+                if (itemsToRemove.Any())
+                {
+                    _context.Set<Cart>().RemoveRange(itemsToRemove);
+                }
+
                 try
                 {
                     await _notificationService.CreateAndSendNotificationAsync(
@@ -1045,6 +1077,51 @@ namespace BookBlossom.Infrastructure.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<bool> DeleteFailedOrderAsync(long orderId)
+        {
+            var order = await _context.Set<Order>()
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.OrderID == orderId);
+
+            if (order == null || order.PaymentStatus == 1 || order.OrderStatus != OrderStatus.Pending)
+                return false;
+
+            // Hoàn trả lại kho hàng
+            foreach (var detail in order.OrderDetails)
+            {
+                var realBook = await _context.Set<RealBook>().FindAsync(detail.BookID);
+                if (realBook != null)
+                {
+                    realBook.UnitsInStock += detail.Quantity;
+                    realBook.ReservedQuantity -= detail.Quantity;
+                    if (realBook.ReservedQuantity < 0) realBook.ReservedQuantity = 0;
+                }
+
+                if (detail.BlindBookID.HasValue)
+                {
+                    var blindBook = await _context.Set<BlindBook>().FindAsync(detail.BlindBookID.Value);
+                    if (blindBook != null)
+                    {
+                        blindBook.StockQuantity += detail.Quantity;
+                    }
+                }
+            }
+
+            // Explicitly remove OrderDetails to avoid FK constraint error
+            _context.Set<OrderDetail>().RemoveRange(order.OrderDetails);
+
+            var orderVouchers = await _context.Set<OrderVoucher>().Where(ov => ov.OrderID == orderId).ToListAsync();
+            if (orderVouchers.Any())
+            {
+                _context.Set<OrderVoucher>().RemoveRange(orderVouchers);
+            }
+
+            _context.Set<Order>().Remove(order);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<byte[]> GenerateInvoicePdfAsync(long orderId)

@@ -85,6 +85,7 @@ namespace BookBlossom.Web.Controllers
             else
             {
                 // Thất bại
+                await _orderService.DeleteFailedOrderAsync(orderId);
                 return RedirectToAction("PaymentResult", "Order", new { orderId = orderId, status = "failed", vnp_ResponseCode = vnp_ResponseCode });
             }
         }
