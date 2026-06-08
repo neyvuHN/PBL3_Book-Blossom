@@ -565,7 +565,7 @@ class OrdersView {
             return `
                 <tr data-id="${item.id}">
                     <td style="font-weight:700; color:#E3597D;">#${item.id}</td>
-                    <td style="font-weight:600;">#${item.orderId}</td>
+                    <td style="font-weight:600;"><a href="javascript:void(0);" class="view-order-details-link" data-id="${item.orderId}" style="color: #2F80ED; text-decoration: underline;">#${item.orderId}</a></td>
                     <td>
                         <div style="font-weight:600; color:#2C2630;">${item.bookTitle}</div>
                         <div style="font-size:0.75rem; color:#82758D;">Qty: x${item.quantity}</div>
@@ -666,7 +666,7 @@ class OrdersView {
             return `
                 <tr data-id="${c.id}">
                     <td style="font-weight:700; color:#EB5757;">#${c.id}</td>
-                    <td style="font-weight:600;">#${c.orderId}</td>
+                    <td style="font-weight:600;"><a href="javascript:void(0);" class="view-order-details-link" data-id="${c.orderId}" style="color: #2F80ED; text-decoration: underline;">#${c.orderId}</a></td>
                     <td>
                         <div style="font-weight:600; color:#2C2630;">${c.buyerName}</div>
                         <div style="font-size:0.75rem; color:#82758D;">${c.contactEmail}</div>

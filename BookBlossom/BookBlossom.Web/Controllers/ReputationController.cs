@@ -38,9 +38,16 @@ namespace BookBlossom.Web.Controllers
                 .Include(cd => cd.MembershipRank)
                 .FirstOrDefaultAsync(cd => cd.CustomerID == customerId);
 
-            var rankName = customerDetail?.MembershipRank?.RankType != null
-                ? ((BookBlossom.Core.Enums.RankType)customerDetail.MembershipRank.RankType.Value).ToString()
-                : "Bronze";
+            var spending = customerDetail?.TotalSpending ?? 0;
+            var currentRankEnum = spending switch
+            {
+                >= 10000000m => BookBlossom.Core.Enums.RankType.Diamond,
+                >= 5000000m => BookBlossom.Core.Enums.RankType.Gold,
+                >= 1000000m => BookBlossom.Core.Enums.RankType.Silver,
+                _ => BookBlossom.Core.Enums.RankType.Bronze
+            };
+
+            var rankName = currentRankEnum.ToString();
 
             return Ok(new {
                 Points = rep.ReputationPoint,

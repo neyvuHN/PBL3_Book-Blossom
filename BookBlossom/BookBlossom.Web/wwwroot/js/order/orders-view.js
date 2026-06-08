@@ -641,11 +641,16 @@ class OrdersView {
             milestones[3].status = 'current';
             milestones[3].time = 'Today, 08:30';
             milestones[3].description = 'Parcel is being delivered to your address.';
+        } else if (order.rawOrderStatus === 7) { // Delivered -> To receive
+            milestones.forEach(m => m.status = 'completed');
+            milestones[3].time = 'Today, 09:00';
+            milestones[3].description = 'Parcel has been delivered successfully. Please confirm receipt.';
         } else if (order.rawOrderStatus === 4 || order.status === 'completed') {
             milestones.forEach(m => m.status = 'completed');
             milestones[1].time = order.shippedDate || '2 days ago';
             milestones[2].time = 'Yesterday, 10:00';
             milestones[3].time = 'Yesterday, 14:00';
+            milestones[3].description = 'Parcel has been delivered successfully. Please confirm receipt.';
         }
 
         return milestones;

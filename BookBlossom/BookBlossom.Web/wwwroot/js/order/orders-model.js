@@ -109,7 +109,8 @@ class OrdersModel {
                 0: 'to-confirm', // Pending
                 1: 'to-ship', // AwaitingPickup
                 2: 'to-ship', // Shipping
-                3: 'to-receive', // Delivering
+                3: 'to-ship', // Delivering
+                7: 'to-receive', // Delivered
                 4: 'completed', // Completed
                 5: 'cancelled', // Cancelled
                 6: 'returned' // Returning

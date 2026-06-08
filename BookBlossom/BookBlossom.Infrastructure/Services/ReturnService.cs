@@ -40,10 +40,10 @@ namespace BookBlossom.Infrastructure.Services
                 throw new KeyNotFoundException("Không tìm thấy đơn hàng hoặc đơn hàng không thuộc quyền sở hữu của bạn.");
             }
 
-            // 2. Kiểm tra trạng thái đơn hàng (Phải là Delivering hoặc Completed mới được hoàn trả)
-            if (order.OrderStatus != OrderStatus.Delivering && order.OrderStatus != OrderStatus.Completed)
+            // 2. Kiểm tra trạng thái đơn hàng (Phải là Delivered mới được hoàn trả)
+            if (order.OrderStatus != OrderStatus.Delivered)
             {
-                throw new InvalidOperationException("Chỉ đơn hàng đang giao hoặc đã hoàn thành mới được khiếu nại trả hàng.");
+                throw new InvalidOperationException("Chỉ đơn hàng đã giao (chờ xác nhận) mới được khiếu nại trả hàng.");
             }
 
             // 3. Kiểm tra sản phẩm có thuộc đơn hàng hay không

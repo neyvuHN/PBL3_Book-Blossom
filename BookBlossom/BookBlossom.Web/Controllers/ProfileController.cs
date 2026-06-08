@@ -104,6 +104,12 @@ namespace BookBlossom.Web.Controllers
                 MaxReputationScore = 150,
                 
                 CurrentOrderStreak = user.CustomerDetail?.CurrentOrderStreak ?? 0,
+                CurrentMonthStreakCount = await _context.ReputationHistories
+                    .CountAsync(rh => rh.CustomerID == userId &&
+                                      (rh.ReferenceType == (byte)BookBlossom.Core.Enums.ReputationAction.StreakBonusLvl1 ||
+                                       rh.ReferenceType == (byte)BookBlossom.Core.Enums.ReputationAction.StreakBonusLvl2 ||
+                                       rh.ReferenceType == (byte)BookBlossom.Core.Enums.ReputationAction.StreakBonusLvl3) &&
+                                      rh.CreateAt >= new System.DateTime(now.Year, now.Month, 1, 0, 0, 0, System.DateTimeKind.Utc)),
                 
                 Badges = user.CustomerDetail?.BadgeCustomers?.Select(bc => bc.Badge.BadgeName).ToList() ?? new List<string>(),
                 BadgeEarnedDates = user.CustomerDetail?.BadgeCustomers?

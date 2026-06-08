@@ -27,6 +27,7 @@ namespace BookBlossom.Web.ViewModels.Profile
         
         // Order Streak
         public int CurrentOrderStreak { get; set; } = 2; // progress out of 3 successful orders
+        public int CurrentMonthStreakCount { get; set; } = 0; // Number of times user reached streak this month
         
         // Badges Collection
         public List<string> Badges { get; set; } = new List<string>();

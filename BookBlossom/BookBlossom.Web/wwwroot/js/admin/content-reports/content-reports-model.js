@@ -126,4 +126,8 @@ class ContentReportsModel {
         };
         return await window.apiClient.apiPost(`/api/Return/staff/${requestId}/review`, payload);
     }
+
+    async fetchOrderDetails(orderId) {
+        return await window.apiClient.apiGet(`/api/order/store/${orderId}`);
+    }
 }

@@ -41,7 +41,8 @@ class OrdersModel {
             case 0: return { status: 'Pending Confirmation', subStatus: '' };
             case 1: return { status: 'To Ship', subStatus: 'Packing' };
             case 2: return { status: 'In Transit', subStatus: 'In Transit' };
-            case 3: return { status: 'In Transit', subStatus: 'Delivered' };
+            case 3: return { status: 'In Transit', subStatus: 'Delivering' };
+            case 7: return { status: 'In Transit', subStatus: 'Delivered' };
             case 4: return { status: 'Completed', subStatus: 'Completed' };
             case 5: return { status: 'Refund/Dispute', subStatus: 'Cancelled' };
             case 6: return { status: 'Refund/Dispute', subStatus: 'Returning' };
@@ -58,7 +59,7 @@ class OrdersModel {
             case 'Handed to carrier': return 2; // Shipping
             case 'In Transit': return 2; // Shipping
             case 'Delivering': return 3; // Delivering
-            case 'Delivered': return 3; // Delivered (Waiting for Buyer)
+            case 'Delivered': return 7; // Delivered (Waiting for Buyer)
             default: return 1;
         }
     }
