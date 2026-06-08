@@ -131,7 +131,7 @@ namespace BookBlossom.Infrastructure.Services
                     dto.AttachedBookAuthor = bookAttachment.FileType;
                     dto.AttachedBookImage = bookAttachment.FileUrl;
 
-                    if (dto.AttachedBookID.HasValue && dto.AttachedBookID.Value > 0 && dto.AttachedBookTitle != null && !dto.AttachedBookTitle.Contains("Blind Book") && !dto.AttachedBookTitle.Contains("Sách Mù"))
+                    if (dto.AttachedBookID.HasValue && dto.AttachedBookID.Value > 0 && dto.AttachedBookTitle != null && !dto.AttachedBookTitle.Contains("Blind Book") && !dto.AttachedBookTitle.Contains("Mystery Book"))
                     {
                         var realBook = await _context.RealBooks.Include(b => b.BookAuthors).ThenInclude(ba => ba.Author).Include(b => b.BookImages).FirstOrDefaultAsync(b => b.BookID == dto.AttachedBookID.Value);
                         if (realBook != null)

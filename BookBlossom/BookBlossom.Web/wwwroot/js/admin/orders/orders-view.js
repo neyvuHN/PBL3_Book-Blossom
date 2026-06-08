@@ -82,6 +82,11 @@ class OrdersView {
         this.galleryPreviewImage = document.getElementById('galleryPreviewImage');
         this.galleryPreviewVideo = document.getElementById('galleryPreviewVideo');
         this.galleryCaption = document.getElementById('galleryCaption');
+
+        // Order Details Modal
+        this.orderDetailsModal = document.getElementById('orderDetailsModal');
+        this.btnCloseOrderDetailsModal = document.getElementById('btnCloseOrderDetailsModal');
+        this.btnCancelOrderDetails = document.getElementById('btnCancelOrderDetails');
     }
 
     /**
@@ -302,44 +307,44 @@ class OrdersView {
                </div>`
             : `<div style="font-size: 0.8rem; color:#AFA5B8; font-style:italic;">No customer note attached</div>`;
 
-        // Check for Blind Date specifics
+        // Order Items details
+        const items = order.fullDetail && order.fullDetail.orderItems ? order.fullDetail.orderItems : [];
+        const itemsCount = items.length;
+
         let bookInfoHtml = '';
-        if (order.isBlindDate) {
+        if (itemsCount > 0) {
+            const firstItem = items[0];
+            const isBlind = firstItem.blindBookID != null;
+            const coverImg = firstItem.sampleFilePath || '/images/Book/book1.jpg';
+            const realTitle = isBlind ? (firstItem.realBookTitle || firstItem.title) : firstItem.title;
+            const isbnText = firstItem.isbn || "N/A";
+
             bookInfoHtml = `
-                <div class="book-details-col">
-                    <div class="book-thumbnail-wrapper">
-                        <img src="${order.ImagePreviewUrl}" alt="Mystery Cover" class="book-thumbnail" onerror="this.src='/images/BlindDateBook/BlindBook.jpg'" />
-                        <span class="blind-date-overlay">Wrapped</span>
-                    </div>
-                    <div class="book-info-text">
-                        <div class="genre-tags">
-                            <span class="genre-tag">#BlindDate</span>
-                            ${order.genre.split(' ').map(g => `<span class="genre-tag">${g}</span>`).join('')}
+                <div class="book-details-col" style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; gap:15px; align-items:flex-start;">
+                        <div class="book-thumbnail-wrapper" style="position: relative;">
+                            <img src="${coverImg}" alt="Book Cover" class="book-thumbnail" onerror="this.src='/images/Book/book1.jpg'" />
                         </div>
-                        <span class="book-title">Mystery Book (${order.bookTitle})</span>
-                        <span class="book-qty">Quantity: x${order.quantity}</span>
-                        <div class="blind-date-warning">
-                            <i class="ph ph-eye-slash"></i> <strong>Blind Date Rules:</strong> DO NOT write the title on the external packaging!
-                            <div class="blind-date-hidden-title" style="display:block !important;">
-                                🙈 Actual: ${order.blindDateHiddenTitle}
-                            </div>
+                        <div class="book-info-text">
+                            ${isBlind ? `<div class="genre-tags" style="margin-bottom:4px;"><span class="genre-tag" style="background:#FFEbee; color:#C2185B; padding:2px 6px; border-radius:4px; font-size:0.65rem;">#BlindDate</span></div>` : ''}
+                            <span class="book-title" style="font-weight:600; color:#2C2630; display:block;">${realTitle}</span>
+                            <span class="book-qty" style="font-size:0.8rem; color:#82758D; display:block;">Quantity: x${firstItem.quantity}</span>
+                            ${isBlind ? `
+                                <div class="blind-date-warning" style="margin-top:4px; font-size:0.75rem; color:#E3597D;">
+                                    <i class="ph ph-eye-slash"></i> <strong>Blind Date:</strong> DO NOT write title on package!
+                                </div>
+                            ` : `<span class="book-isbn" style="font-size:0.75rem; color:#AFA5B8; display:block;">ISBN: ${isbnText}</span>`}
                         </div>
                     </div>
+                    ${itemsCount > 1 ? `
+                        <div style="font-size:0.75rem; font-weight:600; color:#2F80ED; background:#E8F0FE; padding:4px 10px; border-radius:20px; display:inline-block; align-self:flex-start; margin-top:4px;">
+                            + ${itemsCount - 1} other item(s) in this order
+                        </div>
+                    ` : ''}
                 </div>
             `;
         } else {
-            bookInfoHtml = `
-                <div class="book-details-col">
-                    <div class="book-thumbnail-wrapper">
-                        <img src="${order.ImagePreviewUrl}" alt="${order.bookTitle}" class="book-thumbnail" onerror="this.src='/images/Book/book1.jpg'" />
-                    </div>
-                    <div class="book-info-text">
-                        <span class="book-title">${order.bookTitle}</span>
-                        <span class="book-qty">Quantity: x${order.quantity}</span>
-                        <span class="book-isbn">ISBN: ${order.isbn}</span>
-                    </div>
-                </div>
-            `;
+            bookInfoHtml = `<div class="book-details-col"><span style="color:#82758D; font-style:italic;">No items found</span></div>`;
         }
 
         const formattedTotal = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalAmount);
@@ -427,6 +432,98 @@ class OrdersView {
         
         this.galleryCaption.textContent = "Unboxing Proof Evidence Video";
         this.galleryModal.style.display = 'flex';
+    }
+
+    /**
+     * Display Order Details Modal
+     */
+    showOrderDetailsModal(orderDetail) {
+        if (!this.orderDetailsModal) return;
+
+        // Header info
+        document.getElementById('detail-order-id').textContent = `#${orderDetail.orderID}`;
+
+        // Shipping Info
+        document.getElementById('detail-receiver').textContent = orderDetail.shipReceiverName || orderDetail.customerName || 'N/A';
+        document.getElementById('detail-phone').textContent = orderDetail.shipPhoneNumber || orderDetail.customerPhoneNumber || 'N/A';
+        document.getElementById('detail-address').textContent = orderDetail.shipDetailAddress || 'N/A';
+
+        // Payment Info
+        document.getElementById('detail-payment-method').textContent = orderDetail.paymentMethod === 0 ? "COD (Cash on Delivery)" : "Online Payment (VNPay)";
+        document.getElementById('detail-note').textContent = orderDetail.note || 'No notes provided';
+
+        // Order Items
+        const itemsListContainer = document.getElementById('detail-items-list');
+        const formattedItems = (orderDetail.orderItems || []).map(item => {
+            const unitPrice = item.unitPrice || 0;
+            const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(unitPrice);
+            let imageHtml = `<img src="${item.sampleFilePath || '/images/Book/book1.jpg'}" alt="Book Cover" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;" onerror="this.src='/images/Book/book1.jpg'" />`;
+            let isBlind = item.blindBookID != null;
+            // Removed the override to blind cover so the admin can see the real book image!
+
+            // check vouchers
+            let voucherHtml = '';
+            if (item.voucherBreakdown) {
+                try {
+                    let parsedVouchers = JSON.parse(item.voucherBreakdown);
+                    if (Array.isArray(parsedVouchers)) {
+                        voucherHtml = parsedVouchers.map(v => 
+                            `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${v.voucherCode || v.VoucherCode} (-${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.discountValue || v.DiscountValue)})</div>`
+                        ).join('');
+                    }
+                } catch (e) {
+                    voucherHtml = `<div style="font-size: 0.7rem; color: #E3597D; margin-top: 2px;"><i class="fas fa-tag"></i> ${item.voucherBreakdown}</div>`;
+                }
+            }
+
+            return `
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #E6E1EA;">
+                    ${imageHtml}
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 0.95rem; color: #2C2630;">${isBlind ? "Mystery Book" : item.title} ${isBlind ? `<span style="font-size:0.75rem; color:#82758D;">(Real: ${item.realBookTitle || item.title})</span>` : ''}</div>
+                        <div style="font-size: 0.85rem; color: #82758D;">Qty: x${item.quantity}</div>
+                        ${voucherHtml}
+                    </div>
+                    <div style="font-weight: 700; color: #2C2630;">${price}</div>
+                </div>
+            `;
+        }).join('');
+        itemsListContainer.innerHTML = formattedItems;
+
+        // Calculate subtotal from items if possible
+        let subtotalVal = 0;
+        if (orderDetail.orderItems && orderDetail.orderItems.length > 0) {
+            subtotalVal = orderDetail.orderItems.reduce((acc, item) => acc + ((item.unitPrice || 0) * item.quantity), 0);
+        } else {
+            subtotalVal = orderDetail.totalAmount; // Fallback
+        }
+
+        // Summary amounts
+        const shipping = (orderDetail.shippingFee !== undefined && orderDetail.shippingFee !== null) ? orderDetail.shippingFee : 30000;
+        const discountVal = (orderDetail.discountAmount !== undefined && orderDetail.discountAmount !== null) ? orderDetail.discountAmount : (orderDetail.discountValue || 0);
+
+        document.getElementById('detail-subtotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(subtotalVal);
+        document.getElementById('detail-shipping-fee').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping);
+        document.getElementById('detail-discount-val').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountVal);
+        document.getElementById('detail-total').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(orderDetail.totalAmount);
+
+        // Global Vouchers List
+        const globalVouchersContainer = document.getElementById('detail-global-vouchers');
+        if (orderDetail.appliedVouchers && orderDetail.appliedVouchers.length > 0) {
+            globalVouchersContainer.innerHTML = orderDetail.appliedVouchers.map(v => 
+                `<div style="display:inline-block; background:#ffebee; color:#C2185B; border:1px solid #f07c7c; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-right:4px; margin-top:2px;"><i class="fas fa-tag"></i> ${v}</div>`
+            ).join('');
+        } else {
+            globalVouchersContainer.innerHTML = '';
+        }
+
+        this.orderDetailsModal.style.display = 'flex';
+    }
+
+    closeOrderDetailsModal() {
+        if (this.orderDetailsModal) {
+            this.orderDetailsModal.style.display = 'none';
+        }
     }
 
     /**

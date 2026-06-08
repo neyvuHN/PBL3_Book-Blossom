@@ -214,6 +214,32 @@ class OrdersModel {
     }
 
     /**
+     * Fetch order details directly from backend API for a specific store order.
+     */
+    async fetchOrderDetails(orderId) {
+        const order = this.findOrderById(orderId);
+        if (!order) return null;
+
+        const headers = this._getHeaders();
+        try {
+            const response = await fetch(`/api/order/store/${order.orderIDRaw}`, {
+                method: 'GET',
+                headers: headers
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to load order details.");
+            }
+
+            const detail = await response.json();
+            return detail;
+        } catch (error) {
+            console.error("Error fetching order details:", error);
+            throw error;
+        }
+    }
+
+    /**
      * Finds an order object by ID.
      */
     findOrderById(orderId) {

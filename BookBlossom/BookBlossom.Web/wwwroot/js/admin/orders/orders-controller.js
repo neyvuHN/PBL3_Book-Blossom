@@ -148,6 +148,25 @@ class OrdersController {
                     return;
                 }
 
+                // Click on order card to view details
+                const orderCard = e.target.closest('.order-card');
+                const isActionClick = e.target.closest('.footer-buttons') || e.target.closest('.order-meta') || e.target.closest('.buyer-profile');
+                if (orderCard && !isActionClick && !chkSelect && !btnChatBuyer && !btnConfirm && !btnCancel && !btnStartShip && !btnPrintLabel && !btnMarkDelivered) {
+                    const orderId = orderCard.getAttribute('data-order-id');
+                    this.view.showToast('Loading', 'Fetching order details...', 'info');
+                    try {
+                        const detail = await this.model.fetchOrderDetails(orderId);
+                        if (detail) {
+                            this.view.showOrderDetailsModal(detail);
+                        } else {
+                            this.view.showToast('Error', 'Order not found.', 'error');
+                        }
+                    } catch (err) {
+                        this.view.showToast('Error', 'Failed to load order details.', 'error');
+                    }
+                    return;
+                }
+
                 // B. Confirm Pending Order
                 if (btnConfirm) {
                     const orderId = btnConfirm.getAttribute('data-id');
@@ -415,6 +434,13 @@ class OrdersController {
         // --- 7. Modal Control Interactions ---
         if (this.view.btnCloseChatModal) {
             this.view.btnCloseChatModal.addEventListener('click', () => this.view.closeChatModal());
+        }
+
+        if (this.view.btnCloseOrderDetailsModal) {
+            this.view.btnCloseOrderDetailsModal.addEventListener('click', () => this.view.closeOrderDetailsModal());
+        }
+        if (this.view.btnCancelOrderDetails) {
+            this.view.btnCancelOrderDetails.addEventListener('click', () => this.view.closeOrderDetailsModal());
         }
 
         if (this.view.btnClosePrintModal) {

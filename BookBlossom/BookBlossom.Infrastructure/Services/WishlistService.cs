@@ -118,7 +118,7 @@ namespace BookBlossom.Infrastructure.Services
                 WishlistID = wishlistItem.WishlistID,
                 BookID = wishlistItem.BookID,
                 BlindBookID = wishlistItem.BlindBookID,
-                Title = wishlistItem.BookID.HasValue ? (addedBook?.Title ?? "Unknown") : ($"[Sách Mù] {addedBlindBook?.RealBook?.Category?.CategoryName ?? "Unknown"} - {addedBlindBook?.Hashtags}"),
+                Title = wishlistItem.BookID.HasValue ? (addedBook?.Title ?? "Unknown") : ($"[Mystery Book] {addedBlindBook?.RealBook?.Category?.CategoryName ?? "Unknown"} - {addedBlindBook?.Hashtags}"),
                 Price = wishlistItem.BookID.HasValue ? (addedBook?.Price ?? 0) : (addedBlindBook?.Price ?? 0),
                 ImageUrl = request.BookID.HasValue 
                     ? (addedBook?.BookImages.FirstOrDefault(i => i.IsMain)?.ImagePath ?? addedBook?.BookImages.FirstOrDefault()?.ImagePath) 
